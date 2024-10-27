@@ -1,0 +1,588 @@
+sprawdzic dla ramu MPU_ACCESS_NOT_BUFFERABLE szybkosc i stabilnosc
+vTaskDelayUntil(&xLastExecutionTime, 100);
+wyswietlanie wysokosci szerokosci polwysokosci , sciemni, rozjas, rotacja 90 120,, przesuwanie w H i w V
+Zbadac osdtepy midzy literami dla italics
+Czy dziala staly width dla font_72 i 130 ??
+wyswietl heigh i width textu !!!
+funkcje wypisujeace wartosc liczbowa i jednostke odpowiedni mniejsza czcinka -> w jednej funkcji
+wyswietlic czas wgrywania fontoe inych size !!!!
+funkcja autmatycznie zamienia na duze litery lub male 
+okno textu szerokiosc i wysokosc i automatyczne przewijanie textu -> jedna funkcja
+
+
+
+A=200 => a=200/255, b=1-a  =>  a*(R1,G1,B1) + b*(R2,G2,B2)  / nachozenie obrazow
+
+zrobic probe dolacznia nie calych plikow .h tylko potrzebne funkcjie przez extern !!! moze zmniehszy czas kompilacji
+
+KeyID==PRESSED ? BLACK:WHITE
+
+
+	//DbgVar(1,50,"\r\nGGGGGGGGGG: %d",XXXXXXXXXXXXXX());
+	
+	
+
+//+-.,[]{}<>'~*()=%�|?/!1234567890
+//
+a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z + - . , : ; [ ] { } < > ' ~ * ( ) & # ^ = _ $ % � @ | ? ! � � � � � � � � � � � � � � � � � � / 1 2 3 4 5 6 7 8 9 0
+static const char CharsTab_full[]="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-.,:;[]{}<>'~*()&#^=_$%\xB0@|?!\xA5\xB9\xC6\xE6\xCA\xEA\xA3\xB3\xD1\xF1\xD3\xF3\x8C\x9C\x8F\x9F\xAF\xBF/1234567890";
+static const char CharsTab_full[]="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-.,:;[]{}<>'~*()&#^=_$%°@|?!ĄąĆćĘęŁłŃńÓóŚśŹźŻż/1234567890";
+
+//R 255 120 120
+//B 80  200 255
+//G 80  255  80
+
+//-------------------------------------------------------------------------------------------
+#define JPEG_SOI_MARKER (0xFFD8) /* JPEG Start Of Image marker*/
+#define JPEG_SOI_MARKER_BYTE0 (JPEG_SOI_MARKER & 0xFF)
+#define JPEG_SOI_MARKER_BYTE1 ((JPEG_SOI_MARKER >> 8) & 0xFF)
+
+static char PatternSearchBuffer[512];
+uint32_t index=0, readSize=0, i;
+uint32_t FrameSize;
+char buhff[4096];
+
+int ilerazy=0;
+	SDCardFileOpen(0, "Video/BehindTheDemo.avi", FA_READ);
+	do
+	{
+		if(SDCardFilePosition(0,index)!=0)
+		{
+			break;
+		}
+		readSize=SDCardFileRead(0, PatternSearchBuffer, 512);
+		if (readSize>=0)
+		{
+			for (i=0; i<readSize; i++)
+			{
+				if ((PatternSearchBuffer[i]==0)&&(PatternSearchBuffer[i+1]==JPEG_SOI_MARKER_BYTE1))
+				{
+					if ((PatternSearchBuffer[i+2]==JPEG_SOI_MARKER_BYTE0)&&(PatternSearchBuffer[i+3]==0xFF))
+					{
+//						if (i>3)
+//						{
+//							FrameSize=PatternSearchBuffer[i-1]*65536+PatternSearchBuffer[i-2]*256+PatternSearchBuffer[i-3];
+//						}
+						ilerazy++;
+						index+=i+4;
+						SDCardFilePosition(0,index);
+						if(4096!=SDCardFileRead(0, buhff, 4096))
+						{
+							osDelay(2000);
+							Dbg(1,"\r\nHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+						}
+						index+=4096;
+
+						DbgVar(1,50,"\r\n%d     %d ",index, ilerazy);
+
+
+						goto esfsfsdfdgd;
+
+
+
+						//F_read
+
+					}
+				}
+			}
+			index+=readSize;
+
+			esfsfsdfdgd:
+			Dbg(1,".");
+		}
+		else
+		{
+			Dbg(1,"\r\nEEEERRRROOORRRR !!!!!!!!");
+			break;
+		}
+
+
+
+	}while ((index+1)<=SDCardOpenFileSize(0));
+
+	SDCardFileClose(0);
+
+//-------------------------------------------------------------------------------------------
+static int LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t windowX,uint32_t windowY,int id, int X, int Y, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t NewBkColor, uint32_t NewFontColor,int inv)
+{
+	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
+	if(fontIndex==-1)
+		return 0;
+	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
+	int i,j,n,o,bk, lenTxt=strlen(txt),lenTxtInPixel=0;
+	int posX=X, posY=Y;
+	char *pbmp;
+	int spaceBetweenLatters=space;
+	uint32_t index=0, width=0, height=0, bit_pixel=0;
+	uint32_t backGround;
+	uint32_t pos, pos2, xi;
+	uint32_t Y_newFont,Y_newBk;
+
+//	touchTemp.x_Start= posX;
+//	touchTemp.y_Start= posY;
+
+	/* Get bitmap data address offset */
+	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
+	/* Read bitmap width */
+	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  //!!! szerokosc musi byc wielokrotnoscia 4
+	/* Read bitmap height */
+	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
+	/* Read bit/pixel */
+	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
+	bit_pixel/=8;
+
+	fontsBuffer += (index + (width * height * bit_pixel));
+	fontsBuffer -= width*bit_pixel;
+
+	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];
+
+	if(OnlyDigits==halfHight)
+		height=Font[fontIndex].heightHalf;
+
+	j=strlen(txt);
+	for(i=0;i<j;i++)
+		lenTxtInPixel += Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
+
+	LCD_Rectangle(posBuff,windowX,windowY,X,Y,lenTxtInPixel,height,NewBkColor,NewBkColor,NewBkColor);
+	Y_newFont= COLOR_TO_Y(NewFontColor);
+	Y_newBk= COLOR_TO_Y(NewBkColor);
+
+	for(n=0;n<lenTxt;++n)
+	{
+		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
+		pos2= posBuff+(windowX*posY + posX);
+		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
+		bk=1;
+
+		for(j=0; j < height; ++j)
+		{
+			pos=pos2+windowX*j;
+			o=0;
+			for(i=0; i<xi; ++i)
+			{
+				if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
+				{
+					LcdBuffer[pos+i] = GetCalculatedRGB(*(pbmp+o+2),*(pbmp+o+1),*(pbmp+o+0));
+
+					if (Y_newFont > Y_newBk)
+					{
+						if (COLOR_TO_Y(LcdBuffer[pos+i]) < Y_newBk)
+						{
+							if (inv)
+								LcdBuffer[pos + i] = NewFontColor;
+							else
+								LcdBuffer[pos + i] = NewBkColor;
+						}
+					}
+					else
+					{
+						if (COLOR_TO_Y(LcdBuffer[pos+i]) > Y_newBk)
+						{
+							if (inv)
+								LcdBuffer[pos + i] = NewFontColor;
+							else
+								LcdBuffer[pos + i] = NewBkColor;
+						}
+					}
+				}
+				o+=3;
+			}
+			if(bk)
+			{
+				spaceBetweenLatters = space + RealizeSpaceCorrect(txt+n,id);
+				bk=0;
+			}
+			pbmp -= width*bit_pixel;
+		}
+		posX += xi;
+		posX+=spaceBetweenLatters;
+	}
+//	touchTemp.x_End= posX;
+//	touchTemp.y_End= posY+height;
+	return lenTxtInPixel;
+
+//---------------------------------------------------------------------------------------------
+int ReturnWidthFont(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor, char *txt)
+{
+	int lenTxtInPixel=0;
+	int fontIndex=SearchFontIndex(fontSize,fontStyle,backgroundColor,fontColor);
+	if(fontIndex==-1)
+		return -1;
+	else
+	{
+		for(int i=0;i<strlen(txt);i++)
+		{
+			lenTxtInPixel += Font[fontIndex].fontsTabPos[ (int)txt[i] ][1];
+		}
+		return lenTxtInPixel;
+	}
+}
+
+int ReturnHeightFont(int fontSize,int fontStyle,uint32_t backgroundColor,uint32_t fontColor)
+{
+	int fontIndex=SearchFontIndex(fontSize,fontStyle,backgroundColor,fontColor);
+	if(fontIndex==-1)
+		return -1;
+	else
+		return Font[fontIndex].height;
+}
+
+int ReturnWidthFontID(int fontID, char *txt)
+{
+	int lenTxtInPixel=0;
+	int fontIndex=SearchFontIndex(LCD_GetFontID_size(fontID), LCD_GetFontID_style(fontID), LCD_GetFontID_bkColor(fontID), LCD_GetFontID_color(fontID));
+	if(fontIndex==-1)
+		return -1;
+	else
+	{
+		for(int i=0;i<strlen(txt);i++)
+		{
+			lenTxtInPixel += Font[fontIndex].fontsTabPos[ (int)txt[i] ][1];
+		}
+		return lenTxtInPixel;
+	}
+}
+int ReturnHeightFontID(int fontID)
+{
+	int fontIndex=SearchFontIndex(LCD_GetFontID_size(fontID), LCD_GetFontID_style(fontID), LCD_GetFontID_bkColor(fontID), LCD_GetFontID_color(fontID));
+	if(fontIndex==-1)
+		return -1;
+	else
+		return Font[fontIndex].height;
+}
+int ReturnHeightHalfFontID(int fontID)
+{
+	int fontIndex=SearchFontIndex(LCD_GetFontID_size(fontID), LCD_GetFontID_style(fontID), LCD_GetFontID_bkColor(fontID), LCD_GetFontID_color(fontID));
+	if(fontIndex==-1)
+		return -1;
+	else
+		return Font[fontIndex].heightHalf;
+}
+
+static int LCD_GetFontID_size(int fontID)
+{
+	if(fontID < MAX_OPEN_FONTS_SIMULTANEOUSLY)
+		return FontID[fontID].size;
+	else
+		return 0;
+}
+static int LCD_GetFontID_style(int fontID)
+{
+	if(fontID < MAX_OPEN_FONTS_SIMULTANEOUSLY)
+		return FontID[fontID].style;
+	else
+		return 0;
+}
+static int LCD_GetFontID_bkColor(int fontID)
+{
+	if(fontID < MAX_OPEN_FONTS_SIMULTANEOUSLY)
+		return FontID[fontID].bkColor;
+	else
+		return 0;
+}
+static int LCD_GetFontID_color(int fontID)
+{
+	if(fontID < MAX_OPEN_FONTS_SIMULTANEOUSLY)
+		return FontID[fontID].color;
+	else
+		return 0;
+}
+static int LCD_GetFontID(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor)
+{
+    int i;
+    for(i=0; i<MAX_OPEN_FONTS_SIMULTANEOUSLY; i++)
+    {
+    	if((fontSize		==	FontID[i].size)&&
+    	   (fontStyle	    ==	FontID[i].style)&&
+		   (backgroundColor	==	FontID[i].bkColor)&&
+		   (fontColor	    ==	FontID[i].color))
+    			return i;
+    }
+    return -1;
+}
+
+
+//static char* ReturnImageName(int imageIndex)
+//{
+//	return Image[imageIndex].name;
+//}
+
+static int SearchImageName(char *imageName)
+{
+    int i;
+    for(i=0; i<MAX_OPEN_IMAGES_SIMULTANEOUSLY; i++)
+    {
+    	if(strstr(Image[i].name,imageName))
+    		return i;
+    }
+    return -1;
+}
+
+bool LCD_DeleteImage(char *imageName)
+{
+	int imageIndex=SearchImageName(imageName);
+	if(imageIndex==-1)
+		return false;
+	Image[imageIndex].name[0]=0;
+	Image[imageIndex].pointerToMemory=0;
+	if( CounterBusyBytesForFontsImages >= Image[imageIndex].sdramLenght )
+	{
+		CounterBusyBytesForFontsImages -= Image[imageIndex].sdramLenght;
+		Image[imageIndex].sdramLenght=0;
+		return true;
+	}
+	else
+	{
+		CounterBusyBytesForFontsImages=0;
+		Image[imageIndex].sdramLenght=0;
+		return false;
+	}
+}
+
+int LCD_LoadImage(char *pathName)
+{
+  uint32_t imageFileSize, readBytesSize;
+  int imageIndex;
+
+  if(-1!=SearchImageName(pathName))
+	return 1;
+  imageIndex=LoadImageName(pathName);
+  if(-1==imageIndex)
+	return 2;
+
+  if(FR_OK!=SDCardFileInfo(pathName,&imageFileSize))
+    return 3;
+
+  while((imageFileSize%4)!=0)  //wyr�wnanie do 4bajt�w dla odczytu SDRAM
+	  imageFileSize++;
+
+  if(true==DynamicImageMemoryAllocation(imageFileSize,imageIndex))
+  {
+    if(FR_OK!=SDCardFileOpen(1,pathName,FA_READ))
+	  return 4;
+	if(0 > SDCardFileRead(1,(char*)Image[imageIndex].pointerToMemory,MAX_FONTS_AND_IMAGES_MEMORY_SIZE,&readBytesSize))
+	  return 5;
+	if(FR_OK!=SDCardFileClose(1))
+	  return 6;
+  }
+  else
+  {
+	  Image[imageIndex].name[0]=0;
+	  Image[imageIndex].pointerToMemory=0;
+	  return 7;
+  }
+  return 0;
+}
+
+static bool DynamicImageMemoryAllocation(uint32_t imageFileSize, int imageIndex)
+{
+	if(CounterBusyBytesForFontsImages+imageFileSize < MAX_FONTS_AND_IMAGES_MEMORY_SIZE)
+	{
+		Image[imageIndex].sdramLenght=imageFileSize;
+		Image[imageIndex].pointerToMemory=(uint8_t*)( fontsImagesMemoryBuffer + CounterBusyBytesForFontsImages );
+		CounterBusyBytesForFontsImages += imageFileSize;
+		return true;
+	}
+	else
+		return false;
+}
+
+static int LoadImageName(char *imageName)
+{
+    int i;
+    for(i=0; i<MAX_OPEN_IMAGES_SIMULTANEOUSLY; i++)
+    {
+    	if(0==Image[i].name[0])
+    	{
+    		strcpy(Image[i].name,imageName);
+    		return i;
+    	}
+    }
+    return -1;
+}
+
+bool LCD_DeleteFont(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor)
+{
+	int fontIndex=SearchFontIndex(fontSize,fontStyle,backgroundColor,fontColor);
+	if(fontIndex==-1)
+		return false;
+	Font[fontIndex].fontSizeToIndex=0;
+	Font[fontIndex].fontStyleToIndex=0;
+	Font[fontIndex].fontBkColorToIndex=0;
+	Font[fontIndex].fontColorToIndex=0;
+	Font[fontIndex].pointerToMemoryFont=0;
+	if( CounterBusyBytesForFontsImages >= Font[fontIndex].fontSdramLenght )
+	{
+		CounterBusyBytesForFontsImages -= Font[fontIndex].fontSdramLenght;
+		Font[fontIndex].fontSdramLenght=0;
+		return true;
+	}
+	else
+	{
+		CounterBusyBytesForFontsImages=0;
+		Font[fontIndex].fontSdramLenght=0;
+		return false;
+	}
+}
+
+
+
+
+
+
+void SCREEN_ReadPanel(void)
+{
+
+	//DeleteAllTouch();
+	LCD_DeleteAllFontAndImages();
+	//ClearAllPaints();
+	 StartMeasureTime(0);
+	 LCD_LoadFont_DarkgrayGreen(FONT_18, Arial, fontID_1,1);     //DLA CAHCNE COLOR  !!!!LCD_LoadFont_DarkgrayWhite!!!!!
+	LCD_LoadFont_DarkgrayWhite(FONT_12, Arial_Narrow, fontID_2,0);
+	LCD_LoadFont_DarkgrayWhite(FONT_11, Arial, fontID_3,0);
+	LCD_LoadFont_WhiteBlack(FONT_12, Arial, fontID_4,0);
+//	LCD_LoadFont_DarkgrayWhite(FONT_9, Arial, fontID_2,0);
+//	LCD_LoadFont_DarkgrayWhite(FONT_10, Arial, fontID_3,0);
+//	LCD_LoadFont_DarkgrayWhite(FONT_11, Arial, fontID_4,0);
+//	LCD_LoadFont_DarkgrayWhite(FONT_12, Arial, fontID_5,0);
+//	LCD_LoadFont_DarkgrayWhite(FONT_14, Arial, fontID_6,0);
+//	LCD_LoadFont_DarkgrayWhite(FONT_16, Arial, fontID_7,0);
+//	LCD_LoadFont_DarkgrayWhite(FONT_18, Arial, fontID_8,0);
+//	LCD_LoadFont_DarkgrayWhite(FONT_20, Arial, fontID_9,0);
+//	LCD_LoadFont_DarkgrayWhite(FONT_22, Arial, fontID_10,0);
+//	LCD_LoadFont_DarkgrayWhite(FONT_24, Arial, fontID_11,0);
+//	LCD_LoadFont_DarkgrayWhite(FONT_26, Arial, fontID_12,0);
+	StopMeasureTime(0,"\r\nArial:");
+
+	LCD_Clear(MYGRAY);
+
+	StartMeasureTime(0);
+		//LCD_Str(fontID_1, 0, 30*0, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,DARKGREEN,35);
+	//LCD_StrWindow(0,LCD_X,LCD_Y,fontID_1, 0, 30*0, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,0,0);
+
+	for(int i=0;i<10;++i) LCD_StrChangeColor(fontID_1, 0, 30*0, "Rafa� Markielowski +23.6�C", fullHight, 0,MYGRAY,BLACK,0xF4);
+	for(int i=0;i<10;++i) LCD_Str(fontID_1, 0, 30*0, "Rafa� Markielowski +23.6�C", fullHight, 0,0,0);
+	StopMeasureTime(0,"\r\nArialwwww:");
+
+	LCD_Show();
+
+//	LCD_Clear(GRAY); LCD_StrChangeColorIndirect(fontID_1, 0, 35*1, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,RED,BLACK,0xF4);
+//	LCD_Clear(GRAY); LCD_StrChangeColorIndirect(fontID_1, 0, 35*2, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,  BLUE,BLACK,0xF4);
+//	LCD_Clear(GRAY); LCD_StrChangeColorIndirect(fontID_1, 0, 35*3, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0, GREEN, BLACK,0xF4);
+//	LCD_Clear(GRAY); LCD_StrChangeColorIndirect(fontID_1, 0, 35*4, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0, 0xaabb11,BLACK,0xF4);
+//	LCD_Clear(GRAY); LCD_StrChangeColorIndirect(fontID_1, 0, 35*5, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0, YELLOW,BLACK,0xF4);
+//	LCD_Clear(GRAY); LCD_StrChangeColorIndirect(fontID_1, 0, 35*6, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0, DARKYELLOW,BLACK,0xF4);
+//	LCD_Clear(GRAY); LCD_StrChangeColorIndirect(fontID_1, 0, 35*7, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0, MYGRAY,LIGHTGREEN,0xF4);
+
+	LCD_Clear(GRAY); LCD_StrChangeColorWindowIndirect(10000,0,30*1,400,29,fontID_1, 0, 5, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,GRAY,RED,0xF4);
+	LCD_Clear(GRAY); LCD_StrChangeColorWindowIndirect(10000,0,30*2,400,29,fontID_1, 20, 5, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,  LIGHTGRAY,BLUE,0xF4);
+	LCD_Clear(GRAY); LCD_StrChangeColorWindowIndirect(10000,0,30*3,400,29,fontID_1, 0, 5, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0, GREEN, ORANGE,0xF4);
+	LCD_Clear(GRAY); LCD_StrChangeColorWindowIndirect(10000,0,30*4,400,29,fontID_1, 20, 5, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0, 0xaabb11,0x775511,0xF4);
+	LCD_Clear(GRAY); LCD_StrChangeColorWindowIndirect(10000,0,30*5,400,29,fontID_1, 0, 5, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0, YELLOW,DARKMAGENTA,0xF4);
+	LCD_Clear(GRAY); LCD_StrChangeColorWindowIndirect(10000,0,30*6,400,29,fontID_1, 20, 5, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0, DARKYELLOW,DARKMAGENTA,0xef);
+	LCD_Clear(GRAY); LCD_StrChangeColorWindowIndirect(10000,0,30*7,400,29,fontID_1, 0, 5, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0, MYGRAY,CYAN,0xF4);
+
+
+
+
+
+
+	//StartMeasurTime(0);
+//	LCD_StrIndirect(fontID_1, 0, 30*2, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,RED,35);
+//	LCD_StrIndirect(fontID_1, 0, 30*3, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,GREEN,35);
+//	LCD_StrIndirect(fontID_1, 0, 30*4, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,BLACK,35);
+//	LCD_StrIndirect(fontID_1, 0, 30*5, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,0xaabb11,35);
+//	LCD_StrIndirect(fontID_1, 0, 30*6, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,TRANSPARENT,0);
+//	LCD_StrIndirect(fontID_1, 0, 30*7, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,0x775511,75);
+//	LCD_StrIndirect(fontID_1, 0, 30*8, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,0x775511,10);
+
+//	LCD_Clear(GRAY);LCD_StrWindowIndirect(10000,0,30*2,400,29,fontID_1, 0,5, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,0xAA0000,20);
+//	LCD_Clear(GRAY);LCD_StrWindowIndirect(3454,0,30*3,400,29,fontID_1, 80,5, "1111/. 1122  /.Aa11bc/A/", fullHight, 0,GREEN,35);
+//	LCD_Clear(GRAY);LCD_StrWindowIndirect(115001,0,30*4,400,29,fontID_1, 0,5, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,BLACK,99);
+//	LCD_Clear(GRAY);LCD_StrWindowIndirect(3,0,30*5,400,29,fontID_1, 80,5, "1111/. 1122  /.Aa11bc/A/", fullHight, 0,0xaabb11,35);
+//	LCD_Clear(GRAY);LCD_StrWindowIndirect(0,0,30*6,400,29,fontID_1, 15,3, "1111/. 1122  /.Aa11bc/A22A/", halfHight, 0,DARKYELLOW,35);
+//	LCD_Clear(GRAY);LCD_StrWindowIndirect(115001,0,30*7,400,29,fontID_1, 80,5, "1111/. 1122  /.Aa11bc/A/", fullHight, 0,0x775511,75);
+//	LCD_Clear(GRAY);LCD_StrWindowIndirect(115003,0,30*8,400,29,fontID_1, 0,5, "1111/. 1122  /.Aa11bc/A22A/", fullHight, 0,0x775511,10);
+
+	StopMeasureTime(0,"\r\nXXXXXXXXXXXX:");
+
+
+
+
+
+
+//	LCD_Str(fontID_3, 250, 0, "Markielowski Rafa� 123 ", fullHight, -1);
+//	LCD_Str(fontID_4, 250, 30, "Markielowski Rafa� 123", fullHight, -1);
+
+
+//	LCD_Str(fontID_2, 0, 20, "Markielowski Rafa� 3", halfHight, 0);
+//	LCD_Str(fontID_3, 0, 40, "Markielowski Rafa� 3", halfHight, 0);
+//	LCD_Str(fontID_4, 0, 60, "Markielowski Rafa� 3", halfHight, 0);
+//	LCD_Str(fontID_5, 0, 80, "Markielowski Rafa� 3", halfHight, 0);
+//	LCD_Str(fontID_6, 0, 110, "Markielowski Rafa� 3", halfHight, 0);
+//	LCD_Str(fontID_7, 0, 140, "Markielowski Rafa� 3", halfHight, 0);
+//	LCD_Str(fontID_8, 0, 180, "Markielowski Rafa� 3", halfHight, 0);
+//	LCD_Str(fontID_9, 0, 240, "Markielowski Rafa� 3", halfHight, 0);
+//	LCD_Str(fontID_10, 150, 0, "Markielowski Rafa� 3", halfHight, 0);
+//	LCD_Str(fontID_11, 150, 50, "Rafa� 3", halfHight, 0);
+//	LCD_Str(fontID_12, 150, 160, "Rafa� 3", halfHight, 0);
+
+
+
+//	LCD_Shape(50,50,LCD_Rectangle,30,60,RED,GREEN,WHITE);
+//	LCD_Shape(150,150,LCD_Rectangle,50,50,YELLOW,YELLOW,YELLOW);
+	//LCD_Znak_XX(0,LCD_X,LCD_Y, 240,136, 30,15, WHITE,WHITE,WHITE);
+
+//	LCD_Shape(50,50,LCD_KeyBackspace,60,32,WHITE,0,MYGRAY);
+//	LCD_Shape(150,50,LCD_KeyBackspace,110,76,WHITE,0,MYGRAY);
+//	LCD_Shape(250,50,LCD_KeyBackspace,48,32,WHITE,0,MYGRAY);
+//
+//	LCD_Shape(0,200,LCD_KeyBackspace,48,31,WHITE,0,MYGRAY);
+//	LCD_Shape(50,200,LCD_KeyBackspace,48,30,WHITE,0,MYGRAY);
+//	LCD_Shape(100,200,LCD_KeyBackspace,48,29,WHITE,0,MYGRAY);///
+//	LCD_Shape(150,200,LCD_KeyBackspace,48,28,WHITE,0,MYGRAY);///
+//	LCD_Shape(200,200,LCD_KeyBackspace,48,27,WHITE,0,MYGRAY);
+//	LCD_Shape(250,200,LCD_KeyBackspace,48,26,WHITE,0,MYGRAY);
+//	LCD_Shape(300,200,LCD_KeyBackspace,48,25,WHITE,0,MYGRAY);//
+//	LCD_Shape(350,200,LCD_KeyBackspace,48,24,WHITE,0,MYGRAY);//
+//	LCD_Shape(400,200,LCD_KeyBackspace,48,23,WHITE,0,MYGRAY);
+//	StartMeasurTime(0);
+//	LCD_Str(fontID_6, 80, 10, "Markielowski Rafa�", fullHight, 0);
+//	StopMeasurTime(0,"\r\nArial text::");
+
+
+//LCD_StrIndirect(fontID_1, 0, 100, "1111111xcde2222222", fullHight, 0,NOCOLOR);
+//LCD_StrWindowIndirect(0,250,50,fontID_1, 50, 50, "ABCDEFGHijklm", fullHight, 0,NOCOLOR);
+
+
+//	LCD_ShapeIndirect(5,250,LCD_Rectangle,20,20, BLUE,ORANGE,BLACK);
+//	LCD_ShapeIndirect(100,250,LCD_Rectangle,20,20, RED,BLACK,BLACK);
+
+
+//	LCD_ShapeIndirect(352,52,LCD_KeyBackspace,48,32,WHITE,0,MYGRAY);
+//	LCD_ShapeIndirect(352,152,LCD_KeyBackspace,48,32,WHITE,0,MYGRAY);
+//	LCD_ShapeIndirect(352,100,LCD_KeyBackspace,48,32,WHITE,0,MYGRAY);
+
+   //LCD_ShapeWindow(LCD_Rectangle,937,100,100, 3,3, 50, 50, RED,BLUE,MYGRAY);
+//   LCD_Display(937,0,0,100,100);
+//	LCD_Clear(MYGRAY);
+//   LCD_ShapeWindowIndirect(0,0,LCD_Rectangle,0,50,60, 0,0, 50,60, BLUE,BROWN,BLACK);
+//   LCD_ShapeWindowIndirect(0,100,LCD_Rectangle,0,50,60, 0,0, 50,60, BLUE,BROWN,BLACK);
+//   LCD_ShapeWindowIndirect(0,200,LCD_Rectangle,0,50,60, 0,0, 50,60, BLUE,BROWN,BLACK);
+
+
+//	LCD_ShapeWindow(LCD_Rectangle,0,LCD_X,LCD_Y, 50,50, 30,60, RED,GREEN,WHITE);
+//	LCD_ShapeWindow(LCD_Rectangle,0,LCD_X,LCD_Y, 150,150, 50,50, YELLOW,YELLOW,YELLOW);
+//	LCD_Display(0, 0,0,LCD_X,LCD_Y);
+//
+//	LCD_ShapeWindowIndirect(400,5,LCD_Rectangle,937,50,75, 0,0, 50,75, BLUE,BROWN,BLACK);
+
+
+
+
+
+
+
+}
+
+
