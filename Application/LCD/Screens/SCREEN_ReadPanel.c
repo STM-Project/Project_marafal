@@ -485,6 +485,34 @@ void* TEST_function(void *a, void *b){
 	 return &aaS;
 }
 
+void* TEST_function___(void *a, int typeParam, void *step, void *max, void *min ,VOID_FUNCTION_TEST xfunc){
+
+	switch(typeParam){
+		case 0:
+			if(max!=NULL) INCR( *((int*)a), *((int*)step), *((int*)max));
+			DbgVar(1,50,"\r\nParam: %d ",*((int*)a));
+			if(xfunc!=NULL) xfunc(NULL,NULL);
+			break;
+		case 1:
+			if(max!=NULL) INCR( *((float*)a), *((float*)step), *((float*)max));
+			DbgVar(1,50,"\r\nParam: %s ",Float2Str(*((float*)a),' ',1,Sign_none,2));
+			if(xfunc!=NULL) xfunc(NULL,NULL);
+			break;
+	}
+	return (void*)(0);
+}
+//
+//int test_r=0;
+//void SETPARAM_Circle_1__(void* correctForWidth, void* correctPercDeg, void* errorDecision, VOID_FUNCTION_TEST xfunc){
+//	Circle.correctForWidth = *((uint16_t*)correctForWidth);
+//	Circle.correctPercDeg[0] = *((uint16_t*)correctPercDeg);
+//	Circle.errorDecision[0] = *((float*)errorDecision);
+//
+//
+//	test_r = *((int*)xfunc( correctForWidth, correctPercDeg ));
+//}
+
+
 static void DBG_SCREEN_Test_Circle(void)
 {
 	int refresh_Screen=1;
