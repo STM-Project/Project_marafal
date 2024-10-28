@@ -52,14 +52,14 @@ typedef struct
 }Circle_Param;
 static Circle_Param Circle = {.correctForWidth= 100, .correctPercDeg= {70, 80}, .errorDecision= {0.1, 0.4}};
 
-//int test_r;
+int test_r=0;
 void SETPARAM_Circle_1(void* correctForWidth, void* correctPercDeg, void* errorDecision, VOID_FUNCTION_TEST xfunc){
 	Circle.correctForWidth = *((uint16_t*)correctForWidth);
 	Circle.correctPercDeg[0] = *((uint16_t*)correctPercDeg);
 	Circle.errorDecision[0] = *((float*)errorDecision);
 
 
-	//test_r = (int)xfunc( correctForWidth, correctPercDeg );
+	test_r = *((int*)xfunc( correctForWidth, correctPercDeg ));
 }
 
 static void Set_AACoeff(int pixelsInOneSide, uint32_t colorFrom, uint32_t colorTo, float ratioStart)
