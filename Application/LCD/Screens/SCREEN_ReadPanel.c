@@ -473,12 +473,16 @@ uint16_t param0 = 100;
 uint16_t param1 = 80;
 float param2 = 0.4;
 
-int TEST_function(void *a, void *b){
+
+
+void* TEST_function(void *a, void *b){
+	static int aaS=0;
 	int a_ = *((uint16_t*)a);
 	int b_ = *((uint16_t*)b);
 
 	 DbgVar(1,50,"\r\nAAAAKKUKUKUKU  !!!!@@ %d %d  ",a_,b_);
-	 return a_+b_;
+	 aaS=a_+b_;
+	 return &aaS;
 }
 
 static void DBG_SCREEN_Test_Circle(void)
@@ -540,8 +544,6 @@ static void DBG_SCREEN_Test_Circle(void)
 	else refresh_Screen=0;
 
 	if(refresh_Screen) SCREEN_Test_Circle();
-
-	//SSSSSSSSSSSSSSSSS
 
 }
 /* ########### --- END SCREEN_Test_Circle --- ############ */
