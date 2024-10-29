@@ -485,16 +485,18 @@ void* TEST_function(void *a, void *b){
 	 return &aaS;
 }
 
-void* TEST_function___(void *a, int typeParam, void *step, void *max, void *min ,VOID_FUNCTION_TEST xfunc){
+static void* TEST_function___(void *a, int typeParam, void *step, void *min, void *max ,VOID_FUNCTION_TEST xfunc){
 
 	switch(typeParam){
 		case 0:
 			if(max!=NULL) INCR( *((int*)a), *((int*)step), *((int*)max));
+			if(min!=NULL) DECR( *((int*)a), *((int*)step), *((int*)min));
 			DbgVar(1,50,"\r\nParam: %d ",*((int*)a));
 			if(xfunc!=NULL) xfunc(NULL,NULL);
 			break;
 		case 1:
 			if(max!=NULL) INCR( *((float*)a), *((float*)step), *((float*)max));
+			if(min!=NULL) DECR( *((float*)a), *((float*)step), *((float*)min));
 			DbgVar(1,50,"\r\nParam: %s ",Float2Str(*((float*)a),' ',1,Sign_none,2));
 			if(xfunc!=NULL) xfunc(NULL,NULL);
 			break;
@@ -560,14 +562,27 @@ static void DBG_SCREEN_Test_Circle(void)
 	else if(DEBUG_RcvStr("7")) DECR(Circle.deg[3],1,Circle.deg[2]+1);
 	else if(DEBUG_RcvStr("8")) INCR(Circle.deg[3],1,360);
 
-	else if(DEBUG_RcvStr("s")){ INCR(param0,1,MAX_WIDTH_CIRCLE); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
-	else if(DEBUG_RcvStr("x")){ DECR(param0,1,1); 					 SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
 
-	else if(DEBUG_RcvStr("d")){ INCR(param1,5,95); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
-	else if(DEBUG_RcvStr("c")){ DECR(param1,5,20); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
 
-	else if(DEBUG_RcvStr("f")){ INCR(param2,0.1,3.0); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
-	else if(DEBUG_RcvStr("v")){ DECR(param2,0.1,0.0); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
+	else if(DEBUG_RcvStr("s")){ int step_=1, max_=MAX_WIDTH_CIRCLE;   TEST_function___(GET_CIRCLE_correctForWidth(), 0, &step_, NULL, &max_ ,NULL); }
+	else if(DEBUG_RcvStr("x")){ int step_=1, min_=1;   					TEST_function___(GET_CIRCLE_correctForWidth(), 0, &step_,&min_, NULL,  NULL);  }
+
+	else if(DEBUG_RcvStr("d")){ int step_=5, max_=95;   TEST_function___(GET_CIRCLE_correctPercDeg(0), 0, &step_, NULL, &max_ ,NULL); }
+	else if(DEBUG_RcvStr("c")){ int step_=5, min_=20;   TEST_function___(GET_CIRCLE_correctPercDeg(0), 0, &step_,&min_, NULL,  NULL);  }
+
+	else if(DEBUG_RcvStr("f")){ float step_=0.1, max_=3.0;   TEST_function___(GET_CIRCLE_errorDecision(0), 1, &step_, NULL, &max_ ,NULL); }
+	else if(DEBUG_RcvStr("v")){ float step_=0.1, min_=0.0;   TEST_function___(GET_CIRCLE_errorDecision(0), 1, &step_,&min_, NULL,  NULL);  }
+
+
+
+//	else if(DEBUG_RcvStr("s")){ INCR(param0,1,MAX_WIDTH_CIRCLE); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
+//	else if(DEBUG_RcvStr("x")){ DECR(param0,1,1); 					 SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
+//
+//	else if(DEBUG_RcvStr("d")){ INCR(param1,5,95); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
+//	else if(DEBUG_RcvStr("c")){ DECR(param1,5,20); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
+//
+//	else if(DEBUG_RcvStr("f")){ INCR(param2,0.1,3.0); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
+//	else if(DEBUG_RcvStr("v")){ DECR(param2,0.1,0.0); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
 
 	else refresh_Screen=0;
 
