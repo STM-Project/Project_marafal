@@ -18,10 +18,11 @@ uint32_t LCD_GetXSize(void){
 uint32_t LCD_GetYSize(void){
   return hltdc.LayerCfg[ActiveLayer].ImageHeight;
 }
-//static uint32_t LCD_GetAddress(uint32_t Xpos, uint32_t Ypos){
-//  return hltdc.LayerCfg[ActiveLayer].FBStartAdress;
-//}
-
+/*
+static uint32_t LCD_GetAddress(uint32_t Xpos, uint32_t Ypos){
+  return hltdc.LayerCfg[ActiveLayer].FBStartAdress;
+}
+*/
 static int LCD_GetBytesPerPixel(void)
 {
 	switch(hdma2d.Init.ColorMode)
