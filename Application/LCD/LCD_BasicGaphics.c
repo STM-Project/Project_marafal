@@ -52,6 +52,10 @@ typedef struct
 }Circle_Param;
 static Circle_Param Circle = {.correctForWidth= 100, .correctPercDeg= {70, 80}, .errorDecision= {0.1, 0.4}};
 
+uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
+uint16_t* GET_CIRCLE_correctPercDeg(int nr){	return &Circle.correctPercDeg[nr]; }
+float* 	 GET_CIRCLE_errorDecision(int nr) {	return &Circle.errorDecision[nr];  }
+
 int test_r=0;
 void SETPARAM_Circle_1(void* correctForWidth, void* correctPercDeg, void* errorDecision, VOID_FUNCTION_TEST xfunc){
 	Circle.correctForWidth = *((uint16_t*)correctForWidth);
