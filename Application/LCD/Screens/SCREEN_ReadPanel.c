@@ -486,12 +486,11 @@ void* TEST_function(void *a, void *b){
 }
 
 static void* TEST_function___(void *a, int typeParam, void *step, void *min, void *max ,VOID_FUNCTION_TEST xfunc){
-
 	switch(typeParam){
 		case 0:
-			if(max!=NULL) INCR( *((int*)a), *((int*)step), *((int*)max));
-			if(min!=NULL) DECR( *((int*)a), *((int*)step), *((int*)min));
-			DbgVar(1,50,"\r\nParam: %d ",*((int*)a));
+			if(max!=NULL) INCR( *((uint16_t*)a), *((uint16_t*)step), *((uint16_t*)max));
+			if(min!=NULL) DECR( *((uint16_t*)a), *((uint16_t*)step), *((uint16_t*)min));
+			DbgVar(1,50,"\r\nParam: %d ",*((uint16_t*)a));
 			if(xfunc!=NULL) xfunc(NULL,NULL);
 			break;
 		case 1:
@@ -564,14 +563,14 @@ static void DBG_SCREEN_Test_Circle(void)
 
 
 
-	else if(DEBUG_RcvStr("s")){ int step_=1, max_=MAX_WIDTH_CIRCLE;   TEST_function___(GET_CIRCLE_correctForWidth(), 0, &step_, NULL, &max_ ,NULL); }
-	else if(DEBUG_RcvStr("x")){ int step_=1, min_=1;   					TEST_function___(GET_CIRCLE_correctForWidth(), 0, &step_,&min_, NULL,  NULL);  }
+	else if(DEBUG_RcvStr("s")){ TEST_function___(GET_CIRCLE_correctForWidth(), 0, _Int(0,1), NULL, 	_Int(1,MAX_WIDTH_CIRCLE) ,NULL); }
+	else if(DEBUG_RcvStr("x")){ TEST_function___(GET_CIRCLE_correctForWidth(), 0, _Int(0,1),_Int(1,1), 	NULL,  						NULL);  }
 
-	else if(DEBUG_RcvStr("d")){ int step_=5, max_=95;   TEST_function___(GET_CIRCLE_correctPercDeg(0), 0, &step_, NULL, &max_ ,NULL); }
-	else if(DEBUG_RcvStr("c")){ int step_=5, min_=20;   TEST_function___(GET_CIRCLE_correctPercDeg(0), 0, &step_,&min_, NULL,  NULL);  }
+	else if(DEBUG_RcvStr("d")){ TEST_function___(GET_CIRCLE_correctPercDeg(0), 0, _Int(0,5), NULL, 	_Int(1,95) ,NULL); }
+	else if(DEBUG_RcvStr("c")){ TEST_function___(GET_CIRCLE_correctPercDeg(0), 0, _Int(0,5),_Int(1,20), NULL,  	 NULL);  }
 
-	else if(DEBUG_RcvStr("f")){ float step_=0.1, max_=3.0;   TEST_function___(GET_CIRCLE_errorDecision(0), 1, &step_, NULL, &max_ ,NULL); }
-	else if(DEBUG_RcvStr("v")){ float step_=0.1, min_=0.0;   TEST_function___(GET_CIRCLE_errorDecision(0), 1, &step_,&min_, NULL,  NULL);  }
+	else if(DEBUG_RcvStr("f")){  TEST_function___(GET_CIRCLE_errorDecision(0), 1, _Float(0,0.1), NULL, 		 _Float(1,3.0) ,NULL); }
+	else if(DEBUG_RcvStr("v")){  TEST_function___(GET_CIRCLE_errorDecision(0), 1, _Float(0,0.1),_Float(1,0.0), NULL,  		  NULL);  }
 
 
 

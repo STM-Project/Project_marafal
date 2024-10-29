@@ -26,8 +26,8 @@
 #define getName(var)  #var
 #define ABS(X)  ((X) > 0 ? (X) : -(X))
 #define TOOGLE(x)  ((x)=1-(x))
-#define INCR(x,step,max)  ((x+step>max) ? (x=max) : (x+=step))
-#define DECR(x,step,min)  ((x-step<min) ? (x=min) : (x-=step))
+#define INCR(x,step,max)  (((x)+(step)>(max)) ? ((x)=(max)) : ((x)+=(step)))
+#define DECR(x,step,min)  (((x)-(step)<(min)) ? ((x)=(min)) : ((x)-=(step)))
 #define INCR_WRAP(x,step,min,max)  (((x)+(step)>(max)) ? ((x)=(min)) : ((x)+=(step)))
 #define DECR_WRAP(x,step,min,max)  (((x)-(step)<(min)) ? ((x)=(max)) : ((x)-=(step)))
 #define INTEGER(f)	 ((int)f)
@@ -169,6 +169,12 @@ typedef void* (*VOID_FUNCTION_TEST)(void*,void*);
 
 
 /* --------- End Functions Definitations ----------- */
+int* 			_Int		(int nr, int 	val);
+uint16_t* 	_Uint16	(int nr, uint16_t val);
+uint32_t* 	_Uint32	(int nr, uint32_t val);
+int16_t* 	_Int16	(int nr, int16_t val);
+int32_t* 	_Int32	(int nr, int32_t val);
+float* 		_Float	(int nr, float val);
 
 int _ReturnVal(int val, int in);
 int _ReturnVal2(int val, int in1,int in2);
