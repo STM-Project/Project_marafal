@@ -502,17 +502,6 @@ static void* TEST_function___(void *a, int typeParam, void *step, void *min, voi
 	}
 	return (void*)(0);
 }
-//
-//int test_r=0;
-//void SETPARAM_Circle_1__(void* correctForWidth, void* correctPercDeg, void* errorDecision, VOID_FUNCTION_TEST xfunc){
-//	Circle.correctForWidth = *((uint16_t*)correctForWidth);
-//	Circle.correctPercDeg[0] = *((uint16_t*)correctPercDeg);
-//	Circle.errorDecision[0] = *((float*)errorDecision);
-//
-//
-//	test_r = *((int*)xfunc( correctForWidth, correctPercDeg ));
-//}
-
 
 static void DBG_SCREEN_Test_Circle(void)
 {
@@ -561,27 +550,14 @@ static void DBG_SCREEN_Test_Circle(void)
 	else if(DEBUG_RcvStr("7")) DECR(Circle.deg[3],1,Circle.deg[2]+1);
 	else if(DEBUG_RcvStr("8")) INCR(Circle.deg[3],1,360);
 
+	else if(DEBUG_RcvStr("s")){ TEST_function___(GET_CIRCLE_correctForWidth(), 0, _Int(1), NULL, 	_Int(MAX_WIDTH_CIRCLE) ,NULL); }
+	else if(DEBUG_RcvStr("x")){ TEST_function___(GET_CIRCLE_correctForWidth(), 0, _Int(1),_Int(1), 	NULL,  						NULL);  }
 
+	else if(DEBUG_RcvStr("d")){ TEST_function___(GET_CIRCLE_correctPercDeg(0), 0, _Int(5), NULL, 	_Int(95) ,NULL); }
+	else if(DEBUG_RcvStr("c")){ TEST_function___(GET_CIRCLE_correctPercDeg(0), 0, _Int(5),_Int(20), NULL,  	 NULL);  }
 
-	else if(DEBUG_RcvStr("s")){ TEST_function___(GET_CIRCLE_correctForWidth(), 0, _Int(0,1), NULL, 	_Int(1,MAX_WIDTH_CIRCLE) ,NULL); }
-	else if(DEBUG_RcvStr("x")){ TEST_function___(GET_CIRCLE_correctForWidth(), 0, _Int(0,1),_Int(1,1), 	NULL,  						NULL);  }
-
-	else if(DEBUG_RcvStr("d")){ TEST_function___(GET_CIRCLE_correctPercDeg(0), 0, _Int(0,5), NULL, 	_Int(1,95) ,NULL); }
-	else if(DEBUG_RcvStr("c")){ TEST_function___(GET_CIRCLE_correctPercDeg(0), 0, _Int(0,5),_Int(1,20), NULL,  	 NULL);  }
-
-	else if(DEBUG_RcvStr("f")){  TEST_function___(GET_CIRCLE_errorDecision(0), 1, _Float(0,0.1), NULL, 		 _Float(1,3.0) ,NULL); }
-	else if(DEBUG_RcvStr("v")){  TEST_function___(GET_CIRCLE_errorDecision(0), 1, _Float(0,0.1),_Float(1,0.0), NULL,  		  NULL);  }
-
-
-
-//	else if(DEBUG_RcvStr("s")){ INCR(param0,1,MAX_WIDTH_CIRCLE); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
-//	else if(DEBUG_RcvStr("x")){ DECR(param0,1,1); 					 SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
-//
-//	else if(DEBUG_RcvStr("d")){ INCR(param1,5,95); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
-//	else if(DEBUG_RcvStr("c")){ DECR(param1,5,20); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
-//
-//	else if(DEBUG_RcvStr("f")){ INCR(param2,0.1,3.0); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
-//	else if(DEBUG_RcvStr("v")){ DECR(param2,0.1,0.0); SETPARAM_Circle_1(&param0,&param1,&param2,(VOID_FUNCTION_TEST)TEST_function); DbgVar(1,50,"\r\nParam: %d  %d  %s",param0,param1,Float2Str(param2,' ',1,Sign_none,2)); }
+	else if(DEBUG_RcvStr("f")){  TEST_function___(GET_CIRCLE_errorDecision(0), 1, _Float(0.1), NULL, 		 _Float(3.0) ,NULL); }
+	else if(DEBUG_RcvStr("v")){  TEST_function___(GET_CIRCLE_errorDecision(0), 1, _Float(0.1),_Float(0.0), NULL,  		  NULL);  }
 
 	else refresh_Screen=0;
 
