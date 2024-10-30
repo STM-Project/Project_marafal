@@ -56,16 +56,6 @@ uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
 uint16_t* GET_CIRCLE_correctPercDeg(int nr){	return &Circle.correctPercDeg[nr]; }
 float* 	 GET_CIRCLE_errorDecision(int nr) {	return &Circle.errorDecision[nr];  }
 
-int test_r=0;
-void SETPARAM_Circle_1(void* correctForWidth, void* correctPercDeg, void* errorDecision, VOID_FUNCTION_TEST xfunc){
-	Circle.correctForWidth = *((uint16_t*)correctForWidth);
-	Circle.correctPercDeg[0] = *((uint16_t*)correctPercDeg);
-	Circle.errorDecision[0] = *((float*)errorDecision);
-
-
-	test_r = *((int*)xfunc( correctForWidth, correctPercDeg ));
-}
-
 static void Set_AACoeff(int pixelsInOneSide, uint32_t colorFrom, uint32_t colorTo, float ratioStart)
 {
 	float incr= (1-ratioStart)/pixelsInOneSide;
