@@ -169,12 +169,12 @@ typedef void* (*VOID_FUNCTION_TEST)(void*,void*);
 
 
 /* --------- End Functions Definitations ----------- */
-int* 			_Int		(int nr, int 	val);
-uint16_t* 	_Uint16	(int nr, uint16_t val);
-uint32_t* 	_Uint32	(int nr, uint32_t val);
-int16_t* 	_Int16	(int nr, int16_t val);
-int32_t* 	_Int32	(int nr, int32_t val);
-float* 		_Float	(int nr, float val);
+int* 			_Int		(int 	val);
+uint16_t* 	_Uint16	(uint16_t val);
+uint32_t* 	_Uint32	(uint32_t val);
+int16_t* 	_Int16	(int16_t val);
+int32_t* 	_Int32	(int32_t val);
+float* 		_Float	(float val);
 
 int _ReturnVal(int val, int in);
 int _ReturnVal2(int val, int in1,int in2);
