@@ -11,6 +11,8 @@
 #include "stm32f7xx_hal.h"
 #include "common.h"
 
+#define _DEBUG_RCV_CHAR(sign,ptrData,typeData,dataAct,step,minMax,descr,func)		else if(DEBUG_RcvStr(sign)){ DEBUG_TestFunction(ptrData,typeData,dataAct,step,minMax,descr,func); }
+
 typedef enum{
 	font,
 	bkg
