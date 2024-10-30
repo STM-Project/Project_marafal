@@ -8,14 +8,14 @@
 #include "stm32f7xx_hal.h"
 #include "common.h"
 
-#define _VAL_SIZE		10
+#define _BUFF_VAL_SIZE		10
 
-int* 			_Int		(int nr, int val)			{ static int 		_intVal[_VAL_SIZE]={0}; 	_intVal[nr]=val;  	return &_intVal[nr]; 	};
-uint16_t*	_Uint16	(int nr, uint16_t val)	{ static uint16_t _uint16val[_VAL_SIZE]={0}; _uint16val[nr]=val;  return &_uint16val[nr]; };
-uint32_t* 	_Uint32	(int nr, uint32_t val)	{ static uint32_t _uint32val[_VAL_SIZE]={0}; _uint32val[nr]=val;  return &_uint32val[nr]; };
-int16_t*		_Int16	(int nr, int16_t val)	{ static int16_t  _int16val[_VAL_SIZE]={0}; 	_int16val[nr]=val;  	return &_int16val[nr]; 	};
-int32_t* 	_Int32	(int nr, int32_t val)	{ static int32_t  _int32val[_VAL_SIZE]={0}; 	_int32val[nr]=val;  	return &_int32val[nr]; 	};
-float*		_Float	(int nr, float val)		{ static float 	_floatVal[_VAL_SIZE]={0}; 	_floatVal[nr]=val;  	return &_floatVal[nr]; 	};
+int* 			_Int		(int val)		{ static int 		_intVal[_BUFF_VAL_SIZE]={0};	  static int _incIntBuffVal=-1; 	   _incIntBuffVal+1	 >=_BUFF_VAL_SIZE ? _incIntBuffVal=0	:_incIntBuffVal++;  	 _intVal[_incIntBuffVal]=val; 		return &_intVal[_incIntBuffVal]; 		};
+uint16_t*	_Uint16	(uint16_t val)	{ static uint16_t _uint16val[_BUFF_VAL_SIZE]={0}; static int _incUint16BuffVal=-1;  _incUint16BuffVal+1>=_BUFF_VAL_SIZE ? _incUint16BuffVal=0:_incUint16BuffVal++; _uint16val[_incUint16BuffVal]=val; return &_uint16val[_incUint16BuffVal]; };
+uint32_t* 	_Uint32	(uint32_t val)	{ static uint32_t _uint32val[_BUFF_VAL_SIZE]={0}; static int _incUint32BuffVal=-1;  _incUint32BuffVal+1>=_BUFF_VAL_SIZE ? _incUint32BuffVal=0:_incUint32BuffVal++; _uint32val[_incUint32BuffVal]=val; return &_uint32val[_incUint32BuffVal]; };
+int16_t*		_Int16	(int16_t val)	{ static int16_t  _int16val[_BUFF_VAL_SIZE]={0};  static int _incInt16BuffVal=-1;   _incInt16BuffVal+1 >=_BUFF_VAL_SIZE ? _incInt16BuffVal=0 :_incInt16BuffVal++;	 _int16val[_incInt16BuffVal]=val; 	return &_int16val[_incInt16BuffVal]; 	};
+int32_t* 	_Int32	(int32_t val)	{ static int32_t  _int32val[_BUFF_VAL_SIZE]={0};  static int _incInt32BuffVal=-1;   _incInt32BuffVal+1 >=_BUFF_VAL_SIZE ? _incInt32BuffVal=0 :_incInt32BuffVal++;	 _int32val[_incInt32BuffVal]=val; 	return &_int32val[_incInt32BuffVal]; 	};
+float*		_Float	(float val)		{ static float 	_floatVal[_BUFF_VAL_SIZE]={0};  static int _incFloatBuffVal=-1;   _incFloatBuffVal+1 >=_BUFF_VAL_SIZE ? _incFloatBuffVal=0 :_incFloatBuffVal++;	 _floatVal[_incFloatBuffVal]=val; 	return &_floatVal[_incFloatBuffVal]; 	};
 
 int _ReturnVal (int val, int in)							{ return val; };
 int _ReturnVal2(int val, int in1, int in2)			{ return val; };
