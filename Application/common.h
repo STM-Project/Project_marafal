@@ -107,6 +107,21 @@ typedef enum{
 	LoadNoDispScreen
 }LOAD_SCREEN;
 
+typedef enum{
+	_int,
+	_int16,
+	_int32,
+	_uint16,
+	_uint32,
+	_float,
+	_double,
+}DATA_TYPE;
+
+typedef enum{
+	_Incr,
+	_Decr,
+}DATA_ACTION;
+
 typedef struct{
 	char *pData;
 	uint32_t len;
