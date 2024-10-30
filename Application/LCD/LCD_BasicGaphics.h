@@ -66,8 +66,6 @@ uint16_t* GET_CIRCLE_correctForWidth(void);
 uint16_t* GET_CIRCLE_correctPercDeg(int nr);
 float* 	 GET_CIRCLE_errorDecision(int nr);
 
-void SETPARAM_Circle_1(void* correctForWidth, void* correctPercDeg, void* errorDecision, VOID_FUNCTION_TEST xfunc);
-
 void CorrectLineAA_on(void);
 void CorrectLineAA_off(void);
 void Set_AACoeff_RoundFrameRectangle(float outCoeff, float inCoeff);
