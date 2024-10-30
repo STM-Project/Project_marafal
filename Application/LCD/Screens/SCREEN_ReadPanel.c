@@ -469,40 +469,6 @@ static void SCREEN_Test_Circle(void)
 
 }
 
-uint16_t param0 = 100;
-uint16_t param1 = 80;
-float param2 = 0.4;
-
-
-
-void* TEST_function(void *a, void *b){
-	static int aaS=0;
-	int a_ = *((uint16_t*)a);
-	int b_ = *((uint16_t*)b);
-
-	 DbgVar(1,50,"\r\nAAAAKKUKUKUKU  !!!!@@ %d %d  ",a_,b_);
-	 aaS=a_+b_;
-	 return &aaS;
-}
-
-static void* TEST_function___(void *a, int typeParam, void *step, void *min, void *max ,VOID_FUNCTION_TEST xfunc){
-	switch(typeParam){
-		case 0:
-			if(max!=NULL) INCR( *((uint16_t*)a), *((uint16_t*)step), *((uint16_t*)max));
-			if(min!=NULL) DECR( *((uint16_t*)a), *((uint16_t*)step), *((uint16_t*)min));
-			DbgVar(1,50,"\r\nParam: %d ",*((uint16_t*)a));
-			if(xfunc!=NULL) xfunc(NULL,NULL);
-			break;
-		case 1:
-			if(max!=NULL) INCR( *((float*)a), *((float*)step), *((float*)max));
-			if(min!=NULL) DECR( *((float*)a), *((float*)step), *((float*)min));
-			DbgVar(1,50,"\r\nParam: %s ",Float2Str(*((float*)a),' ',1,Sign_none,2));
-			if(xfunc!=NULL) xfunc(NULL,NULL);
-			break;
-	}
-	return (void*)(0);
-}
-
 static void DBG_SCREEN_Test_Circle(void)
 {
 	int refresh_Screen=1;
@@ -550,14 +516,14 @@ static void DBG_SCREEN_Test_Circle(void)
 	else if(DEBUG_RcvStr("7")) DECR(Circle.deg[3],1,Circle.deg[2]+1);
 	else if(DEBUG_RcvStr("8")) INCR(Circle.deg[3],1,360);
 
-	else if(DEBUG_RcvStr("s")){ TEST_function___(GET_CIRCLE_correctForWidth(), 0, _Int(1), NULL, 	_Int(MAX_WIDTH_CIRCLE) ,NULL); }
-	else if(DEBUG_RcvStr("x")){ TEST_function___(GET_CIRCLE_correctForWidth(), 0, _Int(1),_Int(1), 	NULL,  						NULL);  }
+	else if(DEBUG_RcvStr("s")){ DEBUG_TestFunction(GET_CIRCLE_correctForWidth(),_uint16,_Incr,_Uint16(1),_Uint16(MAX_WIDTH_CIRCLE),"Width",NULL); }
+	else if(DEBUG_RcvStr("x")){ DEBUG_TestFunction(GET_CIRCLE_correctForWidth(),_uint16,_Decr,_Uint16(1),_Uint16(1),"Width",NULL);  }
 
-	else if(DEBUG_RcvStr("d")){ TEST_function___(GET_CIRCLE_correctPercDeg(0), 0, _Int(5), NULL, 	_Int(95) ,NULL); }
-	else if(DEBUG_RcvStr("c")){ TEST_function___(GET_CIRCLE_correctPercDeg(0), 0, _Int(5),_Int(20), NULL,  	 NULL);  }
+	else if(DEBUG_RcvStr("d")){ DEBUG_TestFunction(GET_CIRCLE_correctPercDeg(0),_uint16,_Incr,_Uint16(5),_Uint16(95),"PercDeg",NULL); }
+	else if(DEBUG_RcvStr("c")){ DEBUG_TestFunction(GET_CIRCLE_correctPercDeg(0),_uint16,_Decr,_Uint16(5),_Uint16(20),"PercDeg",NULL);  }
 
-	else if(DEBUG_RcvStr("f")){  TEST_function___(GET_CIRCLE_errorDecision(0), 1, _Float(0.1), NULL, 		 _Float(3.0) ,NULL); }
-	else if(DEBUG_RcvStr("v")){  TEST_function___(GET_CIRCLE_errorDecision(0), 1, _Float(0.1),_Float(0.0), NULL,  		  NULL);  }
+	else if(DEBUG_RcvStr("f")){ DEBUG_TestFunction(GET_CIRCLE_errorDecision(0),_float,_Incr,_Float(0.1),_Float(3.0),"ErrDeci",NULL); }
+	else if(DEBUG_RcvStr("v")){ DEBUG_TestFunction(GET_CIRCLE_errorDecision(0),_float,_Decr,_Float(0.1),_Float(0.0),"ErrDeci",NULL);  }
 
 	else refresh_Screen=0;
 
@@ -572,7 +538,7 @@ void SCREEN_ReadPanel(void)
 {
 	if(startScreen==0)
 	{
-		switch(SCREEN_number)  //DYNAMICZNE ZARZADZANIE PAMIECIA FONT Z SDRAM zeby tyle nie zajmowalo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		switch(SCREEN_number)
 		{
 		case 0:
 /*			SCREEN_Fonts_funcSet(FONTS_FONT_COLOR_FontColor, MYRED);
