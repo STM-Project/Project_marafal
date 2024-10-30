@@ -9,6 +9,7 @@
 #define GENERAL_UTILITIES_DEBUG_H_
 
 #include "stm32f7xx_hal.h"
+#include "common.h"
 
 typedef enum{
 	font,
@@ -59,5 +60,8 @@ void DbgVar(int on, unsigned int buffLen, const char *fmt, ...);
 void DbgVar2(int on, unsigned int buffLen, const char *fmt, ...);
 void DEBUG_RxFullBuffService(void);
 int DEBUG_RcvStr(char *txt);
+
+void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, void *step, void *minMax, char *descr, VOID_FUNCTION_TEST xfunc);
+
 
 #endif /* GENERAL_UTILITIES_DEBUG_H_ */
