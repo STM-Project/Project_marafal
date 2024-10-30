@@ -136,3 +136,21 @@ char* _Col(FONT_BKG_COLOR background, uint8_t red, uint8_t green, uint8_t blue)
 	return &tab[i_copy];
 }
 
+void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, void *step, void *minMax, char *descr, VOID_FUNCTION_TEST xfunc){
+	switch((int)dataType){
+		case _uint16:
+			if(_Incr==dataAction) INCR( *((uint16_t*)a), *((uint16_t*)step), *((uint16_t*)minMax));
+			if(_Decr==dataAction) DECR( *((uint16_t*)a), *((uint16_t*)step), *((uint16_t*)minMax));
+			DbgVar(1,50,"\r\n%s: %d ",descr, *((uint16_t*)a));
+			if(xfunc!=NULL) xfunc(NULL,NULL);
+			break;
+		case _float:
+			if(_Incr==dataAction) INCR( *((float*)a), *((float*)step), *((float*)minMax));
+			if(_Decr==dataAction) DECR( *((float*)a), *((float*)step), *((float*)minMax));
+			DbgVar(1,50,"\r\n%s: %s ", descr, Float2Str(*((float*)a),' ',1,Sign_none,2));
+			if(xfunc!=NULL) xfunc(NULL,NULL);
+			break;
+	}
+	return (void*)(0);
+}
+
