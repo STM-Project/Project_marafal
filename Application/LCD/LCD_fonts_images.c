@@ -38,25 +38,25 @@
 static const char CharsTab_full[]="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-.,:;[]{}<>'~*()&#^=_$%\xB0@|?!\xA5\xB9\xC6\xE6\xCA\xEA\xA3\xB3\xD1\xF1\xD3\xF3\x8C\x9C\x8F\x9F\xAF\xBF/1234567890";
 static const char CharsTab_digits[]="+-1234567890.";
 
-const char *TxtFontStyle[]={
+static const char *TxtFontStyle[]={
 		"Arial",
 		"Times_New_Roman",
 		"Comic_Saens_MS"
 };
-const char *BkColorFontFilePath[]={
+static const char *BkColorFontFilePath[]={
 		"BackGround_darkGray/",
 		"BackGround_black/",
 		"BackGround_brown/",
 		"BackGround_white/"
 };
-const char *ColorFontFilePath[]={
+static const char *ColorFontFilePath[]={
 		"Color_white/",
 		"Color_blue/",
 		"Color_red/",
 		"Color_green/",
 		"Color_black/"
 };
-const char *StyleFontFilePath[]={
+static const char *StyleFontFilePath[]={
 		"Arial/",
 		"Times_New_Roman/",
 		"Comic_Saens_MS/",
@@ -64,7 +64,7 @@ const char *StyleFontFilePath[]={
 		"Calibri_Light/",
 		"Bodoni_MT_Condenset/"
 };
-const char *TxtFontSize[]={
+static const char *TxtFontSize[]={
 		"font_8",
 		"font_8_bold",
 		"font_8_italics",
@@ -118,9 +118,7 @@ const char *TxtFontSize[]={
 		"font_130_italics"
 };
 
-const char *TxtBMP = ".bmp";
-
-extern uint32_t pLcd[];
+static const char *TxtBMP = ".bmp";
 
 static uint32_t buffChangeColorIN[MAX_SIZE_CHANGECOLOR_BUFF]={0};
 static uint32_t buffChangeColorOUT[MAX_SIZE_CHANGECOLOR_BUFF]={0};
@@ -226,6 +224,8 @@ static Struct_SpaceCorrect space[MAX_SPACE_CORRECT];
 static uint8_t StructSpaceCount=0;
 
 static uint32_t CounterBusyBytesForFontsImages=0;
+
+extern uint32_t pLcd[];
 
 //####################### -- My Settings -- #####################
 
@@ -1670,6 +1670,9 @@ const char *LCD_GetFontStyleStr(int fontStyle){
 }
 const char *LCD_GetFontSizeStr(int fontSize){
 	return TxtFontSize[fontSize];
+}
+const char **LCD_GetFontSizePtr(void){
+	return TxtFontSize;
 }
 char *LCD_FontSize2Str(char *buffTemp, int fontSize){
 	strcpy(buffTemp,TxtFontSize[fontSize]);

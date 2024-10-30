@@ -21,8 +21,8 @@
 #define KEYBOARD_NONE	0
 #define MAXNMB_widthKey	5
 
-#define MAX_WIN_X		30
-#define MAX_WIN_Y		50
+#define MAX_WIN_X		50
+#define MAX_WIN_Y		100
 
 #define MIDDLE_NR		1
 #define GET_X(txt)	LCD_Xmiddle(MIDDLE_NR,GetPos,fontID,txt,0,NoConstWidth)
@@ -718,6 +718,17 @@ void KEYBOARD_KeyAllParamSet2(uint16_t sizeX,uint16_t sizeY, COLORS_DEFINITION c
 		strcpy(txtKey[i],ptr);
 	}
 }
+void KEYBOARD_KeyAllParamSet3(uint16_t sizeX,uint16_t sizeY, COLORS_DEFINITION color1,COLORS_DEFINITION color2, char** txt){
+	char *ptr= NULL;
+	dimKeys[0]= sizeX;
+	dimKeys[1]= sizeY;
+	for(int i=0; i<MINVAL2(sizeX*sizeY,MAX_WIN_Y); ++i){
+		colorTxtKey[i]= color1;
+		colorTxtPressKey[i]= color2;
+		TXT_CUTTOFF(ptr=txt[i],MAX_WIN_X);
+		strcpy(txtKey[i],ptr);
+	}
+}
 
 void KEYBOARD_SetGeneral(int vFontID,int vFontID_descr,int vColorDescr,int vFrameMainColor,int vFillMainColor,int vFrameColor,int vFillColor,int vFramePressColor,int vFillPressColor,int vBkColor){
 	if(vFontID 			  !=N) fontID 			  = vFontID;
@@ -1031,7 +1042,31 @@ void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PAR
 	SetTouch_Additional(k, startTouchIdx, fieldTxtDescr);
 }
 
+void KEYBOARD_ServiceSizeRoll(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int nrRoll, char* txtDescr, uint32_t colorDescr, int value)
+{
+	#define _FRAME2ROLL
 
+	XY_Touch_Struct posKey[dimKeys[1]];
+
+	#ifdef _FRAME2ROLL
+		XY_Touch_Struct posHead = {0,5};
+		uint16_t spaceFrame2Roll = 10;
+		int head = posHead.y + LCD_GetFontHeight(fontID_descr) + posHead.y;
+	#endif
+
+	SetDimKey(k,shape,widthKey,heightKey);
+//	if(shape!=0){
+//		if(KeysAutoSize == widthKey){
+//			s[k].widthKey =  heightKey + LCD_GetWholeStrPxlWidth(fontID, (char*)txtKey[ STRING_GetTheLongestTxt(dimKeys[1],(char**)txtKey) ], 0, NoConstWidth) + heightKey;		/*	space + text + space */
+//			s[k].heightKey = heightKey + LCD_GetFontHeight(fontID) + heightKey;
+//		}
+//	}
+
+
+
+
+
+}
 
 
 
@@ -1138,6 +1173,7 @@ void KEYBOARD__ServiceSizeRoll(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT, s[k].startTouchIdx, TOUCH_GET_PER_ANY_PROBE);
 		s[k].nmbTouch++;
 	}
+	#undef _FRAME2ROLL
 }
 
 

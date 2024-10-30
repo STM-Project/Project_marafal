@@ -525,19 +525,6 @@ static void DBG_SCREEN_Test_Circle(void)
 	_DEBUG_RCV_CHAR("f",GET_CIRCLE_errorDecision(0),_float,_Incr,_Float(0.1),_Float(3.0),"ErrDeci",NULL)
 	_DEBUG_RCV_CHAR("v",GET_CIRCLE_errorDecision(0),_float,_Decr,_Float(0.1),_Float(0.0),"ErrDeci",NULL)
 
-
-
-//	else if(DEBUG_RcvStr("s")){ DEBUG_TestFunction(GET_CIRCLE_correctForWidth(),_uint16,_Incr,_Uint16(1),_Uint16(MAX_WIDTH_CIRCLE),"Width",NULL); }
-//	else if(DEBUG_RcvStr("x")){ DEBUG_TestFunction(GET_CIRCLE_correctForWidth(),_uint16,_Decr,_Uint16(1),_Uint16(1),"Width",NULL);  }
-//
-//	else if(DEBUG_RcvStr("d")){ DEBUG_TestFunction(GET_CIRCLE_correctPercDeg(0),_uint16,_Incr,_Uint16(5),_Uint16(95),"PercDeg",NULL); }
-//	else if(DEBUG_RcvStr("c")){ DEBUG_TestFunction(GET_CIRCLE_correctPercDeg(0),_uint16,_Decr,_Uint16(5),_Uint16(20),"PercDeg",NULL);  }
-//
-//	else if(DEBUG_RcvStr("f")){ DEBUG_TestFunction(GET_CIRCLE_errorDecision(0),_float,_Incr,_Float(0.1),_Float(3.0),"ErrDeci",NULL); }
-//	else if(DEBUG_RcvStr("v")){ DEBUG_TestFunction(GET_CIRCLE_errorDecision(0),_float,_Decr,_Float(0.1),_Float(0.0),"ErrDeci",NULL);  }
-
-
-
 	else refresh_Screen=0;
 
 	if(refresh_Screen) SCREEN_Test_Circle();

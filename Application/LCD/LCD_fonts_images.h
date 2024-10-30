@@ -262,6 +262,7 @@ int LCD_GetFontSizeMaxNmb(void);
 int LCD_GetFontStyleMaxNmb(void);
 const char *LCD_GetFontStyleStr(int fontStyle);
 const char *LCD_GetFontSizeStr(int fontSize);
+const char **LCD_GetFontSizePtr(void);
 char *LCD_FontSize2Str(char *buffTemp, int fontSize);
 char *LCD_FontStyle2Str(char *buffTemp, int fontStyle);
 char *LCD_FontType2Str(char *buffTemp, int id, int idAlt);
