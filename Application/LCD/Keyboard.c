@@ -641,6 +641,79 @@ static void SetSliderDirect(int nr, figureShape shape, uint16_t width, uint16_t 
 		s[nr].param = CONDITION(width>height,Horizontal,Vertical);
 }
 
+static void ScrollSel_Preparation(int nr, figureShape shape, int nrScroll, int frameNmbVisib, uint16_t *sel, uint16_t *roll){
+	uint16_t roll_copy = 0;
+
+	if(shape!=0){
+		if(dimKeys[1]-*sel <= frameNmbVisib/2)	*roll = dimKeys[1]-frameNmbVisib-1;
+		else if(		  *sel <= frameNmbVisib/2)	*roll = 0;
+		else												*roll = *sel - frameNmbVisib/2;
+
+		roll_copy = *roll;
+		*roll *= s[nr].heightKey;
+		*roll -= roll_copy;
+		LCD_TOUCH_ScrollSel_SetCalculate(nrScroll, roll, sel, 0,0,0,dimKeys[1]/frameNmbVisib);
+	}
+}
+static void SetPosKey_Scroll(int nr, XY_Touch_Struct pos[]){
+	for(int i=0; i<dimKeys[1]; ++i){
+		pos[i].x = s[nr].interSpace;
+		pos[i].y = (i+1)*s[nr].interSpace + i*s[nr].heightKey - i;
+	}
+}
+static void SetDimAll_Scroll(int nr){
+	widthAll  = dimKeys[0]*s[nr].widthKey  + (dimKeys[0]+1)*s[nr].interSpace;
+	heightAll = dimKeys[1]*s[nr].heightKey + (dimKeys[1]+1)*s[nr].interSpace - (dimKeys[1]-1);
+}
+static void SetTouch_Scroll(int nr, uint16_t startTouchIdx, XY_Touch_Struct* posKeys, int visiblWin){
+	if(startTouchIdx){
+		touchTemp[0].x= s[nr].x + posKeys[0].x;
+		touchTemp[1].x= touchTemp[0].x + s[nr].widthKey;
+		touchTemp[0].y= s[nr].y + posKeys[0].y;
+		touchTemp[1].y= touchTemp[0].y + visiblWin;
+		LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT, s[nr].startTouchIdx, TOUCH_GET_PER_ANY_PROBE);
+		s[nr].nmbTouch++;
+	}
+}
+static void ScrollSel_SetNoneBk(int nr, figureShape shape){
+	if(shape!=0)
+		LCD_ShapeWindow( LCD_RoundRectangle,0,widthAll,heightAll, 0,0, widthAll,heightAll, SetBold2Color(frameMainColor,s[nr].bold), fillMainColor,bkColor );
+}
+static void ScrollSel_SetBk(int nr, figureShape shape, XY_Touch_Struct posHead, char* txtDescr, uint32_t colorDescr,uint16_t spaceFrame2Roll,int win){
+	if(shape!=0){
+		int head = posHead.y + LCD_GetFontHeight(fontID_descr) + posHead.y;
+
+		BKCOPY_VAL(heightAll_c,heightAll,head+win+spaceFrame2Roll);
+		BKCOPY_VAL(widthAll_c,widthAll,widthAll+2*spaceFrame2Roll);
+
+		LCD_ShapeWindow( LCD_RoundRectangle,0,widthAll,heightAll, 0,0, widthAll,heightAll, SetBold2Color(frameMainColor,s[nr].bold), fillMainColor,bkColor );
+	 	StrDescr(nr,posHead, txtDescr, colorDescr);
+	 	LCD_Display(0, s[nr].x-spaceFrame2Roll, s[nr].y-head, widthAll, heightAll);
+
+	 	BKCOPY(widthAll,widthAll_c);
+	 	BKCOPY(heightAll,heightAll_c);
+	}
+}
+static void ScrollSel_Calculate(int nr, figureShape shape, int nrScroll, uint16_t *sel, uint16_t *roll, int visiblWin){
+	if(shape==0)
+		LCD_TOUCH_ScrollSel_SetCalculate(nrScroll, roll, sel, s[nr].y, heightAll, s[nr].heightKey, visiblWin);
+}
+static void ScrollSel_Draw(int nr, XY_Touch_Struct* posKeys, uint16_t selFrame, uint16_t roll, int win){
+	int fillColor_copy = fillColor;
+	for(int i=0; i<dimKeys[1]; ++i){
+		if(i == selFrame)
+			KeyStrPressLeft(nr,posKeys[i],txtKey[i],(uint32_t)colorTxtPressKey[i]);		/* _KeyStrPress(posKey[i],txtKey[i],colorTxtPressKey); */
+		else{
+			fillColor = (i%2) ? BrightDecr(fillColor_copy,0x10) : fillColor_copy;
+			KeyStrleft(nr,posKeys[i],txtKey[i],colorTxtKey[i]);								/*	_KeyStr(posKey[i],txtKey[i],colorTxtKey[i]); */
+		}
+	}
+	LCD_Display(0 + roll * widthAll, s[nr].x, s[nr].y, widthAll, win);
+}
+int ScrollSel_SetVisiblWin(int nr, int frameNmbVis){
+	return frameNmbVis * s[nr].heightKey - (frameNmbVis-1);
+}
+
 /*	-----------	General Functions -----------------*/
 
 structSize KEYBOARD_GetSize(void){
@@ -1042,90 +1115,10 @@ void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PAR
 	SetTouch_Additional(k, startTouchIdx, fieldTxtDescr);
 }
 
-
-
-
-static void ScrollSel_Preparation(int nr, figureShape shape, int nrScroll, int frameNmbVisib, uint16_t *sel, uint16_t *roll){
-	uint16_t roll_copy = 0;
-
-	if(shape!=0){
-		if(dimKeys[1]-*sel <= frameNmbVisib/2)	*roll = dimKeys[1]-frameNmbVisib-1;
-		else if(		  *sel <= frameNmbVisib/2)	*roll = 0;
-		else												*roll = *sel - frameNmbVisib/2;
-
-		roll_copy = *roll;
-		*roll *= s[nr].heightKey;
-		*roll -= roll_copy;
-		LCD_TOUCH_ScrollSel_SetCalculate(nrScroll, roll, sel, 0,0,0,dimKeys[1]/frameNmbVisib);
-	}
-}
-static void SetPosKey_Scroll(int nr, XY_Touch_Struct pos[]){
-	for(int i=0; i<dimKeys[1]; ++i){
-		pos[i].x = s[nr].interSpace;
-		pos[i].y = (i+1)*s[nr].interSpace + i*s[nr].heightKey - i;
-	}
-}
-static void SetDimAll_Scroll(int nr){
-	widthAll  = dimKeys[0]*s[nr].widthKey  + (dimKeys[0]+1)*s[nr].interSpace;
-	heightAll = dimKeys[1]*s[nr].heightKey + (dimKeys[1]+1)*s[nr].interSpace - (dimKeys[1]-1);
-}
-static void SetTouch_Scroll(int nr, uint16_t startTouchIdx, XY_Touch_Struct* posKeys, int visiblWin){
-	if(startTouchIdx){
-		touchTemp[0].x= s[nr].x + posKeys[0].x;
-		touchTemp[1].x= touchTemp[0].x + s[nr].widthKey;
-		touchTemp[0].y= s[nr].y + posKeys[0].y;
-		touchTemp[1].y= touchTemp[0].y + visiblWin;
-		LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT, s[nr].startTouchIdx, TOUCH_GET_PER_ANY_PROBE);
-		s[nr].nmbTouch++;
-	}
-}
-static void ScrollSel_SetNoneBk(int nr, figureShape shape){
-	if(shape!=0)
-		LCD_ShapeWindow( LCD_RoundRectangle,0,widthAll,heightAll, 0,0, widthAll,heightAll, SetBold2Color(frameMainColor,s[nr].bold), fillMainColor,bkColor );
-}
-static void ScrollSel_SetBk(int nr, figureShape shape, XY_Touch_Struct posHead, char* txtDescr, uint32_t colorDescr,uint16_t spaceFrame2Roll,int win){
-	if(shape!=0){
-		int head = posHead.y + LCD_GetFontHeight(fontID_descr) + posHead.y;
-
-		BKCOPY_VAL(heightAll_c,heightAll,head+win+spaceFrame2Roll);
-		BKCOPY_VAL(widthAll_c,widthAll,widthAll+2*spaceFrame2Roll);
-
-		  LCD_ShapeWindow( LCD_RoundRectangle,0,widthAll,heightAll, 0,0, widthAll,heightAll, SetBold2Color(frameMainColor,s[nr].bold), fillMainColor,bkColor );
-
-		  BKCOPY_VAL(c.interSpace,s[nr].interSpace,posHead.y);
-	 		 StrDescr(nr,posHead, txtDescr, colorDescr);
-	 	  BKCOPY(s[nr].interSpace,c.interSpace);
-
-	 	  LCD_Display(0, s[nr].x-spaceFrame2Roll, s[nr].y-head, widthAll, heightAll);
-
-	 	BKCOPY(widthAll,widthAll_c);
-	 	BKCOPY(heightAll,heightAll_c);
-	}
-}
-static void ScrollSel_Calculate(int nr, figureShape shape, int nrScroll, uint16_t *sel, uint16_t *roll, int visiblWin){
-	if(shape==0)
-		LCD_TOUCH_ScrollSel_SetCalculate(nrScroll, roll, sel, s[nr].y, heightAll, s[nr].heightKey, visiblWin);
-}
-
-static void ScrollSel_Draw(int nr, XY_Touch_Struct* posKeys, uint16_t selFrame, uint16_t roll, int win){
-	int fillColor_copy = fillColor;
-
-	for(int i=0; i<dimKeys[1]; ++i){
-		if(i == selFrame)
-			KeyStrPressLeft(nr,posKeys[i],txtKey[i],(uint32_t)colorTxtPressKey);		/* _KeyStrPress(posKey[i],txtKey[i],colorTxtPressKey); */
-		else{
-			fillColor = (i%2) ? BrightDecr(fillColor_copy,0x20) : fillColor_copy;
-			KeyStrleft(nr,posKeys[i],txtKey[i],colorTxtKey[i]);								/*	_KeyStr(posKey[i],txtKey[i],colorTxtKey[i]); */
-		}
-	}
-	LCD_Display(0 + roll * widthAll, s[nr].x, s[nr].y, widthAll, win);
-}
 void KEYBOARD_ServiceSizeRoll(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int nrRoll, char* txtDescr, uint32_t colorDescr, int frameNmbVis, int value)
 {
-	#define _FRAME2ROLL
-
+/*	#define _FRAME2ROLL */
 	XY_Touch_Struct posKey[GetPosKeySize()];
-	int win = frameNmbVis * s[k].heightKey - (frameNmbVis-1);
 	uint16_t selFrame = value;
 	uint16_t roll = 0;
 
@@ -1138,133 +1131,25 @@ void KEYBOARD_ServiceSizeRoll(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int
 	SetPosKey_Scroll(k,posKey);
 	SetDimAll_Scroll(k);
 
+	int win = ScrollSel_SetVisiblWin(k,frameNmbVis);
 	ScrollSel_Preparation(k,shape,nrRoll,frameNmbVis,&selFrame,&roll);
 	framePressColor = frameColor;
 
-	if(touchRelease == selBlockPress)
-	{
+	if(touchRelease == selBlockPress){
 		#ifdef _FRAME2ROLL
 			ScrollSel_SetBk(k,shape,posHead,txtDescr,colorDescr,spaceFrame2Roll,win);
 		#else
 		 	ScrollSel_SetNoneBk(k,shape);
 		#endif
-
 		 ScrollSel_Calculate(k,shape,nrRoll,&selFrame,&roll,win);
 		 ScrollSel_Draw(k,posKey,selFrame,roll,win);
 	}
-
 	SetTouch_Scroll(k,startTouchIdx,posKey,win);
-
 	#undef _FRAME2ROLL
 }
 
 
 
-
-
-void KEYBOARD__ServiceSizeRoll(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int nrRoll, char* txtDescr, uint32_t colorDescr, int value)
-{
-	#define _FRAME2ROLL
-
-	const uint16_t dimKeys[] = {1,LCD_GetFontSizeMaxNmb()};
-	const char *txtKey[dimKeys[1]];
-	COLORS_DEFINITION colorTxtKey[dimKeys[1]];
-	COLORS_DEFINITION colorTxtPressKey = DARKRED;
-	XY_Touch_Struct posKey[dimKeys[1]];
-
-	#ifdef _FRAME2ROLL
-		XY_Touch_Struct posHead = {0,5};
-		uint16_t spaceFrame2Roll = 10;
-		int head = posHead.y + LCD_GetFontHeight(fontID_descr) + posHead.y;
-	#endif
-
-	if(shape!=0){
-		if(KeysAutoSize == widthKey){
-			s[k].widthKey =  heightKey + LCD_GetWholeStrPxlWidth(fontID,(char*)LCD_GetFontSizeStr(50),0,NoConstWidth) + heightKey;		/*	space + text + space */
-			s[k].heightKey = heightKey + LCD_GetFontHeight(fontID) + heightKey;
-		}
-	}
-
-	int frameNmbVis = 8;
-	uint16_t roll = 0, roll_copy = 0;
-	uint16_t selFrame = value;
-
-	int countKey = dimKeys[1];
-	int win = frameNmbVis * s[k].heightKey - (frameNmbVis-1);
-	int fillColor_copy = fillColor;
-
-	if(shape!=0){
-		if(dimKeys[1]-selFrame <= frameNmbVis/2)	roll = dimKeys[1]-frameNmbVis-1;
-		else if(		  selFrame <= frameNmbVis/2)	roll = 0;
-		else													roll = selFrame - frameNmbVis/2;
-
-		roll_copy = roll;
-		roll *= s[k].heightKey;
-		roll -= roll_copy;
-		LCD_TOUCH_ScrollSel_SetCalculate(nrRoll, &roll, &selFrame, 0,0,0,countKey/frameNmbVis);
-	}
-
-	for(int i=0; i<countKey; ++i)
-	{
-		txtKey[i] = LCD_GetFontSizeStr(i);
-		colorTxtKey[i] = COLOR_GRAY(0xDD);
-
-		posKey[i].x = s[k].interSpace;
-		posKey[i].y = (i+1)*s[k].interSpace + i*s[k].heightKey - i;
-	}
-
-	framePressColor = frameColor;
-	widthAll  = dimKeys[0]*s[k].widthKey  + (dimKeys[0]+1)*s[k].interSpace;
-	heightAll = dimKeys[1]*s[k].heightKey + (dimKeys[1]+1)*s[k].interSpace - (countKey-1);
-
-	if(touchRelease == selBlockPress)
-	{
-		if(shape!=0)
-		{
-			#ifdef _FRAME2ROLL
-				BKCOPY_VAL(heightAll_c,heightAll,head+win+spaceFrame2Roll);
-				BKCOPY_VAL(widthAll_c,widthAll,widthAll+2*spaceFrame2Roll);
-
-					 LCD_ShapeWindow( LCD_RoundRectangle,0,widthAll,heightAll, 0,0, widthAll,heightAll, SetBold2Color(frameMainColor,s[k].bold), fillMainColor,bkColor );
-
-					 //BKCOPY_VAL(c.interSpace,s[k].interSpace,posHead.y);
-				 		StrDescr(k,posHead, txtDescr, colorDescr);
-				 	// BKCOPY(s[k].interSpace,c.interSpace);
-
-				 	 LCD_Display(0, s[k].x-spaceFrame2Roll, s[k].y-head, widthAll, heightAll);
-
-				 BKCOPY(widthAll,widthAll_c);
-				 BKCOPY(heightAll,heightAll_c);
-			#else
-				 LCD_ShapeWindow( LCD_RoundRectangle,0,widthAll,heightAll, 0,0, widthAll,heightAll, SetBold2Color(frameMainColor,s[k].bold), fillMainColor,bkColor );
-			#endif
-		}
-
-		if(shape==0)
-			LCD_TOUCH_ScrollSel_SetCalculate(nrRoll, &roll, &selFrame, s[k].y, heightAll, s[k].heightKey, win);
-
-		for(int i=0; i<countKey; ++i)
-		{
-			if(i == selFrame)
-				KeyStrPressLeft(k,posKey[i],txtKey[i],colorTxtPressKey);		/* _KeyStrPress(posKey[i],txtKey[i],colorTxtPressKey); */
-			else{
-				fillColor = (i%2) ? BrightDecr(fillColor_copy,0x20) : fillColor_copy;
-				KeyStrleft(k,posKey[i],txtKey[i],colorTxtKey[i]);				/*	_KeyStr(posKey[i],txtKey[i],colorTxtKey[i]); */
-			}
-		}
-		LCD_Display(0 + roll * widthAll, s[k].x, s[k].y, widthAll, win);
-	}
-
-	if(startTouchIdx){
-		touchTemp[0].x= s[k].x + posKey[0].x;
-		touchTemp[1].x= touchTemp[0].x + s[k].widthKey;
-		touchTemp[0].y= s[k].y + posKey[0].y;
-		touchTemp[1].y= touchTemp[0].y + win;
-		LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT, s[k].startTouchIdx, TOUCH_GET_PER_ANY_PROBE);
-		s[k].nmbTouch++;
-	}
-	#undef _FRAME2ROLL
-}
 
 
 
