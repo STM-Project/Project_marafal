@@ -1290,7 +1290,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 
 		case KEYBOARD_fontSize2:
 			KEYBOARD_KeyAllParamSet3(1,LCD_GetFontSizeMaxNmb(), COLOR_GRAY(0xDD), DARKRED, (char**)LCD_GetFontSizePtr());
-			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1, SL(LANG_CoeffKeyName), v.FONT_COLOR_Descr, Test.size);
+			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1, SL(LANG_CoeffKeyName), v.FONT_COLOR_Descr, 8, Test.size);
 			break;
 
 
