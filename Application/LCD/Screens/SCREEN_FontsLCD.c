@@ -1579,10 +1579,10 @@ void FILE_NAME(setTouch)(void)
 			else _SaveState();  //dac np funkcje nazew i wsrodku to ' _SaveState();'
 			break;
 
-		CASE_TOUCH_STATE(state,Touch_FontColorMoveLeft, FontColor,Press, TXT_FONT_COLOR,252,NoTouch,NoTouch);
-			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_circleSliderRGB, 	KEY_All_release, LCD_RoundRectangle,0,  350,170, 100,100, 16, state, Touch_fontCircleSliderR, KeysDel);
-								LCDTOUCH_ActiveOnly(state,0,0,0,0,0,0,0,0,0,Touch_fontCircleSliderR,Touch_CircleSliderStyle); }
-			else{ LCD_TOUCH_RestoreAllSusspendedTouchs(); _SaveState(); }
+		CASE_TOUCH_STATE(state,Touch_FontColorMoveLeft, FontColor,Press, TXT_FONT_COLOR,252,NoTouch,NoTouch);  //pogrupowac po kolei od kolejnosci !!!!!
+			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_circleSliderRGB, 	KEY_All_release, LCD_RoundRectangle,0,  350,170, 100,100, 16, state, Touch_fontCircleSliderR, KeysDel); }
+								//LCDTOUCH_ActiveOnly(state,Touch_BkColor,Touch_FontColor,0,0,0,0,0,0,0,Touch_fontCircleSliderR,Touch_CircleSliderStyle); }
+			else{ /*LCD_TOUCH_RestoreAllSusspendedTouchs();*/ _SaveState(); }
 			break;
 
 

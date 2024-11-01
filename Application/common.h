@@ -117,15 +117,11 @@ typedef enum{
 	_double,
 }DATA_TYPE;
 
-typedef enum{
-	_Incr,
-	_Decr,
-}DATA_ACTION;
-
-typedef enum{
-	_ON,
-	_OFF,
-}ON_OFF;
+typedef enum{ _Incr,  _Decr, }DATA_ACTION;
+typedef enum{ _ON,    _OFF,  }ON_OFF;
+typedef enum{ _START, _STOP, }START_STOP;
+typedef enum{ _MIN,   _MID,  _MAX,  }MAX_MIN;
+typedef enum{ _GET=-2, _SET=-1, }GET_SET;
 
 typedef struct{
 	char *pData;
