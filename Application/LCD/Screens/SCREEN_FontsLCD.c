@@ -1282,11 +1282,10 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			break;
 
 		case KEYBOARD_circleSliderRGB:
-			float *decis= GET_CIRCLE_errorDecision(0);
-			SET_CIRCLE_errorDecision(0, 0.0);
+			CIRCLE_errorDecision(0,_OFF);
 			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), RED,DARKGREEN,BLUE);
 			KEYBOARD_ServiceCircleSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_fontCircleSliderR, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB);
-			SET_CIRCLE_errorDecision(0, *decis);
+			CIRCLE_errorDecision(0,_ON);
 			break;
 
 		case KEYBOARD_fontSize2:
@@ -1581,9 +1580,9 @@ void FILE_NAME(setTouch)(void)
 			break;
 
 		CASE_TOUCH_STATE(state,Touch_FontColorMoveLeft, FontColor,Press, TXT_FONT_COLOR,252,NoTouch,NoTouch);
-			if(IsFunc())
-				FILE_NAME(keyboard)(KEYBOARD_circleSliderRGB, 	KEY_All_release, LCD_RoundRectangle,0,  350,160, 97,97, 16, state, Touch_fontCircleSliderR, KeysDel);
-			else _SaveState();
+			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_circleSliderRGB, 	KEY_All_release, LCD_RoundRectangle,0,  350,170, 100,100, 16, state, Touch_fontCircleSliderR, KeysDel);
+								LCDTOUCH_ActiveOnly(state,0,0,0,0,0,0,0,0,0,Touch_fontCircleSliderR,Touch_CircleSliderStyle); }
+			else{ LCD_TOUCH_RestoreAllSusspendedTouchs(); _SaveState(); }
 			break;
 
 

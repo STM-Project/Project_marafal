@@ -122,6 +122,11 @@ typedef enum{
 	_Decr,
 }DATA_ACTION;
 
+typedef enum{
+	_ON,
+	_OFF,
+}ON_OFF;
+
 typedef struct{
 	char *pData;
 	uint32_t len;

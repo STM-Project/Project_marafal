@@ -67,6 +67,7 @@ uint16_t* GET_CIRCLE_correctPercDeg(int nr);
 float* 	 GET_CIRCLE_errorDecision(int nr);
 
 void SET_CIRCLE_errorDecision(int nr, float decis);
+void CIRCLE_errorDecision(int nr, ON_OFF action);
 
 void CorrectLineAA_on(void);
 void CorrectLineAA_off(void);

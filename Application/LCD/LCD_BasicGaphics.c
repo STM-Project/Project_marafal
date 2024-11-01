@@ -50,13 +50,26 @@ typedef struct
 	uint16_t correctPercDeg[2];
 	float errorDecision[2];
 }Circle_Param;
-static Circle_Param Circle = {.correctForWidth= 100, .correctPercDeg= {70, 80}, .errorDecision= {0.1, 0.4}};
+static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .errorDecision= {0.1, 0.4}};
 
 uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
 uint16_t* GET_CIRCLE_correctPercDeg(int nr){	return &Circle.correctPercDeg[nr]; }
 float* 	 GET_CIRCLE_errorDecision(int nr) {	return &Circle.errorDecision[nr];  }
 
 void SET_CIRCLE_errorDecision(int nr, float decis){ Circle.errorDecision[nr]= decis; }
+
+void CIRCLE_errorDecision(int nr, ON_OFF action){
+	static float decis[2]= {0.0};
+	switch((int)action){
+		case _ON:
+			Circle.errorDecision[nr]= decis[nr];
+			break;
+		case _OFF:
+			decis[nr]= Circle.errorDecision[nr];
+			Circle.errorDecision[nr]= 0.0;
+			break;
+	}
+}
 
 static void Set_AACoeff(int pixelsInOneSide, uint32_t colorFrom, uint32_t colorTo, float ratioStart)
 {
@@ -1597,7 +1610,6 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 				else
 					circleLinesLenCorrect = 2;
 			}
-
 
 			if(i==0)
 				DrawLine(0,Circle.x0,Circle.y0,(Circle.width-4-circleLinesLenCorrect)/2-1,Circle.degree[1+i],FrameColor,BkpSizeX, Circle.outRatioStart,Circle.inRatioStart,_FillColor,Circle.degColor[i+1]);
