@@ -29,10 +29,13 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
+extern volatile unsigned long ulHighFrequencyTimerTicks;
 
 /* USER CODE END Includes */
 
 extern TIM_HandleTypeDef htim5;
+
+extern TIM_HandleTypeDef htim7;
 
 /* USER CODE BEGIN Private defines */
 #define MEASURE_TIME_START			StartMeasureTime_us()
@@ -41,6 +44,7 @@ extern TIM_HandleTypeDef htim5;
 /* USER CODE END Private defines */
 
 void MX_TIM5_Init(void);
+void MX_TIM7_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 void StartMeasureTime_us(void);

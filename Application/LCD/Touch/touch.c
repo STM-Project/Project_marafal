@@ -757,6 +757,8 @@ int LCD_TOUCH_ScrollSel_Service(uint8_t nr, uint8_t pressRelease, uint16_t *y, u
 	return 0;
 }
 
+int gora=0; dol=0;
+
 int LCD_TOUCH_ScrollSel_SetCalculate(uint8_t nr, uint16_t *offsWin, uint16_t *selWin, uint16_t WinposY, uint16_t heightAll, uint16_t heightKey, uint16_t heightWin)
 {
 	static struct SCROLL_SEL{
@@ -784,20 +786,23 @@ int LCD_TOUCH_ScrollSel_SetCalculate(uint8_t nr, uint16_t *offsWin, uint16_t *se
 
 	uint16_t statePress;
 	int val = LCD_TOUCH_ScrollSel_Service(nr,checkPress, &statePress,0);
-
+	gora=0; dol=0;
 	switch(statePress)
 	{
 		case press:
 			if(val > 0){
 				if(roll[nr].offsWin < ((heightAll-heightWin)+1 - val) )
 					roll[nr].offsWin += val;
+				else{
+					roll[nr].offsWin = heightAll-heightWin;   dol=1;
+				}
 			}
 			else{
 				val *= -1;
 				if(roll[nr].offsWin > val)
 					roll[nr].offsWin -= val;
-				else
-					roll[nr].offsWin = 0;
+				else{
+					roll[nr].offsWin = 0;  gora=1; }
 			}
 			_refreshWin();
 			return statePress;
@@ -832,9 +837,12 @@ void LCD_TOUCH_ScrollSel_FreeRolling(uint8_t nr, FUNC1_DEF(pFunc))
 			delta *= paramCoeff[0];
 			val = delta;
 			while(1)
-			{
+			{Data2Refresh(11);
 				if(LCD_TOUCH_ScrollSel_Service(nr,press, &val,1))
 					pFunc(FUNC1_ARG);
+
+				if(gora || dol)
+					break;
 
 				if(press == LCD_TOUCH_isPress())
 					break;
@@ -859,9 +867,12 @@ void LCD_TOUCH_ScrollSel_FreeRolling(uint8_t nr, FUNC1_DEF(pFunc))
 			delta = ABS(delta)*paramCoeff[0];
 			val = 1;
 			while(1)
-			{
+			{Data2Refresh(11);
 				if(LCD_TOUCH_ScrollSel_Service(nr,press, &val,1))
 					pFunc(FUNC1_ARG);
+
+				if(gora || dol)
+					break;
 
 				if(press == LCD_TOUCH_isPress())
 					break;

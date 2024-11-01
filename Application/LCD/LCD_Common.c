@@ -57,12 +57,23 @@ uint16_t vTimerService(int nr, int cmd, int timeout)
 			}
 			return _timer[nr];
 
+		case restart_time:
+			_timer[nr] = xTaskGetTickCount();
+			return _timer[nr];
+
 		case get_time:
 			return xTaskGetTickCount();
 
 		case check_time:
 			if(_timer[nr])
 				return _CheckTickCount(_timer[nr],timeout);
+			return 0;
+
+		case check_restart_time:
+			if(_timer[nr] && _CheckTickCount(_timer[nr],timeout)){
+				_timer[nr] = xTaskGetTickCount();
+				return 1;
+			}
 			return 0;
 
 		case stop_time:

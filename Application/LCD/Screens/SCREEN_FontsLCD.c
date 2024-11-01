@@ -661,7 +661,7 @@ static void SetCursor(void)  //KURSOR DLA BIG FONT DAC PODWOJNY !!!!!
 	}
 }
 
-static void Data2Refresh(int nr)
+void Data2Refresh(int nr)
 {
 	switch(nr)
 	{
@@ -744,14 +744,12 @@ static void Data2Refresh(int nr)
 	case PARAM_LOAD_FONT_TIME:
 		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_LoadFontTime, TXT_TIMESPEED);
 		break;
+	case PARAM_CPU_USAGE:
+		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_CPUusage,TXT_CPU_USAGE);
+		break;
 /*	case PARAM_POS_CURSOR:
 		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_PosCursor,TXT_PosCursor());
 		break; */
-
-
-//	case PARAM_CPU_USAGE:
-//		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_CPUusage,TXT_CPU_USAGE);
-//		break;
 	}
 }
 /*
@@ -1336,13 +1334,15 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 }
 
 
-//suwag okrągły !!!
 
 //dla ROLL bez select a drugie pole touch to z select,
 
 static void FILE_NAME(timer)(void)  //sprawdz czy nie uzyc RTOS timer CALLBACK !!!!!!!!!!!!!
 {
-	if(vTimerService(TimerId_2,check_time,2000)){
+	if(vTimerService(TimerId_3,check_time,500)){
+		Data2Refresh(PARAM_CPU_USAGE);
+	}
+	else if(vTimerService(TimerId_2,check_time,2000)){
 		vTimerService(TimerId_2,stop_time,2000);
 		KEYBOARD_TYPE(KEYBOARD_LenOffsWin, KEY_Timer);
 	}
@@ -1744,7 +1744,7 @@ void FILE_NAME(setTouch)(void)
 				}
 				else{
 					LCD_TOUCH_ScrollSel_FreeRolling(ROLL_1, FUNC1_SET(FILE_NAME(keyboard),KEYBOARD_fontSize2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0) );
-					vTimerService(TimerId_1,reset_time,paramNoUse);
+					vTimerService(TimerId_1,reset_time,noUse);
 				}
 			}
 
@@ -1783,7 +1783,7 @@ void FILE_NAME(debugRcvStr)(void)
 		LCD_ResetSpacesBetweenFonts();
 	else if(DEBUG_RcvStr("p"))
 	{
-		DbgVar(DEBUG_ON,100,Clr_ Mag_"\r\nStart: %s\r\n"_X,GET_CODE_FUNCTION);
+		DbgVar(DEBUG_ON,100,Clr_ Mag_"\r\nStart: %s --- %d \r\n"_X, GET_CODE_FUNCTION, osGetCPUUsage());
 		DisplayCoeffCalibration();
 
 //		SCREEN_Fonts_funcSet(FONT_COLOR_LoadFontTime, BLACK);
@@ -1793,6 +1793,7 @@ void FILE_NAME(debugRcvStr)(void)
 	else if(DEBUG_RcvStr("-"))
 	{
 		FILE_NAME(printInfo)();
+
 	}
 	else if(DEBUG_RcvStr("6"))
 	{
@@ -2241,6 +2242,8 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 		LCD_Ymiddle(nrMIDDLE_TXT,SetPos, SetPosAndWidth(Test.yFontsField,240) );
 		LCD_Xmiddle(nrMIDDLE_TXT,SetPos, SetPosAndWidth(Test.xFontsField,LCD_GetXSize()),NULL,0,NoConstWidth);
 		LCD_SetBkFontShape(v.FONT_VAR_Fonts,BK_Rectangle);
+
+		vTimerService(TimerId_3,start_time,noUse);
 	}
 	/*FILE_NAME(printInfo)();*/
 
@@ -2253,7 +2256,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 		FRAMES_GROUP_separat(argNmb,15,15,25,25,FRAME_bold2Space(0,6));
 
 
-	/*	lenStr=LCD_StrDependOnColorsVar(STR_FONT_PARAM(CPUusage,FillMainFrame),450,0,TXT_CPU_USAGE,halfHight,0,255,ConstWidth); */
+	LCD_StrDependOnColorsVar(STR_FONT_PARAM(CPUusage,FillMainFrame),0,420,TXT_CPU_USAGE,halfHight,0,255,ConstWidth);
 	LCD_StrDependOnColors(v.FONT_ID_Descr, LCD_X-FV(GetVal,0,NoUse), LCD_Y-FV(GetVal,1,NoUse), SL(LANG_MainFrameType), fullHight,0, v.COLOR_FillFrame, v.FONT_COLOR_Descr, 255, NoConstWidth);
 
 	if(LoadUserScreen == argNmb){

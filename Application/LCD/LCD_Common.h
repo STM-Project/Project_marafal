@@ -74,7 +74,9 @@ typedef enum{
 	get_startTime,
 	check_time,
 	reset_time,
-	paramNoUse
+	restart_time,
+	check_restart_time,
+	noUse
 }TIMER_SERVICE;
 
 #define LOAD_FONT_PARAM(name) 			v.FONT_SIZE_##name, v.FONT_STYLE_##name, v.FONT_BKCOLOR_##name, v.FONT_COLOR_##name

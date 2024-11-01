@@ -1584,8 +1584,8 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 				IS_RANGE(Circle.degree[1+i], 206, 244) ||
 				IS_RANGE(Circle.degree[1+i], 122, 149) )
 			{
-				if(Circle.width/2 < 100 /* CORRECT_FOR_RADIUS */)
-					circleLinesLenCorrect = 2;
+				if(Circle.width/2 < 100)
+					circleLinesLenCorrect = 0;
 				else
 					circleLinesLenCorrect = 4;
 			}

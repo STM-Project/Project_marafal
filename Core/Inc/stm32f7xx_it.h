@@ -58,6 +58,7 @@ void DMA1_Stream3_IRQHandler(void);
 void I2C1_EV_IRQHandler(void);
 void TIM8_TRG_COM_TIM14_IRQHandler(void);
 void SDMMC1_IRQHandler(void);
+void TIM7_IRQHandler(void);
 void DMA2_Stream3_IRQHandler(void);
 void DMA2_Stream6_IRQHandler(void);
 void UART7_IRQHandler(void);
