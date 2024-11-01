@@ -56,6 +56,8 @@ uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
 uint16_t* GET_CIRCLE_correctPercDeg(int nr){	return &Circle.correctPercDeg[nr]; }
 float* 	 GET_CIRCLE_errorDecision(int nr) {	return &Circle.errorDecision[nr];  }
 
+void SET_CIRCLE_errorDecision(int nr, float decis){ Circle.errorDecision[nr]= decis; }
+
 static void Set_AACoeff(int pixelsInOneSide, uint32_t colorFrom, uint32_t colorTo, float ratioStart)
 {
 	float incr= (1-ratioStart)/pixelsInOneSide;
@@ -1542,7 +1544,7 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 			_StartDrawLine(posBuff,bkX,x,y);
 			fillWidth=0;
 			for(int i=0;i<buf[0];++i){
-				_IncDrawPos(bkX-buf[i+1]);	_CopyDrawPos(); k+=buf[i+1];	if(i>0) _DrawRight(2*fillWidth,FillColor);	_SetCopyDrawPos();	fillHeight++;
+				_IncDrawPos(bkX-buf[i+1]);	_CopyDrawPos(); k+=buf[i+1];	if(i==buf[0]-1){k--; _DrawRight(1,FrameColor);}  if(i>0)_DrawRight(2*fillWidth,FillColor);	  _SetCopyDrawPos();	fillHeight++;
 				fillWidth += buf[i+1];
 			}
 
@@ -1550,7 +1552,7 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 				fillWidth++;
 				_IncDrawPos(-1);
 				for(int j=0; j<buf[buf[0]-i]; ++j){
-					_IncDrawPos(bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){k+=1;_DrawRight(2*(fillWidth-1),FillColor);}else{k+=2;_DrawRight(2*(fillWidth-2),FillColor);}	_SetCopyDrawPos();	fillHeight++;
+					_IncDrawPos(bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){k+=1;_DrawRight(2*(fillWidth-1),FillColor); if(i==0){k--;k-=bkX;_DrawRight(1,FrameColor);k+=bkX;} }else{k+=2;_DrawRight(2*(fillWidth-2),FillColor);}	_SetCopyDrawPos();	fillHeight++;
 				}
 			}
 
@@ -1559,7 +1561,7 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 			_StartDrawLine(posBuff,bkX,x,y+fillHeight);
 			fillWidth=0;
 			for(int i=0;i<buf[0];++i){
-				_IncDrawPos(-bkX-buf[i+1]);	_CopyDrawPos();	 k+=buf[i+1];	if(i>0) _DrawRight(2*fillWidth,FillColor);	_SetCopyDrawPos();
+				_IncDrawPos(-bkX-buf[i+1]); _CopyDrawPos();	k+=buf[i+1];	if(i==buf[0]-1){k-=2; k-=bkX; _DrawRight(1,FrameColor);k++; k+=bkX;}  if(i>0)_DrawRight(2*fillWidth,FillColor);	_SetCopyDrawPos();
 				fillWidth += buf[i+1];
 			}
 
@@ -1567,7 +1569,7 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 				fillWidth++;
 				_IncDrawPos(-1);
 				for(int j=0; j<buf[buf[0]-i]; ++j){
-					_IncDrawPos(-bkX);	_CopyDrawPos();  if(j==buf[buf[0]-i]-1){k+=1;_DrawRight(2*(fillWidth-1),FillColor);}else{k+=2;_DrawRight(2*(fillWidth-2),FillColor);}	 _SetCopyDrawPos();
+					_IncDrawPos(-bkX);	_CopyDrawPos();  if(j==buf[buf[0]-i]-1){k+=1;_DrawRight(2*(fillWidth-1),FillColor); if(i==0){k-=2;k+=2*bkX;_DrawRight(1,FrameColor);k-=2*bkX;k++;} }else{k+=2;_DrawRight(2*(fillWidth-2),FillColor);}	 _SetCopyDrawPos();
 				}
 			}
 		}

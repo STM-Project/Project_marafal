@@ -1282,8 +1282,11 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			break;
 
 		case KEYBOARD_circleSliderRGB:
+			float *decis= GET_CIRCLE_errorDecision(0);
+			SET_CIRCLE_errorDecision(0, 0.0);
 			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), RED,DARKGREEN,BLUE);
 			KEYBOARD_ServiceCircleSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_fontCircleSliderR, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB);
+			SET_CIRCLE_errorDecision(0, *decis);
 			break;
 
 		case KEYBOARD_fontSize2:
