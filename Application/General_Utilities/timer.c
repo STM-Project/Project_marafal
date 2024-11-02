@@ -6,12 +6,13 @@
  */
 
 #include "timer.h"
-#include "FreeRTOS.h"
 #include "timers.h"
 #include "debug.h"
 
 #define MAX_COUNT_TIME		40
 #define MAX_MEASURE_TIME	10
+
+#define MAX_ELEMENTS_TIMER_SERVICE	40
 
 static portTickType timeVar[MAX_COUNT_TIME];
 static portTickType measurTime[MAX_MEASURE_TIME];
@@ -51,4 +52,75 @@ uint32_t StopMeasureTime(int nr, char *nameTime)
 		return measurTimeStop-measurTime[nr];
 	}
 	return 0;
+}
+
+
+int _CheckTickCount(portTickType tim, int timeout){		/* check: configUSE_16_BIT_TICKS in portmacro.h */
+	TickType_t countVal = xTaskGetTickCount();
+	if((countVal-tim) < 0){
+		if(countVal+(65535-tim) > timeout)
+			return 1;
+	}
+	else{
+		if((countVal-tim) > timeout)
+			return 1;
+	}
+	return 0;
+}
+
+uint16_t vTimerService(int nr, int cmd, int timeout)
+{
+	static portTickType _timer[MAX_ELEMENTS_TIMER_SERVICE] = {0};
+
+	switch(cmd)
+	{
+		case start_time:
+			if(_timer[nr] == 0){
+				_timer[nr] = xTaskGetTickCount();
+				return 0;
+			}
+			return _timer[nr];
+
+		case restart_time:
+			_timer[nr] = xTaskGetTickCount();
+			return _timer[nr];
+
+		case get_time:
+			return xTaskGetTickCount();
+
+		case check_time:
+			if(_timer[nr])
+				return _CheckTickCount(_timer[nr],timeout);
+			return 0;
+
+		case check_restart_time:
+			if(_timer[nr] && _CheckTickCount(_timer[nr],timeout)){
+				_timer[nr] = xTaskGetTickCount();
+				return 1;
+			}
+			return 0;
+
+		case check_stop_time:
+			if(_timer[nr] && _CheckTickCount(_timer[nr],timeout)){
+				_timer[nr] = 0;
+				return 1;
+			}
+			return 0;
+
+		case stop_time:
+			if(_timer[nr]){
+				int temp= _CheckTickCount(_timer[nr],timeout);
+				_timer[nr] = 0;
+				return temp;
+			}
+			return 0;
+
+		case get_startTime:
+			return _timer[nr];
+
+		case reset_time:
+		default:
+			_timer[nr] = 0;
+			return 1;
+	}
 }

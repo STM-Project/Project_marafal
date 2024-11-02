@@ -1554,10 +1554,18 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 		{
 	   	 uint16_t fillWidth, fillHeight=0;
 
+	   	 void _RemoveUnnecessaryDots(int i, int nrDeg){			/* Remove 4 dots in Frame at 45, 135, 225, 315 degree for 'Percent_Circle' */
+	   		 switch(nrDeg){
+	   		 	 case 0:  if(i==buf[0]-1){ k--; 			 	 _DrawRight(1,FrameColor); 				   } break;
+	   		 	 case 1:  if(i==0)		 { k--;  k-=bkX;	 _DrawRight(1,FrameColor); k+=bkX; 		   } break;
+	   		 	 case 2:  if(i==buf[0]-1){ k-=2; k-=bkX; 	 _DrawRight(1,FrameColor); k++; k+=bkX;   } break;
+	   		 	 case 3:  if(i==0)		 { k-=2; k+=2*bkX; _DrawRight(1,FrameColor); k-=2*bkX; k++; } break;
+	   	}}
+
 			_StartDrawLine(posBuff,bkX,x,y);
 			fillWidth=0;
 			for(int i=0;i<buf[0];++i){
-				_IncDrawPos(bkX-buf[i+1]);	_CopyDrawPos(); k+=buf[i+1];	if(i==buf[0]-1){k--; _DrawRight(1,FrameColor);}  if(i>0)_DrawRight(2*fillWidth,FillColor);	  _SetCopyDrawPos();	fillHeight++;
+				_IncDrawPos(bkX-buf[i+1]);	_CopyDrawPos(); k+=buf[i+1];	_RemoveUnnecessaryDots(i,0);  if(i>0)_DrawRight(2*fillWidth,FillColor);	  _SetCopyDrawPos();	fillHeight++;
 				fillWidth += buf[i+1];
 			}
 
@@ -1565,7 +1573,7 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 				fillWidth++;
 				_IncDrawPos(-1);
 				for(int j=0; j<buf[buf[0]-i]; ++j){
-					_IncDrawPos(bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){k+=1;_DrawRight(2*(fillWidth-1),FillColor); if(i==0){k--;k-=bkX;_DrawRight(1,FrameColor);k+=bkX;} }else{k+=2;_DrawRight(2*(fillWidth-2),FillColor);}	_SetCopyDrawPos();	fillHeight++;
+					_IncDrawPos(bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){k+=1;_DrawRight(2*(fillWidth-1),FillColor); _RemoveUnnecessaryDots(i,1); }else{k+=2;_DrawRight(2*(fillWidth-2),FillColor);}	_SetCopyDrawPos();	fillHeight++;
 				}
 			}
 
@@ -1574,7 +1582,7 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 			_StartDrawLine(posBuff,bkX,x,y+fillHeight);
 			fillWidth=0;
 			for(int i=0;i<buf[0];++i){
-				_IncDrawPos(-bkX-buf[i+1]); _CopyDrawPos();	k+=buf[i+1];	if(i==buf[0]-1){k-=2; k-=bkX; _DrawRight(1,FrameColor);k++; k+=bkX;}  if(i>0)_DrawRight(2*fillWidth,FillColor);	_SetCopyDrawPos();
+				_IncDrawPos(-bkX-buf[i+1]); _CopyDrawPos();	k+=buf[i+1];	_RemoveUnnecessaryDots(i,2);  if(i>0)_DrawRight(2*fillWidth,FillColor);	_SetCopyDrawPos();
 				fillWidth += buf[i+1];
 			}
 
@@ -1582,7 +1590,7 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 				fillWidth++;
 				_IncDrawPos(-1);
 				for(int j=0; j<buf[buf[0]-i]; ++j){
-					_IncDrawPos(-bkX);	_CopyDrawPos();  if(j==buf[buf[0]-i]-1){k+=1;_DrawRight(2*(fillWidth-1),FillColor); if(i==0){k-=2;k+=2*bkX;_DrawRight(1,FrameColor);k-=2*bkX;k++;} }else{k+=2;_DrawRight(2*(fillWidth-2),FillColor);}	 _SetCopyDrawPos();
+					_IncDrawPos(-bkX);	_CopyDrawPos();  if(j==buf[buf[0]-i]-1){k+=1;_DrawRight(2*(fillWidth-1),FillColor); _RemoveUnnecessaryDots(i,3); }else{k+=2;_DrawRight(2*(fillWidth-2),FillColor);}	 _SetCopyDrawPos();
 				}
 			}
 		}

@@ -6,29 +6,14 @@
  */
 
 #include "stm32f7xx_hal.h"
-#include "freeRTOS.h"
-#include "task.h"
 #include "LCD_Common.h"
 #include "common.h"
 #include "LCD_Hardware.h"
+#include "timer.h"
 
 #define MAX_ELEMENTS_REFRESH_IN_SCREEN	40
-#define MAX_ELEMENTS_TIMER_SERVICE	40
 
 portTickType refreshScreenVar[MAX_ELEMENTS_REFRESH_IN_SCREEN];
-
-int _CheckTickCount(portTickType tim, int timeout){		/* check: configUSE_16_BIT_TICKS in portmacro.h */
-	TickType_t countVal = xTaskGetTickCount();
-	if((countVal-tim) < 0){
-		if(countVal+(65535-tim) > timeout)
-			return 1;
-	}
-	else{
-		if((countVal-tim) > timeout)
-			return 1;
-	}
-	return 0;
-}
 
 void LCD_AllRefreshScreenClear(void){
 	for(int i=0; i<MAX_ELEMENTS_REFRESH_IN_SCREEN; ++i)
@@ -43,66 +28,6 @@ int LCD_IsRefreshScreenTimeout(int nrRefresh, int timeout){
 		LCD_RefreshScreenClear(nrRefresh);
 	return temp;
 }
-
-uint16_t vTimerService(int nr, int cmd, int timeout)
-{
-	static portTickType _timer[MAX_ELEMENTS_TIMER_SERVICE] = {0};
-
-	switch(cmd)
-	{
-		case start_time:
-			if(_timer[nr] == 0){
-				_timer[nr] = xTaskGetTickCount();
-				return 0;
-			}
-			return _timer[nr];
-
-		case restart_time:
-			_timer[nr] = xTaskGetTickCount();
-			return _timer[nr];
-
-		case get_time:
-			return xTaskGetTickCount();
-
-		case check_time:
-			if(_timer[nr])
-				return _CheckTickCount(_timer[nr],timeout);
-			return 0;
-
-		case check_restart_time:
-			if(_timer[nr] && _CheckTickCount(_timer[nr],timeout)){
-				_timer[nr] = xTaskGetTickCount();
-				return 1;
-			}
-			return 0;
-
-		case check_stop_time:
-			if(_timer[nr] && _CheckTickCount(_timer[nr],timeout)){
-				_timer[nr] = 0;
-				return 1;
-			}
-			return 0;
-
-		case stop_time:
-			if(_timer[nr]){
-				int temp= _CheckTickCount(_timer[nr],timeout);
-				_timer[nr] = 0;
-				return temp;
-			}
-			return 0;
-
-		case get_startTime:
-			return _timer[nr];
-
-		case reset_time:
-		default:
-			_timer[nr] = 0;
-			return 1;
-	}
-}
-
-
-
 
 //float dfeee = GetTransitionCoeff(WHITE, uint32_t colorTo, GetTransitionColor(WHITE, MYGRAY, 0.43));
 

@@ -49,36 +49,11 @@ typedef enum{
 }COLORS_DEFINITION;
 
 typedef enum{
-	TimerId_1,
-	TimerId_2,
-	TimerId_3,
-	TimerId_4,
-	TimerId_5,
-	TimerId_6,
-	TimerId_7,
-	TimerId_8,
-	TimerId_9,
-}TIMER_ID;
-
-typedef enum{
 	NoIndDisp,
 	IndDisp,
 	NoTxtDisp,
 	TxtDisp
 }LCD_SHOW_INDIRECT_OR_NOT_INDIRECT;
-
-typedef enum{
-	start_time,
-	stop_time,
-	get_time,
-	get_startTime,
-	check_time,
-	reset_time,
-	restart_time,
-	check_restart_time,
-	check_stop_time,
-	noUse
-}TIMER_SERVICE;
 
 #define LOAD_FONT_PARAM(name) 			v.FONT_SIZE_##name, v.FONT_STYLE_##name, v.FONT_BKCOLOR_##name, v.FONT_COLOR_##name
 #define STR_FONT_PARAM(name,bkScreen) 	v.FONT_VAR_##name, v.FONT_ID_##name, v.FONT_COLOR_##name, v.FONT_BKCOLOR_##name, v.COLOR_##bkScreen
@@ -120,7 +95,6 @@ enum LCD_Rotate{
 void LCD_AllRefreshScreenClear(void);
 void LCD_RefreshScreenClear(int nrRefresh);
 int LCD_IsRefreshScreenTimeout(int nrRefresh, int timeout);
-uint16_t vTimerService(int nr, int cmd, int timeout);
 
 uint32_t GetTransitionColor(uint32_t colorFrom, uint32_t colorTo, float transCoeff);
 float GetTransitionCoeff(uint32_t colorFrom, uint32_t colorTo, uint32_t colorTrans);

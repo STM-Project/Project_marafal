@@ -14,6 +14,7 @@
 #include "SCREEN_ReadPanel.h"
 #include "common.h"
 #include "math.h"
+#include "timer.h"
 
 #define FONT_COEFF	252
 
