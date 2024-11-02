@@ -828,7 +828,7 @@ int LCD_TOUCH_ScrollSel_GetRateCoeff(uint8_t nr){
 	return LCD_TOUCH_ScrollSel_SetCalculate(nr, NULL, NULL, 1,0,0,0);
 }
 
-void LCD_TOUCH_ScrollSel_FreeRolling(uint8_t nr, FUNC1_DEF(pFunc))
+void LCD_TOUCH_ScrollSel_FreeRolling(uint8_t nr, FUNC1_DEF(pFunc), VOID_FUNCTION *pfuncBlocking)
 {
 	int delta = LCD_TOUCH_ScrollSel_Service(nr,neverMind,NULL,0);
 	if(delta!=0)
@@ -843,7 +843,9 @@ void LCD_TOUCH_ScrollSel_FreeRolling(uint8_t nr, FUNC1_DEF(pFunc))
 			delta *= paramCoeff[0];
 			val = delta;
 			while(1)
-			{Data2Refresh(11);  //tu funkcja !!!!! ktorra
+			{
+				if(NULL!=pfuncBlocking) pfuncBlocking();
+
 				if(LCD_TOUCH_ScrollSel_Service(nr,press, &val,1))
 					pFunc(FUNC1_ARG);
 
@@ -873,7 +875,9 @@ void LCD_TOUCH_ScrollSel_FreeRolling(uint8_t nr, FUNC1_DEF(pFunc))
 			delta = ABS(delta)*paramCoeff[0];
 			val = 1;
 			while(1)
-			{Data2Refresh(11);  //tu funkcja !!!!! ktorra
+			{
+				if(NULL!=pfuncBlocking) pfuncBlocking();
+
 				if(LCD_TOUCH_ScrollSel_Service(nr,press, &val,1))
 					pFunc(FUNC1_ARG);
 

@@ -661,7 +661,7 @@ static void SetCursor(void)  //KURSOR DLA BIG FONT DAC PODWOJNY !!!!!
 	}
 }
 
-static void Data2Refresh(int nr)
+void Data2Refresh(int nr)  //dac static!!!!
 {
 	switch(nr)
 	{
@@ -1341,7 +1341,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 static int BlockTouchForTime(int action){
 	static int _blokTouchForTime= 0;
 	switch(action){
-		case _ON:  { _blokTouchForTime= 1;	vTimerService(TimerId_9,restart_time,noUse); break; }
+		case _ON:  { _blokTouchForTime= 1;	vTimerService(TimerId_9,restart_time,noUse); break; }  //Timer9 nazwac jakos!!!
 		case _OFF: { _blokTouchForTime= 0; break; }
 		case _GET: { break; }
 	}
@@ -1351,18 +1351,25 @@ static int CheckTouchForTime(uint16_t touchName){
 	return CONDITION(BlockTouchForTime(_GET),touchName,NoTouch);
 }
 
+static void CycleRefreshFunc(void){
+	if(vTimerService(TimerId_3,check_restart_time,1000))
+		Data2Refresh(PARAM_CPU_USAGE);
+}
+
+static void BlockingFunc(void){		/* Call this function in long during while(1) */
+	CycleRefreshFunc();
+}
+
 static void FILE_NAME(timer)(void)  //sprawdz czy nie uzyc RTOS timer CALLBACK !!!!!!!!!!!!!
 {
-	if(vTimerService(TimerId_3,check_restart_time,1000)){		//nazwac lepiej timerID na cos zeby mozna skojazyc
-		Data2Refresh(PARAM_CPU_USAGE);
-	}
-	else if(vTimerService(TimerId_2,check_time,2000)){
+	if(vTimerService(TimerId_2,check_time,2000)){
 		vTimerService(TimerId_2,stop_time,2000);
 		KEYBOARD_TYPE(KEYBOARD_LenOffsWin, KEY_Timer);
 	}
-	else if(vTimerService(TimerId_9, check_stop_time, 500)){	  //nazwac lepiej timerID na cos zeby mozna skojazyc
+	if(vTimerService(TimerId_9, check_stop_time, 500)){	  //nazwac lepiej timerID na cos zeby mozna skojazyc
 		BlockTouchForTime(_OFF);
 	}
+	CycleRefreshFunc();
 }
 
 void FUNC_fontColorRGB(int k){ switch(k){
@@ -1527,7 +1534,6 @@ void FILE_NAME(setTouch)(void)
 	int NotServiceTouchAboveWhenWasClearedThis(TOUCH_POINTS touch){
 		return CONDITION(NoTouch==touch, 1, !CHECK_TOUCH(touch) && !_WasState(touch));
 	}
-
 	void _TouchService(TOUCH_POINTS touchStart,TOUCH_POINTS touchStop, KEYBOARD_TYPES keyboard, SELECT_PRESS_BLOCK releaseAll,SELECT_PRESS_BLOCK keyStart, TOUCH_FUNC *func){
 		if(IS_RANGE(state, touchStart, touchStop)){
 			int nr = state-touchStart;
@@ -1542,8 +1548,6 @@ void FILE_NAME(setTouch)(void)
 			if(func) func(-1);
 	}}
 
-	int deltaForEndPress=0;  //moze to usunac !!!!
-
 	void CreateKeyboard(KEYBOARD_TYPES keboard){
 		switch((int)keboard){
 			case KEYBOARD_fontRGB:	break;
@@ -1552,7 +1556,7 @@ void FILE_NAME(setTouch)(void)
 
 	state = LCD_TOUCH_GetTypeAndPosition(&pos);
 
-	/*	Service specific press KEY */
+	/*	----- Service press specific Keys for Keboard ----- */
 	_TouchService(Touch_fontRp, Touch_fontBm, KEYBOARD_fontRGB, KEY_All_release, KEY_Red_plus, FUNC_fontColorRGB);
 	_TouchService(Touch_bkRp, Touch_bkBm, 	   KEYBOARD_bkRGB,   KEY_All_release, KEY_Red_plus, FUNC_bkFontColorRGB);
 
@@ -1571,7 +1575,7 @@ void FILE_NAME(setTouch)(void)
 
 	switch(state)  //w fots_image correct dots!!!!
 	{
-		/*	Initiation new Keyboard */
+		/*	----- Initiation new Keyboard ----- */
 		CASE_TOUCH_STATE(state,Touch_FontColor, FontColor,Press, TXT_FONT_COLOR,252,CheckTouchForTime(Touch_FontColorMoveRight),CheckTouchForTime(Touch_FontColorMoveLeft));		/* 'FontColor','Press' are suffix`s for elements of 'SCREEN_FONTS_SET_PARAMETERS' MACRO  */
 			if(IsFunc())
 				FILE_NAME(keyboard)(KEYBOARD_fontRGB, KEY_All_release, LCD_RoundRectangle,0, 230,160, KeysAutoSize,12, 10, state, Touch_fontRp,KeysDel);
@@ -1606,12 +1610,9 @@ void FILE_NAME(setTouch)(void)
 		CASE_TOUCH_STATE(state,Touch_FontColorMoveLeft, FontColor,Press, TXT_FONT_COLOR,252,NoTouch,NoTouch);  //pogrupowac po kolei od kolejnosci !!!!!
 			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_circleSliderRGB, 	KEY_All_release, LCD_RoundRectangle,0,  350,170, 100,100, 16, state, Touch_fontCircleSliderR, KeysDel);  }
 								//LCDTOUCH_ActiveOnly(state,Touch_BkColor,Touch_FontColor,0,0,0,0,0,0,0,Touch_fontCircleSliderR,Touch_CircleSliderStyle); }
-			else{ /*LCD_TOUCH_RestoreAllSusspendedTouchs();*/ _SaveState(); }
+			else{  _SaveState(); /*LCD_TOUCH_RestoreAllSusspendedTouchs();*/ }
 			BlockTouchForTime(_ON);
 			break;
-
-
-
 
 		CASE_TOUCH_STATE(state,Touch_BkColorMove, BkColor,Press, TXT_BK_COLOR,252,NoTouch,NoTouch);
 			if(IsFunc()){
@@ -1654,7 +1655,7 @@ void FILE_NAME(setTouch)(void)
 			BlockTouchForTime(_ON);
 			break;
 
-		/*	Touch parameter text and go to action */
+		/*	----- Touch parameter text and go to action ----- */
 		case Touch_SetTxt:
 			FILE_NAME(keyboard)(KEYBOARD_setTxt,KEY_All_release,LCD_RoundRectangle,0,15,15,KeysAutoSize,10,10,state,Touch_Q,KeysDel);
 			LCDTOUCH_ActiveOnly(0,0,0,0,0,0,0,0,0,0,Touch_Q,Touch_enter);
@@ -1664,14 +1665,12 @@ void FILE_NAME(setTouch)(void)
 			ChangeFontStyle(NONE_TYPE_REQ);
 			if(CHECK_TOUCH(Touch_FontStyle2))
 				KEYBOARD_TYPE( KEYBOARD_fontStyle, KEY_Select_one );
-			_SaveState();
 			break;
 
 		case Touch_FontType:
 			ReplaceLcdStrType(NONE_TYPE_REQ);
 			if(CHECK_TOUCH(Touch_FontType2))
 				KEYBOARD_TYPE( KEYBOARD_fontType, KEY_Select_one );
-			_SaveState();
 			break;
 
 		case Touch_FontSize:
@@ -1679,7 +1678,6 @@ void FILE_NAME(setTouch)(void)
 				ChangeFontBoldItalNorm(NONE_TYPE_REQ);
 				if(CHECK_TOUCH(Touch_FontSize2)) 	KEYBOARD_TYPE(KEYBOARD_fontSize, KEY_Select_one);
 				if(CHECK_TOUCH(Touch_FontSizeMove))	CreateKeyboard(KEYBOARD_fontSize2);
-				_SaveState();
 			}
 			break;
 
@@ -1699,7 +1697,7 @@ void FILE_NAME(setTouch)(void)
 
 		case Touch_FontSizeRoll:
 			vTimerService(TimerId_1,start_time,1000);
-			deltaForEndPress = LCD_TOUCH_ScrollSel_Service(ROLL_1,press, &pos.y,	LCD_TOUCH_ScrollSel_DetermineRateRoll(ROLL_1,state,pos.x) );
+			INIT(deltaForEndPress, LCD_TOUCH_ScrollSel_Service(ROLL_1,press, &pos.y, LCD_TOUCH_ScrollSel_DetermineRateRoll(ROLL_1,state,pos.x)) );
 			if(deltaForEndPress)
 				KEYBOARD_TYPE( KEYBOARD_fontSize2, KEY_Select_one);
 			_SaveState();
@@ -1722,6 +1720,7 @@ void FILE_NAME(setTouch)(void)
 				break;
 			}
 
+			/* ----- Service release specific Keys for Keyboard ----- */
 			_TouchEndService(Touch_fontRp, Touch_fontBm, KEYBOARD_fontRGB, KEY_All_release, FUNC_fontColorRGB);
 			_TouchEndService(Touch_bkRp, Touch_bkBm, 	   KEYBOARD_bkRGB,   KEY_All_release, FUNC_bkFontColorRGB);
 
@@ -1731,8 +1730,7 @@ void FILE_NAME(setTouch)(void)
 			_TouchEndService(Touch_size_plus, Touch_size_minus, 	KEYBOARD_fontSize, 	KEY_Select_one,  FUNC_FontSize);
 			_TouchEndService(Touch_coeff_plus, Touch_coeff_minus, KEYBOARD_fontCoeff, 	KEY_All_release, FUNC_FontSize);
 
-		/* _TouchEndService(Touch_fontCircleSliderR, Touch_CircleSliderStyle, 	KEYBOARD_circleSliderRGB, 		KEY_All_release, NULL); */		/* For circle slider is not needed */
-
+			/* _TouchEndService(Touch_fontCircleSliderR, Touch_CircleSliderStyle, 	KEYBOARD_circleSliderRGB, 		KEY_All_release, NULL); */		/* For circle slider is not needed */
 
 			if(_WasStateRange(Touch_LenWin_plus, Touch_ResetSpaces))
 				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_All_release );
@@ -1764,22 +1762,23 @@ void FILE_NAME(setTouch)(void)
 				SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontSize,1,LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontSize,TXT_FONT_SIZE));
 #endif
 
-			if(_WasState(Touch_FontSizeRoll)){
+			if(_WasState(Touch_FontSizeRoll)){  // to jako funkcje jedna !!!!!! i pozstale tez aby generowac kilka scrolow !!!
 				if(LCD_TOUCH_ScrollSel_Service(ROLL_1,release,NULL,0) && 0==vTimerService(TimerId_1,stop_time,1000)){
 					KEYBOARD_TYPE( KEYBOARD_fontSize2, KEY_Select_one);
 					IncFontSize( LCD_TOUCH_ScrollSel_GetSel(ROLL_1) );
 				}
 				else{
-					LCD_TOUCH_ScrollSel_FreeRolling(ROLL_1, FUNC1_SET(FILE_NAME(keyboard),KEYBOARD_fontSize2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0) );
+					LCD_TOUCH_ScrollSel_FreeRolling(ROLL_1, FUNC1_SET(FILE_NAME(keyboard),KEYBOARD_fontSize2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), BlockingFunc );
 					vTimerService(TimerId_1,reset_time,noUse);
 				}
 			}
 
-			if(_WasState(Touch_FontSizeMove));
+			/* Not needed */
+/*			if(_WasState(Touch_FontSizeMove));
 			if(_WasState(Touch_FontColorMoveRight));
 			if(_WasState(Touch_FontColorMoveLeft));
 			if(_WasState(Touch_BkColorMove));
-
+*/
 			break;
 	}
 
