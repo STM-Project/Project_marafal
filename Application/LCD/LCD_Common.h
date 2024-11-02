@@ -76,6 +76,7 @@ typedef enum{
 	reset_time,
 	restart_time,
 	check_restart_time,
+	check_stop_time,
 	noUse
 }TIMER_SERVICE;
 

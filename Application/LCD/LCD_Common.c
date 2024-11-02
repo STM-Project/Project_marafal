@@ -17,7 +17,7 @@
 
 portTickType refreshScreenVar[MAX_ELEMENTS_REFRESH_IN_SCREEN];
 
-int _CheckTickCount(portTickType tim, int timeout){		/*check: configUSE_16_BIT_TICKS in portmacro.h*/
+int _CheckTickCount(portTickType tim, int timeout){		/* check: configUSE_16_BIT_TICKS in portmacro.h */
 	TickType_t countVal = xTaskGetTickCount();
 	if((countVal-tim) < 0){
 		if(countVal+(65535-tim) > timeout)
@@ -72,6 +72,13 @@ uint16_t vTimerService(int nr, int cmd, int timeout)
 		case check_restart_time:
 			if(_timer[nr] && _CheckTickCount(_timer[nr],timeout)){
 				_timer[nr] = xTaskGetTickCount();
+				return 1;
+			}
+			return 0;
+
+		case check_stop_time:
+			if(_timer[nr] && _CheckTickCount(_timer[nr],timeout)){
+				_timer[nr] = 0;
 				return 1;
 			}
 			return 0;

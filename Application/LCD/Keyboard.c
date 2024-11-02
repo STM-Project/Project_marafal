@@ -642,14 +642,12 @@ static void SetSliderDirect(int nr, figureShape shape, uint16_t width, uint16_t 
 }
 
 static void ScrollSel_Preparation(int nr, figureShape shape, int nrScroll, int frameNmbVisib, uint16_t *sel, uint16_t *roll){
-	uint16_t roll_copy = 0;
-
 	if(shape!=0){
 		if(dimKeys[1]-*sel <= frameNmbVisib/2)	*roll = dimKeys[1]-frameNmbVisib-1;
 		else if(		  *sel <= frameNmbVisib/2)	*roll = 0;
 		else												*roll = *sel - frameNmbVisib/2;
 
-		roll_copy = *roll;
+		uint16_t roll_copy = *roll;
 		*roll *= s[nr].heightKey;
 		*roll -= roll_copy;
 		LCD_TOUCH_ScrollSel_SetCalculate(nrScroll, roll, sel, 0,0,0,dimKeys[1]/frameNmbVisib);
@@ -710,7 +708,7 @@ static void ScrollSel_Draw(int nr, XY_Touch_Struct* posKeys, uint16_t selFrame, 
 	}
 	LCD_Display(0 + roll * widthAll, s[nr].x, s[nr].y, widthAll, win);
 }
-int ScrollSel_SetVisiblWin(int nr, int frameNmbVis){
+static int ScrollSel_SetVisiblWin(int nr, int frameNmbVis){
 	return frameNmbVis * s[nr].heightKey - (frameNmbVis-1);
 }
 
