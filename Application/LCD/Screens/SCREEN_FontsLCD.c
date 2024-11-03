@@ -574,6 +574,13 @@ typedef enum{
 	FONTS
 }REFRESH_DATA;
 
+typedef enum{
+	TIMER_Cpu,
+	TIMER_InfoWrite,
+	TIMER_BlockTouch,
+	TIMER_Scroll,
+}TIMER_FOR_THIS_SCREEN;
+
 static char bufTemp[50];
 static int lenTxt_prev;
 static StructTxtPxlLen lenStr;
@@ -1320,7 +1327,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			break;
 
 		case KEYBOARD_LenOffsWin:
-			if(KEYBOARD__ServiceLenOffsWin(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_LenWin_plus,Touch_SpacesInfoUp, KEY_Timer, SL(LANG_WinInfo), SL(LANG_WinInfo2),SL(LANG_LenOffsWin1),SL(LANG_LenOffsWin2), v.FONT_COLOR_Descr,FILE_NAME(main), LoadNoDispScreen, (char**)ppMain)){
+			if(KEYBOARD__ServiceLenOffsWin(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_LenWin_plus,Touch_SpacesInfoUp, KEY_Timer, SL(LANG_WinInfo), SL(LANG_WinInfo2),SL(LANG_LenOffsWin1),SL(LANG_LenOffsWin2), v.FONT_COLOR_Descr,FILE_NAME(main), LoadNoDispScreen, (char**)ppMain, (TIMER_ID)TIMER_InfoWrite)){
 				SELECT_CURRENT_FONT(LenWin,Press, TXT_LENOFFS_WIN,255);
 			}
 			break;
@@ -1341,7 +1348,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 static int BlockTouchForTime(int action){
 	static int _blokTouchForTime= 0;
 	switch(action){
-		case _ON:  { _blokTouchForTime= 1;	vTimerService(TimerId_9,restart_time,noUse); break; }  //Timer9 nazwac jakos!!!
+		case _ON:  { _blokTouchForTime= 1;	vTimerService(TIMER_BlockTouch,restart_time,noUse); break; }  //Timer9 nazwac jakos!!!
 		case _OFF: { _blokTouchForTime= 0; break; }
 		case _GET: { break; }
 	}
@@ -1352,7 +1359,7 @@ static int CheckTouchForTime(uint16_t touchName){
 }
 
 static void CycleRefreshFunc(void){
-	if(vTimerService(TimerId_3,check_restart_time,1000))
+	if(vTimerService(TIMER_Cpu, check_restart_time,1000))
 		Data2Refresh(PARAM_CPU_USAGE);
 }
 
@@ -1362,11 +1369,10 @@ static void BlockingFunc(void){		/* Call this function in long during while(1) *
 
 static void FILE_NAME(timer)(void)  //sprawdz czy nie uzyc RTOS timer CALLBACK !!!!!!!!!!!!!
 {
-	if(vTimerService(TimerId_2,check_time,2000)){
-		vTimerService(TimerId_2,stop_time,2000);
+	if(vTimerService(TIMER_InfoWrite, check_stop_time, 2000)){
 		KEYBOARD_TYPE(KEYBOARD_LenOffsWin, KEY_Timer);
 	}
-	if(vTimerService(TimerId_9, check_stop_time, 500)){	  //nazwac lepiej timerID na cos zeby mozna skojazyc
+	if(vTimerService(TIMER_BlockTouch, check_stop_time, 500)){	  //nazwac lepiej timerID na cos zeby mozna skojazyc
 		BlockTouchForTime(_OFF);
 	}
 	CycleRefreshFunc();
@@ -1696,7 +1702,7 @@ void FILE_NAME(setTouch)(void)
 		case Touch_SpacesInfoDown: 								 /* here do nothing */  				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_InfoSpacesDown ); break;  //gdy reset i pusto to button zawiesza sie !!!!!!
 
 		case Touch_FontSizeRoll:
-			vTimerService(TimerId_1,start_time,1000);
+			vTimerService(TIMER_Scroll,start_time,noUse);
 			INIT(deltaForEndPress, LCD_TOUCH_ScrollSel_Service(ROLL_1,press, &pos.y, LCD_TOUCH_ScrollSel_DetermineRateRoll(ROLL_1,state,pos.x)) );
 			if(deltaForEndPress)
 				KEYBOARD_TYPE( KEYBOARD_fontSize2, KEY_Select_one);
@@ -1763,13 +1769,13 @@ void FILE_NAME(setTouch)(void)
 #endif
 
 			if(_WasState(Touch_FontSizeRoll)){  // to jako funkcje jedna !!!!!! i pozstale tez aby generowac kilka scrolow !!!
-				if(LCD_TOUCH_ScrollSel_Service(ROLL_1,release,NULL,0) && 0==vTimerService(TimerId_1,stop_time,1000)){
+				if(LCD_TOUCH_ScrollSel_Service(ROLL_1,release,NULL,0) && 0==vTimerService(TIMER_Scroll,stop_time,1000)){
 					KEYBOARD_TYPE( KEYBOARD_fontSize2, KEY_Select_one);
 					IncFontSize( LCD_TOUCH_ScrollSel_GetSel(ROLL_1) );
 				}
 				else{
 					LCD_TOUCH_ScrollSel_FreeRolling(ROLL_1, FUNC1_SET(FILE_NAME(keyboard),KEYBOARD_fontSize2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), BlockingFunc );
-					vTimerService(TimerId_1,reset_time,noUse);
+					vTimerService(TIMER_Scroll,reset_time,noUse);
 				}
 			}
 
@@ -2269,7 +2275,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 		LCD_Xmiddle(nrMIDDLE_TXT,SetPos, SetPosAndWidth(Test.xFontsField,LCD_GetXSize()),NULL,0,NoConstWidth);
 		LCD_SetBkFontShape(v.FONT_VAR_Fonts,BK_Rectangle);
 
-		vTimerService(TimerId_3,start_time,noUse);
+		vTimerService(TIMER_Cpu,start_time,noUse);
 	}
 	/*FILE_NAME(printInfo)();*/
 

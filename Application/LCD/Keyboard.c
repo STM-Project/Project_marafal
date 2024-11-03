@@ -634,7 +634,7 @@ static void WinInfo(char* txt, int x,int y, int w,int h, TIMER_ID tim){
 	LCD_Xmiddle(MIDDLE_NR,SetPos,SetPosAndWidth(0,w),NULL,0,NoConstWidth);
 	LCD_Ymiddle(MIDDLE_NR,SetPos,SetPosAndWidth(0,h));
 	LCD_StrDependOnColorsWindowIndirect(0,MIDDLE(0,LCD_X,w), y, w,h,fontID, GET_X(txt),GET_Y,txt, fullHight, 0, fillCol, DARKRED,FONT_COEFF, NoConstWidth);
-	vTimerService(TimerId_2,start_time,2000);
+	vTimerService(tim,start_time,noUse);
 }
 
 static void SetSliderDirect(int nr, figureShape shape, uint16_t width, uint16_t height){
@@ -1170,7 +1170,7 @@ void KEYBOARD_ServiceSizeRoll(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int
 
 
 //SPACES DISP  numeracje dac ciemniejsza aby odroznic !!!!!!!!!!
-int KEYBOARD__ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int touchAction2, int touchTimer, char* txtDescr, char* txtDescr2, char* txtDescr3, char* txtDescr4, uint32_t colorDescr,FUNC_MAIN *pfunc,FUNC_MAIN_INIT)
+int KEYBOARD__ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int touchAction2, int touchTimer, char* txtDescr, char* txtDescr2, char* txtDescr3, char* txtDescr4, uint32_t colorDescr,FUNC_MAIN *pfunc,FUNC_MAIN_INIT, TIMER_ID timID)
 {extern uint32_t pLcd[]; //!!!!!!!!!!!!!!!!!!!!!!!!!!
 	#define _NMB2KEY	8
 	const char *txtKey[]								= {"(.......)", "(...)", "(.......)",	"(.......)", " _ ", " _ ", "|  |", "||", "Info spaces", "Write spaces", "Reset spaces"};
@@ -1230,7 +1230,7 @@ int KEYBOARD__ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, i
 	win.size.w *= LCD_GetWholeStrPxlWidth(fontID_descr,(char*)"a",0,NoConstWidth);
 
 	void _WinInfo(char* txt){
-		WinInfo(txt, win2.pos.x, win2.pos.y, win2.size.w, win2.size.h, TimerId_2);
+		WinInfo(txt, win2.pos.x, win2.pos.y, win2.size.w, win2.size.h, timID);
 	}
 	void _WindowSpacesInfo(uint16_t x,uint16_t y, uint16_t width,uint16_t height, int param){
 		int spaceFromFrame = 10;

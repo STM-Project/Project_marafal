@@ -72,6 +72,8 @@ uint16_t vTimerService(int nr, int cmd, int timeout)
 {
 	static portTickType _timer[MAX_ELEMENTS_TIMER_SERVICE] = {0};
 
+	if(nr >= MAX_ELEMENTS_TIMER_SERVICE) return 0xFFFF;
+
 	switch(cmd)
 	{
 		case start_time:
