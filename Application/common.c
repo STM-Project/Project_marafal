@@ -64,3 +64,53 @@ int FV2(char* descr, VARIABLE_ACTIONS type, int nrMem, int val){
 		default:
 			return 0;
 }}
+
+typedef struct{ void *min,*max,*div,*avr,*sum; }struct_MATH;
+
+void* AAAAAAA(DATA_TYPE dataType, void *value, int nr, int reset)
+{
+	struct_MATH temp;
+
+	//uint16_t* ptr;
+
+	int maxx= 5;
+
+
+	(temp.max) = &maxx;
+
+
+
+
+	//ptr = ((uint16_t*)(temp.max));
+
+	switch((int)dataType)
+	{
+		case _uint16:
+			//struct struct_MATH{ uint16_t min,max,div,avr,sum; }temp;
+
+
+
+			//ptr = ((uint16_t*)(temp.max));
+
+//			static uint16_t minVal=0xffff, maxVal=0;
+//			if(reset){ minVal=0xffff; maxVal=0; }
+//			maxVal = MAXVAL2(maxVal,*((uint16_t*)value));
+//			minVal = MINVAL2(minVal,*((uint16_t*)value));
+
+//			temp.min = 0;
+//			temp.max = maxVal;
+//			temp.div = maxVal-minVal;
+//			temp.avr = minVal+(maxVal-minVal)/2;
+//			temp.sum = minVal;
+//			//return temp;
+
+		case _float:
+
+			break;
+	}
+
+
+
+
+	return (void*)(0);
+}
