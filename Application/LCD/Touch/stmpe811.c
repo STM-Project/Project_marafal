@@ -135,7 +135,7 @@
 #define TS_SWAP_Y                       0x02
 #define TS_SWAP_XY                      0x04
 
-#define TOUCH_RESOLUTION	2
+#define TOUCH_RESOLUTION	5
 
 typedef enum
 {

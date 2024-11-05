@@ -664,5 +664,5 @@ void SCREEN_ReadPanel(void)
  Bo jak jest napisane "Głupstwem je st dla boga madrosc ludzka i odwrotnie dla ludzi madrosc boga"
  */
 
-
+//zrobic zmiane TOUCH_RESOLUTION!!
 

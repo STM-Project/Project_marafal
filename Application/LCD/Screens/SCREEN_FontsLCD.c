@@ -1293,6 +1293,11 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), RED,DARKGREEN,BLUE);
 			KEYBOARD_ServiceCircleSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_fontCircleSliderR, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB);
 			//CIRCLE_errorDecision(0,_ON);
+			struct_MATH tempp;
+			int vall= 10;
+			int ssss = *((int*)(AAAAAAA(0,&vall,0,0).avr));
+
+
 			break;
 
 		case KEYBOARD_fontSize2:
@@ -1579,7 +1584,7 @@ void FILE_NAME(setTouch)(void)
 	_TouchService(Touch_fontCircleSliderR, Touch_CircleSliderStyle,	KEYBOARD_circleSliderRGB, 		KEY_All_release, KEY_fontCircleSliderR, NULL);
 
 
-	switch(state)  //w fots_image correct dots!!!!
+	switch(state)
 	{
 		/*	----- Initiation new Keyboard ----- */
 		CASE_TOUCH_STATE(state,Touch_FontColor, FontColor,Press, TXT_FONT_COLOR,252,CheckTouchForTime(Touch_FontColorMoveRight),CheckTouchForTime(Touch_FontColorMoveLeft));		/* 'FontColor','Press' are suffix`s for elements of 'SCREEN_FONTS_SET_PARAMETERS' MACRO  */

@@ -128,6 +128,8 @@ typedef struct{
 	uint32_t len;
 }DATA_TO_SEND;
 
+typedef struct{ void *min,*max,*div,*avr,*sum; }struct_MATH;
+
 //typedef struct { I16P x,y; } GUI_POINT;
 //typedef struct { I16 x0,y0,x1,y1; } LCD_RECT;
 
@@ -206,6 +208,8 @@ uint16_t CharBuffToInt16(char* buff);
 uint32_t CharBuffToInt32(char* buff);
 int FV(VARIABLE_ACTIONS type, int nrMem, int val);
 int FV2(char* descr, VARIABLE_ACTIONS type, int nrMem, int val);
+
+struct_MATH AAAAAAA(DATA_TYPE dataType, void *value, int nr, int reset);
 
 
 

@@ -65,21 +65,31 @@ int FV2(char* descr, VARIABLE_ACTIONS type, int nrMem, int val){
 			return 0;
 }}
 
-typedef struct{ void *min,*max,*div,*avr,*sum; }struct_MATH;
 
-void* AAAAAAA(DATA_TYPE dataType, void *value, int nr, int reset)
+
+struct_MATH AAAAAAA(DATA_TYPE dataType, void *value, int nr, int reset)
 {
-	struct_MATH temp;
+	static struct_MATH temp;
 
 	//uint16_t* ptr;
 
-	int maxx= 5;
+	int maxx= 25;
+
+	static int avr_= 0;
 
 
-	(temp.max) = &maxx;
+	temp.max = (void*)(value);
 
 
+	int rr = *((int*)temp.max);
 
+
+	int frg = *((int*)value);
+
+	int ffrrr =  MAXVAL2(maxx,frg);
+
+
+	temp.avr =  (void*)(&ffrrr);
 
 	//ptr = ((uint16_t*)(temp.max));
 
@@ -92,8 +102,8 @@ void* AAAAAAA(DATA_TYPE dataType, void *value, int nr, int reset)
 
 			//ptr = ((uint16_t*)(temp.max));
 
-//			static uint16_t minVal=0xffff, maxVal=0;
-//			if(reset){ minVal=0xffff; maxVal=0; }
+			//static void minVal=1000, maxVal=0;
+//			if(reset){ minVal=1000; maxVal=0; }
 //			maxVal = MAXVAL2(maxVal,*((uint16_t*)value));
 //			minVal = MINVAL2(minVal,*((uint16_t*)value));
 
@@ -112,5 +122,5 @@ void* AAAAAAA(DATA_TYPE dataType, void *value, int nr, int reset)
 
 
 
-	return (void*)(0);
+	return temp;
 }
