@@ -69,53 +69,60 @@ int FV2(char* descr, VARIABLE_ACTIONS type, int nrMem, int val){
 
 struct_MATH AAAAAAA(DATA_TYPE dataType, void *value, int nr, int reset)
 {
+	#define _SIZE_STRUCT	10
 	static struct_MATH temp;
 
-	//uint16_t* ptr;
 
-	int maxx= 25;
+	#define _COPY_STRUCT_TEMP(nr)\
+		temp.max = (void*)(&aaa[nr].max);\
+		temp.min = (void*)(&aaa[nr].min);\
+		temp.div = (void*)(&aaa[nr].div);\
+		temp.avr = (void*)(&aaa[nr].avr);\
+		temp.sum = (void*)(&aaa[nr].sum)
 
-	static int avr_= 0;
-
-
-	temp.max = (void*)(value);
-
-
-	int rr = *((int*)temp.max);
-
-
-	int frg = *((int*)value);
-
-	int ffrrr =  MAXVAL2(maxx,frg);
+	#define _COPY_Val_STRUCT(nr, typData)\
+		aaa[nr].max = MAXVAL2(aaa[nr].max,*((typData*)value));\
+		aaa[nr].min = MINVAL2(aaa[nr].min,*((typData*)value));\
+		aaa[nr].div = aaa[nr].max-aaa[nr].min;\
+		aaa[nr].avr = aaa[nr].min+(aaa[nr].max-aaa[nr].min)/2;\
+		aaa[nr].sum = aaa[nr].min
 
 
-	temp.avr =  (void*)(&ffrrr);
 
-	//ptr = ((uint16_t*)(temp.max));
 
 	switch((int)dataType)
 	{
 		case _uint16:
-			//struct struct_MATH{ uint16_t min,max,div,avr,sum; }temp;
+			static struct struct_aaa{ uint16_t min,max,div,avr,sum; }aaa[_SIZE_STRUCT] = {0};
+			if(0xFF==reset)
+			{
+				for(int i=0; i<_SIZE_STRUCT; ++i){  //to jakos inaczej
+					aaa[i].max = 0;
+					aaa[i].min = 1000;
+					aaa[i].div = 0;
+					aaa[i].avr = 0;
+					aaa[i].sum = 0;
+				}
+				_COPY_STRUCT_TEMP(0);
+				return temp;
+			}
+			else if(0==reset)
+			{
+				aaa[nr].max=0;
+				aaa[nr].min=1000;
+				if(reset){ aaa[nr].min=1000; aaa[nr].max=0; }
+
+				_COPY_Val_STRUCT(nr,uint16_t);
+				_COPY_STRUCT_TEMP(nr);
+			}
+			else if(0xFF>reset){
+				_COPY_STRUCT_TEMP(nr);
+			}
 
 
 
-			//ptr = ((uint16_t*)(temp.max));
-
-			//static void minVal=1000, maxVal=0;
-//			if(reset){ minVal=1000; maxVal=0; }
-//			maxVal = MAXVAL2(maxVal,*((uint16_t*)value));
-//			minVal = MINVAL2(minVal,*((uint16_t*)value));
-
-//			temp.min = 0;
-//			temp.max = maxVal;
-//			temp.div = maxVal-minVal;
-//			temp.avr = minVal+(maxVal-minVal)/2;
-//			temp.sum = minVal;
-//			//return temp;
 
 		case _float:
-
 			break;
 	}
 
