@@ -1295,7 +1295,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			//CIRCLE_errorDecision(0,_ON);
 			struct_MATH tempp;
 			int vall= 10;
-			int ssss = *((int*)(AAAAAAA(0,&vall,0,0).avr));
+			int ssss = *((int*)(AAAAAAA(_uint16,&vall,0,0).avr));
 
 
 			break;
