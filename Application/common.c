@@ -65,69 +65,65 @@ int FV2(char* descr, VARIABLE_ACTIONS type, int nrMem, int val){
 			return 0;
 }}
 
-
-
-struct_MATH AAAAAAA(DATA_TYPE dataType, void *value, int nr, int reset)
+struct_MATH CALCULATE_MinMaxAvr(GET_SET operType, int nr, void *value, DATA_TYPE dataType)
 {
 	#define _SIZE_STRUCT	10
-	static struct_MATH temp;
+	static struct_MATH temp = {NULL};
 
+	#define _COPY_STRUCT_TEMP(name,nr)\
+		temp.max = (void*)(&name[nr].max);\
+		temp.min = (void*)(&name[nr].min);\
+		temp.div = (void*)(&name[nr].div);\
+		temp.avr = (void*)(&name[nr].avr);\
+		temp.sum = (void*)(&name[nr].sum)
 
-	#define _COPY_STRUCT_TEMP(nr)\
-		temp.max = (void*)(&aaa[nr].max);\
-		temp.min = (void*)(&aaa[nr].min);\
-		temp.div = (void*)(&aaa[nr].div);\
-		temp.avr = (void*)(&aaa[nr].avr);\
-		temp.sum = (void*)(&aaa[nr].sum)
+	#define _CALC_MIN_MAX_AVR(name,nr,typData)\
+		name[nr].max = MAXVAL2(name[nr].max,*((typData*)value));\
+		name[nr].min = MINVAL2(name[nr].min,*((typData*)value));\
+		name[nr].div = name[nr].max-name[nr].min;\
+		name[nr].avr = name[nr].min+(name[nr].max-name[nr].min)/2;\
+		name[nr].sum += *((typData*)value)
 
-	#define _COPY_Val_STRUCT(nr, typData)\
-		aaa[nr].max = MAXVAL2(aaa[nr].max,*((typData*)value));\
-		aaa[nr].min = MINVAL2(aaa[nr].min,*((typData*)value));\
-		aaa[nr].div = aaa[nr].max-aaa[nr].min;\
-		aaa[nr].avr = aaa[nr].min+(aaa[nr].max-aaa[nr].min)/2;\
-		aaa[nr].sum = aaa[nr].min
+	#define _SET_MAX(name,nr,maxVal)\
+		name[nr].max = maxVal
+	#define _SET_MIN(name,nr,minVal)\
+		name[nr].min = minVal
 
+	#define _OPERAT(name,typData)\
+		static struct struct_##name{ typData min,max,div,avr,sum; }name[_SIZE_STRUCT] = {0};\
+		if(_RST==operType){\
+			for(int i=0; i<_SIZE_STRUCT; ++i){\
+				name[i].max = 0;\
+				name[i].min = 0;\
+				name[i].div = 0;\
+				name[i].avr = 0;\
+				name[i].sum = 0;\
+			}\
+			_COPY_STRUCT_TEMP(name,0);\
+		}\
+		else if(_SET==operType){\
+			_CALC_MIN_MAX_AVR(name,nr,typData);\
+			_COPY_STRUCT_TEMP(name,nr);\
+		}\
+		else if(_GET==operType){\
+			_COPY_STRUCT_TEMP(name,nr);\
+		}\
+		else if(_SET1==operType){\
+			_SET_MAX(name,nr,*((typData*)value));\
+		}\
+		else if(_SET2==operType){\
+			_SET_MIN(name,nr,*((typData*)value));\
+		}
 
-
-
-	switch((int)dataType)
-	{
-		case _uint16:
-			static struct struct_aaa{ uint16_t min,max,div,avr,sum; }aaa[_SIZE_STRUCT] = {0};
-			if(0xFF==reset)
-			{
-				for(int i=0; i<_SIZE_STRUCT; ++i){  //to jakos inaczej
-					aaa[i].max = 0;
-					aaa[i].min = 1000;
-					aaa[i].div = 0;
-					aaa[i].avr = 0;
-					aaa[i].sum = 0;
-				}
-				_COPY_STRUCT_TEMP(0);
-				return temp;
-			}
-			else if(0==reset)
-			{
-				aaa[nr].max=0;
-				aaa[nr].min=1000;
-				if(reset){ aaa[nr].min=1000; aaa[nr].max=0; }
-
-				_COPY_Val_STRUCT(nr,uint16_t);
-				_COPY_STRUCT_TEMP(nr);
-			}
-			else if(0xFF>reset){
-				_COPY_STRUCT_TEMP(nr);
-			}
-
-
-
-
-		case _float:
-			break;
+	switch((int)dataType){
+		case _uint16:	_OPERAT(aaa,uint16_t) break;
+		case _int16:	_OPERAT(bbb,int16_t)  break;
+		case _float:	_OPERAT(ccc,float)    break;
 	}
-
-
-
-
 	return temp;
+
+	#undef _SIZE_STRUCT
+	#undef _COPY_STRUCT_TEMP
+	#undef _CALC_MIN_MAX_AVR
+	#undef _OPERAT
 }

@@ -117,11 +117,11 @@ typedef enum{
 	_double,
 }DATA_TYPE;
 
-typedef enum{ _Incr,  _Decr, }DATA_ACTION;
-typedef enum{ _ON,    _OFF,  }ON_OFF;
-typedef enum{ _START, _STOP, }START_STOP;
-typedef enum{ _MIN,   _MID,  _MAX,  }MAX_MIN;
-typedef enum{ _GET=-2, _SET=-1, }GET_SET;
+typedef enum{ _Incr,  _Decr }DATA_ACTION;
+typedef enum{ _ON,    _OFF  }ON_OFF;
+typedef enum{ _START, _STOP }START_STOP;
+typedef enum{ _MIN,   _MID,  _MAX }MAX_MIN;
+typedef enum{ _GET=-5, _SET, _SET1, _SET2, _RST }GET_SET;
 
 typedef struct{
 	char *pData;
@@ -209,7 +209,7 @@ uint32_t CharBuffToInt32(char* buff);
 int FV(VARIABLE_ACTIONS type, int nrMem, int val);
 int FV2(char* descr, VARIABLE_ACTIONS type, int nrMem, int val);
 
-struct_MATH AAAAAAA(DATA_TYPE dataType, void *value, int nr, int reset);
+struct_MATH CALCULATE_MinMaxAvr(GET_SET operType, int nr, void *value, DATA_TYPE dataType);
 
 
 
