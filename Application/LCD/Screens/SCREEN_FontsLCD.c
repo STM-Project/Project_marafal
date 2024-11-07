@@ -1293,12 +1293,38 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), RED,DARKGREEN,BLUE);
 			KEYBOARD_ServiceCircleSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_fontCircleSliderR, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB);
 			//CIRCLE_errorDecision(0,_ON);
-			struct_MATH tempp;
-			int vall= 10;
-			int ssss = *((int*)(CALCULATE_MinMaxAvr(_SET,0, &vall,_uint16).avr));
+
+			uint16_t vall= 10;
+			uint16_t ssss = *((int*)(CALCULATE_MinMaxAvr(_CALC,0, &vall,_uint16).avr));
 
 
-			CALCULATE_MinMaxAvr(_RST,0,25,_uint16);
+			CALCULATE_MinMaxAvr(_RST,0,&(vall),_uint16);
+
+			 vall=1000; CALCULATE_MinMaxAvr(_SET1,3,&vall,_uint16);
+			 vall=0;	  CALCULATE_MinMaxAvr(_SET2,3,&vall,_uint16);
+			vall=12;  CALCULATE_MinMaxAvr(_CALC,3,&(vall),_uint16);
+			vall=8;   CALCULATE_MinMaxAvr(_CALC,3,&(vall),_uint16);
+			vall=1;   CALCULATE_MinMaxAvr(_CALC,3,&(vall),_uint16);
+			vall=26;  CALCULATE_MinMaxAvr(_CALC,3,&(vall),_uint16);
+			vall=7;   CALCULATE_MinMaxAvr(_CALC,3,&(vall),_uint16);
+
+
+			 vall=1000; CALCULATE_MinMaxAvr(_SET1,7,&vall,_uint16);
+			 vall=0;	  CALCULATE_MinMaxAvr(_SET2,7,&vall,_uint16);
+			vall=12;  CALCULATE_MinMaxAvr(_CALC,7,&(vall),_uint16);
+			vall=8;   CALCULATE_MinMaxAvr(_CALC,7,&(vall),_uint16);
+			vall=1;   CALCULATE_MinMaxAvr(_CALC,7,&(vall),_uint16);
+			vall=123;  CALCULATE_MinMaxAvr(_CALC,7,&(vall),_uint16);
+			vall=7;   CALCULATE_MinMaxAvr(_CALC,7,&(vall),_uint16);
+
+
+			uint16_t f1 = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,3,&(vall),_uint16).min));
+			uint16_t f2 = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,3,&(vall),_uint16).max));
+			uint16_t f3 = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,3,&(vall),_uint16).avr));
+
+			uint16_t f1a = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,7,&(vall),_uint16).min));
+			uint16_t f2a = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,7,&(vall),_uint16).max));
+			uint16_t f3a = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,7,&(vall),_uint16).avr));
 
 
 			break;

@@ -101,7 +101,7 @@ struct_MATH CALCULATE_MinMaxAvr(GET_SET operType, int nr, void *value, DATA_TYPE
 			}\
 			_COPY_STRUCT_TEMP(name,0);\
 		}\
-		else if(_SET==operType){\
+		else if(_CALC==operType){\
 			_CALC_MIN_MAX_AVR(name,nr,typData);\
 			_COPY_STRUCT_TEMP(name,nr);\
 		}\
@@ -109,11 +109,11 @@ struct_MATH CALCULATE_MinMaxAvr(GET_SET operType, int nr, void *value, DATA_TYPE
 			_COPY_STRUCT_TEMP(name,nr);\
 		}\
 		else if(_SET1==operType){\
-			_SET_MAX(name,nr,*((typData*)value));\
+			_SET_MIN(name,nr,*((typData*)value));\
 		}\
 		else if(_SET2==operType){\
-			_SET_MIN(name,nr,*((typData*)value));\
-		}
+			_SET_MAX(name,nr,*((typData*)value));\
+		}\
 
 	switch((int)dataType){
 		case _uint16:	_OPERAT(aaa,uint16_t) break;
