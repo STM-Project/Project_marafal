@@ -121,17 +121,14 @@ typedef enum{ _Incr,  _Decr }DATA_ACTION;
 typedef enum{ _ON,    _OFF  }ON_OFF;
 typedef enum{ _START, _STOP }START_STOP;
 typedef enum{ _MIN,   _MID,  _MAX }MAX_MIN;
-typedef enum{ _GET=-12, _GET1,_GET2, _SET, _SET1, _SET2, _CALC, _CALC1, _CALC2, _RST, _RST1, _RST2 }GET_SET;
+typedef enum{ _GET=-16,_GET1,_GET2,_GET3, _SET,_SET1,_SET2,_SET3, _CALC,_CALC1,_CALC2,_CALC3, _RST,_RST1,_RST2,_RST3 }GET_SET;
 
 typedef struct{
 	char *pData;
 	uint32_t len;
 }DATA_TO_SEND;
 
-typedef struct{ void *min,*max,*div,*avr,*sum; }struct_MATH;
-
-//typedef struct { I16P x,y; } GUI_POINT;
-//typedef struct { I16 x0,y0,x1,y1; } LCD_RECT;
+typedef struct{ void *min,*max,*div,*mid,*sum,*itr,*avr; }struct_MATH;
 
 typedef struct{
 	int x;
