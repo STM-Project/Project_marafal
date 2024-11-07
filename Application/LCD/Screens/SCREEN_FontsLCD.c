@@ -1298,33 +1298,34 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			uint16_t ssss = *((int*)(CALCULATE_MinMaxAvr(_CALC,0, &vall,_uint16).avr));
 
 
+
 			CALCULATE_MinMaxAvr(_RST,0,&(vall),_uint16);
 
-			 vall=1000; CALCULATE_MinMaxAvr(_SET1,3,&vall,_uint16);
-			 vall=0;	  CALCULATE_MinMaxAvr(_SET2,3,&vall,_uint16);
-			vall=12;  CALCULATE_MinMaxAvr(_CALC,3,&(vall),_uint16);
-			vall=8;   CALCULATE_MinMaxAvr(_CALC,3,&(vall),_uint16);
-			vall=1;   CALCULATE_MinMaxAvr(_CALC,3,&(vall),_uint16);
-			vall=26;  CALCULATE_MinMaxAvr(_CALC,3,&(vall),_uint16);
-			vall=7;   CALCULATE_MinMaxAvr(_CALC,3,&(vall),_uint16);
+				CALCULATE_MinMaxAvr(_SET1,3,_Uint16(1000),_uint16);
+				CALCULATE_MinMaxAvr(_SET2,3,_Uint16(0),	_uint16);
+			CALCULATE_MinMaxAvr(_CALC,3,_Uint16(12),	_uint16);
+			CALCULATE_MinMaxAvr(_CALC,3,_Uint16(8),	_uint16);
+			CALCULATE_MinMaxAvr(_CALC,3,_Uint16(1),	_uint16);
+			CALCULATE_MinMaxAvr(_CALC,3,_Uint16(26),	_uint16);
+			CALCULATE_MinMaxAvr(_CALC,3,_Uint16(7),	_uint16);
 
 
-			 vall=1000; CALCULATE_MinMaxAvr(_SET1,7,&vall,_uint16);
-			 vall=0;	  CALCULATE_MinMaxAvr(_SET2,7,&vall,_uint16);
-			vall=12;  CALCULATE_MinMaxAvr(_CALC,7,&(vall),_uint16);
-			vall=8;   CALCULATE_MinMaxAvr(_CALC,7,&(vall),_uint16);
-			vall=1;   CALCULATE_MinMaxAvr(_CALC,7,&(vall),_uint16);
-			vall=123;  CALCULATE_MinMaxAvr(_CALC,7,&(vall),_uint16);
-			vall=7;   CALCULATE_MinMaxAvr(_CALC,7,&(vall),_uint16);
+				CALCULATE_MinMaxAvr(_SET1,7,_Uint16(1000),_uint16);
+				CALCULATE_MinMaxAvr(_SET2,7,_Uint16(0),	_uint16);
+			CALCULATE_MinMaxAvr(_CALC,7,_Uint16(12),	_uint16);
+			CALCULATE_MinMaxAvr(_CALC,7,_Uint16(8),	_uint16);
+			CALCULATE_MinMaxAvr(_CALC,7,_Uint16(1),	_uint16);
+			CALCULATE_MinMaxAvr(_CALC,7,_Uint16(123),	_uint16);
+			CALCULATE_MinMaxAvr(_CALC,7,_Uint16(7),	_uint16);
 
 
-			uint16_t f1 = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,3,&(vall),_uint16).min));
-			uint16_t f2 = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,3,&(vall),_uint16).max));
-			uint16_t f3 = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,3,&(vall),_uint16).avr));
+			uint16_t f1 = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,3,NULL,_uint16).min));
+			uint16_t f2 = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,3,NULL,_uint16).max));
+			uint16_t f3 = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,3,NULL,_uint16).avr));
 
-			uint16_t f1a = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,7,&(vall),_uint16).min));
-			uint16_t f2a = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,7,&(vall),_uint16).max));
-			uint16_t f3a = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,7,&(vall),_uint16).avr));
+			uint16_t f1a = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_uint16).min));
+			uint16_t f2a = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_uint16).max));
+			uint16_t f3a = *((uint16_t*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_uint16).avr));
 
 
 			break;
