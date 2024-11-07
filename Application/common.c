@@ -74,15 +74,19 @@ struct_MATH CALCULATE_MinMaxAvr(GET_SET operType, int nr, void *value, DATA_TYPE
 		temp.max = (void*)(&name[nr].max);\
 		temp.min = (void*)(&name[nr].min);\
 		temp.div = (void*)(&name[nr].div);\
-		temp.avr = (void*)(&name[nr].avr);\
-		temp.sum = (void*)(&name[nr].sum)
+		temp.mid = (void*)(&name[nr].mid);\
+		temp.sum = (void*)(&name[nr].sum);\
+		temp.itr = (void*)(&name[nr].itr);\
+		temp.avr = (void*)(&name[nr].avr)
 
 	#define _CALC_MIN_MAX_AVR(name,nr,typData)\
 		name[nr].max = MAXVAL2(name[nr].max,*((typData*)value));\
 		name[nr].min = MINVAL2(name[nr].min,*((typData*)value));\
 		name[nr].div = name[nr].max-name[nr].min;\
-		name[nr].avr = name[nr].min+(name[nr].max-name[nr].min)/2;\
-		name[nr].sum += *((typData*)value)
+		name[nr].mid = name[nr].min+(name[nr].max-name[nr].min)/2;\
+		name[nr].sum += *((typData*)value);\
+		name[nr].itr += 1;\
+		name[nr].avr = name[nr].sum/name[nr].itr
 
 	#define _SET_MAX(name,nr,maxVal)\
 		name[nr].max = maxVal
@@ -90,14 +94,16 @@ struct_MATH CALCULATE_MinMaxAvr(GET_SET operType, int nr, void *value, DATA_TYPE
 		name[nr].min = minVal
 
 	#define _OPERAT(name,typData)\
-		static struct struct_##name{ typData min,max,div,avr,sum; }name[_SIZE_STRUCT] = {0};\
+		static struct struct_##name{ typData min,max,div,mid,sum,itr,avr; }name[_SIZE_STRUCT] = {0};\
 		if(_RST==operType){\
 			for(int i=0; i<_SIZE_STRUCT; ++i){\
-				name[i].max = 0;\
 				name[i].min = 0;\
+				name[i].max = 0;\
 				name[i].div = 0;\
-				name[i].avr = 0;\
+				name[i].mid = 0;\
 				name[i].sum = 0;\
+				name[i].itr = 0;\
+				name[i].avr = 0;\
 			}\
 			_COPY_STRUCT_TEMP(name,0);\
 		}\
@@ -113,12 +119,16 @@ struct_MATH CALCULATE_MinMaxAvr(GET_SET operType, int nr, void *value, DATA_TYPE
 		}\
 		else if(_SET2==operType){\
 			_SET_MAX(name,nr,*((typData*)value));\
-		}\
+		}
 
 	switch((int)dataType){
-		case _uint16:	_OPERAT(aaa,uint16_t) break;
-		case _int16:	_OPERAT(bbb,int16_t)  break;
-		case _float:	_OPERAT(ccc,float)    break;
+		case _int:		_OPERAT(par1,int) 	  break;
+		case _int16:	_OPERAT(par2,int16_t)  break;
+		case _int32:	_OPERAT(par3,uint32_t) break;
+		case _uint16:	_OPERAT(par4,uint16_t) break;
+		case _uint32:	_OPERAT(par5,uint32_t) break;
+		case _float:	_OPERAT(par6,float)    break;
+		case _double:	_OPERAT(par7,double)   break;
 	}
 	return temp;
 
