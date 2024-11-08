@@ -11,6 +11,7 @@
 #define _BUFF_VAL_SIZE		10
 
 int* 			_Int		(int val)		{ static int 		_intVal[_BUFF_VAL_SIZE]={0};	  static int _incIntBuffVal=-1; 	   _incIntBuffVal+1	 >=_BUFF_VAL_SIZE ? _incIntBuffVal=0	:_incIntBuffVal++;  	 _intVal[_incIntBuffVal]=val; 		return &_intVal[_incIntBuffVal]; 		};
+uint8_t*		_Uint8	(uint8_t val)	{ static uint8_t 	_uint8val[_BUFF_VAL_SIZE]={0};  static int _incUint8BuffVal=-1;   _incUint8BuffVal+1>=_BUFF_VAL_SIZE ?  _incUint8BuffVal=0: _incUint8BuffVal++;  _uint8val[_incUint8BuffVal]=val; 	return &_uint8val[_incUint8BuffVal]; 	};
 uint16_t*	_Uint16	(uint16_t val)	{ static uint16_t _uint16val[_BUFF_VAL_SIZE]={0}; static int _incUint16BuffVal=-1;  _incUint16BuffVal+1>=_BUFF_VAL_SIZE ? _incUint16BuffVal=0:_incUint16BuffVal++; _uint16val[_incUint16BuffVal]=val; return &_uint16val[_incUint16BuffVal]; };
 uint32_t* 	_Uint32	(uint32_t val)	{ static uint32_t _uint32val[_BUFF_VAL_SIZE]={0}; static int _incUint32BuffVal=-1;  _incUint32BuffVal+1>=_BUFF_VAL_SIZE ? _incUint32BuffVal=0:_incUint32BuffVal++; _uint32val[_incUint32BuffVal]=val; return &_uint32val[_incUint32BuffVal]; };
 int16_t*		_Int16	(int16_t val)	{ static int16_t  _int16val[_BUFF_VAL_SIZE]={0};  static int _incInt16BuffVal=-1;   _incInt16BuffVal+1 >=_BUFF_VAL_SIZE ? _incInt16BuffVal=0 :_incInt16BuffVal++;	 _int16val[_incInt16BuffVal]=val; 	return &_int16val[_incInt16BuffVal]; 	};
@@ -43,7 +44,7 @@ uint32_t CharBuffToInt32(char* buff){
 }
 
 int FV(VARIABLE_ACTIONS type, int nrMem, int val){
-	static int mem[10];
+	static int mem[30];
 	switch((int)type){
 		case SetVal:
 			mem[nrMem]=val;
@@ -54,7 +55,7 @@ int FV(VARIABLE_ACTIONS type, int nrMem, int val){
 			return 0;
 }}
 int FV2(char* descr, VARIABLE_ACTIONS type, int nrMem, int val){
-	static int mem[10];
+	static int mem[30];
 	switch((int)type){
 		case SetVal:
 			mem[nrMem]=val;
@@ -123,12 +124,14 @@ struct_MATH CALCULATE_MinMaxAvr(GET_SET operType, int nr, void *value, DATA_TYPE
 
 	switch((int)dataType){
 		case _int:		_OPERAT(par1,int) 	  break;
-		case _int16:	_OPERAT(par2,int16_t)  break;
-		case _int32:	_OPERAT(par3,uint32_t) break;
-		case _uint16:	_OPERAT(par4,uint16_t) break;
-		case _uint32:	_OPERAT(par5,uint32_t) break;
-		case _float:	_OPERAT(par6,float)    break;
-		case _double:	_OPERAT(par7,double)   break;
+		case _int8:		_OPERAT(par2,int8_t)   break;
+		case _int16:	_OPERAT(par3,int16_t)  break;
+		case _int32:	_OPERAT(par4,int32_t)  break;
+		case _uint8:	_OPERAT(par5,uint8_t)  break;
+		case _uint16:	_OPERAT(par6,uint16_t) break;
+		case _uint32:	_OPERAT(par7,uint32_t) break;
+		case _float:	_OPERAT(par8,float)    break;
+		case _double:	_OPERAT(par9,double)   break;
 	}
 	return temp;
 
