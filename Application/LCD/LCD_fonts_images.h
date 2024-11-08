@@ -266,7 +266,6 @@ const char **LCD_GetFontSizePtr(void);
 char *LCD_FontSize2Str(char *buffTemp, int fontSize);
 char *LCD_FontStyle2Str(char *buffTemp, int fontStyle);
 char *LCD_FontType2Str(char *buffTemp, int id, int idAlt);
-int LCD_GetCoeffDependOnFontType(uint32_t fontColor, uint32_t bkColor, int correct);
 void DisplayFontsStructState(void);
 void InfoForImagesFonts(void);
 

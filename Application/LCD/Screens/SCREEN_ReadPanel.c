@@ -653,7 +653,7 @@ void SCREEN_ReadPanel(void)
 
 
 	if(DEBUG_RcvStr("=")){ startScreen=0; INCR_WRAP(SCREEN_number,1,0,5); }
-	if(DEBUG_RcvStr("n")) LCD_DisplayStrMovBuffState();
+	if(DEBUG_RcvStr("?")) LCD_DisplayStrMovBuffState();
 
 
 }

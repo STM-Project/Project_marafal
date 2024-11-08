@@ -268,10 +268,10 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 #define POS_X_TXT		LCD_Xmiddle(nrMIDDLE_TXT,GetPos,v.FONT_ID_Fonts,Test.txt,Test.spaceBetweenFonts,Test.constWidth)
 #define POS_Y_TXT		LCD_Ymiddle(nrMIDDLE_TXT,GetPos,v.FONT_ID_Fonts)
 
-#define FLOAT2STR(val)	Float2Str(val,' ',4,Sign_plusMinus,1)
+#define FLOAT2STR(val)	Float2Str(val,' ',4,Sign_plusMinus,1)  // dac na koncu pliku undef !!!!!!wszystkiego !!!!
 #define INT2STR(val)		  Int2Str(val,'0',3,Sign_none)
 #define INT2STR_TIME(val) Int2Str(val,' ',6,Sign_none)
-#define ONEBIT(val)	     Int2Str(val,None,1,Sign_none)
+#define ONEBIT(val)	     Int2Str(val,None,1,Sign_none) // sa 2 definicje !!!!! te same
 
 #define TXT_FONT_COLOR 	StrAll(7," ",INT2STR(Test.font[0])," ",INT2STR(Test.font[1])," ",INT2STR(Test.font[2])," ")
 #define TXT_BK_COLOR 	StrAll(7," ",INT2STR(Test.bk[0]),  " ",INT2STR(Test.bk[1]),  " ",INT2STR(Test.bk[2])," ")
@@ -405,6 +405,7 @@ typedef enum{
 	Touch_type1,
 	Touch_type2,
 	Touch_type3,
+	Touch_type4,
 	Touch_size_plus,
 	Touch_size_minus,
 	Touch_size_norm,
@@ -609,7 +610,6 @@ typedef struct{
 	uint8_t spaceCoursorY;
 	uint8_t heightCursor;
 	uint8_t spaceBetweenFonts;
-	uint8_t dispChangeColorOrNot;
 	uint8_t constWidth;
 } RGB_BK_FONT;
 static RGB_BK_FONT Test;
@@ -646,19 +646,11 @@ static void SetCursor(void)  //KURSOR DLA BIG FONT DAC PODWOJNY !!!!!
 		uint32_t color;
 		switch(Test.type)
 		{
-		case 0:
-			if(Test.dispChangeColorOrNot)
-				color=MYGREEN;
-			else
-				color=RGB_FONT;
-			break;
-		case 1:
-			color=WHITE;
-			break;
-		case 2:
-		default:
-			color=BLACK;
-			break;
+			case 0:  color=RGB_FONT; break;
+			case 1:  color=MYGREEN; break;
+			case 2:  color=WHITE; 	break;
+			case 3:
+			default: color=BLACK; 	break;
 		}
 		if(Test.posCursor>Test.lenWin)
 			Test.posCursor=Test.lenWin;
@@ -686,27 +678,25 @@ void Data2Refresh(int nr)  //dac static!!!!
 		switch(Test.type)
 		{
 		case 0:
-			if(Test.dispChangeColorOrNot==0){
-				LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
-				LCD_SetStrVar_fontColor(v.FONT_VAR_Fonts,RGB_FONT);
-				LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,RGB_BK);
-				LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
-				StartMeasureTime_us();
-				 lenStr=LCD_StrChangeColorVarIndirect(v.FONT_VAR_Fonts,Test.txt);
-				Test.speed=StopMeasureTime_us("");
-			   TxtTouch(TouchUpdate);
-			}
-			else{
-				LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
-				LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,MYGRAY);
-				LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,0);
-				StartMeasureTime_us();
-				lenStr=LCD_StrVarIndirect(v.FONT_VAR_Fonts,Test.txt);
-				Test.speed=StopMeasureTime_us("");
-			   TxtTouch(TouchUpdate);
-			}
+			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
+			LCD_SetStrVar_fontColor(v.FONT_VAR_Fonts,RGB_FONT);
+			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,RGB_BK);
+			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
+			StartMeasureTime_us();
+			 lenStr=LCD_StrChangeColorVarIndirect(v.FONT_VAR_Fonts,Test.txt);
+			Test.speed=StopMeasureTime_us("");
+		   TxtTouch(TouchUpdate);
 			break;
 		case 1:
+			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
+			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,MYGRAY);
+			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,0);
+			StartMeasureTime_us();
+			lenStr=LCD_StrVarIndirect(v.FONT_VAR_Fonts,Test.txt);
+			Test.speed=StopMeasureTime_us("");
+		   TxtTouch(TouchUpdate);
+			break;
+		case 2:
 			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
 			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,RGB_BK);
 			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
@@ -715,7 +705,7 @@ void Data2Refresh(int nr)  //dac static!!!!
 		   Test.speed=StopMeasureTime_us("");
 		   TxtTouch(TouchUpdate);
 		   break;
-		case 2:
+		case 3:
 			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
 			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,WHITE);
 			Test.coeff=0; LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,0);
@@ -824,7 +814,7 @@ static void DecStepRGB(void){
 }
 */
 static void IncCoeffRGB(void){
-	if(Test.type)
+	if(Test.type>1)
 		Test.coeff>=127 ? 127 : Test.coeff++;
 	else
 		Test.coeff>=255 ? 255 : Test.coeff++;
@@ -833,7 +823,7 @@ static void IncCoeffRGB(void){
 	Data2Refresh(PARAM_SPEED);
 }
 static void DecCoeefRGB(void){
-	if(Test.type)
+	if(Test.type>1)
 		Test.coeff<=-127 ? -127 : Test.coeff--;
 	else
 		Test.coeff<=0 ? 0 : Test.coeff--;
@@ -905,7 +895,6 @@ static void FONTS_LCD_ResetParam(void)
 	Test.heightCursor=1;
 	Test.spaceBetweenFonts=0;
 	Test.constWidth=0;
-	Test.dispChangeColorOrNot=0;
 
 	ChangeTxt();
 }
@@ -919,12 +908,13 @@ static void LCD_LoadFontVar(void)
 	switch(Test.type)
 	{
 	case 0:
+	case 1:
 		v.FONT_ID_Fonts = LCD_LoadFont_DarkgrayGreen(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
 		break;
-	case 1:
+	case 2:
 		v.FONT_ID_Fonts = LCD_LoadFont_DarkgrayWhite(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
 		break;
-	case 2:
+	case 3:
 		v.FONT_ID_Fonts = LCD_LoadFont_WhiteBlack(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
 		break;
 	}
@@ -934,7 +924,7 @@ static void LCD_LoadFontVar(void)
 		Dbg(1,"\r\nERROR_LoadFontVar ");
 		v.FONT_ID_Fonts=0;
 	}
-	DisplayFontsStructState();
+	DisplayFontsStructState();  // w tej funkcjie zmien kolor wyswietlania RGB-RGB !!!!
 }
 
 static void AdjustMiddle_X(void){
@@ -1161,14 +1151,15 @@ static void ReplaceLcdStrType(int8_t typeReq)
 		return;
 
 	GOTO_ReplaceLcdStrType:
-	INCR_WRAP(Test.type,1,0,2);
+	INCR_WRAP(Test.type,1,0,3);
 	switch(Test.type)
 	{
-	case 1:
+	case 2:
 		Test.coeff_prev=Test.coeff;
 		Test.coeff=1;
 		break;
 	case 0:
+	case 1:
 		Test.coeff=Test.coeff_prev;
 		break;
 	}
@@ -1223,10 +1214,6 @@ static void IncDec_SpaceBetweenFont(int incDec){
 	}
 }
 //dla DEBUG ON wlaczyc i wylaczyc caly debug dla danego pliku !!!! uregulowac to !!!
-static void DisplayFontsWithChangeColorOrNot(void){
-	TOOGLE(Test.dispChangeColorOrNot);
-	Data2Refresh(FONTS);		/* RefreshAllParam(); */
-}
 
 static void LCD_DrawMainFrame(figureShape shape, int directDisplay, uint8_t bold, uint16_t x,uint16_t y, uint16_t w,uint16_t h, int frameColor,int fillColor,int bkColor)// zastanowic czy nie dac to do BasicGraphic.c
 {
@@ -1362,15 +1349,13 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			break;
 
 		case KEYBOARD_fontStyle:
-			KEYBOARD_KeyAllParamSet(3,1, "Arial", "Times_New_Roman", "Comic_Saens_MS", WHITE,WHITE,WHITE, DARKRED,DARKRED,DARKBLUE);
+			KEYBOARD_KeyAllParamSet(3,1, "Arial", "Times_New_Roman", "Comic_Saens_MS", WHITE,WHITE,WHITE, DARKRED,DARKRED,DARKBLUE); // to tez jest w fonts_images ujednolicic !!!!
 			KEYBOARD_Select(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, NULL, Test.style);
 			break;
 
 		case KEYBOARD_fontType:
-			KEYBOARD_KeyAllParamSet(1,4, "(RGB-RGB)", "(Gray-Green)", "(RGB-White)", "(White-Black)", WHITE,WHITE,WHITE,WHITE, BLACK,MYGRAY3,BROWN,ORANGE);
-			KEYBOARD_Select(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, NULL,\
-					CONDITION( EQUAL2_AND(0,Test.type,Test.dispChangeColorOrNot), 0, CONDITION(Test.type==0&&Test.dispChangeColorOrNot==1,1,Test.type+1) )\
-			);
+			KEYBOARD_KeyAllParamSet(1,4, "(RGB-RGB)", "(Gray-Green)", "(RGB-White)", "(White-Black)", WHITE,WHITE,WHITE,WHITE, BLACK,BROWN,ORANGE,MYBLUE);  //nazwe te dac w jednym miescu !!!! bo sa i w font_images.c !!!
+			KEYBOARD_Select(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, NULL, Test.type);
 			break;
 
 		case KEYBOARD_fontSize:
@@ -1479,10 +1464,10 @@ void FUNC_FontStyle(int k){ switch(k){
 }
 void FUNC_FontType(int k){ switch(k){
   case -1: return;
-	case 0: Test.dispChangeColorOrNot=0; ReplaceLcdStrType(0); break;
-	case 1: Test.dispChangeColorOrNot=1; ReplaceLcdStrType(0); break;
-	case 2: ReplaceLcdStrType(1); break;
-	case 3: ReplaceLcdStrType(2); break;}
+	case 0: ReplaceLcdStrType(0); break;
+	case 1: ReplaceLcdStrType(1); break;
+	case 2: ReplaceLcdStrType(2); break;
+	case 3: ReplaceLcdStrType(3); break;}
 }
 void FUNC_FontSize(int k){ switch(k){
   case -1: return;
@@ -1622,7 +1607,7 @@ void FILE_NAME(setTouch)(void)
 	_TouchService(Touch2_fontSliderR_left, Touch2_fontSliderB_right,	KEYBOARD_sliderRGB, 		KEY_All_release, KEY2_fontSliderR_left, FUNC_SliderFontRGB);
 
 	_TouchService(Touch_style1, Touch_style3,	 KEYBOARD_fontStyle, 0, KEY_Select_one, FUNC_FontStyle);
-	_TouchService(Touch_type1, Touch_type3,	 KEYBOARD_fontType,  0, KEY_Select_one, FUNC_FontType);
+	_TouchService(Touch_type1, Touch_type4,	 KEYBOARD_fontType,  0, KEY_Select_one, FUNC_FontType);
 
 	_TouchService(Touch_size_plus, Touch_size_minus,	 KEYBOARD_fontSize,  KEY_Select_one,  KEY_Size_plus,	 FUNC_FontSize);
 	_TouchService(Touch_size_norm, Touch_size_italic,	 KEYBOARD_fontSize,  0, 				  KEY_Select_one,  FUNC_FontBoldItalNorm);
@@ -1808,7 +1793,8 @@ void FILE_NAME(setTouch)(void)
 			if(_WasState(Touch_FontType) ||
 				_WasState(Touch_type1) ||
 				_WasState(Touch_type2) ||
-				_WasState(Touch_type3))
+				_WasState(Touch_type3) ||
+				_WasState(Touch_type4))
 				SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontType,1,LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontType,TXT_FONT_TYPE));
 #endif
 
@@ -1843,16 +1829,19 @@ void FILE_NAME(setTouch)(void)
 	FILE_NAME(timer)();
 }
 
-void FILE_NAME(debugRcvStr)(void)
+void FILE_NAME(debugRcvStr)(void)  // dac przerwanie od znaku by caly czas nie krecic sie tu !!!!!
 {
-	if(DEBUG_RcvStr("info"))
+	if(DEBUG_RcvStr("abc"))
 		FILE_NAME(printInfo)();
 
-	else if(DEBUG_RcvStr("resolution"))
-		TOUCH_SetDefaultResolution();
+	else if(DEBUG_RcvStr("resolution")){
+		TOUCH_SetDefaultResolution();  Dbg(1,"\r\nAAAAAAAAAAAAAAAA"); }
 
 	_DEBUG_RCV_CHAR("r1",TOUCH_GetPtr2Resolution(),_uint8,_Incr,_Uint8(1),_Uint8(15),"Touch Resolution: ",NULL)
 	_DEBUG_RCV_CHAR("r2",TOUCH_GetPtr2Resolution(),_uint8,_Decr,_Uint8(1),_Uint8(1), "Touch Resolution: ",NULL)
+
+	else if(DEBUG_RcvStr("test touch")) Dbg(1,"\r\nBBBBBBBBBBBBBBBBBB");
+
 
 
 
@@ -1861,10 +1850,10 @@ void FILE_NAME(debugRcvStr)(void)
 		DbgVar(DEBUG_ON,100,Clr_ Mag_"\r\nStart: %s --- %d \r\n"_X, GET_CODE_FUNCTION, osGetCPUUsage());
 		DisplayCoeffCalibration();
 	}
-	else if(DEBUG_RcvStr("s"))
+	else if(DEBUG_RcvStr("s\x0D"))
 	{
 		SCREEN_Fonts_funcSet(FONT_COLOR_LoadFontTime, BLACK);
-		SCREEN_Fonts_funcSet(COLOR_FramePress, BLACK);
+		SCREEN_Fonts_funcSet(COLOR_FramePress, BLACK);   Dbg(1,"\r\nSSSSSSSSSSSS");
 	}
 
 
@@ -2335,8 +2324,8 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	}
 
 	StartMeasureTime_us();
-	 if(Test.type) lenStr= LCD_StrVar			  (v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, argNmb==0 ? v.COLOR_BkScreen : LCD_GetStrVar_bkColor(v.FONT_VAR_Fonts), 0,			  Test.constWidth, v.COLOR_BkScreen);
-	 else 			lenStr= LCD_StrChangeColorVar(v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, RGB_BK, RGB_FONT,																		  Test.coeff, Test.constWidth, v.COLOR_BkScreen);
+	 if(Test.type>1) lenStr= LCD_StrVar			  	 (v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, argNmb==0 ? v.COLOR_BkScreen : LCD_GetStrVar_bkColor(v.FONT_VAR_Fonts), 0,			 Test.constWidth, v.COLOR_BkScreen);
+	 else 			  lenStr= LCD_StrChangeColorVar(v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, RGB_BK, RGB_FONT,																		 Test.coeff, Test.constWidth, v.COLOR_BkScreen);
 	Test.speed=StopMeasureTime_us("");
 
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
