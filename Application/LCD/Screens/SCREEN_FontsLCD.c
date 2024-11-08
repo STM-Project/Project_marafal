@@ -34,7 +34,7 @@
 	X(LANG_nazwa_8, "Klawiatura RGB", "Keyboard RGB") \
 	X(LANG_FontTypeAbove, "Zmiana typu czcionki", "Press to change type fonts") \
 	X(LANG_FontTypeLeft, "3.", "3.") \
-	X(LANG_FontTypeUnder, "nacisnij przez 1 sekunde", "press by 1 second") \
+	X(LANG_FontTypeUnder, "kolor t"ł"a i czcionki", "background - font") \
 	X(LANG_FontSizeAbove,    "Zmiana rozmiaru czcionki", "Press to change size fonts") \
 	X(LANG_FontSizeLeft, 	 "4.", "4.") \
 	X(LANG_FontSizeUnder, 	 "normalna, t"ł"usta, pochy"ł"a", "normal,bold,italics") \
@@ -616,8 +616,6 @@ static RGB_BK_FONT Test;
 
 static void FRAMES_GROUP_combined(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY,  int bold);
 static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY,  int boldFrame);
-
-extern uint32_t pLcd[];  //!!!!!!!!!!!!!!!!
 
 static int *ppMain[7] = {(int*)FRAMES_GROUP_combined,(int*)FRAMES_GROUP_separat,(int*)"Rafal", (int*)&Test, NULL, NULL, NULL };
 /*
@@ -1282,8 +1280,8 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 
 		case KEYBOARD_sliderBkRGB:
 			static uint32_t param= COLOR_GRAY(0xA0);
-			if(EQUAL2(forTouchIdx,Touch_FontColorMoveRight,Touch_BkColorMove)) param= COLOR_GRAY(0x60);
-			else if(forTouchIdx > 0)												  		 param= COLOR_GRAY(0x80);
+			if(EQUAL2_OR(forTouchIdx,Touch_FontColorMoveRight,Touch_BkColorMove)) param= COLOR_GRAY(0x60);
+			else if(forTouchIdx > 0)												  		 	 param= COLOR_GRAY(0x80);
 			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", param,param,param, RED,GREEN,BLUE);
 			KEYBOARD_ServiceSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY2_bkSliderR_left, SL(LANG_nazwa_6), (int*)&Test.bk[0], RefreshValRGB);
 			break;
@@ -1369,8 +1367,10 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			break;
 
 		case KEYBOARD_fontType:
-			KEYBOARD_KeyAllParamSet(3,1, "(Gray-Green)", "(Gray-White)", "(White-Black)", WHITE,WHITE,WHITE, BLACK,BROWN,ORANGE);
-			KEYBOARD_Select(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, NULL, Test.type);
+			KEYBOARD_KeyAllParamSet(1,4, "(RGB-RGB)", "(Gray-Green)", "(RGB-White)", "(White-Black)", WHITE,WHITE,WHITE,WHITE, BLACK,MYGRAY3,BROWN,ORANGE);
+			KEYBOARD_Select(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, NULL,\
+					CONDITION( EQUAL2_AND(0,Test.type,Test.dispChangeColorOrNot), 0, CONDITION(Test.type==0&&Test.dispChangeColorOrNot==1,1,Test.type+1) )\
+			);
 			break;
 
 		case KEYBOARD_fontSize:
@@ -1479,9 +1479,10 @@ void FUNC_FontStyle(int k){ switch(k){
 }
 void FUNC_FontType(int k){ switch(k){
   case -1: return;
-	case 0: ReplaceLcdStrType(0); break;
-	case 1: ReplaceLcdStrType(1); break;
-	case 2: ReplaceLcdStrType(2); break;}
+	case 0: Test.dispChangeColorOrNot=0; ReplaceLcdStrType(0); break;
+	case 1: Test.dispChangeColorOrNot=1; ReplaceLcdStrType(0); break;
+	case 2: ReplaceLcdStrType(1); break;
+	case 3: ReplaceLcdStrType(2); break;}
 }
 void FUNC_FontSize(int k){ switch(k){
   case -1: return;
@@ -1842,47 +1843,34 @@ void FILE_NAME(setTouch)(void)
 	FILE_NAME(timer)();
 }
 
-
-
-
 void FILE_NAME(debugRcvStr)(void)
 {
-	if(DEBUG_RcvStr("0"))
-		DisplayFontsWithChangeColorOrNot();
+	if(DEBUG_RcvStr("info"))
+		FILE_NAME(printInfo)();
 
-	else if(DEBUG_RcvStr("]"))
-		Inc_PosCursor();
-	else if(DEBUG_RcvStr("["))
-		Dec_PosCursor();
-	else if(DEBUG_RcvStr("'"))
-		IncDec_SpaceBetweenFont(0);
-	else if(DEBUG_RcvStr("\\"))
-		IncDec_SpaceBetweenFont(1);
-	else if(DEBUG_RcvStr("/"))
-		LCD_DisplayRemeberedSpacesBetweenFonts(0,NULL,NULL);
-	else if(DEBUG_RcvStr("o"))
-		LCD_WriteSpacesBetweenFontsOnSDcard();
-	else if(DEBUG_RcvStr("m"))
-		LCD_ResetSpacesBetweenFonts();
+	else if(DEBUG_RcvStr("resolution"))
+		TOUCH_SetDefaultResolution();
+
+	_DEBUG_RCV_CHAR("r1",TOUCH_GetPtr2Resolution(),_uint8,_Incr,_Uint8(1),_Uint8(15),"Touch Resolution: ",NULL)
+	_DEBUG_RCV_CHAR("r2",TOUCH_GetPtr2Resolution(),_uint8,_Decr,_Uint8(1),_Uint8(1), "Touch Resolution: ",NULL)
+
+
+
 	else if(DEBUG_RcvStr("p"))
 	{
 		DbgVar(DEBUG_ON,100,Clr_ Mag_"\r\nStart: %s --- %d \r\n"_X, GET_CODE_FUNCTION, osGetCPUUsage());
 		DisplayCoeffCalibration();
-
-//		SCREEN_Fonts_funcSet(FONT_COLOR_LoadFontTime, BLACK);
-//		SCREEN_Fonts_funcSet(COLOR_FramePress, BLACK);
-
 	}
-	else if(DEBUG_RcvStr("-"))
+	else if(DEBUG_RcvStr("s"))
 	{
-		FILE_NAME(printInfo)();
-
+		SCREEN_Fonts_funcSet(FONT_COLOR_LoadFontTime, BLACK);
+		SCREEN_Fonts_funcSet(COLOR_FramePress, BLACK);
 	}
+
+
 	else if(DEBUG_RcvStr("6"))
 	{
-		TOOGLE(RR);
-
-		if(RR)
+		if(TOOGLE(RR))
 		{
 			FILE_NAME(keyboard)(KEYBOARD_fontRGB, KEY_All_release, LCD_RoundRectangle,0,  10,160, KeysAutoSize,12, 4, Touch_FontColor, Touch_fontRp, KeysDel);
 			FILE_NAME(keyboard)(KEYBOARD_bkRGB,   KEY_All_release, LCD_RoundRectangle,0, 600,160, KeysAutoSize,12, 4, Touch_BkColor, 	Touch_bkRp,	  KeysNotDel);
@@ -2102,10 +2090,10 @@ static StructTxtPxlLen ELEMENT_fontType(StructFieldPos *field, int xPos,int yPos
 
 #ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
 	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontType,  LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontType,0, field->len);
-										  SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_WITH_HOLD, 		  Touch_FontType2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontType,1, field->len); }
+										  SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_WITH_HOLD, 		  	 Touch_FontType2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontType,1, field->len); }
 #else
 	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontType,  LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontType,0, *field);
-										  SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		    Touch_FontType2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontType,1, *field); }
+										  SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		   Touch_FontType2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontType,1, *field); }
 #endif
 
 	lenStr.inPixel = field->width;
@@ -2360,7 +2348,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 #undef POS_Y_TXT
 
 
-
+//w harfoult interrup ddacv mozliwosc odczyti linijki kodu poprzedniego !!!!
 //Zrobic szablon nowego okna -pliku LCD !!!! aby latwo wystartowac !!!
 //ZROBIC animacje ze samo sie klioka i chmurka z info ze przytrzymac na 2 sekundy ....
 //ZROBIC AUTOMATYCZNE testy wszystkich mozliwosci !!!!!!! taki interfejs testowy
