@@ -42,7 +42,8 @@
 
 #define MIDDLE(startPos,widthBk,width)	((startPos)+((widthBk)-(width))/2)
 #define IS_RANGE(val,min,max) (((val)>=(min))&&((val)<=(max)))
-#define EQUAL2(val,eq1,eq2)			((eq1==val)||(eq2==val))
+#define EQUAL2_OR(val,eq1,eq2)		(((eq1)==(val))||((eq2)==(val)))
+#define EQUAL2_AND(val,eq1,eq2)		(((eq1)==(val))&&((eq2)==(val)))
 
 #define SET_IN_RANGE(val,min,max) (((val)<(min))?(min):(((val)>(max))?(max):(val)))
 #define SET_NEW_RANGE(val,min,max,newMin,newMax) (((val)<(min))?(newMin):(((val)>(max))?(newMax):(val)))
@@ -109,8 +110,10 @@ typedef enum{
 
 typedef enum{
 	_int,
+	_int8,
 	_int16,
 	_int32,
+	_uint8,
 	_uint16,
 	_uint32,
 	_float,
@@ -185,6 +188,7 @@ typedef void* (*VOID_FUNCTION_TEST)(void*,void*);
 
 /* --------- End Functions Definitations ----------- */
 int* 			_Int		(int 	val);
+uint8_t* 	_Uint8	(uint8_t val);
 uint16_t* 	_Uint16	(uint16_t val);
 uint32_t* 	_Uint32	(uint32_t val);
 int16_t* 	_Int16	(int16_t val);
