@@ -16,4 +16,8 @@ uint8_t BSP_TS_GetState	(TS_StateTypeDef *TS_State);
 void 	  BSP_TS_ClearIT	(void);
 uint8_t BSP_TS_Init		(uint16_t xSize, uint16_t ySize);
 
+void TOUCH_SetNewResolution(uint8_t resol);
+void TOUCH_SetDefaultResolution(void);
+uint8_t* TOUCH_GetPtr2Resolution(void);
+
 #endif
