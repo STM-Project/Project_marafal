@@ -179,6 +179,8 @@ static TS_DrvTypeDef *ts_driver;
 static uint16_t ts_x_boundary, ts_y_boundary;
 static uint8_t  ts_orientation;
 
+static uint8_t touchResolution = TOUCH_RESOLUTION;
+
 TS_StateTypeDef  TS_State;
 
 static void IOE_Delay(uint32_t Delay)
@@ -610,8 +612,7 @@ uint8_t BSP_TS_GetState(TS_StateTypeDef *TS_State)
     xDiff = x_p > _x? (x_p - _x): (_x - x_p);
     yDiff = y_p > _y? (y_p - _y): (_y - y_p);
 
-    //if (xDiff + yDiff > TOUCH_RESOLUTION)
-    if (xDiff > 8 || yDiff >8 )
+    if (xDiff > touchResolution || yDiff > touchResolution )
     {
       x_p = _x;
       y_p = _y;
@@ -628,5 +629,15 @@ void BSP_TS_ClearIT(void)
 {
     ts_driver = &stmpe811_ts_drv;
     ts_driver->ClearIT(TS_I2C_ADDRESS);
+}
+
+void TOUCH_SetNewResolution(uint8_t resol){
+	touchResolution = resol;
+}
+void TOUCH_SetDefaultResolution(void){
+	touchResolution = TOUCH_RESOLUTION;
+}
+uint8_t* TOUCH_GetPtr2Resolution(void){
+	return &touchResolution;
 }
 
