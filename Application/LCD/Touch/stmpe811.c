@@ -610,7 +610,8 @@ uint8_t BSP_TS_GetState(TS_StateTypeDef *TS_State)
     xDiff = x_p > _x? (x_p - _x): (_x - x_p);
     yDiff = y_p > _y? (y_p - _y): (_y - y_p);
 
-    if (xDiff + yDiff > TOUCH_RESOLUTION)
+    //if (xDiff + yDiff > TOUCH_RESOLUTION)
+    if (xDiff > 8 || yDiff >8 )
     {
       x_p = _x;
       y_p = _y;
