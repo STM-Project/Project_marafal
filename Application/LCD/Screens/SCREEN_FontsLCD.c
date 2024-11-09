@@ -1274,61 +1274,10 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			break;
 
 		case KEYBOARD_circleSliderRGB:
-			//CIRCLE_errorDecision(0,_OFF);
+			/* CIRCLE_errorDecision(0,_OFF); */
 			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), RED,DARKGREEN,BLUE);
 			KEYBOARD_ServiceCircleSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_fontCircleSliderR, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB);
-			//CIRCLE_errorDecision(0,_ON);
-
-
-
-
-
-
-			CALCULATE_MinMaxAvr(_RST,0,NULL,_float);
-
-				CALCULATE_MinMaxAvr(_SET1,3,_Float(100000),_float);
-				CALCULATE_MinMaxAvr(_SET2,3,_Float(-100000),	_float);
-			CALCULATE_MinMaxAvr(_CALC,3,_Float(12),	_float);
-			CALCULATE_MinMaxAvr(_CALC,3,_Float(8),	_float);
-			CALCULATE_MinMaxAvr(_CALC,3,_Float(1),	_float);
-			CALCULATE_MinMaxAvr(_CALC,3,_Float(26),	_float);
-			CALCULATE_MinMaxAvr(_CALC,3,_Float(7),	_float);
-
-
-				CALCULATE_MinMaxAvr(_SET1,7,_Float(100000),_float);
-				CALCULATE_MinMaxAvr(_SET2,7,_Float(-100000),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(12),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(8),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(3),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(123),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(7),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(120),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(121),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(122),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(123),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(124),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(125),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(1236),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(126),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(127),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(1238),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(123),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(123),	_float);
-			CALCULATE_MinMaxAvr(_CALC,7,_Float(45),	_float);
-
-
-			float f1 = *((float*)(CALCULATE_MinMaxAvr(_GET,3,NULL,_float).min));
-			float f2 = *((float*)(CALCULATE_MinMaxAvr(_GET,3,NULL,_float).max));
-			float f3 = *((float*)(CALCULATE_MinMaxAvr(_GET,3,NULL,_float).avr));
-
-			float f1a = *((float*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_float).min));
-			float f2a = *((float*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_float).max));
-			float f3a = *((float*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_float).avr));
-			float f4a = *((float*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_float).mid));
-			float f5a = *((float*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_float).sum));
-			float f6a = *((float*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_float).itr));
-
-
+			/* CIRCLE_errorDecision(0,_ON); */
 			break;
 
 		case KEYBOARD_fontSize2:
@@ -1403,7 +1352,7 @@ static void BlockingFunc(void){		/* Call this function in long during while(1) *
 	CycleRefreshFunc();
 }
 
-static void FILE_NAME(timer)(void)  //sprawdz czy nie uzyc RTOS timer CALLBACK !!!!!!!!!!!!!
+static void FILE_NAME(timer)(void)  //sprawdz czy nie uzyc RTOS timer CALLBACK !!!!!!!!!!!!!  albo vTaskNewCreat fo Delay0(1000) !!!!!!!
 {
 	if(vTimerService(TIMER_InfoWrite, check_stop_time, 2000)){
 		KEYBOARD_TYPE(KEYBOARD_LenOffsWin, KEY_Timer);
@@ -1599,7 +1548,7 @@ void FILE_NAME(setTouch)(void)
 
 	state = LCD_TOUCH_GetTypeAndPosition(&pos);
 
-	/*	----- Service press specific Keys for Keboard ----- */
+	/*	----- Service press specific Keys for Keyboard ----- */
 	_TouchService(Touch_fontRp, Touch_fontBm, KEYBOARD_fontRGB, KEY_All_release, KEY_Red_plus, FUNC_fontColorRGB);
 	_TouchService(Touch_bkRp, Touch_bkBm, 	   KEYBOARD_bkRGB,   KEY_All_release, KEY_Red_plus, FUNC_bkFontColorRGB);
 
@@ -1827,33 +1776,40 @@ void FILE_NAME(setTouch)(void)
 	}
 
 	FILE_NAME(timer)();
+
+	LCDTOUCH_testFunc();
 }
 
-void FILE_NAME(debugRcvStr)(void)  // dac przerwanie od znaku by caly czas nie krecic sie tu !!!!!
-{
+void FILE_NAME(debugRcvStr)(void)
+{if(v.DEBUG_ON){
+
+/* ----- Debug Test For Touch Resolution ----- */
+//	if(DEBUG_RcvStr("start touch test\x0D"))
+//		LCD_TOUCH_testFunc(_SET);
+//
+//	else if(DEBUG_RcvStr("get touch test\x0D"))
+//		LCD_TOUCH_testFunc(_GET);
+/* ----- Debug Test For Touch Resolution ----- */
+
 	if(DEBUG_RcvStr("abc"))
 		FILE_NAME(printInfo)();
 
-	else if(DEBUG_RcvStr("resolution")){
-		TOUCH_SetDefaultResolution();  Dbg(1,"\r\nAAAAAAAAAAAAAAAA"); }
+	else if(DEBUG_RcvStr("resolution"))
+		TOUCH_SetDefaultResolution();
 
 	_DEBUG_RCV_CHAR("r1",TOUCH_GetPtr2Resolution(),_uint8,_Incr,_Uint8(1),_Uint8(15),"Touch Resolution: ",NULL)
 	_DEBUG_RCV_CHAR("r2",TOUCH_GetPtr2Resolution(),_uint8,_Decr,_Uint8(1),_Uint8(1), "Touch Resolution: ",NULL)
 
-	else if(DEBUG_RcvStr("test touch")) Dbg(1,"\r\nBBBBBBBBBBBBBBBBBB");
-
-
-
 
 	else if(DEBUG_RcvStr("p"))
 	{
-		DbgVar(DEBUG_ON,100,Clr_ Mag_"\r\nStart: %s --- %d \r\n"_X, GET_CODE_FUNCTION, osGetCPUUsage());
+		DbgVar(1,100,Clr_ Mag_"\r\nStart: %s -> CPU: %d \r\n"_X, GET_CODE_FUNCTION, osGetCPUUsage());
 		DisplayCoeffCalibration();
 	}
 	else if(DEBUG_RcvStr("s\x0D"))
 	{
 		SCREEN_Fonts_funcSet(FONT_COLOR_LoadFontTime, BLACK);
-		SCREEN_Fonts_funcSet(COLOR_FramePress, BLACK);   Dbg(1,"\r\nSSSSSSSSSSSS");
+		SCREEN_Fonts_funcSet(COLOR_FramePress, BLACK);
 	}
 
 
@@ -1884,7 +1840,7 @@ void FILE_NAME(debugRcvStr)(void)  // dac przerwanie od znaku by caly czas nie k
 
 
 
-}
+}}
 
 static void LoadFonts(int startFontID, int endFontID){
 	#define OMITTED_FONTS	1	/*this define delete for another screens*/
@@ -2072,7 +2028,7 @@ static StructTxtPxlLen ELEMENT_fontType(StructFieldPos *field, int xPos,int yPos
 	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(FontType), xPos, yPos, TXT_FONT_TYPE, fullHight, 0,255, NoConstWidth, \
 		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16), Above_left,   SL(LANG_FontTypeAbove), fullHight, 0,250, NoConstWidth,\
 		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 				 Left_mid, 		SL(LANG_FontTypeLeft), 	fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4,  			 Under_center,	SL(LANG_FontTypeUnder), fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4,  			 Under_left,	SL(LANG_FontTypeUnder), fullHight, 0,250, NoConstWidth, \
 		LCD_STR_DESCR_PARAM_NUMBER(3) );
 
 	LCD_SetBkFontShape(v.FONT_VAR_FontType,BK_LittleRound);
@@ -2289,7 +2245,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 		LCD_TOUCH_DeleteAllSetTouch();
 		FONTS_LCD_ResetParam();
 
-		DbgVar(DEBUG_ON,100,Clr_ Cya_"\r\nStart: %s\r\n"_X,GET_CODE_FUNCTION);
+		DbgVar(v.DEBUG_ON,100,Clr_ Cya_"\r\nStart: %s\r\n"_X,GET_CODE_FUNCTION);
 
 		LoadFonts(FONT_ID_Title, FONT_ID_Press);
 		LCD_LoadFontVar();

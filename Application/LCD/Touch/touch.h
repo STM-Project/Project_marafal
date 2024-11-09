@@ -75,6 +75,11 @@ void LCDTOUCH_ActiveOnly(uint16_t idx1,uint16_t idx2,uint16_t idx3,uint16_t idx4
 int LCD_TOUCH_Set(uint16_t ID, uint16_t idx, uint8_t param);
 int LCD_TOUCH_Update(uint16_t ID, uint16_t idx, uint8_t param);
 int LCD_TOUCH_isPress(void);
+
+XY_Touch_Struct LCD_TOUCH_GetPos		(void);
+uint8_t 			 LCD_TOUCH_testFunc	(GET_SET action);
+void 				 LCDTOUCH_testFunc	(void);
+
 void SetLogXY(XY_Touch_Struct *pos, uint16_t *width, int maxSize);
 void SetPhysXY(XY_Touch_Struct *pos, int maxSize);
 void WaitForTouchState(uint8_t Pressed);

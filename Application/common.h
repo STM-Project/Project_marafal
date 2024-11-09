@@ -102,6 +102,12 @@
 #define TXT_CUTTOFF(txt,len)	if(strlen(txt)>len-1) *((txt)+(len-1))=0
 
 typedef enum{
+	unUsed,
+	_NO,
+	_YES
+}GENERAL_PARAM;
+
+typedef enum{
 	LoadWholeScreen,
 	LoadPartScreen,
 	LoadUserScreen,
@@ -122,7 +128,7 @@ typedef enum{
 
 typedef enum{ _Incr,  _Decr }DATA_ACTION;
 typedef enum{ _ON,    _OFF  }ON_OFF;
-typedef enum{ _START, _STOP }START_STOP;
+typedef enum{ _START, _STOP, _RESET, _RESTART }START_STOP;
 typedef enum{ _MIN,   _MID,  _MAX }MAX_MIN;
 typedef enum{ _GET=-16,_GET1,_GET2,_GET3, _SET,_SET1,_SET2,_SET3, _CALC,_CALC1,_CALC2,_CALC3, _RST,_RST1,_RST2,_RST3 }GET_SET;
 

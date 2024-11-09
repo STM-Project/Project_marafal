@@ -458,13 +458,10 @@ void LCD_TOUCH_Service(void)
 				Touch[i].flags2 = 0;
 			}
 		}
+		if(BUF_LCD_TOUCH_SIZE <= ServiceTouch.idx) ServiceTouch.idx = 0;
 
-		if(BUF_LCD_TOUCH_SIZE > ServiceTouch.idx){
-			ServiceTouch.pos[ServiceTouch.idx].x = pos.x;
-			ServiceTouch.pos[ServiceTouch.idx++].y = pos.y;
-		}
-		else
-			ServiceTouch.idx = 0;
+		ServiceTouch.pos[ServiceTouch.idx].x = pos.x;
+		ServiceTouch.pos[ServiceTouch.idx++].y = pos.y;
 	}
 	else
 		ServiceTouch.press = release;
@@ -507,6 +504,99 @@ static int isTouchTemp(void)
 int LCD_TOUCH_isPress(void){
 	return ServiceTouch.press;
 }
+XY_Touch_Struct LCD_TOUCH_GetPos(void){
+	XY_Touch_Struct pos = {0};
+	int i = ServiceTouch.idx > 0 ? ServiceTouch.idx-1 : 0;
+	pos.x = ServiceTouch.pos[i].x;
+	pos.y = ServiceTouch.pos[i].y;
+	return pos;
+}
+
+uint8_t LCD_TOUCH_testFunc(GET_SET action){
+	static uint8_t testTouchResolutionFlag=0;
+	switch((int)action){
+	case _RST:
+		testTouchResolutionFlag=0;
+		Dbg(1,"\r\nSTOP touch test ");
+		break;
+	case _SET:
+		CALCULATE_MinMaxAvr(_RST,unUsed,NULL, _uint32);
+		CALCULATE_MinMaxAvr(_SET1,0,_Uint32(100000), _uint32);
+		CALCULATE_MinMaxAvr(_SET2,0,_Uint32(0), 		_uint32);
+		CALCULATE_MinMaxAvr(_SET1,1,_Uint32(100000), _uint32);
+		CALCULATE_MinMaxAvr(_SET2,1,_Uint32(0), 		_uint32);
+		testTouchResolutionFlag=1;
+		Dbg(1,"\r\nSTART touch test ");
+		break;
+	case _CALC:
+		XY_Touch_Struct posTest = LCD_TOUCH_GetPos();
+		CALCULATE_MinMaxAvr(_CALC,0, _Uint32(posTest.x), _uint32);
+		CALCULATE_MinMaxAvr(_CALC,1, _Uint32(posTest.y), _uint32);
+		break;
+	case _GET:
+		struct_MATH x = CALCULATE_MinMaxAvr(_GET,0,NULL,_uint32);
+		struct_MATH y = CALCULATE_MinMaxAvr(_GET,1,NULL,_uint32);
+		#define I(var) 	*((uint32_t*)var)
+		DbgVar(1,100,"\r\nPosX min:%d max:%d div:%d mid:%d sum:%d itr:%d avr:%d",I(x.min),I(x.max),I(x.div),I(x.mid),I(x.sum),I(x.itr),I(x.avr));  //uzyc kolory !!!!
+		DbgVar(1,100,"\r\nPosY min:%d max:%d div:%d mid:%d sum:%d itr:%d avr:%d",I(y.min),I(y.max),I(y.div),I(y.mid),I(y.sum),I(y.itr),I(y.avr));
+		break;
+	}
+	return testTouchResolutionFlag;
+	#undef I
+}
+
+//CALCULATE_MinMaxAvr(_CALC,3,_Float(12),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,3,_Float(8),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,3,_Float(1),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,3,_Float(26),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,3,_Float(7),	_float);
+//
+//
+//			CALCULATE_MinMaxAvr(_SET1,7,_Float(100000),_float);
+//			CALCULATE_MinMaxAvr(_SET2,7,_Float(-100000),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(12),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(8),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(3),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(123),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(7),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(120),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(121),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(122),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(123),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(124),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(125),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(1236),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(126),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(127),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(1238),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(123),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(123),	_float);
+//		CALCULATE_MinMaxAvr(_CALC,7,_Float(45),	_float);
+//
+//
+//		float f1 = *((float*)(CALCULATE_MinMaxAvr(_GET,3,NULL,_float).min));
+//		float f2 = *((float*)(CALCULATE_MinMaxAvr(_GET,3,NULL,_float).max));
+//		float f3 = *((float*)(CALCULATE_MinMaxAvr(_GET,3,NULL,_float).avr));
+//
+//		float f1a = *((float*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_float).min));
+//		float f2a = *((float*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_float).max));
+//		float f3a = *((float*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_float).avr));
+//		float f4a = *((float*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_float).mid));
+//		float f5a = *((float*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_float).sum));
+//		float f6a = *((float*)(CALCULATE_MinMaxAvr(_GET,7,NULL,_float).itr));
+
+
+
+void LCDTOUCH_testFunc(void){
+	static uint8_t block=0;
+	if(press==LCD_TOUCH_isPress()){
+		if(0==block){ LCD_TOUCH_testFunc(_SET); block=1; }
+						  LCD_TOUCH_testFunc(_CALC);
+	}
+	else{
+		if(1==block){ LCD_TOUCH_testFunc(_GET);
+						  LCD_TOUCH_testFunc(_RST); block=0; }
+}}
 
 int LCD_TOUCH_Set(uint16_t ID, uint16_t idx, uint8_t param)
 {
