@@ -340,38 +340,6 @@ typedef enum{
 	Touch_bkGm,
 	Touch_bkBm,
 
-//	Touch_fontSliderR_left,
-//	Touch_fontSliderR,
-//	Touch_fontSliderR_right,
-//	Touch_fontSliderG_left,
-//	Touch_fontSliderG,
-//	Touch_fontSliderG_right,
-//	Touch_fontSliderB_left,
-//	Touch_fontSliderB,
-//	Touch_fontSliderB_right,
-//	Touch_fontSliderRm,
-//	Touch_fontSliderRp,
-//	Touch_fontSliderGm,
-//	Touch_fontSliderGp,
-//	Touch_fontSliderBm,
-//	Touch_fontSliderBp,
-//
-//	Touch_bkSliderR_left,
-//	Touch_bkSliderR,
-//	Touch_bkSliderR_right,
-//	Touch_bkSliderG_left,
-//	Touch_bkSliderG,
-//	Touch_bkSliderG_right,
-//	Touch_bkSliderB_left,
-//	Touch_bkSliderB,
-//	Touch_bkSliderB_right,
-//	Touch_bkSliderRm,
-//	Touch_bkSliderRp,
-//	Touch_bkSliderGm,
-//	Touch_bkSliderGp,
-//	Touch_bkSliderBm,
-//	Touch_bkSliderBp,
-
 	Touch2_bkSliderR_left,
 	Touch2_bkSliderR,
 	Touch2_bkSliderR_right,
@@ -467,38 +435,6 @@ typedef enum{
 	KEY_Red_minus,
 	KEY_Green_minus,
 	KEY_Blue_minus,
-
-//	KEY_fontSliderR_left,
-//	KEY_fontSliderR,
-//	KEY_fontSliderR_right,
-//	KEY_fontSliderG_left,
-//	KEY_fontSliderG,
-//	KEY_fontSliderG_right,
-//	KEY_fontSliderB_left,
-//	KEY_fontSliderB,
-//	KEY_fontSliderB_right,
-//	KEY_fontSliderRm,
-//	KEY_fontSliderRp,
-//	KEY_fontSliderGm,
-//	KEY_fontSliderGp,
-//	KEY_fontSliderBm,
-//	KEY_fontSliderBp,
-
-//	KEY_bkSliderR_left,
-//	KEY_bkSliderR,
-//	KEY_bkSliderR_right,
-//	KEY_bkSliderG_left,
-//	KEY_bkSliderG,
-//	KEY_bkSliderG_right,
-//	KEY_bkSliderB_left,
-//	KEY_bkSliderB,
-//	KEY_bkSliderB_right,
-//	KEY_bkSliderRm,
-//	KEY_bkSliderRp,
-//	KEY_bkSliderGm,
-//	KEY_bkSliderGp,
-//	KEY_bkSliderBm,
-//	KEY_bkSliderBp,
 
 	KEY2_bkSliderR_left,
 	KEY2_bkSliderR,
@@ -658,7 +594,7 @@ static void SetCursor(void)  //KURSOR DLA BIG FONT DAC PODWOJNY !!!!!
 	}
 }
 
-void Data2Refresh(int nr)  //dac static!!!!
+static void Data2Refresh(int nr)
 {
 	switch(nr)
 	{
@@ -924,7 +860,7 @@ static void LCD_LoadFontVar(void)
 		Dbg(1,"\r\nERROR_LoadFontVar ");
 		v.FONT_ID_Fonts=0;
 	}
-	DisplayFontsStructState();  // w tej funkcjie zmien kolor wyswietlania RGB-RGB !!!!
+	DisplayFontsStructState();
 }
 
 static void AdjustMiddle_X(void){
@@ -1213,7 +1149,6 @@ static void IncDec_SpaceBetweenFont(int incDec){
 		}
 	}
 }
-//dla DEBUG ON wlaczyc i wylaczyc caly debug dla danego pliku !!!! uregulowac to !!!
 
 static void LCD_DrawMainFrame(figureShape shape, int directDisplay, uint8_t bold, uint16_t x,uint16_t y, uint16_t w,uint16_t h, int frameColor,int fillColor,int bkColor)// zastanowic czy nie dac to do BasicGraphic.c
 {
@@ -1231,12 +1166,7 @@ static void LCD_DrawMainFrame(figureShape shape, int directDisplay, uint8_t bold
 		LCD_Shape(x,y,shape,w,h,frameColor,fillColor,bkColor);
 }
 
-
-//###############################################################################################################################################################################
-//###############################################################################################################################################################################
-
-
-
+/* ------------ FILE_NAME() functions ------------ */
 static int RR=0;
 
 int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, INIT_KEYBOARD_PARAM)
@@ -1284,12 +1214,6 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			KEYBOARD_KeyAllParamSet3(1,LCD_GetFontSizeMaxNmb(), COLOR_GRAY(0xDD), DARKRED, (char**)LCD_GetFontSizePtr());
 			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1, SL(LANG_CoeffKeyName), v.FONT_COLOR_Descr, 8, Test.size);
 			break;
-
-
-
-
-
-
 
 		case KEYBOARD_fontCoeff:
 			KEYBOARD_KeyAllParamSet(2,1, "+", "-", WHITE,WHITE, LIGHTCYAN,LIGHTCYAN);
@@ -1357,7 +1281,7 @@ static void FILE_NAME(timer)(void)  //sprawdz czy nie uzyc RTOS timer CALLBACK !
 	if(vTimerService(TIMER_InfoWrite, check_stop_time, 2000)){
 		KEYBOARD_TYPE(KEYBOARD_LenOffsWin, KEY_Timer);
 	}
-	if(vTimerService(TIMER_BlockTouch, check_stop_time, 500)){	  //nazwac lepiej timerID na cos zeby mozna skojazyc
+	if(vTimerService(TIMER_BlockTouch, check_stop_time, 500)){
 		BlockTouchForTime(_OFF);
 	}
 	CycleRefreshFunc();
@@ -2028,7 +1952,7 @@ static StructTxtPxlLen ELEMENT_fontType(StructFieldPos *field, int xPos,int yPos
 	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(FontType), xPos, yPos, TXT_FONT_TYPE, fullHight, 0,255, NoConstWidth, \
 		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16), Above_left,   SL(LANG_FontTypeAbove), fullHight, 0,250, NoConstWidth,\
 		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 				 Left_mid, 		SL(LANG_FontTypeLeft), 	fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4,  			 Under_left,	SL(LANG_FontTypeUnder), fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4|(xPos<<16), Under_left,	SL(LANG_FontTypeUnder), fullHight, 0,250, NoConstWidth, \
 		LCD_STR_DESCR_PARAM_NUMBER(3) );
 
 	LCD_SetBkFontShape(v.FONT_VAR_FontType,BK_LittleRound);
