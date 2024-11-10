@@ -534,11 +534,25 @@ uint8_t LCD_TOUCH_testFunc(GET_SET action){
 		CALCULATE_MinMaxAvr(_CALC,1, _Uint32(posTest.y), _uint32);
 		break;
 	case _GET:
+		#define I(var) 	*((uint32_t*)var)
 		struct_MATH x = CALCULATE_MinMaxAvr(_GET,0,NULL,_uint32);		/* uint32_t mid = *((uint32_t*)(CALCULATE_MinMaxAvr(_GET,0,NULL,_uint32).mid)); */
 		struct_MATH y = CALCULATE_MinMaxAvr(_GET,1,NULL,_uint32);
-		#define I(var) 	*((uint32_t*)var)
+		int size = (sizeof(x) / sizeof(x.min));
+		int L[size];
+		void* p1 = x.min;
+		void* p2 = y.min;
+		char buf[150]={0};
+		char *t1[size], *t2[size];
 
-		char Bx1[4];	DispLongNmb(I(x.min),Bx1);
+		for(int i=0;i<size;++i)
+			L[i] = strlen(DispLongNmb(MAXVAL2(I(p1+i),I(p2+i)),NULL));
+
+		for(int i=0,n=0; i<size; ++i, n+=L[i-1]+1){
+			DispLongNmb(I(p1+i), t1[i]=&buf[ 0+n]);
+			DispLongNmb(I(p2+i), t2[i]=&buf[70+n]);
+		}
+
+/*		char Bx1[4];	DispLongNmb(I(x.min),Bx1);
 		char Bx2[4];	DispLongNmb(I(x.max),Bx2);
 		char Bx3[4];	DispLongNmb(I(x.div),Bx3);
 		char Bx4[4];	DispLongNmb(I(x.mid),Bx4);
@@ -561,9 +575,10 @@ uint8_t LCD_TOUCH_testFunc(GET_SET action){
 		int L5 = strlen(DispLongNmb(MAXVAL2(I(x.sum),I(y.sum)),NULL));
 		int L6 = strlen(DispLongNmb(MAXVAL2(I(x.itr),I(y.itr)),NULL));
 		int L7 = strlen(DispLongNmb(MAXVAL2(I(x.avr),I(y.avr)),NULL));
+*/
 
-		DbgVar2(1,300,"\r\n"CoGr_"PosX min:"_X"%*s "CoGr_"max:"_X"%*s "CoGr_"div:"_X"%*s "CoGr_"mid:"_X"%*s "CoGr_"sum:"_X"%*s "CoGr_"itr:"_X"%*s "CoGr_"avr:"_X"%*s",L1,Bx1,L2,Bx2,L3,Bx3,L4,Bx4,L5,Bx5,L6,Bx6,L7,Bx7);
-		DbgVar2(1,300,"\r\n"CoGr_"PosY min:"_X"%*s "CoGr_"max:"_X"%*s "CoGr_"div:"_X"%*s "CoGr_"mid:"_X"%*s "CoGr_"sum:"_X"%*s "CoGr_"itr:"_X"%*s "CoGr_"avr:"_X"%*s",L1,By1,L2,By2,L3,By3,L4,By4,L5,By5,L6,By6,L7,By7);
+		DbgVar2(1,300,"\r\n"CoGr_"PosX min:"_X"%*s "CoGr_"max:"_X"%*s "CoGr_"div:"_X"%*s "CoGr_"mid:"_X"%*s "CoGr_"sum:"_X"%*s "CoGr_"itr:"_X"%*s "CoGr_"avr:"_X"%*s",L[0],t1[0],L[1],t1[1],L[2],t1[2],L[3],t1[3],L[4],t1[4],L[5],t1[5],L[6],t1[6]);
+		DbgVar2(1,300,"\r\n"CoGr_"PosY min:"_X"%*s "CoGr_"max:"_X"%*s "CoGr_"div:"_X"%*s "CoGr_"mid:"_X"%*s "CoGr_"sum:"_X"%*s "CoGr_"itr:"_X"%*s "CoGr_"avr:"_X"%*s",L[0],t2[0],L[1],t2[1],L[2],t2[2],L[3],t2[3],L[4],t2[4],L[5],t2[5],L[6],t2[6]);
 		break;
 	}
 	return testTouchResolutionFlag;
