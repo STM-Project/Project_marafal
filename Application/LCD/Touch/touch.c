@@ -534,12 +534,36 @@ uint8_t LCD_TOUCH_testFunc(GET_SET action){
 		CALCULATE_MinMaxAvr(_CALC,1, _Uint32(posTest.y), _uint32);
 		break;
 	case _GET:
-		struct_MATH x = CALCULATE_MinMaxAvr(_GET,0,NULL,_uint32);		/* uint32_t avr = *((uint32_t*)(CALCULATE_MinMaxAvr(_GET,0,NULL,_uint32).avr)); */
+		struct_MATH x = CALCULATE_MinMaxAvr(_GET,0,NULL,_uint32);		/* uint32_t mid = *((uint32_t*)(CALCULATE_MinMaxAvr(_GET,0,NULL,_uint32).mid)); */
 		struct_MATH y = CALCULATE_MinMaxAvr(_GET,1,NULL,_uint32);
 		#define I(var) 	*((uint32_t*)var)
-		int sumLen = strlen( DispLongNmb(MAXVAL2(I(x.sum),I(y.sum)),NULL) );
-		DbgVar2(1,300,"\r\n"CoGr_"PosX min:"_X"%*d "CoGr_"max:"_X"%*d "CoGr_"div:"_X"%*d "CoGr_"mid:"_X"%*d "CoGr_"sum:"_X"%*s "CoGr_"itr:"_X"%*d "CoGr_"avr:"_X"%*d",3,I(x.min),3,I(x.max),3,I(x.div),3,I(x.mid),sumLen,DispLongNmb(I(x.sum),NULL),3,I(x.itr),3,I(x.avr));
-		DbgVar2(1,300,"\r\n"CoGr_"PosY min:"_X"%*d "CoGr_"max:"_X"%*d "CoGr_"div:"_X"%*d "CoGr_"mid:"_X"%*d "CoGr_"sum:"_X"%*s "CoGr_"itr:"_X"%*d "CoGr_"avr:"_X"%*d",3,I(y.min),3,I(y.max),3,I(y.div),3,I(y.mid),sumLen,DispLongNmb(I(y.sum),NULL),3,I(y.itr),3,I(y.avr));
+
+		char Bx1[4];	DispLongNmb(I(x.min),Bx1);
+		char Bx2[4];	DispLongNmb(I(x.max),Bx2);
+		char Bx3[4];	DispLongNmb(I(x.div),Bx3);
+		char Bx4[4];	DispLongNmb(I(x.mid),Bx4);
+		char Bx5[30];  DispLongNmb(I(x.sum),Bx5);
+		char Bx6[20];  DispLongNmb(I(x.itr),Bx6);
+		char Bx7[4];	DispLongNmb(I(x.avr),Bx7);
+
+		char By1[4];	DispLongNmb(I(y.min),By1);
+		char By2[4];	DispLongNmb(I(y.max),By2);
+		char By3[4];	DispLongNmb(I(y.div),By3);
+		char By4[4];	DispLongNmb(I(y.mid),By4);
+		char By5[30];  DispLongNmb(I(y.sum),By5);
+		char By6[20];  DispLongNmb(I(y.itr),By6);
+		char By7[4];	DispLongNmb(I(y.avr),By7);
+
+		int L1 = strlen(DispLongNmb(MAXVAL2(I(x.min),I(y.min)),NULL));
+		int L2 = strlen(DispLongNmb(MAXVAL2(I(x.max),I(y.max)),NULL));
+		int L3 = strlen(DispLongNmb(MAXVAL2(I(x.div),I(y.div)),NULL));
+		int L4 = strlen(DispLongNmb(MAXVAL2(I(x.mid),I(y.mid)),NULL));
+		int L5 = strlen(DispLongNmb(MAXVAL2(I(x.sum),I(y.sum)),NULL));
+		int L6 = strlen(DispLongNmb(MAXVAL2(I(x.itr),I(y.itr)),NULL));
+		int L7 = strlen(DispLongNmb(MAXVAL2(I(x.avr),I(y.avr)),NULL));
+
+		DbgVar2(1,300,"\r\n"CoGr_"PosX min:"_X"%*s "CoGr_"max:"_X"%*s "CoGr_"div:"_X"%*s "CoGr_"mid:"_X"%*s "CoGr_"sum:"_X"%*s "CoGr_"itr:"_X"%*s "CoGr_"avr:"_X"%*s",L1,Bx1,L2,Bx2,L3,Bx3,L4,Bx4,L5,Bx5,L6,Bx6,L7,Bx7);
+		DbgVar2(1,300,"\r\n"CoGr_"PosY min:"_X"%*s "CoGr_"max:"_X"%*s "CoGr_"div:"_X"%*s "CoGr_"mid:"_X"%*s "CoGr_"sum:"_X"%*s "CoGr_"itr:"_X"%*s "CoGr_"avr:"_X"%*s",L1,By1,L2,By2,L3,By3,L4,By4,L5,By5,L6,By6,L7,By7);
 		break;
 	}
 	return testTouchResolutionFlag;

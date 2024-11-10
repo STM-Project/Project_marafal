@@ -289,7 +289,7 @@ int STRING_CmpTxt(char* src, char* dst){
 }
 
 char* DispLongNmb(uint32_t nmb, char* bufStr){
-	static char buf[20]={0};
+	static char buf[30]={0};
 	char *ptr=NULL;
 	int i=0, n=0;
 	uint32_t nmb_ = nmb;
@@ -306,18 +306,21 @@ char* DispLongNmb(uint32_t nmb, char* bufStr){
 		buf[i++] = Space;	}
 
 	if(nBillion|nMillion){
-		n = CONDITION(nMillion<10,1,CONDITION(IS_RANGE(nMillion,10,99),2,CONDITION(nMillion>99,3,0)));
+		if(nBillion) n=3;
+		else			 n= CONDITION(nMillion<10,1,CONDITION(IS_RANGE(nMillion,10,99),2,CONDITION(nMillion>99,3,0)));
 		ptr = Int2Str(nMillion,CONDITION(nBillion,Zero,Space),n,Sign_none);
 		for(int j=0;j<n;++j) buf[i++]=*(ptr+j);
 		buf[i++] = Space;	}
 
 	if(nBillion|nMillion|nThousand){
-		n = CONDITION(nThousand<10,1,CONDITION(IS_RANGE(nThousand,10,99),2,CONDITION(nThousand>99,3,0)));
+		if(nBillion|nMillion) n=3;
+		else			 			 n= CONDITION(nThousand<10,1,CONDITION(IS_RANGE(nThousand,10,99),2,CONDITION(nThousand>99,3,0)));
 		ptr = Int2Str(nThousand,CONDITION(nBillion|nMillion,Zero,Space),n,Sign_none);
 		for(int j=0;j<n;++j) buf[i++]=*(ptr+j);
 		buf[i++] = Space;	}
 
-	n = CONDITION(nUnity<10,1,CONDITION(IS_RANGE(nUnity,10,99),2,CONDITION(nUnity>99,3,0)));
+	if(nBillion|nMillion|nThousand) n=3;
+	else			 			 			  n= CONDITION(nUnity<10,1,CONDITION(IS_RANGE(nUnity,10,99),2,CONDITION(nUnity>99,3,0)));
 	ptr = Int2Str(nUnity,CONDITION(nBillion|nMillion|nThousand,Zero,Space),n,Sign_none);
 	for(int j=0;j<n;++j) buf[i++]=*(ptr+j);
 	buf[i++]= None;
