@@ -28,6 +28,7 @@ typedef enum{
 typedef enum{
 	None,
 	Space = ' ',
+	Tabu = '	',
 	Zero = '0'
 }Int2Str_freeSign;
 

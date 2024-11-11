@@ -1170,7 +1170,7 @@ void KEYBOARD_ServiceSizeRoll(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int
 
 
 //SPACES DISP  numeracje dac ciemniejsza aby odroznic !!!!!!!!!!
-int KEYBOARD__ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int touchAction2, int touchTimer, char* txtDescr, char* txtDescr2, char* txtDescr3, char* txtDescr4, uint32_t colorDescr,FUNC_MAIN *pfunc,FUNC_MAIN_INIT, TIMER_ID timID)
+int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int touchAction2, int touchTimer, char* txtDescr, char* txtDescr2, char* txtDescr3, char* txtDescr4, uint32_t colorDescr,FUNC_MAIN *pfunc,FUNC_MAIN_INIT, TIMER_ID timID)
 {extern uint32_t pLcd[]; //!!!!!!!!!!!!!!!!!!!!!!!!!!
 	#define _NMB2KEY	8
 	const char *txtKey[]								= {"(.......)", "(...)", "(.......)",	"(.......)", " _ ", " _ ", "|  |", "||", "Info spaces", "Write spaces", "Reset spaces"};
@@ -1223,8 +1223,8 @@ int KEYBOARD__ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, i
 	int 	_IsFlagWin	 (void){ return CHECK_bit(s[k].param,7); }
 	void 	_RstFlagWin	 (void){	RST_bit(s[k].param,7); }
 
-	POS_SIZE win = { .pos={ s[k].x+widthAll+15, s[k].y 				 }, .size={200,250} };   //poprawic wyliczenie max dlugosci i wycienic wpisy jasniejsze a odsepy ciemniejsze zeby lepiej wygladalo !!!!!!
-	POS_SIZE win2 ={ .pos={ 15, 					  s[k].y+heightAll+15 }, .size={600, 60} };
+	POS_SIZE win = { .pos={ s[k].x+widthAll+5, s[k].y 				 	}, .size={200,250} };   //poprawic wyliczenie max dlugosci i wycienic wpisy jasniejsze a odsepy ciemniejsze zeby lepiej wygladalo !!!!!!
+	POS_SIZE win2 ={ .pos={ 15, 					 s[k].y+heightAll+15 }, .size={600, 60} };
 
 	LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),(int*)(&win.size.w));  //SEMAPHOR zast. !!!!jesli korzystam z globalnych pamiecie jak SETVAL_... lub pLCD to musze to usystematyzowac czy blokowac zebym wiedzial zze w danje chwili jest uzyawany
 	win.size.w *= LCD_GetWholeStrPxlWidth(fontID_descr,(char*)"a",0,NoConstWidth);

@@ -21,6 +21,8 @@ typedef enum{
 #define TOUCH_GET_PER_X_PROBE		3
 #define TOUCH_GET_PER_ANY_PROBE		1
 
+#define END_FREEROLL__NOSEL		-1
+
 enum TOUCH_TYPE{
   ID_TOUCH_POINT,
   ID_TOUCH_POINT_WITH_HOLD,				/* if press at least specific time */

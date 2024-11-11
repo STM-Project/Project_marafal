@@ -11,6 +11,9 @@
 #include "LCD_fonts_images.h"
 #include "LCD_BasicGaphics.h"
 
+#define ONEBIT(val)	     Int2Str(val,None,1,Sign_none)
+#define INT2STR(val)		  Int2Str(val,'0',3,Sign_none)
+
 extern int argNmb;
 extern char **argVal;
 extern int startScreen;

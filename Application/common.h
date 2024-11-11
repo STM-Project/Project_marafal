@@ -114,6 +114,11 @@
 #define _ZEROS11 _ZEROS10,_ZERO
 #define _ZEROS12 _ZEROS11,_ZERO
 
+#define _1SPACE 			" "
+#define _2SPACE 			"  "
+#define TABU_1SPACE 		"	 "
+#define TABU_2SPACE 		"	  "
+
 typedef enum{
 	unUsed,
 	_NO,

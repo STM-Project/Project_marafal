@@ -1,10 +1,10 @@
 
 #include "SCREEN_FontsLCD.h"
 #include "LCD_BasicGaphics.h"
+#include "SCREEN_ReadPanel.h"
 #include "LCD_Common.h"
 #include "timer.h"
 #include "lang.h"
-#include "SCREEN_ReadPanel.h"
 #include "debug.h"
 #include "string_oper.h"
 #include "cpu_utils.h"
@@ -264,18 +264,13 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 
 #define TEXT_TO_SHOW		"1234567890"//"Rafa"ł" Markielowski"
 
-#define nrMIDDLE_TXT	19
-#define POS_X_TXT		LCD_Xmiddle(nrMIDDLE_TXT,GetPos,v.FONT_ID_Fonts,Test.txt,Test.spaceBetweenFonts,Test.constWidth)
-#define POS_Y_TXT		LCD_Ymiddle(nrMIDDLE_TXT,GetPos,v.FONT_ID_Fonts)
-
-#define FLOAT2STR(val)	Float2Str(val,' ',4,Sign_plusMinus,1)  // dac na koncu pliku undef !!!!!!wszystkiego !!!!
-#define INT2STR(val)		  Int2Str(val,'0',3,Sign_none)
-#define INT2STR_TIME(val) Int2Str(val,' ',6,Sign_none)
-#define ONEBIT(val)	     Int2Str(val,None,1,Sign_none) // sa 2 definicje !!!!! te same
+#define ID_MIDDLE_TXT	LCD_XY_MIDDLE_MAX_NUMBER_USE-1
+#define POS_X_TXT		LCD_Xmiddle(ID_MIDDLE_TXT,GetPos,v.FONT_ID_Fonts,Test.txt,Test.spaceBetweenFonts,Test.constWidth)
+#define POS_Y_TXT		LCD_Ymiddle(ID_MIDDLE_TXT,GetPos,v.FONT_ID_Fonts)
 
 #define TXT_FONT_COLOR 	StrAll(7," ",INT2STR(Test.font[0])," ",INT2STR(Test.font[1])," ",INT2STR(Test.font[2])," ")
 #define TXT_BK_COLOR 	StrAll(7," ",INT2STR(Test.bk[0]),  " ",INT2STR(Test.bk[1]),  " ",INT2STR(Test.bk[2])," ")
-#define TXT_FONT_TYPE	StrAll(5," ",ONEBIT(Test.type+1)," ",LCD_FontType2Str(bufTemp,0,Test.type+1)+1," ")
+#define TXT_FONT_TYPE	StrAll(3," ",LCD_FontType2Str(bufTemp,0,Test.type+1)+1," ")
 #define TXT_FONT_SIZE	StrAll(3," ",LCD_FontSize2Str(bufTemp+25,Test.size)," ")
 #define TXT_FONT_STYLE	StrAll(3," ",LCD_FontStyle2Str(bufTemp,Test.style)," ")
 #define TXT_COEFF			StrAll(3," ",Int2Str(Test.coeff,Space,3,Sign_plusMinus)," ")
@@ -1228,7 +1223,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			break;
 
 		case KEYBOARD_fontType:
-			KEYBOARD_KeyAllParamSet(1,4, "(RGB-RGB)", "(Gray-Green)", "(RGB-White)", "(White-Black)", WHITE,WHITE,WHITE,WHITE, BLACK,BROWN,ORANGE,MYBLUE);  //nazwe te dac w jednym miescu !!!! bo sa i w font_images.c !!!
+			KEYBOARD_KeyAllParamSet(1,4, LCD_GetFontTypeStr(0), LCD_GetFontTypeStr(1), LCD_GetFontTypeStr(2), LCD_GetFontTypeStr(3), WHITE,WHITE,WHITE,WHITE, BLACK,BROWN,ORANGE,MYBLUE);  //nazwe te dac w jednym miescu !!!! bo sa i w font_images.c !!!
 			KEYBOARD_Select(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, NULL, Test.type);
 			break;
 
@@ -1237,7 +1232,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			break;
 
 		case KEYBOARD_LenOffsWin:
-			if(KEYBOARD__ServiceLenOffsWin(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_LenWin_plus,Touch_SpacesInfoUp, KEY_Timer, SL(LANG_WinInfo), SL(LANG_WinInfo2),SL(LANG_LenOffsWin1),SL(LANG_LenOffsWin2), v.FONT_COLOR_Descr,FILE_NAME(main), LoadNoDispScreen, (char**)ppMain, (TIMER_ID)TIMER_InfoWrite)){
+			if(KEYBOARD_ServiceLenOffsWin(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_LenWin_plus,Touch_SpacesInfoUp, KEY_Timer, SL(LANG_WinInfo), SL(LANG_WinInfo2),SL(LANG_LenOffsWin1),SL(LANG_LenOffsWin2), v.FONT_COLOR_Descr,FILE_NAME(main), LoadNoDispScreen, (char**)ppMain, (TIMER_ID)TIMER_InfoWrite)){
 				SELECT_CURRENT_FONT(LenWin,Press, TXT_LENOFFS_WIN,255);
 			}
 			break;
@@ -1517,7 +1512,7 @@ void FILE_NAME(setTouch)(void)
 		CASE_TOUCH_STATE(state,Touch_FontColorMoveRight, FontColor,Press, TXT_FONT_COLOR,252,NoTouch,NoTouch);
 			if(IsFunc()){
 				FILE_NAME(keyboard)(KEYBOARD_sliderRGB, 	KEY_All_release, LCD_RoundRectangle,0,  50,160, 180,30, 16, state, Touch2_fontSliderR_left, KeysDel);
-				structSize temp = KEYBOARD_GetSize();
+				//structSize temp = KEYBOARD_GetSize();
 				FILE_NAME(keyboard)(KEYBOARD_sliderBkRGB, KEY_All_release, LCD_RoundRectangle,0, 550,160, 30,180, 16, state, Touch2_bkSliderR_left,   KeysNotDel);
 			}
 			else _SaveState();  //dac np funkcje nazew i wsrodku to ' _SaveState();'
@@ -1679,7 +1674,7 @@ void FILE_NAME(setTouch)(void)
 #endif
 
 			if(_WasState(Touch_FontSizeRoll)){
-				if(-1 < (temp = LCDTOUCH_IsScrollRelease(ROLL_1, FUNC1_SET( FILE_NAME(keyboard),KEYBOARD_fontSize2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), BlockingFunc, TIMER_Scroll)))
+				if(END_FREEROLL__NOSEL != (temp = LCDTOUCH_IsScrollRelease(ROLL_1, FUNC1_SET( FILE_NAME(keyboard),KEYBOARD_fontSize2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), BlockingFunc, TIMER_Scroll)))
 					IncFontSize(temp);
 			}
 
@@ -2167,8 +2162,8 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 						 	 	 FV(GetVal,0,NoUse),\
 								 FV(GetVal,1,NoUse), ID_TOUCH_POINT,Touch_MainFramesType,press);
 
-		LCD_Ymiddle(nrMIDDLE_TXT,SetPos, SetPosAndWidth(Test.yFontsField,240) );
-		LCD_Xmiddle(nrMIDDLE_TXT,SetPos, SetPosAndWidth(Test.xFontsField,LCD_GetXSize()),NULL,0,NoConstWidth);
+		LCD_Ymiddle(ID_MIDDLE_TXT,SetPos, SetPosAndWidth(Test.yFontsField,240) );
+		LCD_Xmiddle(ID_MIDDLE_TXT,SetPos, SetPosAndWidth(Test.xFontsField,LCD_GetXSize()),NULL,0,NoConstWidth);
 		LCD_SetBkFontShape(v.FONT_VAR_Fonts,BK_Rectangle);
 
 		vTimerService(TIMER_Cpu,start_time,noUse);
@@ -2200,10 +2195,33 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	if(LoadNoDispScreen != argNmb) LCD_Show();
 }
 
-#undef INT2STR_TIME
 #undef POS_X_TXT
 #undef POS_Y_TXT
-
+#undef TEXT_TO_SHOW
+#undef ID_MIDDLE_TXT
+#undef POS_X_TXT
+#undef POS_Y_TXT
+#undef TXT_FONT_COLOR
+#undef TXT_BK_COLOR
+#undef TXT_FONT_TYPE
+#undef TXT_FONT_SIZE
+#undef TXT_FONT_STYLE
+#undef TXT_COEFF
+#undef TXT_LEN_WIN
+#undef TXT_OFFS_WIN
+#undef TXT_LENOFFS_WIN
+#undef TXT_TIMESPEED
+#undef TXT_CPU_USAGE
+#undef RGB_FONT
+#undef RGB_BK
+#undef CHECK_TOUCH
+#undef SET_TOUCH
+#undef CLR_TOUCH
+#undef CLR_ALL_TOUCH
+#undef GET_TOUCH
+#undef NONE_TYPE_REQ
+#undef MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY
+#undef SELECT_CURRENT_FONT
 
 //w harfoult interrup ddacv mozliwosc odczyti linijki kodu poprzedniego !!!!
 //Zrobic szablon nowego okna -pliku LCD !!!! aby latwo wystartowac !!!

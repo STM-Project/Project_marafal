@@ -27,11 +27,8 @@
 #include "touch.h"
 #include "SCREEN_FontsLCD.h"
 
-
 #define FLOAT2STR(val)	Float2Str(val,' ',4,Sign_plusMinus,1)
-#define INT2STR(val)		  Int2Str(val,'0',3,Sign_none)
 #define INT2STR_TIME(val) Int2Str(val,' ',6,Sign_none)
-#define ONEBIT(val)	     Int2Str(val,' ',0,Sign_none)
 
 int argNmb = 0;
 char **argVal = NULL;
@@ -330,7 +327,6 @@ void NOWY_3(void)  //dac mozliwosc zablokowania Dbg definem!!!
 }
 
 /* ########### --- SCREEN_Test_Circle --- ############ */
-
 #define MAX_WIDTH_CIRCLE 	(VALPERC(LCD_GetYSize(),96))
 #define MIN_WIDTH_CIRCLE 	(20)
 
@@ -528,7 +524,6 @@ static void DBG_SCREEN_Test_Circle(void)
 	else refresh_Screen=0;
 
 	if(refresh_Screen) SCREEN_Test_Circle();
-
 }
 /* ########### --- END SCREEN_Test_Circle --- ############ */
 

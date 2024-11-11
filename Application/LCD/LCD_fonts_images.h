@@ -31,6 +31,8 @@
 #define Ż "\xAF"
 #define ż "\xBF"
 
+#define LCD_XY_MIDDLE_MAX_NUMBER_USE	20
+
 #define DESCR_PARAM_11	-1,0,0,0,0,0,0,0,0,0			/* MAX_NUMBER_DESCR - 1 */
 #define DESCR_PARAM_10	DESCR_PARAM_11,DESCR_PARAM_11
 #define DESCR_PARAM_9	DESCR_PARAM_10,DESCR_PARAM_11
@@ -260,7 +262,9 @@ void LCD_DeleteAllFontAndImages(void);
 int LCD_DeleteFont(uint32_t fontID);
 int LCD_GetFontSizeMaxNmb(void);
 int LCD_GetFontStyleMaxNmb(void);
+int LCD_GetFontTypeMaxNmb(void);
 const char *LCD_GetFontStyleStr(int fontStyle);
+const char *LCD_GetFontTypeStr(int fontStyle);
 const char *LCD_GetFontSizeStr(int fontSize);
 const char **LCD_GetFontSizePtr(void);
 char *LCD_FontSize2Str(char *buffTemp, int fontSize);
