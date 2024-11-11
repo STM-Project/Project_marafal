@@ -6,6 +6,7 @@
 
 #include "touch.h"
 #include "stmpe811.h"
+#include "timer.h"
 #include "debug.h"
 
 #define MAX_OPEN_TOUCH_SIMULTANEOUSLY	 180  //Tymczasowo zwiekszam ale rozwiaz ta kwestie !!!!!!!
@@ -551,8 +552,15 @@ uint8_t LCD_TOUCH_testFunc(GET_SET action){
 			DispLongNmb(I(p1+i), t1[i]=&buf[ 0+n]);
 			DispLongNmb(I(p2+i), t2[i]=&buf[70+n]);
 		}
+/*		int L1 = strlen(DispLongNmb(MAXVAL2(I(x.min),I(y.min)),NULL));
+		int L2 = strlen(DispLongNmb(MAXVAL2(I(x.max),I(y.max)),NULL));
+		int L3 = strlen(DispLongNmb(MAXVAL2(I(x.div),I(y.div)),NULL));
+		int L4 = strlen(DispLongNmb(MAXVAL2(I(x.mid),I(y.mid)),NULL));
+		int L5 = strlen(DispLongNmb(MAXVAL2(I(x.sum),I(y.sum)),NULL));
+		int L6 = strlen(DispLongNmb(MAXVAL2(I(x.itr),I(y.itr)),NULL));
+		int L7 = strlen(DispLongNmb(MAXVAL2(I(x.avr),I(y.avr)),NULL));
 
-/*		char Bx1[4];	DispLongNmb(I(x.min),Bx1);
+		char Bx1[4];	DispLongNmb(I(x.min),Bx1);
 		char Bx2[4];	DispLongNmb(I(x.max),Bx2);
 		char Bx3[4];	DispLongNmb(I(x.div),Bx3);
 		char Bx4[4];	DispLongNmb(I(x.mid),Bx4);
@@ -567,16 +575,7 @@ uint8_t LCD_TOUCH_testFunc(GET_SET action){
 		char By5[30];  DispLongNmb(I(y.sum),By5);
 		char By6[20];  DispLongNmb(I(y.itr),By6);
 		char By7[4];	DispLongNmb(I(y.avr),By7);
-
-		int L1 = strlen(DispLongNmb(MAXVAL2(I(x.min),I(y.min)),NULL));
-		int L2 = strlen(DispLongNmb(MAXVAL2(I(x.max),I(y.max)),NULL));
-		int L3 = strlen(DispLongNmb(MAXVAL2(I(x.div),I(y.div)),NULL));
-		int L4 = strlen(DispLongNmb(MAXVAL2(I(x.mid),I(y.mid)),NULL));
-		int L5 = strlen(DispLongNmb(MAXVAL2(I(x.sum),I(y.sum)),NULL));
-		int L6 = strlen(DispLongNmb(MAXVAL2(I(x.itr),I(y.itr)),NULL));
-		int L7 = strlen(DispLongNmb(MAXVAL2(I(x.avr),I(y.avr)),NULL));
 */
-
 		DbgVar2(1,300,"\r\n"CoGr_"PosX min:"_X"%*s "CoGr_"max:"_X"%*s "CoGr_"div:"_X"%*s "CoGr_"mid:"_X"%*s "CoGr_"sum:"_X"%*s "CoGr_"itr:"_X"%*s "CoGr_"avr:"_X"%*s",L[0],t1[0],L[1],t1[1],L[2],t1[2],L[3],t1[3],L[4],t1[4],L[5],t1[5],L[6],t1[6]);
 		DbgVar2(1,300,"\r\n"CoGr_"PosY min:"_X"%*s "CoGr_"max:"_X"%*s "CoGr_"div:"_X"%*s "CoGr_"mid:"_X"%*s "CoGr_"sum:"_X"%*s "CoGr_"itr:"_X"%*s "CoGr_"avr:"_X"%*s",L[0],t2[0],L[1],t2[1],L[2],t2[2],L[3],t2[3],L[4],t2[4],L[5],t2[5],L[6],t2[6]);
 		break;
@@ -998,6 +997,19 @@ void LCD_TOUCH_ScrollSel_FreeRolling(uint8_t nr, FUNC1_DEF(pFunc), VOID_FUNCTION
 uint8_t LCD_TOUCH_ScrollSel_DetermineRateRoll(uint8_t nr, uint16_t touchState, uint16_t xPos){
 	 return (GetTouchToTemp(touchState) && IS_RANGE(xPos, touchTemp[0].x+3*(touchTemp[1].x-touchTemp[0].x)/4, touchTemp[1].x)) ? LCD_TOUCH_ScrollSel_GetRateCoeff(nr) : 1;
 }
+int LCDTOUCH_IsScrollPress(int IDroll, uint16_t state, XY_Touch_Struct *pos, int timID){
+	vTimerService(timID,start_time,noUse);
+	return LCD_TOUCH_ScrollSel_Service(IDroll,press, &(pos->y), LCD_TOUCH_ScrollSel_DetermineRateRoll(IDroll,state,pos->x));
+}
+int LCDTOUCH_IsScrollRelease(uint8_t IDroll, FUNC1_DEF(pFunc), VOID_FUNCTION *pfuncBlocking, int timID){
+	if(LCD_TOUCH_ScrollSel_Service(IDroll,release,NULL,0) && 0==vTimerService(timID,stop_time,1000)){
+		pFunc(FUNC1_ARG);
+		return LCD_TOUCH_ScrollSel_GetSel(IDroll);
+	}
+	else{	LCD_TOUCH_ScrollSel_FreeRolling(IDroll, pFunc,FUNC1_ARG, pfuncBlocking);
+			vTimerService(timID,reset_time,noUse);
+			return -1;
+}}
 /* ------------- End Touch Scroll Service -----------*/
 
 int LCDTOUCH_Set(uint16_t startX, uint16_t startY, uint16_t width, uint16_t height, uint16_t ID, uint16_t idx, uint8_t param){

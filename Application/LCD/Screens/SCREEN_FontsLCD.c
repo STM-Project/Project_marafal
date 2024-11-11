@@ -518,6 +518,7 @@ typedef enum{
 	TIMER_Scroll,
 }TIMER_FOR_THIS_SCREEN;
 
+static int temp;
 static char bufTemp[50];
 static int lenTxt_prev;
 static StructTxtPxlLen lenStr;
@@ -1612,9 +1613,7 @@ void FILE_NAME(setTouch)(void)
 		case Touch_SpacesInfoDown: 								 /* here do nothing */  				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_InfoSpacesDown ); break;  //gdy reset i pusto to button zawiesza sie !!!!!!
 
 		case Touch_FontSizeRoll:
-			vTimerService(TIMER_Scroll,start_time,noUse);
-			INIT(deltaForEndPress, LCD_TOUCH_ScrollSel_Service(ROLL_1,press, &pos.y, LCD_TOUCH_ScrollSel_DetermineRateRoll(ROLL_1,state,pos.x)) );
-			if(deltaForEndPress)
+			if(LCDTOUCH_IsScrollPress(ROLL_1, state, &pos, TIMER_Scroll))
 				KEYBOARD_TYPE( KEYBOARD_fontSize2, KEY_Select_one);
 			_SaveState();
 			break;
@@ -1679,15 +1678,9 @@ void FILE_NAME(setTouch)(void)
 				SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontSize,1,LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontSize,TXT_FONT_SIZE));
 #endif
 
-			if(_WasState(Touch_FontSizeRoll)){  // to jako funkcje jedna !!!!!! i pozstale tez aby generowac kilka scrolow !!!
-				if(LCD_TOUCH_ScrollSel_Service(ROLL_1,release,NULL,0) && 0==vTimerService(TIMER_Scroll,stop_time,1000)){
-					KEYBOARD_TYPE( KEYBOARD_fontSize2, KEY_Select_one);
-					IncFontSize( LCD_TOUCH_ScrollSel_GetSel(ROLL_1) );
-				}
-				else{
-					LCD_TOUCH_ScrollSel_FreeRolling(ROLL_1, FUNC1_SET(FILE_NAME(keyboard),KEYBOARD_fontSize2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), BlockingFunc );
-					vTimerService(TIMER_Scroll,reset_time,noUse);
-				}
+			if(_WasState(Touch_FontSizeRoll)){
+				if(-1 < (temp = LCDTOUCH_IsScrollRelease(ROLL_1, FUNC1_SET( FILE_NAME(keyboard),KEYBOARD_fontSize2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), BlockingFunc, TIMER_Scroll)))
+					IncFontSize(temp);
 			}
 
 			/* Not needed */
@@ -1701,28 +1694,23 @@ void FILE_NAME(setTouch)(void)
 
 	FILE_NAME(timer)();
 
-	LCDTOUCH_testFunc();
+/*	LCDTOUCH_testFunc(); */
 }
 
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
-/* ----- Debug Test For Touch Resolution ----- */
-//	if(DEBUG_RcvStr("start touch test\x0D"))
-//		LCD_TOUCH_testFunc(_SET);
-//
-//	else if(DEBUG_RcvStr("get touch test\x0D"))
-//		LCD_TOUCH_testFunc(_GET);
-/* ----- Debug Test For Touch Resolution ----- */
-
 	if(DEBUG_RcvStr("abc"))
 		FILE_NAME(printInfo)();
 
+/* ----- Debug Test For Touch Resolution ----- */
 	else if(DEBUG_RcvStr("resolution"))
 		TOUCH_SetDefaultResolution();
 
 	_DEBUG_RCV_CHAR("r1",TOUCH_GetPtr2Resolution(),_uint8,_Incr,_Uint8(1),_Uint8(15),"Touch Resolution: ",NULL)
 	_DEBUG_RCV_CHAR("r2",TOUCH_GetPtr2Resolution(),_uint8,_Decr,_Uint8(1),_Uint8(1), "Touch Resolution: ",NULL)
+/* ----- Debug Test For Touch Resolution ----- */
+
 
 
 	else if(DEBUG_RcvStr("p"))

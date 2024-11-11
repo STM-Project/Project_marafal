@@ -101,6 +101,19 @@
 
 #define TXT_CUTTOFF(txt,len)	if(strlen(txt)>len-1) *((txt)+(len-1))=0
 
+#define _ZERO 0
+#define _ZEROS2 _ZERO,_ZERO
+#define _ZEROS3 _ZEROS2,_ZERO
+#define _ZEROS4 _ZEROS3,_ZERO
+#define _ZEROS5 _ZEROS4,_ZERO
+#define _ZEROS6 _ZEROS5,_ZERO
+#define _ZEROS7 _ZEROS6,_ZERO
+#define _ZEROS8 _ZEROS7,_ZERO
+#define _ZEROS9 _ZEROS8,_ZERO
+#define _ZEROS10 _ZEROS9,_ZERO
+#define _ZEROS11 _ZEROS10,_ZERO
+#define _ZEROS12 _ZEROS11,_ZERO
+
 typedef enum{
 	unUsed,
 	_NO,
@@ -188,6 +201,7 @@ typedef void VOID_FUNCTION(void);
 typedef SHAPE_PARAMS (*ShapeFunc)(uint32_t,SHAPE_PARAMS);
 typedef void FUNC_MAIN(int, char**);
 typedef void TOUCH_FUNC(int);
+typedef void TIMER_FUNC(int,int,int);
 
 typedef void* (*VOID_FUNCTION_TEST)(void*,void*);
 
@@ -213,7 +227,7 @@ void Int16ToCharBuff(char* buff, uint16_t val);
 void Int32ToCharBuff(char* buff, uint32_t val);
 uint16_t CharBuffToInt16(char* buff);
 uint32_t CharBuffToInt32(char* buff);
-int FV(VARIABLE_ACTIONS type, int nrMem, int val);
+int FV(VARIABLE_ACTIONS type, int nrMem, int val);							/* global access to memory, be careful for multi-threaded systems, for each thread use another nrMem */
 int FV2(char* descr, VARIABLE_ACTIONS type, int nrMem, int val);
 
 struct_MATH CALCULATE_MinMaxAvr(GET_SET operType, int nr, void *value, DATA_TYPE dataType);

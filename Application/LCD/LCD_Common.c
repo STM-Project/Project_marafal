@@ -10,6 +10,7 @@
 #include "common.h"
 #include "LCD_Hardware.h"
 #include "timer.h"
+#include "task.h"
 
 #define MAX_ELEMENTS_REFRESH_IN_SCREEN	40
 
