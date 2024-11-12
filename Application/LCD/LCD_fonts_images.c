@@ -232,15 +232,15 @@ static uint32_t CounterBusyBytesForFontsImages=0;
 
 extern uint32_t pLcd[];
 
-//####################### -- My Settings -- #####################
-
-static int MyRealizeSpaceCorrect(char *txt, int id) //jako osobna funkcja w kazdym screen ustawiana a pozniej wymazywana !!!
+/* -------------- My Settings -------------- */
+static int MyRealizeSpaceCorrect(char *txt, int id)
 {
-//		if((FONT_20==FontID[id].size)&&(Times_New_Roman==FontID[id].style))
-//		{
-//			if((txt[0]=='i')&&(txt[1]=='j'))
-//				return 20;
-//		}
+/*		if((FONT_20==FontID[id].size)&&(Times_New_Roman==FontID[id].style))
+		{
+			if((txt[0]=='i')&&(txt[1]=='j'))
+				return 20;
+		}	*/
+
 	return 0;
 }
 
@@ -251,7 +251,7 @@ static int RealizeWidthConst(const char _char)
 	else
 		return 0;
 }
-//################# -- End My Settings -- ########################################################################
+/* -------------- END My Settings -------------- */
 
 static void LCD_CopyBuff2pLcd(int rot, uint32_t posBuff, uint32_t *buff, uint32_t xImgWidth, uint32_t yImgHeight, int posWin, uint16_t windowWidth, uint16_t xPosLcd, uint16_t yPosLcd, int param)
 {
@@ -1399,7 +1399,7 @@ static int ReadSpacesBetweenFontsFromSDcard(void){
 	else return 1;
 }
 
-//################################## -- Global Declarations -- #########################################################
+/* ------------ Global Declarations ------------ */
 
 int SETVAL_char(uint32_t nrVal, char val){
 	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal ){
@@ -3720,7 +3720,7 @@ StructTxtPxlLen LCD_StrDependOnColorsWindow(uint32_t posBuff,uint32_t BkpSizeX,u
 	return lenStr;
 }
 
-StructTxtPxlLen LCD_TxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
+StructTxtPxlLen LCD_TxtWin___(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
 {
 	#define CURRENT_Y	 nrLine*lenStr.height
 	StructTxtPxlLen lenStr={0};
@@ -3731,7 +3731,50 @@ StructTxtPxlLen LCD_TxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 		int y=0,i;
 		while(1){  if(buf_data[y++]==COMMON_SIGN) break;  }
 		for(i=0;i<y;i++){ buf_nr[i]=buf_data[i]; }	buf_nr[i]=0;
-		StructTxtPxlLen len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos+offsY, buf_nr, OnlyDigits,space,bkColor,fontColor,maxVal,ConstWidth);
+		StructTxtPxlLen len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,				 Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,fontColor,maxVal,ConstWidth);
+		return 					 LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+len.inPixel,Ypos+offsY, &buf_data[y], OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+	}
+
+	for(int i=0; i<strlen(txt); i++)
+	{
+		if(*(txt+i)=='\r' && *(txt+i+1)=='\n'){
+			if(j){ lenStr=_LcdTxt(CURRENT_Y);  j=0; }
+			i++; nrLine++;
+			if(CURRENT_Y > BkpSizeY-(3*lenStr.height)){ lenStr.inChar=i+1;  return lenStr; }
+		}
+		else{ if(j<sizeof(buf_data)-2){ buf_data[j++]=*(txt+i); buf_data[j]=0; } };
+	}
+	if(j) lenStr=_LcdTxt(CURRENT_Y);
+	lenStr.inChar=0;
+	return lenStr;
+	#undef CURRENT_Y
+}
+
+StructTxtPxlLen LCD_TxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
+{
+	#define CURRENT_Y	 nrLine*lenStr.height
+	StructTxtPxlLen lenStr={0};
+	char buf_data[200]={0}, buf_nr[50];  //SIZE |!!!!!!
+	int j=0, nrLine=0;
+
+	StructTxtPxlLen _LcdTxt(int offsY){
+		StructTxtPxlLen len;
+		int y=0, yp=0 ,i;
+		while(1){  if(buf_data[y++]==' ') break;  }  //wyjscie z petli jescli i>30 !!!!!!!
+		for(i=0;i<y;i++){ buf_nr[i]=buf_data[i]; }	buf_nr[i]=0;
+		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,				 Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYGREEN,maxVal,ConstWidth);
+		yp=y;
+
+		while(1){  if(buf_data[y++]==' ') break;  }
+		for(i=0;i<y-yp;i++){ buf_nr[i]=buf_data[yp+i]; }	buf_nr[i]=0;
+		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+len.inPixel, Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYRED,maxVal,ConstWidth);
+		yp=y;
+
+		while(1){  if(buf_data[y++]==' ') break;  }
+		for(i=0;i<y-yp;i++){ buf_nr[i]=buf_data[yp+i]; }	buf_nr[i]=0;
+		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+len.inPixel, Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,CYAN,maxVal,ConstWidth);
+		yp=y;
+
 		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+len.inPixel,Ypos+offsY, &buf_data[y], OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 	}
 
