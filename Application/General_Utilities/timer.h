@@ -12,6 +12,11 @@
 #include "freeRTOS.h"
 
 typedef enum{
+	Semphr_pLcd,
+	Semphr_fontImg
+}SEMPHR_ID;
+
+typedef enum{
 	TimerId_1,
 	TimerId_2,
 	TimerId_3,
@@ -35,6 +40,10 @@ typedef enum{
 	check_stop_time,
 	noUse
 }TIMER_SERVICE;
+
+void 		InitAllMutex (void);
+uint32_t TakeMutex	 (SEMPHR_ID ID, uint32_t timeout);
+void 		GiveMutex	 (SEMPHR_ID ID);
 
 void AllTimeReset(void);
 void TimeReset(int nrTime);
