@@ -3757,6 +3757,23 @@ StructTxtPxlLen LCD_TxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 	char buf_data[200]={0}, buf_nr[50];  //SIZE |!!!!!!
 	int j=0, nrLine=0;
 
+
+
+//
+//	void __SSSS(char* signH, char* signV){
+//		char *pRead = NULL, *ptr = NULL;
+//
+//		ptr = strtok_r(txt,signH,&pRead);
+//		while(ptr!=NULL){
+//			ptr = strtok_r(NULL,signH,&pRead);
+//			DbgVar(1,100,"%s",ptr);
+//		}
+//
+//
+//	}
+
+
+
 	StructTxtPxlLen _LcdTxt(int offsY){
 		StructTxtPxlLen len;
 		int y=0, yp=0 ,i;
