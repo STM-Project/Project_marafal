@@ -8,14 +8,37 @@
 #include "timer.h"
 #include "timers.h"
 #include "debug.h"
+#include "semphr.h"
 
 #define MAX_COUNT_TIME		40
 #define MAX_MEASURE_TIME	10
 
 #define MAX_ELEMENTS_TIMER_SERVICE	40
 
+static xSemaphoreHandle xSemphr_pLcd;
+static xSemaphoreHandle xSemphr_fontImg;
+
 static portTickType timeVar[MAX_COUNT_TIME];
 static portTickType measurTime[MAX_MEASURE_TIME];
+
+/*	-------- Semaphores ------------ */
+void InitAllMutex(void){
+	xSemphr_pLcd 	 = xSemaphoreCreateMutex();
+	xSemphr_fontImg = xSemaphoreCreateMutex();
+}
+uint32_t TakeMutex(SEMPHR_ID ID, uint32_t timeout){
+	switch((int)ID){
+	 case Semphr_pLcd:		if(xSemaphoreTake(xSemphr_pLcd,	 timeout)==pdTRUE) return 1; 	else return 0;
+	 case Semphr_fontImg:	if(xSemaphoreTake(xSemphr_fontImg,timeout)==pdTRUE) return 1; 	else return 0;
+	 default:
+		 return 0;
+}}
+void GiveMutex(SEMPHR_ID ID){
+	switch((int)ID){
+	 case Semphr_pLcd:		xSemaphoreGive(xSemphr_pLcd); 	break;
+	 case Semphr_fontImg:	xSemaphoreGive(xSemphr_fontImg); break;
+}}
+/*	-------- END Semaphores ------------ */
 
 void AllTimeReset(void)
 {
@@ -126,3 +149,4 @@ uint16_t vTimerService(int nr, int cmd, int timeout)
 			return 1;
 	}
 }
+
