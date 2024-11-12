@@ -35,6 +35,7 @@
 #include "LCD_Hardware.h"
 #include "stmpe811.h"
 #include "touch.h"
+#include "timer.h"
 
 /* USER CODE END Includes */
 
@@ -191,8 +192,9 @@ void StartDefaultTask(void const * argument)
 	LCD_TOUCH_DeleteAllSetTouch();
 	Dbg(1,"\r\nStart ");
 
+	InitAllMutex();
+
 	Create_TouchLcd_Task(); //sprawdz ustawienia w MXCUbe ustawienia freeRTOS z FP70 i wygeneruj projekt jeszcze raz
-	//vTaskDelay(1000);
 	Create_ScreensSelectLCD_Task();
 
 	osThreadTerminate(NULL);
