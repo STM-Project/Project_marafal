@@ -529,7 +529,7 @@ static void DBG_SCREEN_Test_Circle(void)
 
 
 
-void SCREEN_ReadPanel(void)
+void SCREEN_ReadPanel(void)  // przeniesc do Task.c !!!!!!!!!!!!!!!!!!
 {
 	if(startScreen==0)
 	{
