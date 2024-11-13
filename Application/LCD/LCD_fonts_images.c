@@ -3776,23 +3776,24 @@ StructTxtPxlLen LCD_TxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 
 	StructTxtPxlLen _LcdTxt(int offsY){
 		StructTxtPxlLen len;
-		int y=0, yp=0 ,i;
+		int y=0, yp=0 ,i, lenTxt=0;
+
 		while(1){  if(buf_data[y++]==' ') break;  }  //wyjscie z petli jescli i>30 !!!!!!!
 		for(i=0;i<y;i++){ buf_nr[i]=buf_data[i]; }	buf_nr[i]=0;
 		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,				 Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYGREEN,maxVal,ConstWidth);
-		yp=y;
+		yp=y;  lenTxt+=len.inPixel;
 
 		while(1){  if(buf_data[y++]==' ') break;  }
 		for(i=0;i<y-yp;i++){ buf_nr[i]=buf_data[yp+i]; }	buf_nr[i]=0;
-		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+len.inPixel, Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYRED,maxVal,ConstWidth);
-		yp=y;
+		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt, Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYRED,maxVal,ConstWidth);
+		yp=y;  lenTxt+=len.inPixel;
 
 		while(1){  if(buf_data[y++]==' ') break;  }
 		for(i=0;i<y-yp;i++){ buf_nr[i]=buf_data[yp+i]; }	buf_nr[i]=0;
-		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+len.inPixel, Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,CYAN,maxVal,ConstWidth);
-		yp=y;
+		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt, Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,CYAN,maxVal,ConstWidth);
+		yp=y;  lenTxt+=len.inPixel;
 
-		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+len.inPixel,Ypos+offsY, &buf_data[y], OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt,Ypos+offsY, &buf_data[y], OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 	}
 
 	for(int i=0; i<strlen(txt); i++)
