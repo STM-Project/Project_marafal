@@ -3759,18 +3759,40 @@ StructTxtPxlLen LCD_TxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 
 
 
-//
-//	void __SSSS(char* signH, char* signV){
-//		char *pRead = NULL, *ptr = NULL;
-//
-//		ptr = strtok_r(txt,signH,&pRead);
-//		while(ptr!=NULL){
-//			ptr = strtok_r(NULL,signH,&pRead);
-//			DbgVar(1,100,"%s",ptr);
-//		}
-//
-//
-//	}
+
+	void __SSSS(char* signH, char* signV){
+		char *pRead = NULL, *ptr = NULL;
+
+		ptr = strtok_r(txt,signH,&pRead);
+		while(ptr!=NULL){
+			ptr = strtok_r(NULL,signH,&pRead);
+			DbgVar(1,100,"%s",ptr);
+		}
+
+
+
+
+				
+		int j=0; 
+		for(int i=0; i<strlen(txt); i++)
+		{
+			if(*(txt+i)==signV)
+			{
+				j=i;
+				DbgVar(1,j,"%s",ptr);
+				ptr=(txt+i+1);
+			}
+			else if(*(txt+i)==signH)
+			{
+				j=i;
+				//DbgVar(1,j,"%s",ptr);
+				len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,				 Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYGREEN,maxVal,ConstWidth);
+				ptr=(txt+i+1);
+			}
+		}
+
+		
+	}
 
 
 
