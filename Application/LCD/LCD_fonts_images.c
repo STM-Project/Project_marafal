@@ -910,7 +910,7 @@ static void LCD_RoundRectangleBuff(uint32_t *buff, uint32_t posBuff, uint32_t Bk
 	#undef  A
 }
 
-static StructTxtPxlLen LCD_DrawStrToBuff(uint32_t posBuff,uint32_t windowX,uint32_t windowY,int id, int X, int Y, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth)
+static StructTxtPxlLen LCD_DrawStrToBuff(uint32_t posBuff,uint32_t windowX,uint32_t windowY,int id, int X, int Y_, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth)
 {
 	StructTxtPxlLen structTemp={0,0,0};
 	int idVar = id>>16;
@@ -920,7 +920,7 @@ static StructTxtPxlLen LCD_DrawStrToBuff(uint32_t posBuff,uint32_t windowX,uint3
 		return structTemp;
 	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
 	int i,j,n,o,temp,lenTxt,lenTxtInPixel=0;
-	int posX=X, posY=Y;
+	int posX=X, posY=Y_&0xFFFF, Y=Y_&0xFFFF;
 	char *pbmp;
 	uint32_t index=0, width=0, height=0, bit_pixel=0;
 	uint32_t backGround;
@@ -948,7 +948,9 @@ static StructTxtPxlLen LCD_DrawStrToBuff(uint32_t posBuff,uint32_t windowX,uint3
 	if(OnlyDigits==halfHight)
 		height=Font[fontIndex].heightHalf;
 
-	j=strlen(txt);
+	if(0==(Y_>>16)) j=strlen(txt);
+	else				 j=Y_>>16;
+
 	for(i=0;i<j;i++)
 	{
 		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
@@ -1140,7 +1142,7 @@ static StructTxtPxlLen LCD_DrawStrIndirectToBuffAndDisplay(uint32_t posBuff, int
 	return structTemp;
 
 }
-static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t windowX,uint32_t windowY,int id, int X, int Y, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t NewBkColor, uint32_t NewFontColor, int constWidth)
+static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t windowX,uint32_t windowY,int id, int X, int Y_, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t NewBkColor, uint32_t NewFontColor, int constWidth)
 {
 	StructTxtPxlLen structTemp={0,0,0};
 	int idVar = id>>16;
@@ -1150,7 +1152,7 @@ static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t wi
 		return structTemp;
 	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
 	int i,j,n,o,lenTxt,temp,lenTxtInPixel=0;
-	int posX=X, posY=Y;
+	int posX=X, posY=Y_&0xFFFF, Y=Y_&0xFFFF;
 	char *pbmp;
 	uint32_t index=0, width=0, height=0, bit_pixel=0;
 	uint32_t backGround;
@@ -1177,7 +1179,9 @@ static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t wi
 	if(OnlyDigits==halfHight)
 		height=Font[fontIndex].heightHalf;
 
-	j=strlen(txt);
+	if(0==(Y_>>16)) j=strlen(txt);
+	else				 j=Y_>>16;
+
 	for(i=0;i<j;i++)
 	{
 		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
@@ -1725,9 +1729,9 @@ void DisplayFontsStructState(void){
 		if(Font[i].fontSizeToIndex){
 			LCD_FontType2Str(bufTemp+40,i,0);
 			switch(bufTemp[40]){
-				case '1': mini_snprintf(bufTemp2,210,"%c" CoR_"%c"_X Gre_"%c"_X CoB_"%c"_X "%c" CoR_"%c"_X Gre_"%c"_X CoB_"%c"_X "%s",bufTemp[41],  bufTemp[42],bufTemp[43],bufTemp[44],  bufTemp[45],  bufTemp[46],bufTemp[47],bufTemp[48],  &bufTemp[49]); break;
+				case '1': mini_snprintf(bufTemp2,210,CoR_"%c"_X Gre_"%c"_X CoB_"%c"_X "%c" CoR_"%c"_X Gre_"%c"_X CoB_"%c"_X,bufTemp[41],bufTemp[42],bufTemp[43],  bufTemp[44],  bufTemp[45],bufTemp[46],bufTemp[47]); break;
 				case '2': mini_snprintf(bufTemp2,210,CoG_"%s"_X, bufTemp+41); break;		/* This case never happened, because this is not new load_font just option case 1 */
-				case '3': mini_snprintf(bufTemp2,210,"%c" CoR_"%c"_X CoG_"%c"_X CoB_"%c"_X "%s",bufTemp[41],  bufTemp[42],bufTemp[43],bufTemp[44],  &bufTemp[45]); break;
+				case '3': mini_snprintf(bufTemp2,210,CoR_"%c"_X CoG_"%c"_X CoB_"%c"_X "%s",bufTemp[41],bufTemp[42],bufTemp[43],  &bufTemp[44]); break;
 				case '4': mini_snprintf(bufTemp2,210,BkW_ CoBl_"%s"_X, bufTemp+41); break;
 				default:  bufTemp2[0]=0; break;
 			}
@@ -3223,7 +3227,7 @@ char* LCD_DisplayRemeberedSpacesBetweenFonts(int param, char* buff, int* maxArra
 	case 1:
 		int len=0,lenArray=0;	if(maxArray!=NULL) *maxArray=0;
 		for(int i=0; i<StructSpaceCount; i++){
-			lenArray = mini_snprintf(buff+len,100,"%d%c %s %s %c %c  %d \r\n",i,COMMON_SIGN,LCD_FontStyle2Str(bufTemp,space[i].fontStyle),LCD_FontSize2Str(bufTemp+20,space[i].fontSize),space[i].char1,space[i].char2,space[i].val);
+			lenArray = mini_snprintf(buff+len,100,"%d%c\x2%s\x2%s\x2%c\x2%c\x2%d\x1",i,COMMON_SIGN,LCD_FontStyle2Str(bufTemp,space[i].fontStyle),LCD_FontSize2Str(bufTemp+20,space[i].fontSize),space[i].char1,space[i].char2,space[i].val);
 			len += lenArray;
 			if(maxArray!=NULL){  if(lenArray>*maxArray) *maxArray=lenArray;  }
 		}
@@ -3720,6 +3724,10 @@ StructTxtPxlLen LCD_StrDependOnColorsWindow(uint32_t posBuff,uint32_t BkpSizeX,u
 	return lenStr;
 }
 
+uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt){
+	return ((posY&0xFFFF) | lenTxt<<16);
+}
+
 StructTxtPxlLen LCD_TxtWin___(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
 {
 	#define CURRENT_Y	 nrLine*lenStr.height
@@ -3752,82 +3760,82 @@ StructTxtPxlLen LCD_TxtWin___(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSiz
 
 StructTxtPxlLen LCD_TxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
 {
-	#define CURRENT_Y	 nrLine*lenStr.height
+	#define CURRENT_Y	 nrLine*len.height
 	StructTxtPxlLen lenStr={0};
-	char buf_data[200]={0}, buf_nr[50];  //SIZE |!!!!!!
+	//char buf_data[200]={0}, buf_nr[50];  //SIZE |!!!!!!
 	int j=0, nrLine=0;
 
 
 
 
-	void __SSSS(char* signH, char* signV){
-		char *pRead = NULL, *ptr = NULL;
+  char *ptr=txt;
 
-		ptr = strtok_r(txt,signH,&pRead);
-		while(ptr!=NULL){
-			ptr = strtok_r(NULL,signH,&pRead);
-			DbgVar(1,100,"%s",ptr);
-		}
-
-
-
-
+		StructTxtPxlLen len;
+				int lenTxt=0;
 				
-		int j=0; 
 		for(int i=0; i<strlen(txt); i++)
 		{
-			if(*(txt+i)==signV)
+			if(*(txt+i)=='\x1') //koniec lini
 			{
-				j=i;
-				DbgVar(1,j,"%s",ptr);
-				ptr=(txt+i+1);
-			}
-			else if(*(txt+i)==signH)
-			{
-				j=i;
 				//DbgVar(1,j,"%s",ptr);
-				len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,				 Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYGREEN,maxVal,ConstWidth);
+				j++;
+				len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt,SetLenTxt2Y(Ypos+CURRENT_Y,j), ptr, OnlyDigits,space,bkColor,MYGREEN,maxVal,ConstWidth);
+				lenTxt=0;
 				ptr=(txt+i+1);
+				nrLine++;
+				j=0;
+				if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return len; }
 			}
+			else if(*(txt+i)=='\x2')
+			{
+				//DbgVar(1,j,"%s",ptr);
+				j++;
+				len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt,SetLenTxt2Y(Ypos+CURRENT_Y,j), ptr, OnlyDigits,space,bkColor,MYRED,maxVal,ConstWidth);
+				lenTxt+=len.inPixel;
+				ptr=(txt+i+0);	*ptr=' ';
+				j=0;
+				//if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return len; }
+			}
+			else j++;
 		}
 
 		
-	}
 
 
 
-	StructTxtPxlLen _LcdTxt(int offsY){
-		StructTxtPxlLen len;
-		int y=0, yp=0 ,i, lenTxt=0;
 
-		while(1){  if(buf_data[y++]==' ') break;  }  //wyjscie z petli jescli i>30 !!!!!!!
-		for(i=0;i<y;i++){ buf_nr[i]=buf_data[i]; }	buf_nr[i]=0;
-		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,				 Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYGREEN,maxVal,ConstWidth);
-		yp=y;  lenTxt+=len.inPixel;
-
-		while(1){  if(buf_data[y++]==' ') break;  }
-		for(i=0;i<y-yp;i++){ buf_nr[i]=buf_data[yp+i]; }	buf_nr[i]=0;
-		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt, Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYRED,maxVal,ConstWidth);
-		yp=y;  lenTxt+=len.inPixel;
-
-		while(1){  if(buf_data[y++]==' ') break;  }
-		for(i=0;i<y-yp;i++){ buf_nr[i]=buf_data[yp+i]; }	buf_nr[i]=0;
-		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt, Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,CYAN,maxVal,ConstWidth);
-		yp=y;  lenTxt+=len.inPixel;
-
-		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt,Ypos+offsY, &buf_data[y], OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
-	}
-
-	for(int i=0; i<strlen(txt); i++)
-	{
-		if(*(txt+i)=='\r' && *(txt+i+1)=='\n'){
-			if(j){ lenStr=_LcdTxt(CURRENT_Y);  j=0; }
-			i++; nrLine++;
-			if(CURRENT_Y > BkpSizeY-(3*lenStr.height)){ lenStr.inChar=i+1;  return lenStr; }
-		}
-		else{ if(j<sizeof(buf_data)-2){ buf_data[j++]=*(txt+i); buf_data[j]=0; } };
-	}
-	if(j) lenStr=_LcdTxt(CURRENT_Y);
+//	StructTxtPxlLen _LcdTxt(int offsY){
+//		StructTxtPxlLen len;
+//		int y=0, yp=0 ,i, lenTxt=0;
+//
+//		while(1){  if(buf_data[y++]==' ') break;  }  //wyjscie z petli jescli i>30 !!!!!!!
+//		for(i=0;i<y;i++){ buf_nr[i]=buf_data[i]; }	buf_nr[i]=0;
+//		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,				 Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYGREEN,maxVal,ConstWidth);
+//		yp=y;  lenTxt+=len.inPixel;
+//
+//		while(1){  if(buf_data[y++]==' ') break;  }
+//		for(i=0;i<y-yp;i++){ buf_nr[i]=buf_data[yp+i]; }	buf_nr[i]=0;
+//		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt, Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYRED,maxVal,ConstWidth);
+//		yp=y;  lenTxt+=len.inPixel;
+//
+//		while(1){  if(buf_data[y++]==' ') break;  }
+//		for(i=0;i<y-yp;i++){ buf_nr[i]=buf_data[yp+i]; }	buf_nr[i]=0;
+//		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt, Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,CYAN,maxVal,ConstWidth);
+//		yp=y;  lenTxt+=len.inPixel;
+//
+//		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt,Ypos+offsY, &buf_data[y], OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+//	}
+//
+//	for(int i=0; i<strlen(txt); i++)
+//	{
+//		if(*(txt+i)=='\r' && *(txt+i+1)=='\n'){
+//			if(j){ lenStr=_LcdTxt(CURRENT_Y);  j=0; }
+//			i++; nrLine++;
+//			if(CURRENT_Y > BkpSizeY-(3*lenStr.height)){ lenStr.inChar=i+1;  return lenStr; }
+//		}
+//		else{ if(j<sizeof(buf_data)-2){ buf_data[j++]=*(txt+i); buf_data[j]=0; } };
+//	}
+//	if(j) lenStr=_LcdTxt(CURRENT_Y);
 	lenStr.inChar=0;
 	return lenStr;
 	#undef CURRENT_Y
