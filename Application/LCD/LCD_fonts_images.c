@@ -3227,7 +3227,7 @@ char* LCD_DisplayRemeberedSpacesBetweenFonts(int param, char* buff, int* maxArra
 	case 1:
 		int len=0,lenArray=0;	if(maxArray!=NULL) *maxArray=0;
 		for(int i=0; i<StructSpaceCount; i++){
-			lenArray = mini_snprintf(buff+len,100,"%d%c\x2%s\x2%s\x2%c\x2%c\x2%d\x1",i,COMMON_SIGN,LCD_FontStyle2Str(bufTemp,space[i].fontStyle),LCD_FontSize2Str(bufTemp+20,space[i].fontSize),space[i].char1,space[i].char2,space[i].val);
+			lenArray = mini_snprintf(buff+len,100,"%d%c"_L_"%s "_L_"%s "_L_"'%c' "_L_"'%c' "_L_"%d"_E_,i,COMMON_SIGN,LCD_FontStyle2Str(bufTemp,space[i].fontStyle),LCD_FontSize2Str(bufTemp+20,space[i].fontSize),space[i].char1,space[i].char2,space[i].val);
 			len += lenArray;
 			if(maxArray!=NULL){  if(lenArray>*maxArray) *maxArray=lenArray;  }
 		}
@@ -3728,7 +3728,10 @@ uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt){
 	return ((posY&0xFFFF) | lenTxt<<16);
 }
 
-StructTxtPxlLen LCD_TxtWin___(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
+
+
+
+StructTxtPxlLen LCD_ListTxtWin_____________(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
 {
 	#define CURRENT_Y	 nrLine*lenStr.height
 	StructTxtPxlLen lenStr={0};
@@ -3758,86 +3761,84 @@ StructTxtPxlLen LCD_TxtWin___(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSiz
 	#undef CURRENT_Y
 }
 
-StructTxtPxlLen LCD_TxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
+StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
 {
 	#define CURRENT_Y	 nrLine*len.height
-	StructTxtPxlLen lenStr={0};
-	//char buf_data[200]={0}, buf_nr[50];  //SIZE |!!!!!!
-	int j=0, nrLine=0;
+	#define MAX_STRIP	30
+	StructTxtPxlLen len={0};
+	int lenTxt=0, nrLine=0, j=0, strip=0;
+	char *ptr=txt;
+	uint16_t lenTxtLine[MAX_STRIP]={0};
+	uint16_t lenMaxLine[MAX_STRIP]={0};
 
-
-
-
-  char *ptr=txt;
-
-		StructTxtPxlLen len;
-				int lenTxt=0;
-				
-		for(int i=0; i<strlen(txt); i++)
+	for(int i=0; i<strlen(txt); i++)   //max do okna dostosowany !!!!
+	{
+		if(*(txt+i)==*_E_)		/* end of line _E_[0] */
 		{
-			if(*(txt+i)=='\x1') //koniec lini
-			{
-				//DbgVar(1,j,"%s",ptr);
-				j++;
-				len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt,SetLenTxt2Y(Ypos+CURRENT_Y,j), ptr, OnlyDigits,space,bkColor,MYGREEN,maxVal,ConstWidth);
-				lenTxt=0;
-				ptr=(txt+i+1);
-				nrLine++;
-				j=0;
-				if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return len; }
+			for(int n=0;n<strip;n++){
+				lenMaxLine[n] = MAXVAL2(lenMaxLine[n],lenTxtLine[n]);
+				lenTxtLine[n]=0;
 			}
-			else if(*(txt+i)=='\x2')
-			{
-				//DbgVar(1,j,"%s",ptr);
-				j++;
-				len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt,SetLenTxt2Y(Ypos+CURRENT_Y,j), ptr, OnlyDigits,space,bkColor,MYRED,maxVal,ConstWidth);
-				lenTxt+=len.inPixel;
-				ptr=(txt+i+0);	*ptr=' ';
-				j=0;
-				//if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return len; }
-			}
-			else j++;
+			j=0;
+			strip=0;
+
+		}
+		else if(*(txt+i)==*_L_)		/* _L_[0] */
+		{
+			j=0;
+			strip++;
+		}
+		else{
+			j++;
+			lenTxtLine[strip] += LCD_GetStrPxlWidth(fontID, txt+i, 1 ,space,constWidth);
 		}
 
-		
+	}
 
 
+	int RRRRR=0;
+	strip=0; j=0;
+	StructTxtPxlLen _Txt(uint32_t color){
+		int yyyy=0;
+		for(int n=0;n<strip;n++){   yyyy += lenMaxLine[n];     }
+		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt/*yyyy*/,SetLenTxt2Y(Ypos+CURRENT_Y,j), ptr, OnlyDigits,space,bkColor,color,maxVal,ConstWidth);
+	}
+				
+	for(int i=0; i<strlen(txt); i++)
+	{
+		if(*(txt+i)==*_E_)		/* end of line _E_[0] */
+		{
+			j++;	len =_Txt(MYRED);	j=0;
 
+			ptr=(txt+i+1);   RRRRR++;
+			nrLine++;
+			strip=0;
+			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return len; }
+			lenTxt=0;
+			RRRRR=0;
+		}
+		else if(*(txt+i)==*_L_)		/* _L_[0] */
+		{
+			j++;
+			if(strip==0) len=_Txt(BrightDecr(fontColor,0x20));
+			else if(strip==1) len=_Txt(MYGREEN);
+			else if(strip==2) len=_Txt(CYAN);
+			else len=_Txt(fontColor);
+			j=0;
 
-//	StructTxtPxlLen _LcdTxt(int offsY){
-//		StructTxtPxlLen len;
-//		int y=0, yp=0 ,i, lenTxt=0;
-//
-//		while(1){  if(buf_data[y++]==' ') break;  }  //wyjscie z petli jescli i>30 !!!!!!!
-//		for(i=0;i<y;i++){ buf_nr[i]=buf_data[i]; }	buf_nr[i]=0;
-//		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,				 Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYGREEN,maxVal,ConstWidth);
-//		yp=y;  lenTxt+=len.inPixel;
-//
-//		while(1){  if(buf_data[y++]==' ') break;  }
-//		for(i=0;i<y-yp;i++){ buf_nr[i]=buf_data[yp+i]; }	buf_nr[i]=0;
-//		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt, Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,MYRED,maxVal,ConstWidth);
-//		yp=y;  lenTxt+=len.inPixel;
-//
-//		while(1){  if(buf_data[y++]==' ') break;  }
-//		for(i=0;i<y-yp;i++){ buf_nr[i]=buf_data[yp+i]; }	buf_nr[i]=0;
-//		len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt, Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,CYAN,maxVal,ConstWidth);
-//		yp=y;  lenTxt+=len.inPixel;
-//
-//		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt,Ypos+offsY, &buf_data[y], OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
-//	}
-//
-//	for(int i=0; i<strlen(txt); i++)
-//	{
-//		if(*(txt+i)=='\r' && *(txt+i+1)=='\n'){
-//			if(j){ lenStr=_LcdTxt(CURRENT_Y);  j=0; }
-//			i++; nrLine++;
-//			if(CURRENT_Y > BkpSizeY-(3*lenStr.height)){ lenStr.inChar=i+1;  return lenStr; }
-//		}
-//		else{ if(j<sizeof(buf_data)-2){ buf_data[j++]=*(txt+i); buf_data[j]=0; } };
-//	}
-//	if(j) lenStr=_LcdTxt(CURRENT_Y);
-	lenStr.inChar=0;
-	return lenStr;
+			ptr=(txt+i+1);
+			lenTxt+=len.inPixel+1;
+			RRRRR++;
+			//ptr=(txt+i+0);	*ptr=' ';
+			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return len; }
+			strip++;
+		}
+		else {j++;  RRRRR++;  }
+	}
+	if(j) len=_Txt(BLACK);
+
+	len.inChar=0;
+	return len;
 	#undef CURRENT_Y
 }
 

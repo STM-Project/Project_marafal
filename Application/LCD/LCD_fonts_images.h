@@ -48,6 +48,9 @@
 
 #define LONGEST_TXT_FONTSTYLE		"Times_New_Roman"
 
+#define _L_	"\x1"
+#define _E_	"\x2"
+
 enum FontsSize
 {
 	FONT_8,
@@ -312,7 +315,7 @@ StructTxtPxlLen LCD_StrDependOnColorsDescrVar(int idVar,int fontID, uint32_t fon
 StructTxtPxlLen LCD_StrDependOnColorsWindow(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth);
 StructTxtPxlLen LCD_StrDependOnColorsWindowIndirect(uint32_t posBuff, int Xwin, int Ywin,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth);
 uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt);
-StructTxtPxlLen LCD_TxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth);
+StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth);
 
 void LCD_ResetStrMovBuffPos(void);
 void LCD_DisplayStrMovBuffState(void);

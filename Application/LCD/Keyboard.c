@@ -1245,10 +1245,10 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		int yPosUD = height-heightUpDown-spaceFromFrame;
 
 		static uint16_t posTxt_temp=0;
-		static uint16_t posTxtTab[50]={0};
+		static uint16_t posTxtTab[50]={0};  //50 !!!!!!!!!!!!!!!!!!!!!!!
 		static uint16_t i_posTxtTab=0;
 
-		void 		_SetCurrPosTxt(uint16_t pos){ s[k].param2=pos; }
+		void 		_SetCurrPosTxt(uint16_t pos){ 		 s[k].param2=pos; }
 		uint16_t _GetCurrPosTxt(void)			 { return s[k].param2; }
 
 		if(NoDirect==param){
@@ -1276,7 +1276,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
 		if(TakeMutex(Semphr_pLcd,100)){
-			posTxt_temp = LCD_TxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height+100),NULL)+_GetCurrPosTxt(),fullHight,0,fillColor,colorDescr,FONT_COEFF,NoConstWidth).inChar;
+			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL)+_GetCurrPosTxt(),fullHight,0,fillColor,colorDescr,FONT_COEFF,NoConstWidth).inChar;
 			GiveMutex(Semphr_pLcd);
 		}
 		if(posTxt_temp){
