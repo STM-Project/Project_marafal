@@ -186,6 +186,11 @@ enum DESCR_DIRECTION{
   Right_up,
 };
 
+typedef enum{
+	TxtInSeq,
+	TxtInRow
+}TEXT_ARRANGEMENT;
+
 typedef struct {
 	uint16_t inChar;
 	uint16_t inPixel;
@@ -315,7 +320,7 @@ StructTxtPxlLen LCD_StrDependOnColorsDescrVar(int idVar,int fontID, uint32_t fon
 StructTxtPxlLen LCD_StrDependOnColorsWindow(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth);
 StructTxtPxlLen LCD_StrDependOnColorsWindowIndirect(uint32_t posBuff, int Xwin, int Ywin,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth);
 uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt);
-StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth);
+StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow);
 
 void LCD_ResetStrMovBuffPos(void);
 void LCD_DisplayStrMovBuffState(void);
@@ -338,6 +343,7 @@ int LCD_StrMovVIndirect(int idVar, int incrDecr);
 
 int LCD_GetWholeStrPxlWidth(int fontID, char *txt, int space, int constWidth);
 int LCD_GetStrPxlWidth(int fontID, char *txt, int len, int space, int constWidth);
+int LCD_GetStrPxlWidth2(int fontID, char *txt, int len, int space, int constWidth);
 int LCD_GetStrLenForPxlWidth(int fontID, char *txt, int lenInPxl, int space, int constWidth);
 int LCD_GetFontWidth(int fontID, char font);
 int LCD_GetFontHeight(int fontID);

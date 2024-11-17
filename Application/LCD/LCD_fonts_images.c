@@ -32,6 +32,8 @@
 #define MAX_SIZE_CHANGECOLOR_BUFF	300
 #define LCD_XY_POS_MAX_NUMBER_USE	50
 
+#define MAX_STRIP_LISTtxtWIN	30
+
 #define COMMON_SIGN	'.'
 
 static const char CharsTab_full[]="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-.,:;[]{}<>'~*()&#^=_$%\xB0@|?!\xA5\xB9\xC6\xE6\xCA\xEA\xA3\xB3\xD1\xF1\xD3\xF3\x8C\x9C\x8F\x9F\xAF\xBF/1234567890";
@@ -3088,6 +3090,22 @@ int LCD_GetStrPxlWidth(int fontID, char *txt, int len, int space, int constWidth
 		return lenTxtInPixel;
 	}
 }
+int LCD_GetStrPxlWidth2(int fontID, char *txt, int len, int space, int constWidth){
+	int lenTxtInPixel=0;
+	int fontIndex=SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
+	if(fontIndex==-1)
+		return -1;
+	else
+	{
+		if(constWidth)
+			LCD_Set_ConstWidthFonts(fontIndex);
+		for(int i=0;i<len;i++)
+			lenTxtInPixel += Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space;
+		if(constWidth)
+			LCD_Reset_ConstWidthFonts(fontIndex);
+		return lenTxtInPixel;
+	}
+}
 int LCD_GetStrLenForPxlWidth(int fontID, char *txt, int lenInPxl, int space, int constWidth){
 	int fontIndex=SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
 	if(fontIndex==-1)
@@ -3728,116 +3746,64 @@ uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt){
 	return ((posY&0xFFFF) | lenTxt<<16);
 }
 
-
-
-
-StructTxtPxlLen LCD_ListTxtWin_____________(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
+StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow)
 {
-	#define CURRENT_Y	 nrLine*lenStr.height
-	StructTxtPxlLen lenStr={0};
-	char buf_data[200]={0}, buf_nr[10];
-	int j=0, nrLine=0;
-
-	StructTxtPxlLen _LcdTxt(int offsY){
-		int y=0,i;
-		while(1){  if(buf_data[y++]==COMMON_SIGN) break;  }
-		for(i=0;i<y;i++){ buf_nr[i]=buf_data[i]; }	buf_nr[i]=0;
-		StructTxtPxlLen len = LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,				 Ypos+offsY, buf_nr, 		OnlyDigits,space,bkColor,fontColor,maxVal,ConstWidth);
-		return 					 LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+len.inPixel,Ypos+offsY, &buf_data[y], OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
-	}
-
-	for(int i=0; i<strlen(txt); i++)
-	{
-		if(*(txt+i)=='\r' && *(txt+i+1)=='\n'){
-			if(j){ lenStr=_LcdTxt(CURRENT_Y);  j=0; }
-			i++; nrLine++;
-			if(CURRENT_Y > BkpSizeY-(3*lenStr.height)){ lenStr.inChar=i+1;  return lenStr; }
-		}
-		else{ if(j<sizeof(buf_data)-2){ buf_data[j++]=*(txt+i); buf_data[j]=0; } };
-	}
-	if(j) lenStr=_LcdTxt(CURRENT_Y);
-	lenStr.inChar=0;
-	return lenStr;
-	#undef CURRENT_Y
-}
-
-StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
-{
-	#define CURRENT_Y	 nrLine*len.height
-	#define MAX_STRIP	30
+	#define CURRENT_Y	 nrLine*len.height   //bkColor nie dopasowany sprawdzic !!! !!!
 	StructTxtPxlLen len={0};
 	int lenTxt=0, nrLine=0, j=0, strip=0;
 	char *ptr=txt;
-	uint16_t lenTxtLine[MAX_STRIP]={0};
-	uint16_t lenMaxLine[MAX_STRIP]={0};
+	uint16_t lenTxtLine[MAX_STRIP_LISTtxtWIN]={0};
+	uint16_t lenMaxLine[MAX_STRIP_LISTtxtWIN]={0};
 
-	for(int i=0; i<strlen(txt); i++)   //max do okna dostosowany !!!!
-	{
-		if(*(txt+i)==*_E_)		/* end of line _E_[0] */
+	if(TxtInRow==txtSeqRow){
+		for(int i=0; i<strlen(txt); i++)   //max do okna dostosowany !!!!
 		{
-			for(int n=0;n<strip;n++){
-				lenMaxLine[n] = MAXVAL2(lenMaxLine[n],lenTxtLine[n]);
-				lenTxtLine[n]=0;
+			if(*(txt+i)==*_E_){		/* end of line _E_[0] */
+				for(int n=0;n<strip;n++){
+					lenMaxLine[n] = MAXVAL2(lenMaxLine[n],lenTxtLine[n]);
+					lenTxtLine[n] = 0;
+				}
+				j=0;	strip=0;
 			}
-			j=0;
-			strip=0;
-
+			else if(*(txt+i)==*_L_){		/* _L_[0] */
+				j=0;	if(strip < MAX_STRIP_LISTtxtWIN-1) strip++;
+			}
+			else{	 j++;	 lenTxtLine[strip] += LCD_GetStrPxlWidth2(fontID,txt+i,1,space,constWidth);	}
 		}
-		else if(*(txt+i)==*_L_)		/* _L_[0] */
-		{
-			j=0;
-			strip++;
-		}
-		else{
-			j++;
-			lenTxtLine[strip] += LCD_GetStrPxlWidth(fontID, txt+i, 1 ,space,constWidth);
-		}
-
 	}
 
+	StructTxtPxlLen _Txt(void){
+		uint32_t color = CONDITION(NULL==fontColorTab, fontColor, fontColorTab[strip]);
+		int calcPosX=0;
+		if(TxtInRow==txtSeqRow){	for(int n=0;n<strip;n++){ calcPosX+=lenMaxLine[n];}	}
+		else 						  {	calcPosX= lenTxt; }
+		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+calcPosX,SetLenTxt2Y(Ypos+CURRENT_Y,j), ptr, OnlyDigits,space,bkColor,color,maxVal,ConstWidth);
+	}
 
-	int RRRRR=0;
 	strip=0; j=0;
-	StructTxtPxlLen _Txt(uint32_t color){
-		int yyyy=0;
-		for(int n=0;n<strip;n++){   yyyy += lenMaxLine[n];     }
-		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+lenTxt/*yyyy*/,SetLenTxt2Y(Ypos+CURRENT_Y,j), ptr, OnlyDigits,space,bkColor,color,maxVal,ConstWidth);
-	}
-				
 	for(int i=0; i<strlen(txt); i++)
 	{
 		if(*(txt+i)==*_E_)		/* end of line _E_[0] */
 		{
-			j++;	len =_Txt(MYRED);	j=0;
-
-			ptr=(txt+i+1);   RRRRR++;
-			nrLine++;
-			strip=0;
-			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return len; }
+			j++;	 len =_Txt();	 j=0;
+			ptr=(txt+i+1);
 			lenTxt=0;
-			RRRRR=0;
+			strip=0;
+			nrLine++;
+			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return len; }
 		}
 		else if(*(txt+i)==*_L_)		/* _L_[0] */
 		{
-			j++;
-			if(strip==0) len=_Txt(BrightDecr(fontColor,0x20));
-			else if(strip==1) len=_Txt(MYGREEN);
-			else if(strip==2) len=_Txt(CYAN);
-			else len=_Txt(fontColor);
-			j=0;
-
+			j++;	 len =_Txt();	 j=0;
 			ptr=(txt+i+1);
-			lenTxt+=len.inPixel+1;
-			RRRRR++;
-			//ptr=(txt+i+0);	*ptr=' ';
+			lenTxt+=len.inPixel;
+			if(strip < MAX_STRIP_LISTtxtWIN-1) strip++;
 			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return len; }
-			strip++;
 		}
-		else {j++;  RRRRR++;  }
+		else j++;
 	}
-	if(j) len=_Txt(BLACK);
 
-	len.inChar=0;
+	len.inChar=0; // to moze usunac !!!!
 	return len;
 	#undef CURRENT_Y
 }

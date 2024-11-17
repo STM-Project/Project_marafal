@@ -1167,7 +1167,7 @@ void KEYBOARD_ServiceSizeRoll(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int
 
 
 
-
+int AAAAAA=0;
 
 //SPACES DISP  numeracje dac ciemniejsza aby odroznic !!!!!!!!!!
 int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int touchAction2, int touchTimer, char* txtDescr, char* txtDescr2, char* txtDescr3, char* txtDescr4, uint32_t colorDescr,FUNC_MAIN *pfunc,FUNC_MAIN_INIT, TIMER_ID timID)
@@ -1244,8 +1244,10 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		int xPosD = MIDDLE(width/2,width/2,widthtUpDown);
 		int yPosUD = height-heightUpDown-spaceFromFrame;
 
+		uint32_t tabFontColor[6]={BrightDecr(colorDescr,0x20),MYGREEN,CYAN,colorDescr,colorDescr,MYRED};  //poprawic nie wiem cy [6] !!!!!!!!!!!!!!!!!!  zwiazane z textem moze sam automatycznie wyliczyc !!!
+
 		static uint16_t posTxt_temp=0;
-		static uint16_t posTxtTab[50]={0};  //50 !!!!!!!!!!!!!!!!!!!!!!!
+		static uint16_t posTxtTab[50]={0};  //50 !!!!!!!!!!!!!!!!!!!!!!!  max screen`s
 		static uint16_t i_posTxtTab=0;
 
 		void 		_SetCurrPosTxt(uint16_t pos){ 		 s[k].param2=pos; }
@@ -1276,7 +1278,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
 		if(TakeMutex(Semphr_pLcd,100)){
-			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL)+_GetCurrPosTxt(),fullHight,0,fillColor,colorDescr,FONT_COEFF,NoConstWidth).inChar;
+			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL)+_GetCurrPosTxt(),fullHight,0,fillColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
 			GiveMutex(Semphr_pLcd);
 		}
 		if(posTxt_temp){
