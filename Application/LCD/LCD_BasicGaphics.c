@@ -3430,9 +3430,9 @@ structPosition GetCircleMiddPoint(uint16_t *radius){
 
 void LCD_Circle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
 	#define EASY_BOLD_CIRCLE	0==param && thickness
-	uint32_t width = _width&0xFFFF;
-	uint16_t param = _width>>16;
-	uint8_t thickness = FrameColor>>24;
+	uint32_t width = _width&0xFFFF;			/* MASK(_width,FFFF) */
+	uint16_t param = _width>>16;				/* MSHIFT_RIGHT(_width,16,FFFF) */
+	uint8_t thickness = FrameColor>>24;		/* SHIFT_RIGHT(_FrameColor,24,FF) */
 
 	if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FrameColor, BkpColor, 0);
 	else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FillColor,  BkpColor, 0);

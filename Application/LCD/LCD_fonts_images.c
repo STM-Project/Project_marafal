@@ -3746,6 +3746,19 @@ uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt){
 	return ((posY&0xFFFF) | lenTxt<<16);
 }
 
+
+
+char*  TEST_FUNC__LCD_ListTxtWin(char* buf){
+	INIT(len,0);
+	LOOP_FOR(1000){
+		len += mini_snprintf(buf+len,100000,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%s"_E_,i,COMMON_SIGN,"Rafal","Markielowski","ab","cd","12");	i++;
+		len += mini_snprintf(buf+len,100000,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%s"_E_,i,COMMON_SIGN,"Agnieszka","Placek","x","cd","58");	i++;
+		len += mini_snprintf(buf+len,100000,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%s"_E_,i,COMMON_SIGN,"Karolina","Tylek","ab","f","3");
+	}
+	return buf;
+
+}
+
 StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow)
 {
 	#define CURRENT_Y	 nrLine*len.height   //bkColor nie dopasowany sprawdzic !!! !!!
@@ -3755,8 +3768,10 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 	uint16_t lenTxtLine[MAX_STRIP_LISTtxtWIN]={0};
 	uint16_t lenMaxLine[MAX_STRIP_LISTtxtWIN]={0};
 
+	int WholeLenTxt= strlen(txt);
+
 	if(TxtInRow==txtSeqRow){
-		for(int i=0; i<strlen(txt); i++)   //max do okna dostosowany !!!!
+		for(int i=0; i<WholeLenTxt; i++)   //max do okna dostosowany !!!!
 		{
 			if(*(txt+i)==*_E_){		/* end of line _E_[0] */
 				for(int n=0;n<strip;n++){
@@ -3781,7 +3796,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 	}
 
 	strip=0; j=0;
-	for(int i=0; i<strlen(txt); i++)
+	for(int i=0; i<WholeLenTxt; i++)
 	{
 		if(*(txt+i)==*_E_)		/* end of line _E_[0] */
 		{

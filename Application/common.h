@@ -101,6 +101,8 @@
 
 #define TXT_CUTTOFF(txt,len)	if(strlen(txt)>len-1) *((txt)+(len-1))=0
 
+#define LOOP_FOR(max) 	for(int i=0;i<(max);++i)
+
 #define _ZERO 0
 #define _ZEROS2 _ZERO,_ZERO
 #define _ZEROS3 _ZEROS2,_ZERO
