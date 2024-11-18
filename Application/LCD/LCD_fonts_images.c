@@ -157,7 +157,7 @@ typedef struct{
 	char *pointerToMemoryFont;
 	uint32_t fontSdramLenght;
 } FONTS_SETTING;
-static FONTS_SETTING Font[MAX_OPEN_FONTS_SIMULTANEOUSLY];
+static FONTS_SETTING Font[MAX_OPEN_FONTS_SIMULTANEOUSLY]={0};
 
 typedef struct{
 	uint16_t imagesNumber;
@@ -3232,7 +3232,7 @@ int LCD_SelectedSpaceBetweenFontsIncrDecr(uint8_t incrDecr, uint8_t fontStyle, u
 	return 0xFFFF;
 }
 
-char* LCD_DisplayRemeberedSpacesBetweenFonts(int param, char* buff, int* maxArray){
+char* LCD_DisplayRemeberedSpacesBetweenFonts(int param, char* buff, int* maxArray){  // to tez dac fontID, space.... jak wyzej !!!!
 	char bufTemp[50];
 	switch(param){
 	default:
@@ -3746,17 +3746,23 @@ uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt){
 	return ((posY&0xFFFF) | lenTxt<<16);
 }
 
+char*  TEST_FUNC__LCD_ListTxtWin(char* buf, int* maxArrayInPxl,int fontID,int space,int constWidth){
+	INIT(len,0);	INIT(lenArray,0);
 
+	void _FuncInit(void){
+		if(maxArrayInPxl!=NULL) *maxArrayInPxl=0; }
 
-char*  TEST_FUNC__LCD_ListTxtWin(char* buf){
-	INIT(len,0);
-	LOOP_FOR(1000){
-		len += mini_snprintf(buf+len,100000,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%s"_E_,i,COMMON_SIGN,"Rafal","Markielowski","ab","cd","12");	i++;
-		len += mini_snprintf(buf+len,100000,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%s"_E_,i,COMMON_SIGN,"Agnieszka","Placek","x","cd","58");	i++;
-		len += mini_snprintf(buf+len,100000,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%s"_E_,i,COMMON_SIGN,"Karolina","Tylek","ab","f","3");
+	void _FuncCalc(void){
+		if(maxArrayInPxl!=NULL)
+			*maxArrayInPxl = MAXVAL2(LCD_GetStrPxlWidth(fontID,buf+len,lenArray,space,constWidth), *maxArrayInPxl);  //moze trzeba bedzie opuscic w buff _L_ !!!
+		len+=lenArray; }
+
+	LOOP_FOR(1000){ _FuncInit();
+		lenArray= mini_snprintf(buf+len,100000,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%s"_E_,i,COMMON_SIGN, getName(TEST_FUNC),	getName(LCD_ListTxtWin), "ab","cd",	GET_CODE_LINE);  	_FuncCalc(); i++;
+		lenArray= mini_snprintf(buf+len,100000,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%s"_E_,i,COMMON_SIGN, GET_TIME_COMPILATION,	GET_CODE_FUNCTION,		 "x", "cd",	GET_CODE_LINE);  	_FuncCalc(); i++;
+		lenArray= mini_snprintf(buf+len,100000,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%s"_E_,i,COMMON_SIGN, getName(SetLenTxt2Y),	GET_DATE_COMPILATION,	 "ab","f",	GET_CODE_LINE);  	_FuncCalc();
 	}
 	return buf;
-
 }
 
 StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow)
