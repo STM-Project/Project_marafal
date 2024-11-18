@@ -1226,11 +1226,24 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	POS_SIZE win = { .pos={ s[k].x+widthAll+5, s[k].y 				 	}, .size={200,250} };   //poprawic wyliczenie max dlugosci i wycienic wpisy jasniejsze a odsepy ciemniejsze zeby lepiej wygladalo !!!!!!
 	POS_SIZE win2 ={ .pos={ 15, 					 s[k].y+heightAll+15 }, .size={600, 60} };
 
+
+
+
+//	if(TakeMutex(Semphr_pLcd,100)){
+//		LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),(int*)(&win.size.w));
+//		GiveMutex(Semphr_pLcd);
+//	}
+//	win.size.w *= LCD_GetWholeStrPxlWidth(fontID_descr,(char*)"a",0,NoConstWidth); //!!!!!!!!!!!!!!!!!!!!!
+
 	if(TakeMutex(Semphr_pLcd,100)){
-		LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),(int*)(&win.size.w));
+		TEST_FUNC__LCD_ListTxtWin(pCHAR_PLCD(0),(int*)(&win.size.w),fontID_descr,0,NoConstWidth);
 		GiveMutex(Semphr_pLcd);
 	}
-	win.size.w *= LCD_GetWholeStrPxlWidth(fontID_descr,(char*)"a",0,NoConstWidth);
+
+
+
+
+
 
 	void _WinInfo(char* txt){
 		WinInfo(txt, win2.pos.x, win2.pos.y, win2.size.w, win2.size.h, timID);
@@ -1278,7 +1291,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
 		if(TakeMutex(Semphr_pLcd,100)){
-			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,TEST_FUNC__LCD_ListTxtWin(pCHAR_PLCD(width*height))/*LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL)*/+_GetCurrPosTxt(),fullHight,0,fillColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
+			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,TEST_FUNC__LCD_ListTxtWin(pCHAR_PLCD(width*height),NULL,unUsed,unUsed,unUsed)/*LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL)*/+_GetCurrPosTxt(),fullHight,0,fillColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
 			GiveMutex(Semphr_pLcd);
 		}
 		if(posTxt_temp){
