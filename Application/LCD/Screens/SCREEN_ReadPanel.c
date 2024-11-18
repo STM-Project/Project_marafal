@@ -356,7 +356,7 @@ void Measure_Stop(){
 	Circle.speed = MAXVAL2(Circle.speed,aaa);
 }
 
-int START_SCREEN_Test_Circle(void){
+static int START_SCREEN_Test_Circle(void){
 	if(SCREEN_number_prev != SCREEN_number)
 		return 1;
 	return 0;
@@ -449,7 +449,9 @@ static void SCREEN_Test_Circle(void)
 /*	LCD_SetCircleParam(0.01,0.01,14, 5,4,4,3,3,2,2,2,2,2, 2,2,1,1);
 	LCD_Shape(60,160, LCD_Circle, 0,0, _FrameColor(), _FillColor(), _BkColor());	*/
 
-	LCD_Shape(CIRCLE_POS_XY(Circle.width,10,10), LCD_Circle, SetParamWidthCircle(Percent_Circle,Circle.width),Circle.width, SetBold2Color(_FrameColor(),Circle.bold), _FillColor() /*TRANSPARENT*/, _BkColor());
+	/* CIRCLE_POS_XY(Circle.width,10,10) */
+	uint16_t calcWidth = LCD_CalculateCircleWidth(Circle.width);
+	LCD_Shape(LCD_X-calcWidth-10, LCD_Y-calcWidth-10, LCD_Circle, SetParamWidthCircle(Percent_Circle,Circle.width),Circle.width, SetBold2Color(_FrameColor(),Circle.bold), _FillColor() /*TRANSPARENT*/, _BkColor());
 
 /*	LCD_Shape(LCD_X-LCD_CalculateCircleWidth(Circle.width)/2-10, LCD_Y-LCD_CalculateCircleWidth(Circle.width)-10 , LCD_HalfCircle, SetParamWidthCircle(Half_Circle_270,Circle.width),Circle.width, SetBold2Color(_FrameColor(),Circle.bold), _FillColor(), _BkColor()); */
 
