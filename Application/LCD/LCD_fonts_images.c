@@ -701,8 +701,11 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex)
 		Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1] = CountCharLenght(pbmp,width,height,bit_pixel,&shiftXpos,backGround);
 		Font[fontIndex].fontsTabPos[ (int)pChar[j] ][0] = shiftXpos;
 		shiftXpos += (Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1]+1);
-		if(j==0)
+		if(j==0){
 			Font[fontIndex].fontsTabPos[(int)' '][1] = (2*Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1])/3; //spacja na podstawie 2/3 dlugosci pierwszej litery z pChar
+			Font[fontIndex].fontsTabPos[(int)_L_][1] = 0;
+			Font[fontIndex].fontsTabPos[(int)_E_][1] = 0;
+		}
 	}
 	Font[fontIndex].fontsTabPos[(int)' '][0] = shiftXpos;
 }
