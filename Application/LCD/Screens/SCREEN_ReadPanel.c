@@ -452,6 +452,7 @@ static void SCREEN_Test_Circle(void)
 	/* CIRCLE_POS_XY(Circle.width,10,10) */
 	uint16_t calcWidth = LCD_CalculateCircleWidth(Circle.width);
 	LCD_Shape(LCD_X-calcWidth-10, LCD_Y-calcWidth-10, LCD_Circle, SetParamWidthCircle(Percent_Circle,Circle.width),Circle.width, SetBold2Color(_FrameColor(),Circle.bold), _FillColor() /*TRANSPARENT*/, _BkColor());
+	//LCD_Circle(0,LCD_X,LCD_Y, LCD_X-calcWidth-10, LCD_Y-calcWidth-10, SetParamWidthCircle(Percent_Circle,Circle.width),Circle.width, SetBold2Color(_FrameColor(),Circle.bold), _FillColor() /*TRANSPARENT*/, _BkColor());
 
 /*	LCD_Shape(LCD_X-LCD_CalculateCircleWidth(Circle.width)/2-10, LCD_Y-LCD_CalculateCircleWidth(Circle.width)-10 , LCD_HalfCircle, SetParamWidthCircle(Half_Circle_270,Circle.width),Circle.width, SetBold2Color(_FrameColor(),Circle.bold), _FillColor(), _BkColor()); */
 

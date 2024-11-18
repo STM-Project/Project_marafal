@@ -1223,7 +1223,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	int 	_IsFlagWin	 (void){ return CHECK_bit(s[k].param,7); }
 	void 	_RstFlagWin	 (void){	RST_bit(s[k].param,7); }
 
-	POS_SIZE win = { .pos={ s[k].x+widthAll+5, s[k].y 				 	}, .size={200,250} };   //poprawic wyliczenie max dlugosci i wycienic wpisy jasniejsze a odsepy ciemniejsze zeby lepiej wygladalo !!!!!!
+	POS_SIZE win = { .pos={ s[k].x+widthAll+1, s[k].y 				 	}, .size={200,250} };   //poprawic wyliczenie max dlugosci i wycienic wpisy jasniejsze a odsepy ciemniejsze zeby lepiej wygladalo !!!!!!
 	POS_SIZE win2 ={ .pos={ 15, 					 s[k].y+heightAll+15 }, .size={600, 60} };
 
 
@@ -1235,12 +1235,12 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 //	}
 //	win.size.w *= LCD_GetWholeStrPxlWidth(fontID_descr,(char*)"a",0,NoConstWidth); //!!!!!!!!!!!!!!!!!!!!!
 
-	if(TakeMutex(Semphr_pLcd,100)){
-		TEST_FUNC__LCD_ListTxtWin(pCHAR_PLCD(0),(int*)(&win.size.w),fontID_descr,0,NoConstWidth);
+	if(TakeMutex(Semphr_pLcd,100)){  //to nie moze wykonywa sie za kazdym razem !!!!!!
+		TEST_FUNC__LCD_ListTxtWin(pCHAR_PLCD(0),(int*)(&win.size.w),fontID_descr,0,NoConstWidth);     win.size.w+=2*10;  //spaceFromFrame=10
 		GiveMutex(Semphr_pLcd);
 	}
 
-
+	win.size.w = 331 +20; // tylko dla testu
 
 
 
@@ -1291,7 +1291,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
 		if(TakeMutex(Semphr_pLcd,100)){
-			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,TEST_FUNC__LCD_ListTxtWin(pCHAR_PLCD(width*height),NULL,unUsed,unUsed,unUsed)/*LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL)*/+_GetCurrPosTxt(),fullHight,0,fillColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
+			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,TEST_FUNC__LCD_ListTxtWin(pCHAR_PLCD(width*height+1000),NULL,unUsed,unUsed,unUsed)/*LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL)*/+_GetCurrPosTxt(),fullHight,0,fillColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
 			GiveMutex(Semphr_pLcd);
 		}
 		if(posTxt_temp){
