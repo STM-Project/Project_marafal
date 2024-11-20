@@ -32,7 +32,7 @@
 #define MAX_SIZE_CHANGECOLOR_BUFF	300
 #define LCD_XY_POS_MAX_NUMBER_USE	50
 
-#define MAX_STRIP_LISTtxtWIN	30
+#define MAX_STRIP_LISTtxtWIN	30  //do usuniecia !!
 
 #define COMMON_SIGN	'.'
 
@@ -3749,25 +3749,57 @@ uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt){
 	return ((posY&0xFFFF) | lenTxt<<16);
 }
 
-char*  TEST_FUNC__LCD_ListTxtWin(char* buf, int* maxArrayInPxl,int fontID,int space,int constWidth){
-	INIT(len,0);	INIT(lenArray,0);
+uint16_t LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrips)
+{
+	uint16_t lenMaxWholeLine=0;  /* value depended on 'arangType' */
+	int lenWholeTxt= strlen(bufTxt);
+	int nmbrStrips=0;
 
-	void _FuncInit(void){
-		if(maxArrayInPxl!=NULL) *maxArrayInPxl=0; }
+	for(int i=0; i<lenWholeTxt; i++){	  	if(*(bufTxt+i)==*_L_)  nmbrStrips++;						/* end of line _E_[0] */
+												 else if(*(bufTxt+i)==*_E_){ nmbrStrips++; break; }	}		/* _L_[0] */
 
-	void _FuncCalc(void){
-		if(maxArrayInPxl!=NULL){
-			int llll = LCD_GetStrPxlWidth2(fontID,buf+len,lenArray,space,constWidth);
-			if(llll>*maxArrayInPxl) *maxArrayInPxl=llll;
-			//*maxArrayInPxl = MAXVAL2(LCD_GetStrPxlWidth2(fontID,buf+len,lenArray,space,constWidth), *maxArrayInPxl);  //to jest max dla seq anie Row !!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	uint16_t *lenActStrip = (uint16_t*)pvPortMalloc(nmbrStrips);
+	uint16_t *lenMaxStrip = (uint16_t*)pvPortMalloc(nmbrStrips);
+
+	LOOP_FOR(n,nmbrStrips) *lenMaxStrip=0;
+
+	for(int i=0,strip=0,lenWholeLine; i<lenWholeTxt; i++)
+	{	if(*(bufTxt+i)==*_E_)
+		{	switch((int)arangType){
+			 case TxtInSeq:
+				 LOOP_FOR(n,nmbrStrips) lenWholeLine+=lenActStrip[n];
+				if(lenWholeLine>lenMaxWholeLine) lenMaxWholeLine=lenWholeLine;
+				lenWholeLine=0;
+				break;
+			 case TxtInRow:
+				 LOOP_FOR(n,nmbrStrips){ if(lenActStrip[n]>lenMaxStrip[n]) lenMaxStrip[n]=lenActStrip[n]; }
+				break;
+			}
+			LOOP_FOR(n,nmbrStrips) lenActStrip[n]=0;
+			strip=0;
 		}
+		else if(*(bufTxt+i)==*_L_){
+			if(strip<MAX_STRIP_LISTtxtWIN-1) strip++;
+		}
+		else lenActStrip[strip]+=LCD_GetStrPxlWidth2(fontID,bufTxt+i,1,space,constWidth);
+	}
+	if(TxtInRow==arangType){
+		if(NULL!=lenMaxStrips){ LOOP_FOR(n,nmbrStrips) *(lenMaxStrips+n)=lenMaxStrip[n]; }
+									   LOOP_FOR(n,nmbrStrips)  lenMaxWholeLine+=lenMaxStrip[n];
+	}
+	vPortFree(lenActStrip);
+	vPortFree(lenMaxStrip);
+	return lenMaxWholeLine;
+}
 
-		len+=lenArray; }
 
-	LOOP_FOR(207){ _FuncInit();
-		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, "Agnieszka",	getName(LCD_ListTxtWin), "ab","cd",	GET_CODE_LINE);  	_FuncCalc(); i++;
-		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, GET_TIME_COMPILATION,	"Markiel",		 "x", "cd",	GET_CODE_LINE);  	_FuncCalc(); i++;
-		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, getName(SetLenTxt2Y),	GET_DATE_COMPILATION,	 "ab","f",	GET_CODE_LINE);  	_FuncCalc();
+
+char*  LCD_LIST_TXT_example(char* buf){
+	INIT(len,0);	INIT(lenArray,0);
+	LOOP_FOR(i,207){
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, "Agnieszka",	getName(LCD_ListTxtWin), "ab","cd",	GET_CODE_LINE);  				len+=lenArray; i++;
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, GET_TIME_COMPILATION,	"Markiel",		 "x", "cd",	GET_CODE_LINE);  				len+=lenArray; i++;
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, getName(SetLenTxt2Y),	GET_DATE_COMPILATION,	 "ab","f",	GET_CODE_LINE);  	len+=lenArray;
 	}
 	return buf;
 }
@@ -3778,28 +3810,31 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 	StructTxtPxlLen len={0};
 	int lenTxt=0, nrLine=0, j=0,i=0, strip=0;
 	char *ptr=txt;
-	uint16_t lenTxtLine[MAX_STRIP_LISTtxtWIN]={0};
+	//uint16_t lenTxtLine[MAX_STRIP_LISTtxtWIN]={0};
 	uint16_t lenMaxLine[MAX_STRIP_LISTtxtWIN]={0};
 
 	int WholeLenTxt= strlen(txt);
 
-	if(TxtInRow==txtSeqRow){   //to jest max dla Row !!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-		for(i=0; i<WholeLenTxt; i++)   //max do okna dostosowany !!!!
-		{
-			if(*(txt+i)==*_E_){		/* end of line _E_[0] */
-				for(int n=0; n<=strip; n++){
-					if(lenTxtLine[n]>lenMaxLine[n]) lenMaxLine[n]=lenTxtLine[n];
-					//lenMaxLine[n] = MAXVAL2(lenMaxLine[n],lenTxtLine[n]);
-					lenTxtLine[n] = 0;
-				}
-				j=0;	strip=0;
-			}
-			else if(*(txt+i)==*_L_){		/* _L_[0] */
-				j=0;	if(strip < MAX_STRIP_LISTtxtWIN-1) strip++;  //dac funkcjie IncrStrip() !!!!
-			}
-			else{	 j++;	 lenTxtLine[strip] += LCD_GetStrPxlWidth2(fontID,txt+i,1,space,constWidth);	}
-		}
-	}
+	if(TxtInRow==txtSeqRow)
+		LCD_LIST_TXT_len(txt,txtSeqRow, fontID,space,constWidth, lenMaxLine);
+
+//	if(TxtInRow==txtSeqRow){   //to jest max dla Row !!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//		for(i=0; i<WholeLenTxt; i++)   //max do okna dostosowany !!!!
+//		{
+//			if(*(txt+i)==*_E_){		/* end of line _E_[0] */
+//				for(int n=0; n<=strip; n++){
+//					if(lenTxtLine[n]>lenMaxLine[n]) lenMaxLine[n]=lenTxtLine[n];
+//					//lenMaxLine[n] = MAXVAL2(lenMaxLine[n],lenTxtLine[n]);
+//					lenTxtLine[n] = 0;
+//				}
+//				j=0;	strip=0;
+//			}
+//			else if(*(txt+i)==*_L_){		/* _L_[0] */
+//				j=0;	if(strip < MAX_STRIP_LISTtxtWIN-1) strip++;  //dac funkcjie IncrStrip() !!!!
+//			}
+//			else{	 j++;	 lenTxtLine[strip] += LCD_GetStrPxlWidth2(fontID,txt+i,1,space,constWidth);	}
+//		}
+//	}
 
 	StructTxtPxlLen _Txt(void){
 		uint32_t color = CONDITION(NULL==fontColorTab, fontColor, fontColorTab[strip]);
