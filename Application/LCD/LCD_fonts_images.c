@@ -3758,12 +3758,15 @@ uint16_t LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,i
 	for(int i=0; i<lenWholeTxt; i++){	  	if(*(bufTxt+i)==*_L_)  nmbrStrips++;						/* end of line _E_[0] */
 												 else if(*(bufTxt+i)==*_E_){ nmbrStrips++; break; }	}		/* _L_[0] */
 
-	uint16_t *lenActStrip = (uint16_t*)pvPortMalloc(nmbrStrips);
-	uint16_t *lenMaxStrip = (uint16_t*)pvPortMalloc(nmbrStrips);
+	uint16_t *lenActStrip = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
+	uint16_t *lenMaxStrip = (uint16_t*)pvPortMalloc(TxtInRow==arangType?nmbrStrips*sizeof(uint16_t):0);
 
-	LOOP_FOR(n,nmbrStrips) *lenMaxStrip=0;
+/*	uint16_t lenActStrip[30]={0};
+	uint16_t lenMaxStrip[30]={0};	*/
 
-	for(int i=0,strip=0,lenWholeLine; i<lenWholeTxt; i++)
+	LOOP_FOR(n,nmbrStrips){ *(lenActStrip+n)=0; *(lenMaxStrip+n)=0; }
+
+	for(int i=0,strip=0,lenWholeLine=0; i<lenWholeTxt; i++)
 	{	if(*(bufTxt+i)==*_E_)
 		{	switch((int)arangType){
 			 case TxtInSeq:
@@ -3797,7 +3800,7 @@ uint16_t LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,i
 char*  LCD_LIST_TXT_example(char* buf){
 	INIT(len,0);	INIT(lenArray,0);
 	LOOP_FOR(i,207){
-		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, "Agnieszka",	getName(LCD_ListTxtWin), "ab","cd",	GET_CODE_LINE);  				len+=lenArray; i++;
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, "Agnieszka",	"ASD", "ab","cd",	GET_CODE_LINE);  				len+=lenArray; i++;
 		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, GET_TIME_COMPILATION,	"Markiel",		 "x", "cd",	GET_CODE_LINE);  				len+=lenArray; i++;
 		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, getName(SetLenTxt2Y),	GET_DATE_COMPILATION,	 "ab","f",	GET_CODE_LINE);  	len+=lenArray;
 	}

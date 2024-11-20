@@ -1236,7 +1236,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 //	win.size.w *= LCD_GetWholeStrPxlWidth(fontID_descr,(char*)"a",0,NoConstWidth); //!!!!!!!!!!!!!!!!!!!!!
 
 	if(TakeMutex(Semphr_pLcd,100)){  //to nie moze wykonywa sie za kazdym razem !!!!!!
-		win.size.w = LCD_LIST_TXT_len(LCD_LIST_TXT_example(pCHAR_PLCD(0)),TxtInRow, fontID_descr,0,NoConstWidth, NULL);  win.size.w+=2*10;  //spaceFromFrame=10
+		win.size.w = LCD_LIST_TXT_len(LCD_LIST_TXT_example(pCHAR_PLCD(0)),TxtInSeq, fontID_descr,0,NoConstWidth, NULL);  win.size.w+=2*10;  //spaceFromFrame=10
 		GiveMutex(Semphr_pLcd);
 	}
 	//win.size.w = 331 +20; // tylko dla testu
@@ -1290,7 +1290,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
 		if(TakeMutex(Semphr_pLcd,100)){
-			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,LCD_LIST_TXT_example(pCHAR_PLCD(width*height))/*LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL)*/+_GetCurrPosTxt(),fullHight,0,fillColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
+			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,LCD_LIST_TXT_example(pCHAR_PLCD(width*height))/*LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL)*/+_GetCurrPosTxt(),fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
 			GiveMutex(Semphr_pLcd);
 		}
 		if(posTxt_temp){
@@ -1347,8 +1347,11 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			BKCOPY_VAL(frameColor_c[0],frameColor,WHITE);
 				LCD_ShapeWindow( s[k].shape,0,widthAll,heightAll, 0,0, widthAll,heightAll, SetBold2Color(frameMainColor,s[k].bold), fillMainColor,bkColor );		/* s[k].shape(0,widthAll,heightAll, 0,0, widthAll,heightAll, SetColorBoldFrame(frameColor,s[k].bold), bkColor,bkColor); */
 			BKCOPY(frameColor,frameColor_c[0]);
+
+			BKCOPY_VAL(bkColor_c[0],bkColor,fillMainColor);
 		/*	posHead.y = s[k].interSpace/2; */											StrDescr_Xmidd_Yoffs(posHead, 0, txtDescr3, colorDescr);		/* _StrDescr(k,posHead, SL(LANG_LenOffsWin), v.FONT_COLOR_Descr); */
 			posHead.y += LCD_GetFontHeight(fontID_descr)+s[k].interSpace/3;	StrDescr_Xmidd_Yoffs(posHead, 0, txtDescr4, colorDescr);
+			BKCOPY(bkColor,bkColor_c[0]);
 
 			BKCOPY_VAL(fillColor_c[0],fillColor,BrightIncr(fillColor,0xE));
 			for(int i=0; i<_NMB2KEY; ++i)

@@ -138,10 +138,11 @@ char* _Col(FONT_BKG_COLOR background, uint8_t red, uint8_t green, uint8_t blue)
 
 void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, void *step, void *minMax, char *descr, VOID_FUNCTION_TEST xfunc){
 
-	#define  _OPERAT(dataType)\
-		if(_Incr==dataAction) INCR( *((dataType*)a), *((dataType*)step), *((dataType*)minMax));\
-		if(_Decr==dataAction) DECR( *((dataType*)a), *((dataType*)step), *((dataType*)minMax));\
-		DbgVar(1,50,"\r\n%s: %d ",descr, *((dataType*)a));\
+	#define  _OPERAT(type)\
+		if(_Incr==dataAction) INCR( *((type*)a), *((type*)step), *((type*)minMax));\
+		if(_Decr==dataAction) DECR( *((type*)a), *((type*)step), *((type*)minMax));\
+		if(_float==dataType||_double==dataType) DbgVar(1,50,"\r\n%s: %s ",descr,Float2Str(*((type*)a),' ',1,Sign_none,1));\
+		else 												 DbgVar(1,50,"\r\n%s: %d ",descr, *((type*)a));\
 		if(xfunc!=NULL) xfunc(NULL,NULL);
 
 	switch((int)dataType){
@@ -159,4 +160,3 @@ void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, vo
 
 	#undef _OPERAT
 }
-
