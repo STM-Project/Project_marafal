@@ -321,7 +321,9 @@ StructTxtPxlLen LCD_StrDependOnColorsWindow(uint32_t posBuff,uint32_t BkpSizeX,u
 StructTxtPxlLen LCD_StrDependOnColorsWindowIndirect(uint32_t posBuff, int Xwin, int Ywin,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth);
 uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt);
 
-char* TEST_FUNC__LCD_ListTxtWin(char* buf, int* maxArrayInPxl,int fontID,int space,int constWidth);
+uint16_t LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrips);
+
+char* LCD_LIST_TXT_example(char* buf);
 StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow);
 
 void LCD_ResetStrMovBuffPos(void);
