@@ -12,8 +12,8 @@
 #include "LCD_Common.h"
 #include <stdbool.h>
 
-#define MAX_SIZE_TAB_AA		500
-#define MAX_LINE_BUFF_CIRCLE_SIZE  500
+#define MAX_SIZE_TAB_AA		100
+#define MAX_LINE_BUFF_CIRCLE_SIZE  100
 #define MAX_DEGREE_CIRCLE  10
 
 ALIGN_32BYTES(SDRAM uint32_t pLcd[LCD_BUFF_XSIZE*LCD_BUFF_YSIZE]);
