@@ -10,6 +10,7 @@
 #include "SCREEN_ReadPanel.h"
 
 xTaskHandle vtask_ScreensSelectLCD_Handle;
+xTaskHandle vtask_TEST_Handle;
 
 void vtask_ScreensSelectLCD(void *pvParameters)
 {
@@ -19,8 +20,31 @@ void vtask_ScreensSelectLCD(void *pvParameters)
 		vTaskDelay(20);
 	}
 }
+double bufff[10000];
+void vtask_TEST(void *pvParameters)
+{
+
+	double dd=125.0145;
+
+
+	while(1)
+	{
+		for(int i=0;i<10000;++i){
+			bufff[i] = dd*dd+(double)i*25.1236;
+		}
+		for(int i=0;i<10000;++i){
+			if(bufff[i]==125.125) bufff[i]=0.0;
+		}
+		vTaskDelay(20);
+	}
+}
 
 void Create_ScreensSelectLCD_Task(void)
 {
-	xTaskCreate(vtask_ScreensSelectLCD, (char* )"vtask_ScreensSelectLCD", 2048, NULL, (unsigned portBASE_TYPE ) 1, &vtask_ScreensSelectLCD_Handle);
+	xTaskCreate(vtask_ScreensSelectLCD, (char* )"vtask_ScreensSelectLCD", 1024, NULL, (unsigned portBASE_TYPE ) 1, &vtask_ScreensSelectLCD_Handle);
+}
+
+void Create_TEST_Task(void)
+{
+	xTaskCreate(vtask_TEST, (char* )"vtask_TEST", 4048, NULL, (unsigned portBASE_TYPE ) 7, &vtask_TEST_Handle);
 }

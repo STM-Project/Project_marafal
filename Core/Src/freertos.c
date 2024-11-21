@@ -196,6 +196,7 @@ void StartDefaultTask(void const * argument)
 
 	Create_TouchLcd_Task(); //sprawdz ustawienia w MXCUbe ustawienia freeRTOS z FP70 i wygeneruj projekt jeszcze raz
 	Create_ScreensSelectLCD_Task();
+	Create_TEST_Task();
 
 	osThreadTerminate(NULL);
 
