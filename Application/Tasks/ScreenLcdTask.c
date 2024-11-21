@@ -20,7 +20,7 @@ void vtask_ScreensSelectLCD(void *pvParameters)
 		vTaskDelay(20);
 	}
 }
-double bufff[10000];
+double bufff[100];
 void vtask_TEST(void *pvParameters)
 {
 
@@ -29,10 +29,10 @@ void vtask_TEST(void *pvParameters)
 
 	while(1)
 	{
-		for(int i=0;i<10000;++i){
+		for(int i=0;i<100;++i){
 			bufff[i] = dd*dd+(double)i*25.1236;
 		}
-		for(int i=0;i<10000;++i){
+		for(int i=0;i<100;++i){
 			if(bufff[i]==125.125) bufff[i]=0.0;
 		}
 		vTaskDelay(20);

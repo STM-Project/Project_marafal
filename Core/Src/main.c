@@ -21,6 +21,7 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
+#include "lwip.h"
 #include "usart.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -264,10 +265,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM14) {
     HAL_IncTick();
-  }
-  else if (htim->Instance == TIM7)
-  {
-	  ulHighFrequencyTimerTicks++;
   }
   /* USER CODE BEGIN Callback 1 */
 

@@ -53,13 +53,32 @@
             <include>Core\Inc</include>
             <include>FATFS\Target</include>
             <include>FATFS\App</include>
+            <include>LWIP\App</include>
+            <include>LWIP\Target</include>
+            <include>Middlewares\Third_Party\LwIP\src\include</include>
+            <include>Middlewares\Third_Party\LwIP\system</include>
+            <include>Middlewares\Third_Party\LwIP\src\include</include>
+            <include>Middlewares\Third_Party\LwIP\system</include>
             <include>Drivers\STM32F7xx_HAL_Driver\Inc</include>
             <include>Drivers\STM32F7xx_HAL_Driver\Inc\Legacy</include>
             <include>Middlewares\Third_Party\FreeRTOS\Source\include</include>
             <include>Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS</include>
             <include>Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM7\r0p1</include>
             <include>Middlewares\Third_Party\FatFs\src</include>
+            <include>Drivers\BSP\Components\lan8742</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\netif\ppp</include>
             <include>Drivers\CMSIS\Device\ST\STM32F7xx\Include</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\lwip</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\lwip\apps</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\lwip\priv</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\lwip\prot</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\netif</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\compat\posix</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\compat\posix\arpa</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\compat\posix\net</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\compat\posix\sys</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\compat\stdc</include>
+            <include>Middlewares\Third_Party\LwIP\system\arch</include>
             <include>Drivers\CMSIS\Include</include>
           </Cincludes>
           <definestoremove>
@@ -85,6 +104,9 @@
         </sourceEntry>
         <sourceEntry>
           <name>FATFS</name>
+        </sourceEntry>
+        <sourceEntry>
+          <name>LWIP</name>
         </sourceEntry>
         <sourceEntry>
           <name>Drivers</name>
