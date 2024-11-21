@@ -21,7 +21,6 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
-#include "lwip.h"
 #include "usart.h"
 
 /* Private includes ----------------------------------------------------------*/
