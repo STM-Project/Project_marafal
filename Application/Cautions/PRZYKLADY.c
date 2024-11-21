@@ -310,6 +310,13 @@ event = xEventGroupWaitBits(ALARMGroup, 0x8, pdTRUE, 0x0, 5);
 xEventGroupSetBits(ALARMGroup, ALARM_OFF);
 //############################################
 
+if (__fpclassifyd(Channels[channelNumber].totalizers[0].value) != FP_NORMAL)
+
+if (isfinite(Channels[channelNumber].minValue) == 0)
+
+	int status = f_unlink(DeleteFilePath);
+	//##############################################
+
 #endif
 
 
