@@ -34,8 +34,6 @@ extern "C" {
 
 extern TIM_HandleTypeDef htim5;
 
-extern TIM_HandleTypeDef htim7;
-
 /* USER CODE BEGIN Private defines */
 #define MEASURE_TIME_START			StartMeasureTime_us()
 #define MEASURE_TIME_STOP(str)	StopMeasureTime_us(str)
@@ -43,7 +41,6 @@ extern TIM_HandleTypeDef htim7;
 /* USER CODE END Private defines */
 
 void MX_TIM5_Init(void);
-void MX_TIM7_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 void StartMeasureTime_us(void);

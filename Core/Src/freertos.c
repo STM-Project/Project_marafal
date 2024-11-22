@@ -181,9 +181,10 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-
+	MX_CRC_Init();
 	MX_FATFS_Init();
 	//MX_LWIP_Init();
+
 	DEBUG_Init();
 
 	if(BSP_TS_Init(LCD_GetXSize(), LCD_GetYSize()))
