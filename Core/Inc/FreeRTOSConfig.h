@@ -145,9 +145,9 @@ standard names. */
 /* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
 
-#define  configGENERATE_RUN_TIME_STATS 	1
-#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()   MX_TIM7_Init()
-#define portGET_RUN_TIME_COUNTER_VALUE()           ulHighFrequencyTimerTicks
+
+
+
 
 #define traceTASK_SWITCHED_IN()  extern void StartIdleMonitor(void); \
                                      StartIdleMonitor()

@@ -29,7 +29,6 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-extern volatile unsigned long ulHighFrequencyTimerTicks;
 
 /* USER CODE END Includes */
 

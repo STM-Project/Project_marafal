@@ -23,8 +23,6 @@
 /* USER CODE BEGIN 0 */
 #include "debug.h"
 
-volatile unsigned long ulHighFrequencyTimerTicks = 0;
-
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim5;
