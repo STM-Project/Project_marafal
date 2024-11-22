@@ -36,6 +36,7 @@
 #include "stmpe811.h"
 #include "touch.h"
 #include "timer.h"
+#include "lwip.h"
 
 /* USER CODE END Includes */
 

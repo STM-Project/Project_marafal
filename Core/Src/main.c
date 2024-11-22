@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "crc.h"
 #include "fatfs.h"
 #include "usart.h"
 
@@ -33,6 +34,7 @@
 #include "dma2d.h"
 #include "ltdc.h"
 #include "tim.h"
+#include "stdlib.h"
 
 /* USER CODE END Includes */
 
@@ -43,6 +45,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define _INIT_SRAND(i)     9348512+i
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -123,8 +126,15 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
   HARDWARE_Init();
+
+	srand(_INIT_SRAND(3));		/* Call this before osKernelStart() */
+
+
+
+
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
