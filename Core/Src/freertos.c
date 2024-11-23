@@ -181,9 +181,9 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-	MX_CRC_Init();
+	//MX_CRC_Init();
 	MX_FATFS_Init();
-	//MX_LWIP_Init();
+	MX_LWIP_Init();		/* LAN8742: When nINTSEL is floated or pulled to VDD2A, nINT is selected for operation on the nINT/REFCLKO pin (default). •When nINTSEL is pulled low to VSS, REFCLKO is selected for operation on the nINT/REFCLKO pin. */
 
 	DEBUG_Init();
 

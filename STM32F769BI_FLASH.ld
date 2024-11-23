@@ -61,9 +61,11 @@ _Min_Stack_Size = 0x4000; /* required amount of stack */
 /* Specify the memory areas */
 MEMORY
 {
-RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 512K
+RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 512K  /*499K*/
 FLASH (rx)      : ORIGIN = 0x00200000, LENGTH = 2048K
 SDRAM (rwx)	   : ORIGIN = 0xC0000000, LENGTH = 0xE89000 /* SDRAM minus pamiec graficzna na DMA LCD 800x480 */
+ /*Memory_B1(xrw)   : ORIGIN = 0x2007C000, LENGTH = 0xA0 */
+/* Memory_B2(xrw)   : ORIGIN = 0x2007C0A0, LENGTH = 0xA0 */
 }
 
 /* Define output sections */
@@ -183,6 +185,7 @@ SECTIONS
   . = ALIGN(4);
   } >SDRAM
 
+
   /* Remove information from the standard libraries */
   /DISCARD/ :
   {
@@ -192,6 +195,9 @@ SECTIONS
   }
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
+
+  /*  .RxDecripSection (NOLOAD) : { *(.RxDescripSection) } >Memory_B1  */
+   /*.TxDescripSection (NOLOAD) : { *(.DMATxDscrTab_section) } >Memory_B2   */
 }
 
 
