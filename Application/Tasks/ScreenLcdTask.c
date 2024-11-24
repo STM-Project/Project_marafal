@@ -61,8 +61,10 @@ void Create_TEST_Task(void)
 #include "tcpip.h"
 
 #include "dhcp.h"
-#include "debug.h"
+//#include "debug.h"
 #include "tcp.h"
+#include "string.h"
+extern void Dbg(int on, char *txt);  //kesli tylko chcesz jedna funkcje to daj extern a nie caly uinclude !!!!!!!!!!!!!!!!
 
 void http_server_serve(struct netconn *conn)
 {
