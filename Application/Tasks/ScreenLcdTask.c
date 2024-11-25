@@ -66,6 +66,10 @@ void Create_TEST_Task(void)
 #include "string.h"
 extern void Dbg(int on, char *txt);  //kesli tylko chcesz jedna funkcje to daj extern a nie caly uinclude !!!!!!!!!!!!!!!!
 
+SDRAM char pLcd6[1000000];
+#include "ff.h"
+#include "sd_card.h"
+
 void http_server_serve(struct netconn *conn)
 {
   struct netbuf *inbuf;
@@ -97,17 +101,18 @@ void http_server_serve(struct netconn *conn)
 //      	{
 //      		dbg(" Clear ");
 //    		      STARTUP_ClaerBits(0x0002);
-//
-//                   SDCardFileOpen(0,"aaa.htm",FA_READ);
-//          	      SDCardFileRead(0, pLcd6, 500000, &len);
-//          		 SDCardFileClose(0);
-//
-//      		STARTUP_SetBits(0x0002);   dbg(" Set ");
-//
-//      		netconn_write(conn, pLcd6,len, NETCONN_NOCOPY);
+
+                   SDCardFileOpen(0,"aaa.htm",FA_READ);
+          	      int len = SDCardFileRead(0, pLcd6, 500000);
+          		 SDCardFileClose(0);
+
+      		//STARTUP_SetBits(0x0002);
+          		Dbg(1," Set ");
+
+      		netconn_write(conn, pLcd6,len, NETCONN_NOCOPY);
 //      	}
 //      	else
-      		netconn_write(conn, "1234567890",10, NETCONN_NOCOPY);
+//      		netconn_write(conn, "1234567890",10, NETCONN_NOCOPY);
 
 
 
