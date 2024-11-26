@@ -66,7 +66,7 @@ void Create_TEST_Task(void)
 #include "string.h"
 extern void Dbg(int on, char *txt);  //kesli tylko chcesz jedna funkcje to daj extern a nie caly uinclude !!!!!!!!!!!!!!!!
 
-SDRAM char pLcd6[1000000];
+SDRAM char pLcd6[1000000];  //zamist tego daj fontBuffer SetVal()  !!!!!
 #include "ff.h"
 #include "sd_card.h"
 

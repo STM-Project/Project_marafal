@@ -3779,21 +3779,25 @@ uint16_t LCD_LIST_TXT_nmbStripsInLine(GET_SET act, char* bufTxt, int* lenBufTxt)
 	default:
 		if(NULL!=lenBufTxt) *lenBufTxt=lenWholeTxt;
 		return nmbrStrips;
-		break;
 	}
 }
 
-uint16_t LCD_LIST_TXT_lenLineInPxl(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrip)
+StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrip)
 {
-	static uint16_t lenMaxWholeLine=0;  /* value depended on 'arangType' */
-
-	if(TxtInRow==arangType && NULL==lenMaxStrip) return lenMaxWholeLine;
-
+	StructTxtPxlLen len={0};
+	uint16_t lenMaxWholeLine=0;  /* value depended on 'arangType' */
 	int lenWholeTxt=0;
 	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_CALC,bufTxt,&lenWholeTxt);
 	uint16_t *lenActStrip = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
+	uint16_t *lenMaxStrip_= NULL;
 
-	LOOP_FOR(n,nmbrStrips){ *(lenActStrip+n)=0; *(lenMaxStrip+n)=0; }
+	LOOP_FOR(n,nmbrStrips){ *(lenActStrip+n)=0; }
+
+	if(TxtInRow==arangType){
+		if(NULL==lenMaxStrip) lenMaxStrip_=(uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
+		else						 lenMaxStrip_=lenMaxStrip;
+		LOOP_FOR(n,nmbrStrips){ *(lenMaxStrip_+n)=0; }
+	}
 
 	for(int i=0,strip=0,lenWholeLine=0; i<lenWholeTxt; i++)
 	{	if(*(bufTxt+i)==*_E_)
@@ -3804,7 +3808,7 @@ uint16_t LCD_LIST_TXT_lenLineInPxl(char* bufTxt, TEXT_ARRANGEMENT arangType, int
 				lenWholeLine=0;
 				break;
 			 case TxtInRow:
-				 LOOP_FOR(n,nmbrStrips){ if(lenActStrip[n]>lenMaxStrip[n]) lenMaxStrip[n]=lenActStrip[n]; }
+				 LOOP_FOR(n,nmbrStrips){ if(lenActStrip[n]>lenMaxStrip_[n]) lenMaxStrip_[n]=lenActStrip[n]; }
 				break;
 			}
 			LOOP_FOR(n,nmbrStrips) lenActStrip[n]=0;
@@ -3815,11 +3819,15 @@ uint16_t LCD_LIST_TXT_lenLineInPxl(char* bufTxt, TEXT_ARRANGEMENT arangType, int
 		}
 		else lenActStrip[strip]+=LCD_GetStrPxlWidth2(fontID,bufTxt+i,1,space,constWidth);
 	}
-	if(TxtInRow==arangType){	LOOP_FOR(n,nmbrStrips) lenMaxWholeLine+=lenMaxStrip[n];	}
+	if(TxtInRow==arangType){	LOOP_FOR(n,nmbrStrips) lenMaxWholeLine+=lenMaxStrip_[n];	}
 
 	vPortFree(lenActStrip);
-	vPortFree(lenMaxStrip);
-	return lenMaxWholeLine;
+	if(TxtInRow==arangType && NULL==lenMaxStrip) vPortFree(lenMaxStrip_);
+
+	len.inPixel = lenMaxWholeLine;
+	len.inChar = lenWholeTxt;
+	len.height = nmbrStrips;
+	return len;
 }
 
 StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow)
@@ -3828,14 +3836,15 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 	StructTxtPxlLen len={0};
 	int lenTxt=0, nrLine=0, j=0,i=0, strip=0;
 	char *ptr=txt;
-	int WholeLenTxt= 0;
-	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_GET,NULL,&WholeLenTxt);
-	uint16_t *lenMaxLine = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
+	int WholeLenTxt=0;
+	uint16_t *lenMaxLine=NULL;
+	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_CALC,txt,&WholeLenTxt);		/* LCD_LIST_TXT_nmbStripsInLine(_GET,NULL,&WholeLenTxt) */
 
-	LOOP_FOR(n,nmbrStrips){ *(lenMaxLine+n)=0; }
-
-	if(TxtInRow==txtSeqRow)
-		LCD_LIST_TXT_lenLineInPxl(txt,txtSeqRow, fontID,space,constWidth, lenMaxLine);
+	if(TxtInRow==txtSeqRow){
+		lenMaxLine = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
+		LOOP_FOR(n,nmbrStrips){ *(lenMaxLine+n)=0; }
+		LCD_LIST_TXT_len(txt,txtSeqRow, fontID,space,constWidth, lenMaxLine);
+	}
 
 	StructTxtPxlLen _Txt(void){
 		uint32_t color = CONDITION(NULL==fontColorTab, fontColor, fontColorTab[strip]);
@@ -3844,6 +3853,8 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 		else 						  {	calcPosX= lenTxt; }
 		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+calcPosX,SetLenTxt2Y(Ypos+CURRENT_Y,j), ptr, OnlyDigits,space,bkColor,color,maxVal,constWidth);
 	}
+
+	StructTxtPxlLen _ReturnFunc(void){	 if(TxtInRow==txtSeqRow) vPortFree(lenMaxLine);		return len; }
 
 	strip=0; j=0;
 	for(i=0; i<WholeLenTxt; i++)
@@ -3855,7 +3866,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 			lenTxt=0;
 			strip=0;
 			nrLine++;
-			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return len; }
+			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return _ReturnFunc(); }
 		}
 		else if(*(txt+i)==*_L_)		/* _L_[0] */
 		{
@@ -3863,13 +3874,13 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 			ptr=(txt+i+1);
 			lenTxt+=len.inPixel;
 			if(strip < MAX_STRIP_LISTtxtWIN-1) strip++;
-			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return len; }
+			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return _ReturnFunc(); }
 		}
 		else j++;
 	}
 
 	len.inChar=0;
-	return len;
+	return _ReturnFunc();
 	#undef CURRENT_Y
 }
 
