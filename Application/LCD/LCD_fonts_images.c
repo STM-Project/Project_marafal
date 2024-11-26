@@ -10,7 +10,6 @@
 #include <stdbool.h>
 #include "LCD_Common.h"
 #include "LCD_Hardware.h"
-#include "common.h"
 #include "ff.h"
 #include "sd_card.h"
 #include "errors_service.h"
@@ -3749,20 +3748,50 @@ uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt){
 	return ((posY&0xFFFF) | lenTxt<<16);
 }
 
-uint16_t LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrips)
+
+
+
+
+
+
+char*  LCD_LIST_TXT_example(char* buf){
+	INIT(len,0);	INIT(lenArray,0);
+	LOOP_FOR(i,207){
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, "Agnieszka",	"ASD", "ab","cd",	GET_CODE_LINE);  				len+=lenArray; i++;
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, GET_TIME_COMPILATION,	"Markiel",		 "x", "cd",	GET_CODE_LINE);  				len+=lenArray; i++;
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, getName(SetLenTxt2Y),	GET_DATE_COMPILATION,	 "ab","f",	GET_CODE_LINE);  	len+=lenArray;
+	}
+	return buf;
+}
+
+uint16_t LCD_LIST_TXT_nmbStripsInLine(GET_SET act, char* bufTxt, int* lenBufTxt){
+	static int 		 lenWholeTxt= 0;
+	static uint16_t nmbrStrips	= 0;
+	switch((int)act){
+	case _CALC:
+		lenWholeTxt= strlen(bufTxt);
+		nmbrStrips = 0;
+		for(int i=0; i<lenWholeTxt; i++){	  	if(*(bufTxt+i)==*_L_)  nmbrStrips++;						/* end of line _E_[0] */
+													 else if(*(bufTxt+i)==*_E_){ nmbrStrips++; break; }	}		/* _L_[0] */
+		if(NULL!=lenBufTxt) *lenBufTxt=lenWholeTxt;
+		return nmbrStrips;
+	case _GET:
+	default:
+		if(NULL!=lenBufTxt) *lenBufTxt=lenWholeTxt;
+		return nmbrStrips;
+		break;
+	}
+}
+
+uint16_t LCD_LIST_TXT_lenLineInPxl(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrip)
 {
-	uint16_t lenMaxWholeLine=0;  /* value depended on 'arangType' */
-	int lenWholeTxt= strlen(bufTxt);
-	int nmbrStrips=0;
+	static uint16_t lenMaxWholeLine=0;  /* value depended on 'arangType' */
 
-	for(int i=0; i<lenWholeTxt; i++){	  	if(*(bufTxt+i)==*_L_)  nmbrStrips++;						/* end of line _E_[0] */
-												 else if(*(bufTxt+i)==*_E_){ nmbrStrips++; break; }	}		/* _L_[0] */
+	if(TxtInRow==arangType && NULL==lenMaxStrip) return lenMaxWholeLine;
 
+	int lenWholeTxt=0;
+	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_CALC,bufTxt,&lenWholeTxt);
 	uint16_t *lenActStrip = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
-	uint16_t *lenMaxStrip = (uint16_t*)pvPortMalloc(TxtInRow==arangType?nmbrStrips*sizeof(uint16_t):0);
-
-/*	uint16_t lenActStrip[30]={0};
-	uint16_t lenMaxStrip[30]={0};	*/
 
 	LOOP_FOR(n,nmbrStrips){ *(lenActStrip+n)=0; *(lenMaxStrip+n)=0; }
 
@@ -3786,58 +3815,27 @@ uint16_t LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,i
 		}
 		else lenActStrip[strip]+=LCD_GetStrPxlWidth2(fontID,bufTxt+i,1,space,constWidth);
 	}
-	if(TxtInRow==arangType){
-		if(NULL!=lenMaxStrips){ LOOP_FOR(n,nmbrStrips) *(lenMaxStrips+n)=lenMaxStrip[n]; }
-									   LOOP_FOR(n,nmbrStrips)  lenMaxWholeLine+=lenMaxStrip[n];
-	}
+	if(TxtInRow==arangType){	LOOP_FOR(n,nmbrStrips) lenMaxWholeLine+=lenMaxStrip[n];	}
+
 	vPortFree(lenActStrip);
 	vPortFree(lenMaxStrip);
 	return lenMaxWholeLine;
 }
 
-
-
-char*  LCD_LIST_TXT_example(char* buf){
-	INIT(len,0);	INIT(lenArray,0);
-	LOOP_FOR(i,207){
-		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, "Agnieszka",	"ASD", "ab","cd",	GET_CODE_LINE);  				len+=lenArray; i++;
-		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, GET_TIME_COMPILATION,	"Markiel",		 "x", "cd",	GET_CODE_LINE);  				len+=lenArray; i++;
-		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, getName(SetLenTxt2Y),	GET_DATE_COMPILATION,	 "ab","f",	GET_CODE_LINE);  	len+=lenArray;
-	}
-	return buf;
-}
-
 StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow)
 {
-	#define CURRENT_Y	 nrLine*len.height   //bkColor nie dopasowany sprawdzic !!! !!!
+	#define CURRENT_Y	 nrLine*len.height
 	StructTxtPxlLen len={0};
 	int lenTxt=0, nrLine=0, j=0,i=0, strip=0;
 	char *ptr=txt;
-	//uint16_t lenTxtLine[MAX_STRIP_LISTtxtWIN]={0};
-	uint16_t lenMaxLine[MAX_STRIP_LISTtxtWIN]={0};
+	int WholeLenTxt= 0;
+	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_GET,NULL,&WholeLenTxt);
+	uint16_t *lenMaxLine = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
 
-	int WholeLenTxt= strlen(txt);
+	LOOP_FOR(n,nmbrStrips){ *(lenMaxLine+n)=0; }
 
 	if(TxtInRow==txtSeqRow)
-		LCD_LIST_TXT_len(txt,txtSeqRow, fontID,space,constWidth, lenMaxLine);
-
-//	if(TxtInRow==txtSeqRow){   //to jest max dla Row !!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//		for(i=0; i<WholeLenTxt; i++)   //max do okna dostosowany !!!!
-//		{
-//			if(*(txt+i)==*_E_){		/* end of line _E_[0] */
-//				for(int n=0; n<=strip; n++){
-//					if(lenTxtLine[n]>lenMaxLine[n]) lenMaxLine[n]=lenTxtLine[n];
-//					//lenMaxLine[n] = MAXVAL2(lenMaxLine[n],lenTxtLine[n]);
-//					lenTxtLine[n] = 0;
-//				}
-//				j=0;	strip=0;
-//			}
-//			else if(*(txt+i)==*_L_){		/* _L_[0] */
-//				j=0;	if(strip < MAX_STRIP_LISTtxtWIN-1) strip++;  //dac funkcjie IncrStrip() !!!!
-//			}
-//			else{	 j++;	 lenTxtLine[strip] += LCD_GetStrPxlWidth2(fontID,txt+i,1,space,constWidth);	}
-//		}
-//	}
+		LCD_LIST_TXT_lenLineInPxl(txt,txtSeqRow, fontID,space,constWidth, lenMaxLine);
 
 	StructTxtPxlLen _Txt(void){
 		uint32_t color = CONDITION(NULL==fontColorTab, fontColor, fontColorTab[strip]);
@@ -3864,7 +3862,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 			j++;	 len =_Txt();	 j=0;
 			ptr=(txt+i+1);
 			lenTxt+=len.inPixel;
-			if(strip < MAX_STRIP_LISTtxtWIN-1) strip++;  //dac funkcjie IncrStrip() !!!!
+			if(strip < MAX_STRIP_LISTtxtWIN-1) strip++;
 			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return len; }
 		}
 		else j++;
