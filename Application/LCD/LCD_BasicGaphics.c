@@ -16,7 +16,7 @@
 #define MAX_LINE_BUFF_CIRCLE_SIZE  100
 #define MAX_DEGREE_CIRCLE  10
 
-ALIGN_32BYTES(SDRAM uint32_t pLcd[LCD_BUFF_XSIZE*LCD_BUFF_YSIZE]);
+ALIGN_32BYTES(uint32_t pLcd[LCD_BUFF_XSIZE*LCD_BUFF_YSIZE] __attribute__ ((section(".STemWinMemory"))));
 
 static uint32_t k, kCopy;
 static uint32_t buff_AA[MAX_SIZE_TAB_AA];  //sprawdzic czy czasem nie za duzo MAX_SIZE_TAB_AA!!!!

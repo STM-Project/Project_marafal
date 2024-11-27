@@ -185,6 +185,14 @@ SECTIONS
   . = ALIGN(4);
   } >SDRAM
 
+  
+  .STemWinMemory (NOLOAD) :
+  {
+  . = ALIGN(4);
+  	*(.STemWinMemory)
+  	*(.STemWinMemory*)
+  . = ALIGN(4);
+  } >SDRAM 
 
   /* Remove information from the standard libraries */
   /DISCARD/ :
