@@ -52,27 +52,22 @@ void Create_TEST_Task(void)
 
 
 
-
+/* ---------------- HTTP ---------------- */
 #define WEBSERVER_THREAD_PRIO    ( tskIDLE_PRIORITY + 4 )
 
 #include "api.h"
 #include "netif.h"
 #include "ethernetif.h"
 #include "tcpip.h"
-
 #include "dhcp.h"
-//#include "debug.h"
 #include "tcp.h"
 #include "string.h"
-extern void Dbg(int on, char *txt);  //kesli tylko chcesz jedna funkcje to daj extern a nie caly uinclude !!!!!!!!!!!!!!!!
-
-//char pLcd6[180000];  //zamist tego daj fontBuffer SetVal()  !!!!!
 #include "ff.h"
 #include "sd_card.h"
-
-extern char* GETVAL_ptr();
-
 #include "timer.h"
+
+extern void Dbg(int on, char *txt);
+extern char* GETVAL_ptr();
 
 void http_server_serve(struct netconn *conn)
 {
@@ -156,17 +151,17 @@ static void http_server_netconn_thread(void *arg)
 {
   struct netconn *conn, *newconn;
   err_t err, accept_err;
-Dbg(1,"sssss");
+
   /* Create a new TCP connection handle */
   conn = netconn_new(NETCONN_TCP);
 
   if (conn!= NULL)
-  {Dbg(1,"AAAAAAA");
+  {
     /* Bind to port 80 (HTTP) with default IP address */
     err = netconn_bind(conn, NULL, 80);
 
     if (err == ERR_OK)
-    { Dbg(1,"dddddddddddddddddd");
+    {
       /* Put the connection into LISTEN state */
       netconn_listen(conn);
 
@@ -187,8 +182,8 @@ Dbg(1,"sssss");
   }
 }
 
-
 void http_server_netconn_init(void)
 {
 	sys_thread_new("HTTP", http_server_netconn_thread, NULL, 1200, WEBSERVER_THREAD_PRIO);
 }
+/* -------------END HTTP ---------------- */
