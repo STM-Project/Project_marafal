@@ -15,6 +15,7 @@
 #include "errors_service.h"
 #include "debug.h"
 #include "mini_printf.h"
+#include "timer.h"
 
 #define MAX_FONTS_AND_IMAGES_MEMORY_SIZE	0x600000
 #define LCD_MOVABLE_FONTS_BUFF_SIZE		LCD_BUFF_XSIZE * LCD_BUFF_YSIZE
@@ -1398,13 +1399,17 @@ static uint8_t* LCD_GetStructSpaceCount(void){
 	return &StructSpaceCount;
 }
 static int ReadSpacesBetweenFontsFromSDcard(void){
-	if(FR_OK==SDCardFileOpen(0,"Spaces_Between_Font.bin",FA_READ)){
-		SDCardFileRead(0,(char*)LCD_GetStructSpaceCount(),1);
-		SDCardFileRead(0,(char*)LCD_GetPtr2SpacesBetweenFontsStruct(),LCD_GetSpacesBetweenFontsStructSize());
-		SDCardFileClose(0);
-		return 0;
+	if(TakeMutex(Semphr_cardSD,1000)){
+		if(FR_OK==SDCardFileOpen(0,"Spaces_Between_Font.bin",FA_READ)){
+			SDCardFileRead(0,(char*)LCD_GetStructSpaceCount(),1);
+			SDCardFileRead(0,(char*)LCD_GetPtr2SpacesBetweenFontsStruct(),LCD_GetSpacesBetweenFontsStructSize());
+			SDCardFileClose(0);
+			GiveMutex(Semphr_cardSD);
+			return 0;
+		}
+		else{ GiveMutex(Semphr_cardSD); return 1; }
 	}
-	else return 1;
+	return 2;
 }
 
 /* ------------ Global Declarations ------------ */
@@ -3254,17 +3259,20 @@ char* LCD_DisplayRemeberedSpacesBetweenFonts(int param, char* buff, int* maxArra
 		return buff;
 }}
 void LCD_WriteSpacesBetweenFontsOnSDcard(void){
-	SDCardFileOpen(0,"Spaces_Between_Font.bin",FA_CREATE_ALWAYS|FA_WRITE);
-	SDCardFileWrite(0,(char*)LCD_GetStructSpaceCount(),1);
-	SDCardFileWrite(0,(char*)LCD_GetPtr2SpacesBetweenFontsStruct(),LCD_GetSpacesBetweenFontsStructSize());
-	SDCardFileClose(0);
+	if(TakeMutex(Semphr_cardSD,1000)){
+		SDCardFileOpen(0,"Spaces_Between_Font.bin",FA_CREATE_ALWAYS|FA_WRITE);
+		SDCardFileWrite(0,(char*)LCD_GetStructSpaceCount(),1);
+		SDCardFileWrite(0,(char*)LCD_GetPtr2SpacesBetweenFontsStruct(),LCD_GetSpacesBetweenFontsStructSize());
+		SDCardFileClose(0);
+		GiveMutex(Semphr_cardSD);
+	}
 }
 void LCD_ResetSpacesBetweenFonts(void){
 	LCD_StartInsertingSpacesBetweenFonts();
 	LCD_WriteSpacesBetweenFontsOnSDcard();
 }
 void LCD_SetSpacesBetweenFonts(void){
-	if(ReadSpacesBetweenFontsFromSDcard())
+	if(1==ReadSpacesBetweenFontsFromSDcard())
 		LCD_StartInsertingSpacesBetweenFonts();
 }
 

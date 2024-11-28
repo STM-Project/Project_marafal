@@ -833,30 +833,35 @@ static void FONTS_LCD_ResetParam(void)
 
 static void LCD_LoadFontVar(void)
 {
-	if(v.FONT_ID_Fonts == FILE_NAME(GetDefaultParam)(FONT_ID_Fonts))
-		LCD_DeleteFont(FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
-
-	StartMeasureTime(0);
-	switch(Test.type)
+	if(TakeMutex(Semphr_cardSD,1000))
 	{
-	case 0:
-	case 1:
-		v.FONT_ID_Fonts = LCD_LoadFont_DarkgrayGreen(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
-		break;
-	case 2:
-		v.FONT_ID_Fonts = LCD_LoadFont_DarkgrayWhite(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
-		break;
-	case 3:
-		v.FONT_ID_Fonts = LCD_LoadFont_WhiteBlack(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
-		break;
-	}
-	Test.loadFontTime=StopMeasureTime(0,"");
+		if(v.FONT_ID_Fonts == FILE_NAME(GetDefaultParam)(FONT_ID_Fonts))
+			LCD_DeleteFont(FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
 
-	if(v.FONT_ID_Fonts<0){
-		Dbg(1,"\r\nERROR_LoadFontVar ");
-		v.FONT_ID_Fonts=0;
+		StartMeasureTime(0);
+		switch(Test.type)
+		{
+		case 0:
+		case 1:
+			v.FONT_ID_Fonts = LCD_LoadFont_DarkgrayGreen(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
+			break;
+		case 2:
+			v.FONT_ID_Fonts = LCD_LoadFont_DarkgrayWhite(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
+			break;
+		case 3:
+			v.FONT_ID_Fonts = LCD_LoadFont_WhiteBlack(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
+			break;
+		}
+		Test.loadFontTime=StopMeasureTime(0,"");
+
+		if(v.FONT_ID_Fonts<0){
+			Dbg(1,"\r\nERROR_LoadFontVar ");
+			v.FONT_ID_Fonts=0;
+		}
+		DisplayFontsStructState();
+
+		GiveMutex(Semphr_cardSD);
 	}
-	DisplayFontsStructState();
 }
 
 static void AdjustMiddle_X(void){
@@ -1750,15 +1755,22 @@ void FILE_NAME(debugRcvStr)(void)
 }}
 
 static void LoadFonts(int startFontID, int endFontID){
-	#define OMITTED_FONTS	1	/*this define delete for another screens*/
-	#define A(x)	 *((int*)((int*)(&v)+x))
+	if(TakeMutex(Semphr_cardSD,1000))
+	{
+		#define OMITTED_FONTS	1	/*this define delete for another screens*/
+		#define A(x)	 *((int*)((int*)(&v)+x))
 
-	int d = endFontID-startFontID + 1 + OMITTED_FONTS;
-	int j=0;
+		int d = endFontID-startFontID + 1 + OMITTED_FONTS;
+		int j=0;
 
-	for(int i=startFontID; i<=endFontID; ++i){
-		*((int*)((int*)(&v)+i)) = LCD_LoadFont_DependOnColors( A(j),A(j+d),A(j+3*d),A(j+2*d), FILE_NAME(GetDefaultParam)(i));
-		j++;
+		for(int i=startFontID; i<=endFontID; ++i){
+			*((int*)((int*)(&v)+i)) = LCD_LoadFont_DependOnColors( A(j),A(j+d),A(j+3*d),A(j+2*d), FILE_NAME(GetDefaultParam)(i));
+			j++;
+		}
+
+		GiveMutex(Semphr_cardSD);
+		#undef OMITTED_FONTS
+		#undef A
 	}
 /*
 	v.FONT_ID_Title 	 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Title),	  	FILE_NAME(GetDefaultParam)(FONT_ID_Title));

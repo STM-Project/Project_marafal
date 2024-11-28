@@ -69,7 +69,7 @@ int SDCardFileClose(uint8_t id)
 }
 
 int SDCardFilePosition(uint8_t id, uint32_t offset)  // Warunek: wsk >= 4 !!!
-{//	while((wsk%4)!=0)  //wyrównanie do 4bajtów dla odczytu SDRAM
+{//	while((wsk%4)!=0)  //wyrï¿½wnanie do 4bajtï¿½w dla odczytu SDRAM
 	//		wsk--;
 	FRESULT result=f_lseek(&myFile[id], offset);
 	if(FR_OK!=result)
@@ -79,13 +79,13 @@ int SDCardFilePosition(uint8_t id, uint32_t offset)  // Warunek: wsk >= 4 !!!
 
 int SDCardOpenFileSize(uint8_t id)
 {
-	return f_size(&myFile[id]);
+	return f_size(&myFile[id]);			/* f_size(&MyFile[id]) only after f_open */
 }
 
 int SDCardFileInfo(char *name, uint32_t *fileSize)
 {
 	FILINFO plikInfo;
-	FRESULT result=f_stat(name, &plikInfo);   //f_size(&MyFile[id]); tylko gdy plik jest otwarty funkcj¹ f_open()
+	FRESULT result=f_stat(name, &plikInfo);
 	if(FR_OK!=result)
 		ERROR_SDcardInfo((int)result);
 	else

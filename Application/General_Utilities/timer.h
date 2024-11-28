@@ -13,7 +13,8 @@
 
 typedef enum{
 	Semphr_pLcd,
-	Semphr_fontImg
+	Semphr_fontImg,
+	Semphr_cardSD
 }SEMPHR_ID;
 
 typedef enum{
@@ -43,7 +44,9 @@ typedef enum{
 
 void 		InitAllMutex (void);
 uint32_t TakeMutex	 (SEMPHR_ID ID, uint32_t timeout);
+uint32_t TakeMutex2	 (SEMPHR_ID ID1,SEMPHR_ID ID2, uint32_t timeout);
 void 		GiveMutex	 (SEMPHR_ID ID);
+void 		GiveMutex2	 (SEMPHR_ID ID1,SEMPHR_ID ID2);
 
 void AllTimeReset(void);
 void TimeReset(int nrTime);
