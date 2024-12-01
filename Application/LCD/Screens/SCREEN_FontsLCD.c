@@ -1779,6 +1779,7 @@ void FILE_NAME(debugRcvStr)(void)
 		 	 	 	 	 "\r\nR4   = 0x%x"
 						 "\r\n",	a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11);
 
+		// odczytuje adresy poprzednie bez tego miejsca PC w ktorym teraz jest bo to soboie odczyta przez __LINE___!!!!!
 		LOOP_FOR2(i,j,16*16) //sprobuj zwiekszac wielkosc 4*16 na np 30*16 do max SIZE RAM !!!
 		{
 			if(IS_RANGE(*(Read_Ptr+i),FLASH_ADDR_START,FLASH_ADDR_STOP))

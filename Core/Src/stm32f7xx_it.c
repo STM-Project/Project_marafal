@@ -88,13 +88,29 @@ void NMI_Handler(void)
   }
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
+#include "common.h"
 
+uint32_t bu123[30]={0};
 /**
   * @brief This function handles Hard fault interrupt.
   */
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
+	uint32_t *Read_Ptr = (uint32_t*)__get_PSP();
+
+	LOOP_FOR2(i,j,32*16) //sprobuj zwiekszac wielkosc 4*16 na np 30*16 do max SIZE RAM !!!
+	{
+		if(IS_RANGE(*(Read_Ptr+i),FLASH_ADDR_START,FLASH_ADDR_START+0x5c000))
+		{
+			//DbgVar(1,30,"addr%d = 0x%x\r\n",++j,*(Read_Ptr+i));
+			bu123[j++] = *(Read_Ptr+i);
+
+		}
+
+	}
+
+
 	ERROR_HardFaulHandler();
   /* USER CODE END HardFault_IRQn 0 */
   while (1)

@@ -1299,6 +1299,13 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 				posTxtTab[++i_posTxtTab]= _GetCurrPosTxt();
 		}
 
+
+
+		DbgVar(1,260,"\r\n0x%x",*((uint32_t*)0x2007FFFF));  // wywoluje HARDfault !!!!
+
+
+
+
 		LCD_TOUCH_SusspendTouch(touchAction2);
 		LCD_TOUCH_SusspendTouch(touchAction2+1);
 
