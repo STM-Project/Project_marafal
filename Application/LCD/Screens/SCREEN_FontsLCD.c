@@ -1747,6 +1747,54 @@ void FILE_NAME(debugRcvStr)(void)
 		*ppMain=(int*)FRAMES_GROUP_separat;
 		FILE_NAME(main)(LoadUserScreen,(char**)ppMain);
 
+
+
+
+
+		//https://onlinedocs.microchip.com/oxy/GUID-199548F4-607C-436B-80C7-E4F280C1CAD2-en-US-1/GUID-63D8293D-F987-46D4-A318-4BBEFB6BC02A.html
+		uint32_t *Read_Ptr = (uint32_t*)__get_PSP();   //wyswietl strukture rejestrow all!!!!
+		uint32_t a1 = __get_R15();
+		uint32_t a2 = __get_LR();
+		uint32_t a3 = __get_PSP();
+		uint32_t a4 = __get_MSP();
+		uint32_t a5 = __get_xPSR();
+		uint32_t a6 = __get_APSR();
+		uint32_t a7 = __get_R0();
+		uint32_t a8 = __get_R1();
+		uint32_t a9 = __get_R2();
+		uint32_t a10 = __get_R3();
+		uint32_t a11 = __get_R4();
+
+		DbgVar(1,330,"\r\n%s:",GET_CODE_FUNCTION);
+		DbgVar(1,330,"\r\nPC   = 0x%x"
+						 "\r\nLR   = 0x%x"
+				 	 	 "\r\nPSP  = 0x%x"
+						 "\r\nMSP  = 0x%x"
+						 "\r\nxPSR = 0x%x"
+						 "\r\nAPSR = 0x%x"
+				 	 	 "\r\nR0   = 0x%x"
+		 	 	 	 	 "\r\nR1   = 0x%x"
+		 	 	 	 	 "\r\nR2   = 0x%x"
+		 	 	 	 	 "\r\nR3   = 0x%x"
+		 	 	 	 	 "\r\nR4   = 0x%x"
+						 "\r\n",	a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11);
+
+		LOOP_FOR2(i,j,16*16) //sprobuj zwiekszac wielkosc 4*16 na np 30*16 do max SIZE RAM !!!
+		{
+			if(IS_RANGE(*(Read_Ptr+i),FLASH_ADDR_START,FLASH_ADDR_STOP))
+			{
+				DbgVar(1,30,"addr%d = 0x%x\r\n",++j,*(Read_Ptr+i));
+
+			}
+
+		}
+
+
+		DbgVar(1,260,"\r\n0x%x",*((uint32_t*)0x2007FFFF));  // wywoluje HARDfault !!!!
+
+		asm("nop");
+
+
 	}
 	//- Zrobic szablon na TEST SHAPE -------!!!!
 

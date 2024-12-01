@@ -1235,10 +1235,10 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 //	}
 //	win.size.w *= LCD_GetWholeStrPxlWidth(fontID_descr,(char*)"a",0,NoConstWidth); //!!!!!!!!!!!!!!!!!!!!!
 
-	//if(TakeMutex(Semphr_pLcd,100)){  //to nie moze wykonywa sie za kazdym razem !!!!!!
+	if(TakeMutex(Semphr_pLcd,1000)){  //to nie moze wykonywa sie za kazdym razem !!!!!!
 		win.size.w = LCD_LIST_TXT_len(LCD_LIST_TXT_example(pCHAR_PLCD(0)),TxtInRow, fontID_descr,0,NoConstWidth, NULL).inPixel;  win.size.w+=2*10;  //spaceFromFrame=10
-		//GiveMutex(Semphr_pLcd);
-	//}
+		GiveMutex(Semphr_pLcd);
+	}
 	//win.size.w = 331 +20; // tylko dla testu
 
 
@@ -1289,10 +1289,10 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		}
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
-		//if(TakeMutex(Semphr_pLcd,100)){
+		if(TakeMutex(Semphr_pLcd,1000)){
 			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,LCD_LIST_TXT_example(pCHAR_PLCD(width*height))/*LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL)*/+_GetCurrPosTxt(),fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
-			//GiveMutex(Semphr_pLcd);
-		//}
+			GiveMutex(Semphr_pLcd);
+		}
 		if(posTxt_temp){
 			_SetCurrPosTxt(_GetCurrPosTxt()+posTxt_temp);
 			if(i_posTxtTab<sizeof(posTxtTab)-2)

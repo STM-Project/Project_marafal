@@ -102,6 +102,7 @@
 #define TXT_CUTTOFF(txt,len)	if(strlen(txt)>len-1) *((txt)+(len-1))=0
 
 #define LOOP_FOR(cnt,max) 	for(int (cnt)=0;(cnt)<(max);++(cnt))
+#define LOOP_FOR2(cnt,itx,max) 	for(int (cnt)=0,(itx)=0;(cnt)<(max);++(cnt))
 
 #define _ZERO 0
 #define _ZEROS2 _ZERO,_ZERO
@@ -120,6 +121,17 @@
 #define _2SPACE 			"  "
 #define TABU_1SPACE 		"	 "
 #define TABU_2SPACE 		"	  "
+
+#define FLASH_ADDR_START 	0x00200000
+#define FLASH_ADDR_STOP 	0x003F4000
+
+__STATIC_FORCEINLINE uint32_t __get_LR(void){	register uint32_t result;		__ASM volatile ("MOV %0, lr\n" : "=r" (result) );		return(result);	}
+__STATIC_FORCEINLINE uint32_t __get_R0(void){	register uint32_t result;		__ASM volatile ("MOV %0, r0\n" : "=r" (result) );		return(result);	}
+__STATIC_FORCEINLINE uint32_t __get_R1(void){	register uint32_t result;		__ASM volatile ("MOV %0, r1\n" : "=r" (result) );		return(result);	}
+__STATIC_FORCEINLINE uint32_t __get_R2(void){	register uint32_t result;		__ASM volatile ("MOV %0, r2\n" : "=r" (result) );		return(result);	}
+__STATIC_FORCEINLINE uint32_t __get_R3(void){	register uint32_t result;		__ASM volatile ("MOV %0, r3\n" : "=r" (result) );		return(result);	}
+__STATIC_FORCEINLINE uint32_t __get_R4(void){	register uint32_t result;		__ASM volatile ("MOV %0, r4\n" : "=r" (result) );		return(result);	}
+__STATIC_FORCEINLINE uint32_t __get_R15(void){	register uint32_t result;		__ASM volatile ("MOV %0, r15\n" : "=r" (result) );		return(result);	}
 
 typedef enum{
 	unUsed,
