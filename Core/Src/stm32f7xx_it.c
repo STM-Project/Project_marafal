@@ -28,12 +28,38 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
-
+typedef struct
+{	uint32_t r0;
+	uint32_t r1;
+	uint32_t r2;
+	uint32_t r3;
+	uint32_t r12; 		/* fault that causes thread */
+	uint32_t lr;      /* last jump address before jump to thread */
+	uint32_t pc;  		/* code line address that caused thread */
+	uint32_t psr;
+}ExceptionStackFrame;
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define	PTR2STACK(ptr,stack) 	uint32_t ptr = __get_PSP();\
+			 	 							ExceptionStackFrame *(stack) = (ExceptionStackFrame *)(ptr)
 
+#define DISP_TXT(txt,size) 	HAL_UART_Transmit(&huart7,(uint8_t*)txt,size,300)
+
+#define DISP_HEX(buf,val)  	buf[0]=((val>>28)&0xF); buf[0]=buf[0]>9?0x60+(buf[0]-9):buf[0]|0x30;\
+										buf[1]=((val>>24)&0xF); buf[1]=buf[1]>9?0x60+(buf[1]-9):buf[1]|0x30;\
+										buf[2]=((val>>20)&0xF); buf[2]=buf[2]>9?0x60+(buf[2]-9):buf[2]|0x30;\
+										buf[3]=((val>>16)&0xF); buf[3]=buf[3]>9?0x60+(buf[3]-9):buf[3]|0x30;\
+										buf[4]=((val>>12)&0xF); buf[4]=buf[4]>9?0x60+(buf[4]-9):buf[4]|0x30;\
+										buf[5]=((val>>8)&0xF); buf[5]=buf[5]>9?0x60+(buf[5]-9):buf[5]|0x30;\
+										buf[6]=((val>>4)&0xF); buf[6]=buf[6]>9?0x60+(buf[6]-9):buf[6]|0x30;\
+										buf[7]=(val&0xF); buf[7]=buf[7]>9?0x60+(buf[7]-9):buf[7]|0x30;\
+										DISP_TXT(buf,8)
+
+
+
+#define CALL_HARDFAULT	*((uint32_t*)0x2007FFFF)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -88,39 +114,71 @@ void NMI_Handler(void)
   }
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
-#include "common.h"
+//#include "common.h"
 
-uint32_t bu123[30]={0};
+//uint32_t bu123[30]={0};
 /**
   * @brief This function handles Hard fault interrupt.
   */
+
+//#define DISP_HEX(val)		HAL_UART_Transmit(&huart7, &a1, 1,300);\
+
+
+char ffff[20];
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-	uint32_t *Read_Ptr = (uint32_t*)__get_PSP();
+	PTR2STACK(psp,stack);
 
-	uint32_t a1 = __get_R15();
-	uint32_t a2 = __get_LR();
-	uint32_t a3 = __get_PSP();
-	uint32_t a4 = __get_MSP();
-	uint32_t a5 = __get_xPSR();
-	uint32_t a6 = __get_APSR();
-	uint32_t a7 = __get_R0();
-	uint32_t a8 = __get_R1();
-	uint32_t a9 = __get_R2();
-	uint32_t a10 = __get_R3();
-	uint32_t a11 = __get_R4();
+	//DbgVar(1,15,"0x%x 0x%x", stack->pc, stack->lr);
+	//uint8_t a1;
+//	uint8_t a1 = (((current_psp>>28)&0xF)|0x30);
+//	uint8_t a2 = ((current_psp>>24)&0xF)|0x30;
+//	uint8_t a3 = ((current_psp>>20)&0xF)|0x30;
+//	uint8_t a4 = ((current_psp>>16)&0xF)|0x30;
 
-	LOOP_FOR2(i,j,32*16) //sprobuj zwiekszac wielkosc 4*16 na np 30*16 do max SIZE RAM !!!
-	{
-		if(IS_RANGE(*(Read_Ptr+i),FLASH_ADDR_START,FLASH_ADDR_START+0x5c000))
-		{
-			//DbgVar(1,30,"addr%d = 0x%x\r\n",++j,*(Read_Ptr+i));
-			bu123[j++] = *(Read_Ptr+i);
+	DISP_TXT("0x",2);
 
-		}
+	DISP_HEX(ffff,psp);			DISP_TXT("  ",2);
+	DISP_HEX(ffff,stack->r1);	DISP_TXT("  ",2);
+	DISP_HEX(ffff,stack->r12);	DISP_TXT("  ",2);
+	DISP_HEX(ffff,stack->lr);	DISP_TXT("  ",2);
+	DISP_HEX(ffff,stack->pc);	DISP_TXT("  ",2);
 
-	}
+
+//	a1=((current_psp>>28)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
+//	a1=((current_psp>>24)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
+//	a1=((current_psp>>20)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
+//	a1=((current_psp>>16)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
+//	a1=((current_psp>>12)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
+//	a1=((current_psp>>8)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
+//	a1=((current_psp>>4)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
+//	a1=(current_psp&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
+
+
+
+
+//	DEBUG_Send(((current_psp>>28)&0xF)|0x30);
+//	DEBUG_Send(((current_psp>>24)&0xF)|0x30);
+//	DEBUG_Send(((current_psp>>20)&0xF)|0x30);
+//	DEBUG_Send(((current_psp>>16)&0xF)|0x30);
+
+	//mini_vsnprintf(ffff, 49, "0x%x 0x%x", current_psp, current_psp);
+	//DEBUG_Send(ffff);
+
+//	uint32_t *Read_Ptr = (uint32_t*)__get_PSP();
+//
+//
+//	LOOP_FOR2(i,j,32*16) //sprobuj zwiekszac wielkosc 4*16 na np 30*16 do max SIZE RAM !!!
+//	{
+//		if(IS_RANGE(*(Read_Ptr+i),FLASH_ADDR_START,FLASH_ADDR_START+0x5c000))
+//		{
+//			//DbgVar(1,30,"addr%d = 0x%x\r\n",++j,*(Read_Ptr+i));
+//			bu123[j++] = *(Read_Ptr+i);
+//
+//		}
+//
+//	}
 
 
 	ERROR_HardFaulHandler();
