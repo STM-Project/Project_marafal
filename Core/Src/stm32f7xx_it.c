@@ -99,6 +99,18 @@ void HardFault_Handler(void)
   /* USER CODE BEGIN HardFault_IRQn 0 */
 	uint32_t *Read_Ptr = (uint32_t*)__get_PSP();
 
+	uint32_t a1 = __get_R15();
+	uint32_t a2 = __get_LR();
+	uint32_t a3 = __get_PSP();
+	uint32_t a4 = __get_MSP();
+	uint32_t a5 = __get_xPSR();
+	uint32_t a6 = __get_APSR();
+	uint32_t a7 = __get_R0();
+	uint32_t a8 = __get_R1();
+	uint32_t a9 = __get_R2();
+	uint32_t a10 = __get_R3();
+	uint32_t a11 = __get_R4();
+
 	LOOP_FOR2(i,j,32*16) //sprobuj zwiekszac wielkosc 4*16 na np 30*16 do max SIZE RAM !!!
 	{
 		if(IS_RANGE(*(Read_Ptr+i),FLASH_ADDR_START,FLASH_ADDR_START+0x5c000))
