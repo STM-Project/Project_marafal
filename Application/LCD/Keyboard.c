@@ -1301,7 +1301,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 
 
-		DbgVar(1,260,"\r\n0x%x",*((uint32_t*)0x2007FFFF));  // wywoluje HARDfault !!!!
+		DbgVar(1,260,"\r\n0x%x",CALL_HARDFAULT);  // wywoluje HARDfault !!!!
 
 
 
