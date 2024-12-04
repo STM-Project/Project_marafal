@@ -73,6 +73,7 @@ void LCD_TOUCH_RestoreAllSusspendedTouchs(void);
 void LCD_TOUCH_RestoreSusspendedTouch(uint16_t idx);
 void LCD_TOUCH_RestoreSusspendedTouchs(uint16_t start_idx, uint16_t stop_idx);
 void LCDTOUCH_ActiveOnly(uint16_t idx1,uint16_t idx2,uint16_t idx3,uint16_t idx4,uint16_t idx5,uint16_t idx6,uint16_t idx7,uint16_t idx8,uint16_t idx9,uint16_t idx10, uint16_t start_idx, uint16_t stop_idx);
+void LCD_TOUCH_DeleteSelectAndSusspendTouch(uint16_t idx);
 
 int LCD_TOUCH_Set(uint16_t ID, uint16_t idx, uint8_t param);
 int LCD_TOUCH_Update(uint16_t ID, uint16_t idx, uint8_t param);

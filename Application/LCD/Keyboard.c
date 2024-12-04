@@ -1169,7 +1169,7 @@ void KEYBOARD_ServiceSizeRoll(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int
 
 int AAAAAA=0;
 
-//SPACES DISP  numeracje dac ciemniejsza aby odroznic !!!!!!!!!!
+
 int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int touchAction2, int touchTimer, char* txtDescr, char* txtDescr2, char* txtDescr3, char* txtDescr4, uint32_t colorDescr,FUNC_MAIN *pfunc,FUNC_MAIN_INIT, TIMER_ID timID)
 {extern uint32_t pLcd[]; //!!!!!!!!!!!!!!!!!!!!!!!!!!
 	#define _NMB2KEY	8
@@ -1223,32 +1223,15 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	int 	_IsFlagWin	 (void){ return CHECK_bit(s[k].param,7); }
 	void 	_RstFlagWin	 (void){	RST_bit(s[k].param,7); }
 
-	POS_SIZE win = { .pos={ s[k].x+widthAll+1, s[k].y 				 	}, .size={200,250} };   //poprawic wyliczenie max dlugosci i wycienic wpisy jasniejsze a odsepy ciemniejsze zeby lepiej wygladalo !!!!!!
-	POS_SIZE win2 ={ .pos={ 15, 					 s[k].y+heightAll+15 }, .size={600, 60} };
-
-
-
-
-//	if(TakeMutex(Semphr_pLcd,100)){
-//		LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),(int*)(&win.size.w));
-//		GiveMutex(Semphr_pLcd);
-//	}
-//	win.size.w *= LCD_GetWholeStrPxlWidth(fontID_descr,(char*)"a",0,NoConstWidth); //!!!!!!!!!!!!!!!!!!!!!
-
-	if(TakeMutex(Semphr_pLcd,1000)){  //to nie moze wykonywa sie za kazdym razem !!!!!!
-		win.size.w = LCD_LIST_TXT_len(LCD_LIST_TXT_example(pCHAR_PLCD(0)),TxtInRow, fontID_descr,0,NoConstWidth, NULL).inPixel;  win.size.w+=2*10;  //spaceFromFrame=10
-		GiveMutex(Semphr_pLcd);
-	}
-	//win.size.w = 331 +20; // tylko dla testu
-
-
-
+	static int calcWinWidth=200;
+	POS_SIZE win = { .pos={ s[k].x+widthAll+1, s[k].y 				 	}, .size={calcWinWidth,250} };
+	POS_SIZE win2 ={ .pos={ 15, 					 s[k].y+heightAll+15 }, .size={600, 		  60} };
 
 	void _WinInfo(char* txt){
 		WinInfo(txt, win2.pos.x, win2.pos.y, win2.size.w, win2.size.h, timID);
 	}
-	void _WindowSpacesInfo(uint16_t x,uint16_t y, uint16_t width,uint16_t height, int param){
-		int spaceFromFrame = 10;
+	void _WindowSpacesInfo(uint16_t x,uint16_t y, uint16_t width,uint16_t height, int param, int spaceFromFrame){
+		#define MAX_SCREENS	50
 		int heightUpDown = 17;
 		int widthtUpDown = 26;
 
@@ -1259,7 +1242,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		uint32_t tabFontColor[6]={BrightDecr(colorDescr,0x20),MYGREEN,CYAN,colorDescr,colorDescr,MYRED};  //poprawic nie wiem cy [6] !!!!!!!!!!!!!!!!!!  zwiazane z textem moze sam automatycznie wyliczyc !!!
 
 		static uint16_t posTxt_temp=0;
-		static uint16_t posTxtTab[500]={0};  //50 !!!!!!!!!!!!!!!!!!!!!!!  max screen`s
+		static uint16_t posTxtTab[MAX_SCREENS]={0};
 		static uint16_t i_posTxtTab=0;
 
 		void 		_SetCurrPosTxt(uint16_t pos){ 		 s[k].param2=pos; }
@@ -1290,7 +1273,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
 		if(TakeMutex(Semphr_pLcd,1000)){
-			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,LCD_LIST_TXT_example(pCHAR_PLCD(width*height))/*LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL)*/+_GetCurrPosTxt(),fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
+			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,LCD_LIST_TXT_example(pCHAR_PLCD(width*height))+_GetCurrPosTxt(),fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
 			GiveMutex(Semphr_pLcd);
 		}
 		if(posTxt_temp){
@@ -1298,13 +1281,6 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			if(i_posTxtTab<sizeof(posTxtTab)-2)
 				posTxtTab[++i_posTxtTab]= _GetCurrPosTxt();
 		}
-
-
-
-		DbgVar(1,260,"\r\n0x%x",CALL_HARDFAULT);  // wywoluje HARDfault !!!!
-
-
-
 
 		LCD_TOUCH_SusspendTouch(touchAction2);
 		LCD_TOUCH_SusspendTouch(touchAction2+1);
@@ -1319,12 +1295,19 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		}
 
 		LCD_Display(0, x,y, width,height);
+		#undef MAX_SCREENS
 	}
 	int retVal=0;
 	void _CreateWindows(int nr,int param){
+		int spaceFromFrame = 10;
 		switch(nr){
 			case 0:
-				_WindowSpacesInfo(win.pos.x ,win.pos.y, win.size.w, win.size.h, param); _SetFlagWin();
+				if(TakeMutex(Semphr_pLcd,1000)){
+					win.size.w = LCD_LIST_TXT_len(LCD_LIST_TXT_example(pCHAR_PLCD(0)),TxtInRow, fontID_descr,0,NoConstWidth, NULL).inPixel + 2*spaceFromFrame;
+					GiveMutex(Semphr_pLcd);
+				}
+				calcWinWidth = win.size.w;
+				_WindowSpacesInfo(win.pos.x ,win.pos.y, win.size.w, win.size.h, param, spaceFromFrame); _SetFlagWin();
 				break;
 			case 1:
 				break;
@@ -1332,10 +1315,8 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	}
 	void _DeleteWindows(void){		/* Use function only after displaying (not during) */
 		pfunc(FUNC_MAIN_ARG);	_RstFlagWin();  LCD_DisplayPart(0,win.pos.x ,win.pos.y, win.size.w, win.size.h); retVal=1;
-		LCD_TOUCH_RestoreSusspendedTouch(touchAction2);
-		LCD_TOUCH_RestoreSusspendedTouch(touchAction2+1);
-		LCD_TOUCH_DeleteSelectTouch(touchAction2);  //dac LCD_TOUCH_DeleteSelectAndSusspendTouch() !!!!!!
-		LCD_TOUCH_DeleteSelectTouch(touchAction2+1);
+		LCD_TOUCH_DeleteSelectAndSusspendTouch(touchAction2);
+		LCD_TOUCH_DeleteSelectAndSusspendTouch(touchAction2+1);
 		s[k].nmbTouch-=2;
 	}
 	void _OverArrowTxt(int nr, DIRECTIONS direct){

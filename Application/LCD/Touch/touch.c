@@ -779,6 +779,10 @@ void LCDTOUCH_ActiveOnly(uint16_t idx1,uint16_t idx2,uint16_t idx3,uint16_t idx4
 	if(idx10)	LCD_TOUCH_RestoreSusspendedTouch(idx10);
 	LCD_TOUCH_RestoreSusspendedTouchs(start_idx, stop_idx);
 }
+void LCD_TOUCH_DeleteSelectAndSusspendTouch(uint16_t idx){
+	LCD_TOUCH_RestoreSusspendedTouch(idx);
+	LCD_TOUCH_DeleteSelectTouch(idx);
+}
 
 uint16_t LCD_TOUCH_SetTimeParam_ms(uint16_t time){
 	return time/SERVICE_TOUCH_PROB_TIME_MS;
