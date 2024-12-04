@@ -37,7 +37,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+#define CALL_HARDFAULT	*((uint32_t*)0x2007FFFF)
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
