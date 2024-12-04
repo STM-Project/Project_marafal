@@ -315,7 +315,142 @@ if (__fpclassifyd(Channels[channelNumber].totalizers[0].value) != FP_NORMAL)
 if (isfinite(Channels[channelNumber].minValue) == 0)
 
 	int status = f_unlink(DeleteFilePath);
-	//##############################################
+//###############----- FF.h --- #####################
+res = f_readdir(&dir, &fno); /* Read a directory item */
+					if (res != FR_OK || fno.fname[0] == 0)
+					{
+						strcpy(str+len-1,"]\0");
+						netconn_write(conn, data, (size_t )len, NETCONN_NOFLAG);
+						break; /* Break on error or end of dir */
+					}
+					if (fno.fname[0] == '.')
+						continue; /* Ignore dot entry */
+					if (AM_DIR != (fno.fattrib & AM_DIR))
+					{
+						dbl2stri(file_size, ((double) fno.fsize) / 1024, 2);
+						len += mini_snprintf(str + len,100,"[\"%s\",\"%02u-%02u-%02u %02u:%02u\",\"%s\"],",fno.fname,(fno.fdate >> 9) + 1980, fno.fdate >> 5 & 15, fno.fdate & 31, (fno.ftime >> 11),
+								((fno.ftime >> 5) & 63), file_size);
+					}
+
+
+
+
+
+
+
+
+FILINFO fno;
+FRESULT fresult;
+UINT bytesr = 0;
+UINT allbytesread = 0;
+WORD pParametersCRCWord = 0xFFFF;
+
+char computedParametersCRC[5] =
+{ '0', '0', '0', '0', '\0' };
+char readParametersCRC[5] =
+{ '0', '0', '0', '0', '\0' };
+
+memset(ParametersReadWriteBuffer, 0, BUFFER_SIZE);
+
+fresult = f_open(&ParametersFile, path, FA_READ | FA_WRITE);
+f_stat(path,&fno);
+
+if (fresult != FR_OK)
+	return 1;
+else if (fno.fsize == 0 || fno.fsize >= 10485760)
+{
+	f_close(&ParametersFile);
+	return 2;
+}
+else
+{
+	UINT fileSizeWithoutCRC = fno.fsize-CRC_SIZE;
+	while (ParametersFile.fptr<fileSizeWithoutCRC)
+	{
+		memset(ParametersReadWriteBuffer, 0, bytesr);
+		f_read(&ParametersFile, ParametersReadWriteBuffer, BUFFER_SIZE, &bytesr);
+		allbytesread += bytesr;
+		if (ParametersFile.fptr<fileSizeWithoutCRC)
+			generateCRC(ParametersReadWriteBuffer, bytesr, &pParametersCRCWord);
+		else
+		{
+			bytesr -= (ParametersFile.fptr - fileSizeWithoutCRC);
+			generateCRC(ParametersReadWriteBuffer, bytesr, &pParametersCRCWord);
+		}
+	}
+	hashCRC(computedParametersCRC, &pParametersCRCWord);
+
+	f_lseek(&ParametersFile, fileSizeWithoutCRC);
+	f_read(&ParametersFile, readParametersCRC, 5, &bytesr);
+	f_close(&ParametersFile);
+
+	if (strcmp(computedParametersCRC, readParametersCRC))
+		return 2;
+	else
+		return 0;
+}
+
+
+
+
+
+
+
+
+UINT bytesReadFromFile = 0;
+char *ptrSdram = (char*)(0x60000000);
+
+//char ptrSdram[2000];
+
+char buHARD[3] __attribute__ ((section(".sdram")));
+
+void StartUpTask(void const * argument)
+{
+/* USER CODE BEGIN StartUpTask */
+MX_USB_HOST_Init();
+
+TOUCHPANEL_Init();
+MX_FATFS_Init();
+
+res = f_open(&FilData, "DL5.list", FA_READ | FA_OPEN_EXISTING);
+
+//int ddd= f_size(&FilData);
+
+
+char *ddddd=NULL;
+
+//f_gets(ptrSdram, 1000, &FilData);
+
+dsfdfdf:
+res = f_read(&FilData, ptrSdram, 7000000, &bytesReadFromFile);
+ddddd=strstr(ptrSdram, "811a48c:");
+if(ddddd!=NULL)
+{
+	f_close(&FilData);
+}
+else
+{
+	//f_lseek(&FilData, bytesReadFromFile);
+
+	if(bytesReadFromFile < 7000000)
+		goto sdfgdfhggfh;
+
+	goto dsfdfdf;
+}
+sdfgdfhggfh:
+char fff1 = ddddd[24];
+char fff2 = ddddd[25];
+char fff3 = ddddd[26];
+char fff4 = ddddd[27];
+
+f_close(&FilData);
+
+//#################################################
+
+
+
+
+
 
 #endif
 
