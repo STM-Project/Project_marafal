@@ -42,8 +42,8 @@ typedef struct
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define	PTR2STACK(ptr,stack) 	uint32_t ptr = __get_PSP();\
-			 	 							ExceptionStackFrame *(stack) = (ExceptionStackFrame *)(ptr)
+#define PTR2STACK(ptr,stack) 	uint32_t ptr = __get_PSP();\
+			 	 						ExceptionStackFrame *(stack) = (ExceptionStackFrame *)(ptr)
 
 #define DISP_TXT(txt,size) 	HAL_UART_Transmit(&huart7,(uint8_t*)txt,size,300)
 
@@ -57,9 +57,18 @@ typedef struct
 										buf[7]=(val&0xF); buf[7]=buf[7]>9?0x60+(buf[7]-9):buf[7]|0x30;\
 										DISP_TXT(buf,8)
 
+#define DBG_STACK_INFO		PTR2STACK(psp,stack);\
+									DISP_TXT(__FUNCTION__,17); DISP_TXT("\r\n",2);\
+									DISP_TXT("psp:0x",2); DISP_HEX(hexBuff,psp);			 DISP_TXT("\r\n",2);\
+									DISP_TXT("r0:0x",5);  DISP_HEX(hexBuff,stack->r0);  DISP_TXT("  ",2);\
+									DISP_TXT("r1:0x",5);  DISP_HEX(hexBuff,stack->r1);  DISP_TXT("  ",2);\
+									DISP_TXT("r2:0x",5);  DISP_HEX(hexBuff,stack->r2);  DISP_TXT("  ",2);\
+									DISP_TXT("r3:0x",5);  DISP_HEX(hexBuff,stack->r3);  DISP_TXT("\r\n",2);\
+									DISP_TXT("r12:0x",5); DISP_HEX(hexBuff,stack->r12); DISP_TXT("  ",2);\
+									DISP_TXT("lr:0x",5);  DISP_HEX(hexBuff,stack->lr);  DISP_TXT("  ",2);\
+									DISP_TXT("pc:0x",5);  DISP_HEX(hexBuff,stack->pc);  DISP_TXT("  ",2);\
+									DISP_TXT("psr:0x",6); DISP_HEX(hexBuff,stack->psr); DISP_TXT("  ",2)
 
-
-#define CALL_HARDFAULT	*((uint32_t*)0x2007FFFF)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -69,7 +78,7 @@ typedef struct
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+static char hexBuff[8];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -106,6 +115,7 @@ extern TIM_HandleTypeDef htim14;
 void NMI_Handler(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
+	DBG_STACK_INFO;
 	ERROR_NMIHandler();
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
@@ -114,73 +124,14 @@ void NMI_Handler(void)
   }
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
-//#include "common.h"
 
-//uint32_t bu123[30]={0};
 /**
   * @brief This function handles Hard fault interrupt.
   */
-
-//#define DISP_HEX(val)		HAL_UART_Transmit(&huart7, &a1, 1,300);\
-
-
-char ffff[20];
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-	PTR2STACK(psp,stack);
-
-	//DbgVar(1,15,"0x%x 0x%x", stack->pc, stack->lr);
-	//uint8_t a1;
-//	uint8_t a1 = (((current_psp>>28)&0xF)|0x30);
-//	uint8_t a2 = ((current_psp>>24)&0xF)|0x30;
-//	uint8_t a3 = ((current_psp>>20)&0xF)|0x30;
-//	uint8_t a4 = ((current_psp>>16)&0xF)|0x30;
-
-	DISP_TXT("0x",2);
-
-	DISP_HEX(ffff,psp);			DISP_TXT("  ",2);
-	DISP_HEX(ffff,stack->r1);	DISP_TXT("  ",2);
-	DISP_HEX(ffff,stack->r12);	DISP_TXT("  ",2);
-	DISP_HEX(ffff,stack->lr);	DISP_TXT("  ",2);
-	DISP_HEX(ffff,stack->pc);	DISP_TXT("  ",2);
-
-
-//	a1=((current_psp>>28)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
-//	a1=((current_psp>>24)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
-//	a1=((current_psp>>20)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
-//	a1=((current_psp>>16)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
-//	a1=((current_psp>>12)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
-//	a1=((current_psp>>8)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
-//	a1=((current_psp>>4)&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
-//	a1=(current_psp&0xF); a1=a1>9?0x60+(a1-9):a1|0x30; HAL_UART_Transmit(&huart7, &a1, 1,300);
-
-
-
-
-//	DEBUG_Send(((current_psp>>28)&0xF)|0x30);
-//	DEBUG_Send(((current_psp>>24)&0xF)|0x30);
-//	DEBUG_Send(((current_psp>>20)&0xF)|0x30);
-//	DEBUG_Send(((current_psp>>16)&0xF)|0x30);
-
-	//mini_vsnprintf(ffff, 49, "0x%x 0x%x", current_psp, current_psp);
-	//DEBUG_Send(ffff);
-
-//	uint32_t *Read_Ptr = (uint32_t*)__get_PSP();
-//
-//
-//	LOOP_FOR2(i,j,32*16) //sprobuj zwiekszac wielkosc 4*16 na np 30*16 do max SIZE RAM !!!
-//	{
-//		if(IS_RANGE(*(Read_Ptr+i),FLASH_ADDR_START,FLASH_ADDR_START+0x5c000))
-//		{
-//			//DbgVar(1,30,"addr%d = 0x%x\r\n",++j,*(Read_Ptr+i));
-//			bu123[j++] = *(Read_Ptr+i);
-//
-//		}
-//
-//	}
-
-
+	DBG_STACK_INFO;
 	ERROR_HardFaulHandler();
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
@@ -196,6 +147,7 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
+	DBG_STACK_INFO;
 	ERROR_MemManageHandler();
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
@@ -211,6 +163,7 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
+	DBG_STACK_INFO;
 	ERROR_BusFaultHandler();
   /* USER CODE END BusFault_IRQn 0 */
   while (1)
@@ -226,6 +179,7 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
+	DBG_STACK_INFO;
 	ERROR_UsageFaultHandler();
   /* USER CODE END UsageFault_IRQn 0 */
   while (1)
@@ -241,6 +195,7 @@ void UsageFault_Handler(void)
 void DebugMon_Handler(void)
 {
   /* USER CODE BEGIN DebugMonitor_IRQn 0 */
+	DBG_STACK_INFO;
 	ERROR_DebugMonHandler();
   /* USER CODE END DebugMonitor_IRQn 0 */
   /* USER CODE BEGIN DebugMonitor_IRQn 1 */
