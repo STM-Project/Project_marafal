@@ -103,6 +103,26 @@ void http_server_serve(struct netconn *conn)
 
 
 
+
+//				res = f_readdir(&dir, &fno); /* Read a directory item */
+//				if (res != FR_OK || fno.fname[0] == 0)
+//				{
+//					strcpy(str+len-1,"]\0");
+//					netconn_write(conn, data, (size_t )len, NETCONN_NOFLAG);
+//					break; /* Break on error or end of dir */
+//				}
+//				if (fno.fname[0] == '.')
+//					continue; /* Ignore dot entry */
+//				if (AM_DIR != (fno.fattrib & AM_DIR))
+//				{
+//					dbl2stri(file_size, ((double) fno.fsize) / 1024, 2);
+//					len += mini_snprintf(str + len,100,"[\"%s\",\"%02u-%02u-%02u %02u:%02u\",\"%s\"],",fno.fname,(fno.fdate >> 9) + 1980, fno.fdate >> 5 & 15, fno.fdate & 31, (fno.ftime >> 11),
+//							((fno.ftime >> 5) & 63), file_size);
+//				}
+
+
+
+
 			  if(TakeMutex2(Semphr_pLcd,Semphr_cardSD,1000))
 			  {
 				  SDCardFileOpen(0,"aaa.htm",FA_READ);
