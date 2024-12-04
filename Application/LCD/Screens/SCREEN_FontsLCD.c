@@ -262,7 +262,7 @@ void FILE_NAME(setTouch)(void);
 void 	FILE_NAME(main)(int argNmb, char **argVal);
 /*------------ End Main Screen MACRO -----------------*/
 
-#define USE_DBG_CLR	0
+#define USE_DBG_CLR	1
 
 #define TEXT_TO_SHOW		"1234567890"//"Rafa"ł" Markielowski"
 
@@ -2165,7 +2165,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 		LCD_TOUCH_DeleteAllSetTouch();
 		FONTS_LCD_ResetParam();
 
-		DbgVar(v.DEBUG_ON,100, "%s" Cya_"\r\nStart: %s\r\n"_X, CONDITION(USE_DBG_CLR,Clr_,NULL), GET_CODE_FUNCTION);
+		DbgVar(v.DEBUG_ON,100, "%s" Cya_"\r\nStart: %s\r\n"_X, CONDITION(USE_DBG_CLR,Clr_,""), GET_CODE_FUNCTION);
 
 		LoadFonts(FONT_ID_Title, FONT_ID_Press);
 		LCD_LoadFontVar();

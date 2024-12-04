@@ -58,15 +58,15 @@ typedef struct
 										DISP_TXT(buf,8)
 
 #define DBG_STACK_INFO		PTR2STACK(psp,stack);\
-									DISP_TXT(__FUNCTION__,17); DISP_TXT("\r\n",2);\
-									DISP_TXT("psp:0x",2); DISP_HEX(hexBuff,psp);			 DISP_TXT("\r\n",2);\
-									DISP_TXT("r0:0x",5);  DISP_HEX(hexBuff,stack->r0);  DISP_TXT("  ",2);\
-									DISP_TXT("r1:0x",5);  DISP_HEX(hexBuff,stack->r1);  DISP_TXT("  ",2);\
-									DISP_TXT("r2:0x",5);  DISP_HEX(hexBuff,stack->r2);  DISP_TXT("  ",2);\
-									DISP_TXT("r3:0x",5);  DISP_HEX(hexBuff,stack->r3);  DISP_TXT("\r\n",2);\
-									DISP_TXT("r12:0x",5); DISP_HEX(hexBuff,stack->r12); DISP_TXT("  ",2);\
-									DISP_TXT("lr:0x",5);  DISP_HEX(hexBuff,stack->lr);  DISP_TXT("  ",2);\
-									DISP_TXT("pc:0x",5);  DISP_HEX(hexBuff,stack->pc);  DISP_TXT("  ",2);\
+									DISP_TXT("\r\n",2); DISP_TXT(__FUNCTION__,17); DISP_TXT("  ",2);\
+									DISP_TXT("psp:0x",6); DISP_HEX(hexBuff,psp);			 DISP_TXT("\r\n",2);\
+									DISP_TXT("r0: 0x",6); DISP_HEX(hexBuff,stack->r0);  DISP_TXT("  ",2);\
+									DISP_TXT("r1: 0x",6); DISP_HEX(hexBuff,stack->r1);  DISP_TXT("  ",2);\
+									DISP_TXT("r2: 0x",6); DISP_HEX(hexBuff,stack->r2);  DISP_TXT("  ",2);\
+									DISP_TXT("r3: 0x",6); DISP_HEX(hexBuff,stack->r3);  DISP_TXT("\r\n",2);\
+									DISP_TXT("r12:0x",6); DISP_HEX(hexBuff,stack->r12); DISP_TXT("  ",2);\
+									DISP_TXT("lr: 0x",6); DISP_HEX(hexBuff,stack->lr);  DISP_TXT("  ",2);\
+									DISP_TXT("pc: 0x",6); DISP_HEX(hexBuff,stack->pc);  DISP_TXT("  ",2);\
 									DISP_TXT("psr:0x",6); DISP_HEX(hexBuff,stack->psr); DISP_TXT("  ",2)
 
 /* USER CODE END PD */
