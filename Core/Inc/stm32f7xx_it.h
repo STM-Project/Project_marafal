@@ -61,6 +61,7 @@ void SDMMC1_IRQHandler(void);
 void DMA2_Stream3_IRQHandler(void);
 void ETH_IRQHandler(void);
 void DMA2_Stream6_IRQHandler(void);
+void HASH_RNG_IRQHandler(void);
 void UART7_IRQHandler(void);
 void DMA2D_IRQHandler(void);
 /* USER CODE BEGIN EFP */

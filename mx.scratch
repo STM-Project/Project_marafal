@@ -34,8 +34,8 @@
           <LinkSettings>
             <LinkAdditionalLibs />
           </LinkSettings>
-          <heapSize>0x4000</heapSize>
-          <stackSize>0x4000</stackSize>
+          <heapSize>0x8000</heapSize>
+          <stackSize>0x8000</stackSize>
           <cpuclock>216</cpuclock>
           <board>custom</board>
           <debugprobe>swd</debugprobe>
@@ -45,6 +45,7 @@
           </Aincludes>
           <Adefines />
           <Cdefines>
+            <define>MBEDTLS_CONFIG_FILE=&lt;mbedtls_config.h&gt;</define>
             <define>USE_HAL_DRIVER</define>
             <define>STM32F769xx</define>
           </Cdefines>
@@ -55,6 +56,7 @@
             <include>FATFS\App</include>
             <include>LWIP\App</include>
             <include>LWIP\Target</include>
+            <include>MBEDTLS\App</include>
             <include>Middlewares\Third_Party\LwIP\src\include</include>
             <include>Middlewares\Third_Party\LwIP\system</include>
             <include>Middlewares\Third_Party\LwIP\src\include</include>
@@ -67,6 +69,7 @@
             <include>Middlewares\Third_Party\FatFs\src</include>
             <include>Drivers\BSP\Components\lan8742</include>
             <include>Middlewares\Third_Party\LwIP\src\include\netif\ppp</include>
+            <include>Middlewares\Third_Party\mbedTLS\include\mbedtls</include>
             <include>Drivers\CMSIS\Device\ST\STM32F7xx\Include</include>
             <include>Middlewares\Third_Party\LwIP\src\include\lwip</include>
             <include>Middlewares\Third_Party\LwIP\src\include\lwip\apps</include>
@@ -79,6 +82,7 @@
             <include>Middlewares\Third_Party\LwIP\src\include\compat\posix\sys</include>
             <include>Middlewares\Third_Party\LwIP\src\include\compat\stdc</include>
             <include>Middlewares\Third_Party\LwIP\system\arch</include>
+            <include>Middlewares\Third_Party\mbedTLS\include</include>
             <include>Drivers\CMSIS\Include</include>
           </Cincludes>
           <definestoremove>
@@ -107,6 +111,9 @@
         </sourceEntry>
         <sourceEntry>
           <name>LWIP</name>
+        </sourceEntry>
+        <sourceEntry>
+          <name>MBEDTLS</name>
         </sourceEntry>
         <sourceEntry>
           <name>Drivers</name>

@@ -262,7 +262,7 @@ void FILE_NAME(setTouch)(void);
 void 	FILE_NAME(main)(int argNmb, char **argVal);
 /*------------ End Main Screen MACRO -----------------*/
 
-#define USE_DBG_CLR	1
+#define USE_DBG_CLR	0
 
 #define TEXT_TO_SHOW		"1234567890"//"Rafa"ł" Markielowski"
 

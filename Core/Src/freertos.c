@@ -183,10 +183,19 @@ void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
 	//MX_CRC_Init();
+
+//	char *ptr=NULL;
+//	ptr = mbedtls_calloc( 1, 1620 );
+//	if(ptr==NULL)
+//	{
+//		asm("nop");
+//	}
+
+
 	InitAllMutex();
 
 	MX_FATFS_Init();
-	MX_LWIP_Init();		/* LAN8742: When nINTSEL is floated or pulled to VDD2A, nINT is selected for operation on the nINT/REFCLKO pin (default). •When nINTSEL is pulled low to VSS, REFCLKO is selected for operation on the nINT/REFCLKO pin. */
+	//MX_LWIP_Init();		/* LAN8742: When nINTSEL is floated or pulled to VDD2A, nINT is selected for operation on the nINT/REFCLKO pin (default). •When nINTSEL is pulled low to VSS, REFCLKO is selected for operation on the nINT/REFCLKO pin. */
 
 	DEBUG_Init();
 
@@ -200,8 +209,10 @@ void StartDefaultTask(void const * argument)
 
 	Create_TouchLcd_Task(); //sprawdz ustawienia w MXCUbe ustawienia freeRTOS z FP70 i wygeneruj projekt jeszcze raz
 	Create_ScreensSelectLCD_Task();
-	Create_TEST_Task();
-	http_server_netconn_init();
+	//Create_TEST_Task();
+	//http_server_netconn_init();
+
+	https_server_netconn_init();
 
 	osThreadTerminate(NULL);
 

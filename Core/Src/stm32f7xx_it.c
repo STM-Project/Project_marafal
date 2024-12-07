@@ -95,6 +95,7 @@ static char hexBuff[8];
 extern ETH_HandleTypeDef heth;
 extern DMA2D_HandleTypeDef hdma2d;
 extern I2C_HandleTypeDef hi2c1;
+extern RNG_HandleTypeDef hrng;
 extern DMA_HandleTypeDef hdma_sdmmc1_rx;
 extern DMA_HandleTypeDef hdma_sdmmc1_tx;
 extern SD_HandleTypeDef hsd1;
@@ -320,6 +321,20 @@ void DMA2_Stream6_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream6_IRQn 1 */
 
   /* USER CODE END DMA2_Stream6_IRQn 1 */
+}
+
+/**
+  * @brief This function handles HASH and RNG global interrupts.
+  */
+void HASH_RNG_IRQHandler(void)
+{
+  /* USER CODE BEGIN HASH_RNG_IRQn 0 */
+
+  /* USER CODE END HASH_RNG_IRQn 0 */
+  HAL_RNG_IRQHandler(&hrng);
+  /* USER CODE BEGIN HASH_RNG_IRQn 1 */
+
+  /* USER CODE END HASH_RNG_IRQn 1 */
 }
 
 /**

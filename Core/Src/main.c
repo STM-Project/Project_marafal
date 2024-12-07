@@ -21,7 +21,9 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
+#include "rng.h"
 #include "usart.h"
+#include "mbedtls.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -125,6 +127,9 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_RNG_Init();
+  /* Call PreOsInit function */
+  //MX_MBEDTLS_Init();
   /* USER CODE BEGIN 2 */
   HARDWARE_Init();
 
