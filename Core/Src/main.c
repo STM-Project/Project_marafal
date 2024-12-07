@@ -129,7 +129,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_RNG_Init();
   /* Call PreOsInit function */
-  MX_MBEDTLS_Init();
+  //MX_MBEDTLS_Init();
   /* USER CODE BEGIN 2 */
   HARDWARE_Init();
 
