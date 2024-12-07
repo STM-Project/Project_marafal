@@ -81,9 +81,6 @@ void MX_MBEDTLS_Init(void)
   */
   mbedtls_ssl_init(&ssl);
   mbedtls_ssl_config_init(&conf);
-#if defined(MBEDTLS_SSL_CACHE_C)
-	mbedtls_ssl_cache_init(&cache);
-#endif
   mbedtls_x509_crt_init(&cert);
   mbedtls_ctr_drbg_init(&ctr_drbg);
   mbedtls_entropy_init( &entropy );
