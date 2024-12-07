@@ -253,7 +253,7 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 
 
 
-
+  do{
 
 		startt:
 
@@ -272,8 +272,8 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 		while ((ret = mbedtls_ssl_handshake(&ssl)) != 0)
 		{
 			if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
-				goto exit;  // goto startt
-				//goto startt;
+				goto startt;  // goto startt
+				//goto exit;
 
 		}
 
@@ -314,9 +314,9 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 
 
 
-		goto startt;
+		//goto startt;
 
-
+  }while(1);
 
 	//}while(1);
 
