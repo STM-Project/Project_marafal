@@ -42,6 +42,10 @@
 #include "sys.h"
 #include "platform.h"
 #include "memory_buffer_alloc.h"
+
+#if defined(MBEDTLS_SSL_CACHE_C)
+#include "mbedtls/ssl_cache.h"
+#endif
 /* USER CODE END 1 */
 
 /* Global variables ---------------------------------------------------------*/
@@ -77,6 +81,9 @@ void MX_MBEDTLS_Init(void)
   */
   mbedtls_ssl_init(&ssl);
   mbedtls_ssl_config_init(&conf);
+#if defined(MBEDTLS_SSL_CACHE_C)
+	mbedtls_ssl_cache_init(&cache);
+#endif
   mbedtls_x509_crt_init(&cert);
   mbedtls_ctr_drbg_init(&ctr_drbg);
   mbedtls_entropy_init( &entropy );
@@ -116,9 +123,10 @@ void MX_MBEDTLS_Init(void)
 
 	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 
-//#if defined(MBEDTLS_SSL_CACHE_C)
-//	mbedtls_ssl_conf_session_cache(&conf, &cache, mbedtls_ssl_cache_get, mbedtls_ssl_cache_set);
-//#endif
+
+#if defined(MBEDTLS_SSL_CACHE_C)
+	mbedtls_ssl_conf_session_cache(&conf, &cache, mbedtls_ssl_cache_get, mbedtls_ssl_cache_set);
+#endif
 
 	mbedtls_ssl_conf_ca_chain(&conf, srvcert.next, NULL);
 
@@ -178,6 +186,9 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 
 	  mbedtls_ssl_init(&ssl);
 	  mbedtls_ssl_config_init(&conf);
+#if defined(MBEDTLS_SSL_CACHE_C)
+	mbedtls_ssl_cache_init(&cache);
+#endif
 	  mbedtls_x509_crt_init(&cert);
 	  mbedtls_ctr_drbg_init(&ctr_drbg);
 	  mbedtls_entropy_init( &entropy );
@@ -193,11 +204,6 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 //
 //
 //		mbedtls_free(ptr);
-
-
-//#if defined(MBEDTLS_SSL_CACHE_C)
-//	mbedtls_ssl_cache_init(&cache);
-//#endif
 
 
 
@@ -229,9 +235,10 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 
 		mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 
-	//#if defined(MBEDTLS_SSL_CACHE_C)
-	//	mbedtls_ssl_conf_session_cache(&conf, &cache, mbedtls_ssl_cache_get, mbedtls_ssl_cache_set);
-	//#endif
+
+#if defined(MBEDTLS_SSL_CACHE_C)
+	mbedtls_ssl_conf_session_cache(&conf, &cache, mbedtls_ssl_cache_get, mbedtls_ssl_cache_set);
+#endif
 
 		mbedtls_ssl_conf_ca_chain(&conf, srvcert.next, NULL);
 
@@ -291,7 +298,7 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 			//len = sprintf(buf, "1234567890");
 
 
-			while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*) "1234567890", 10)) <= 0)
+			while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*) "<html><body>1234567890</body></html>", 36)) <= 0)
 			{
 				if (ret == MBEDTLS_ERR_NET_CONN_RESET)
 					goto exit;
@@ -338,9 +345,9 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 		mbedtls_ssl_free(&ssl);
 		mbedtls_ssl_config_free(&conf);
 
-	#if defined(MBEDTLS_SSL_CACHE_C)
-		mbedtls_ssl_cache_free(&cache);
-	#endif
+#if defined(MBEDTLS_SSL_CACHE_C)
+	mbedtls_ssl_cache_free(&cache);
+#endif
 
 		mbedtls_ctr_drbg_free(&ctr_drbg);
 		mbedtls_entropy_free(&entropy);
