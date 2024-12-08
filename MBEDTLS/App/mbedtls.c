@@ -170,7 +170,7 @@ void MX_MBEDTLS_Init(void)
 
 static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/Documentation/02-Kernel/02-Kernel-features/09-Memory-management/01-Memory-management
 {
-	int ret;
+	int ret, rene=0;
 
 	#ifdef MBEDTLS_MEMORY_BUFFER_ALLOC_C
 		mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
@@ -202,8 +202,7 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 //
 //		mbedtls_free(ptr);
 
-
-
+	 // https://gitlab.com/suyu-emu/mbedtls/-/blob/mbedtls-2.16/library/certs.c
 		ret = mbedtls_x509_crt_parse(&srvcert, (const unsigned char *) mbedtls_test_srv_crt, mbedtls_test_srv_crt_len);
 		if (ret != 0)
 			goto exit;
@@ -251,20 +250,36 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 	//		asm("nop");
 	//	}
 
-		ret = mbedtls_ssl_setup(&ssl, &conf);
+		ret = mbedtls_ssl_setup(&ssl, &conf);  //Zrobic fajny debug.c SSL !!!!!!!!!!!!!!
 		if(ret != 0)
 			goto exit;
 
+
+		int allow_legacy = MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION;
+		int renegotiation = MBEDTLS_SSL_RENEGOTIATION_ENABLED;
+		int max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;
+		const unsigned char period[8]={0,0,255,255,255,255,255,255};
+
+		mbedtls_ssl_conf_legacy_renegotiation(&conf, allow_legacy );
+
+		mbedtls_ssl_conf_renegotiation(&conf, renegotiation );
+
+		mbedtls_ssl_conf_renegotiation_enforced(&conf, max_records );
+
+		 mbedtls_ssl_conf_renegotiation_period(&conf, period);
 
 
   do{
 
 		startt:
 
+//		if(rene==0)
+//		{
+			mbedtls_net_free(&client_fd);
+			mbedtls_ssl_session_reset(&ssl);
 
-		mbedtls_net_free(&client_fd);
+		//}
 
-		mbedtls_ssl_session_reset(&ssl);
 
 
 		if ((ret = mbedtls_net_accept(&listen_fd, &client_fd, NULL, 0, NULL)) != 0)  //To TU OCZEKUJE !!!
@@ -273,15 +288,33 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 		mbedtls_ssl_set_bio(&ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL);
 
 
-		while ((ret = mbedtls_ssl_handshake(&ssl)) != 0)
-		{
-			if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
-				goto startt;  // goto startt
-				//goto exit;
+//		if(rene==0)
+//		{
+		ret = mbedtls_ssl_renegotiate(&ssl);
+			while ((ret = mbedtls_ssl_handshake(&ssl)) != 0)
+			{
+				if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
+					goto startt;  // goto startt
+					//goto exit;
+			}
 
-		}
+//
+//
+//			rene=1;
+//		}
+//		else
+//		{
+//			while ((ret = mbedtls_ssl_renegotiate(&ssl)) != 0)
+//			{
+//				if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
+//					goto startt;  // goto startt
+//					//goto exit;
+//			}
+//		}
 
 
+
+		//Renegat_Jeszcze:
 
 		int len = sizeof(buf) - 1;
 		memset(buf, 0, sizeof(buf));
@@ -318,7 +351,7 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 
 
 
-		//goto startt;
+		//goto renegat;
 
   }while(1);
 
@@ -326,7 +359,25 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 
 
 
-
+//  renegat:
+//
+//  do{
+//
+//
+//
+//		if ((ret = mbedtls_net_accept(&listen_fd, &client_fd, NULL, 0, NULL)) != 0)  //To TU OCZEKUJE !!!
+//			goto exit;
+//
+//
+//		  ret =  mbedtls_ssl_renegotiate(&ssl);
+//			if (ret != 0)
+//				goto exit;
+//
+//			goto Renegat_Jeszcze;
+//
+//
+//
+//  }while(1);
 
 
 
