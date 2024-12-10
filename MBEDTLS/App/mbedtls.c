@@ -342,7 +342,12 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 		//}
 
 
+// if(XXXXX_DD > SSSS_FFF)
+// 	#error
+// pLcd_smfr -> sdram_dostep_ok
+// w mbdetls dac buffer  GETVAL_ptr() !!!!
 
+	  
 		while ((ret = mbedtls_ssl_close_notify(&ssl)) < 0)
 		{
 			if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
