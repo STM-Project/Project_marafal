@@ -14,7 +14,14 @@
       <ProjectName>Stm32F769bit6</ProjectName>
       <ProjectNature>C</ProjectNature>
       <Secure />
-      <filestoremove />
+      <filestoremove>
+        <file>
+          <name>Middlewares/Third_Party/mbedTLS/library/rsa.c</name>
+        </file>
+        <file>
+          <name>..\Src\custom.c</name>
+        </file>
+      </filestoremove>
       <sourceEntriesToRemove>
         <sourceEntry />
       </sourceEntriesToRemove>

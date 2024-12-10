@@ -254,19 +254,19 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 		if(ret != 0)
 			goto exit;
 
-
-		int allow_legacy = MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION;
-		int renegotiation = MBEDTLS_SSL_RENEGOTIATION_ENABLED;
-		int max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;
-		const unsigned char period[8]={0,0,255,255,255,255,255,255};
-
-		mbedtls_ssl_conf_legacy_renegotiation(&conf, allow_legacy );
-
-		mbedtls_ssl_conf_renegotiation(&conf, renegotiation );
-
-		mbedtls_ssl_conf_renegotiation_enforced(&conf, max_records );
-
-		 mbedtls_ssl_conf_renegotiation_period(&conf, period);
+//
+//		int allow_legacy = MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION;
+//		int renegotiation = MBEDTLS_SSL_RENEGOTIATION_ENABLED;
+//		int max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;
+//		const unsigned char period[8]={0,0,255,255,255,255,255,255};
+//
+//		mbedtls_ssl_conf_legacy_renegotiation(&conf, allow_legacy );
+//
+//		mbedtls_ssl_conf_renegotiation(&conf, renegotiation );
+//
+//		mbedtls_ssl_conf_renegotiation_enforced(&conf, max_records );
+//
+//		 mbedtls_ssl_conf_renegotiation_period(&conf, period);
 
 
   do{
@@ -290,7 +290,7 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 
 //		if(rene==0)
 //		{
-		ret = mbedtls_ssl_renegotiate(&ssl);
+		//ret = mbedtls_ssl_renegotiate(&ssl);
 			while ((ret = mbedtls_ssl_handshake(&ssl)) != 0)
 			{
 				if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
