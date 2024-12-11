@@ -93,44 +93,14 @@ void http_server_serve(struct netconn *conn)
 		  if(strstr(buf, "GET / "))   //http
 		  {
 
-//      	FILINFO fno;
-//      	FIL graphicFile;
-//      	f_open(&graphicFile, "0:image/blogo.dta", FA_READ);
-//      	f_stat("0:image/blogo.dta",&fno);
-//      	if( fno.fsize <= 768000)
-//      			f_read(&graphicFile, bufferForLogoBigGraphic, fno.fsize, &bytesreadFromLogoBig);
-//      	f_close(&graphicFile);
-
-
-
-
-//				res = f_readdir(&dir, &fno); /* Read a directory item */
-//				if (res != FR_OK || fno.fname[0] == 0)
-//				{
-//					strcpy(str+len-1,"]\0");
-//					netconn_write(conn, data, (size_t )len, NETCONN_NOFLAG);
-//					break; /* Break on error or end of dir */
-//				}
-//				if (fno.fname[0] == '.')
-//					continue; /* Ignore dot entry */
-//				if (AM_DIR != (fno.fattrib & AM_DIR))
-//				{
-//					dbl2stri(file_size, ((double) fno.fsize) / 1024, 2);
-//					len += mini_snprintf(str + len,100,"[\"%s\",\"%02u-%02u-%02u %02u:%02u\",\"%s\"],",fno.fname,(fno.fdate >> 9) + 1980, fno.fdate >> 5 & 15, fno.fdate & 31, (fno.ftime >> 11),
-//							((fno.ftime >> 5) & 63), file_size);
-//				}
-
-
-
-
-			  if(TakeMutex2(Semphr_pLcd,Semphr_cardSD,1000))
+			  if(TakeMutex2(Semphr_sdram,Semphr_cardSD,1000))
 			  {
 				  SDCardFileOpen(0,"aaa.htm",FA_READ);
 				  int len = SDCardFileRead(0, GETVAL_ptr(0), 180000);
 				  SDCardFileClose(0);
 				  netconn_write(conn, GETVAL_ptr(0),len, NETCONN_NOCOPY);
 
-				  GiveMutex2(Semphr_pLcd,Semphr_cardSD);
+				  GiveMutex2(Semphr_sdram,Semphr_cardSD);
 				  Dbg(1,"\r\nGET_GET_GET...");
 			  }
 			  else
@@ -140,21 +110,8 @@ void http_server_serve(struct netconn *conn)
       }
       else
       {
-
-      	 if(TakeMutex2(Semphr_pLcd,Semphr_cardSD,1000))
-      	 {
-      		 SDCardFileOpen(0,"aaa.htm",FA_READ);
-      		 int len = SDCardFileRead(0, GETVAL_ptr(0), 180000);
-      		 SDCardFileClose(0);
-      		 netconn_write(conn, GETVAL_ptr(0),len, NETCONN_NOCOPY);
-
-      		 GiveMutex2(Semphr_pLcd,Semphr_cardSD);
-      		 Dbg(1,"\r\niii...");
-      	 }
-			  else
-				  netconn_write(conn, "0000000000",10, NETCONN_NOCOPY);
-
-
+			netconn_write(conn, "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",100, NETCONN_NOCOPY);
+			Dbg(1,"i");
       }
     }
   }

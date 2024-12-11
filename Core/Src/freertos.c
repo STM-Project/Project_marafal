@@ -37,6 +37,7 @@
 #include "touch.h"
 #include "timer.h"
 #include "lwip.h"
+#include "mbedtls.h"
 
 /* USER CODE END Includes */
 
@@ -209,7 +210,7 @@ void StartDefaultTask(void const * argument)
 
 	Create_TouchLcd_Task(); //sprawdz ustawienia w MXCUbe ustawienia freeRTOS z FP70 i wygeneruj projekt jeszcze raz
 	Create_ScreensSelectLCD_Task();
-	//Create_TEST_Task();
+	Create_TEST_Task();
 	//http_server_netconn_init();
 
 	https_server_netconn_init();

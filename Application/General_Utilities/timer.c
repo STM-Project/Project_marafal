@@ -30,7 +30,7 @@ void InitAllMutex(void){
 }
 uint32_t TakeMutex(SEMPHR_ID ID, uint32_t timeout){
 	switch((int)ID){
-	 case Semphr_pLcd:		if(xSemaphoreTake(xSemphr_pLcd,	 timeout)==pdTRUE) return 1; 	else return 0;
+	 case Semphr_sdram:		if(xSemaphoreTake(xSemphr_pLcd,	 timeout)==pdTRUE) return 1; 	else return 0;
 	 case Semphr_fontImg:	if(xSemaphoreTake(xSemphr_fontImg,timeout)==pdTRUE) return 1; 	else return 0;
 	 case Semphr_cardSD:		if(xSemaphoreTake(xSemphr_cardSD, timeout)==pdTRUE) return 1; 	else return 0;
 	 default:
@@ -38,7 +38,7 @@ uint32_t TakeMutex(SEMPHR_ID ID, uint32_t timeout){
 }}
 void GiveMutex(SEMPHR_ID ID){
 	switch((int)ID){
-	 case Semphr_pLcd:		xSemaphoreGive(xSemphr_pLcd); 	break;
+	 case Semphr_sdram:		xSemaphoreGive(xSemphr_pLcd); 	break;
 	 case Semphr_fontImg:	xSemaphoreGive(xSemphr_fontImg); break;
 	 case Semphr_cardSD:		xSemaphoreGive(xSemphr_cardSD);  break;
 }}

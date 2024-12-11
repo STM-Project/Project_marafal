@@ -12,7 +12,7 @@
 #include "freeRTOS.h"
 
 typedef enum{
-	Semphr_pLcd,
+	Semphr_sdram,
 	Semphr_fontImg,
 	Semphr_cardSD
 }SEMPHR_ID;

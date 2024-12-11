@@ -46,6 +46,12 @@
 #if defined(MBEDTLS_SSL_CACHE_C)
 #include "mbedtls/ssl_cache.h"
 #endif
+
+#include "string.h"
+#include "ff.h"
+#include "sd_card.h"
+#include "timer.h"
+
 /* USER CODE END 1 */
 
 /* Global variables ---------------------------------------------------------*/
@@ -57,6 +63,9 @@ mbedtls_entropy_context entropy;
 
 /* USER CODE BEGIN 2 */
 
+extern void Dbg(int on, char *txt);
+extern char* GETVAL_ptr();
+
 static mbedtls_net_context listen_fd, client_fd;
 mbedtls_x509_crt srvcert;
 mbedtls_pk_context pkey;
@@ -66,9 +75,9 @@ static const uint8_t *pers = (uint8_t*) "ssl_server";
  mbedtls_ssl_cache_context cache;
 #endif
 
-static char buf[1400];
+static char buf[2400];
 
-unsigned char memory_buf[80000];
+unsigned char memory_buf[4*16384];// __attribute__ ((section(".sdram")));
 
 sys_thread_t  defaultTaskHandle2;
 
@@ -85,82 +94,6 @@ void MX_MBEDTLS_Init(void)
   mbedtls_ctr_drbg_init(&ctr_drbg);
   mbedtls_entropy_init( &entropy );
   /* USER CODE BEGIN 3 */
-  mbedtls_pk_init(&pkey);
-
-//#ifdef MBEDTLS_MEMORY_BUFFER_ALLOC_C
-//	mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
-//#endif
-
-
-  int ret;
-	ret = mbedtls_x509_crt_parse(&srvcert, (const unsigned char *) mbedtls_test_srv_crt, mbedtls_test_srv_crt_len);
-	if (ret != 0)
-		goto exit;
-
-
-	ret = mbedtls_x509_crt_parse(&srvcert, (const unsigned char *) mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
-	if (ret != 0)
-		goto exit;
-
-	ret = mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key, mbedtls_test_srv_key_len, NULL, 0);
-	if (ret != 0)
-		goto exit;
-
-
-//	char *ptr=NULL;
-//	ptr = mbedtls_calloc( 1, 16200 );
-//	if(ptr==NULL)
-//	{
-//		asm("nop");
-//	}
-
-	ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
-	if (ret != 0)
-		goto exit;
-
-	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
-
-
-#if defined(MBEDTLS_SSL_CACHE_C)
-	mbedtls_ssl_conf_session_cache(&conf, &cache, mbedtls_ssl_cache_get, mbedtls_ssl_cache_set);
-#endif
-
-	mbedtls_ssl_conf_ca_chain(&conf, srvcert.next, NULL);
-
-	ret = mbedtls_ssl_conf_own_cert(&conf, &srvcert, &pkey);
-	if(ret != 0)
-		goto exit;
-
-
-//	char *ptr=NULL;
-//	ptr = mbedtls_calloc( 1, 1620 );
-//	if(ptr==NULL)
-//	{
-//		asm("nop");
-//	}
-
-	ret = mbedtls_ssl_setup(&ssl, &conf);
-	if(ret != 0)
-		goto exit;
-
-
-	char *ptr=NULL;
-	ptr = mbedtls_calloc( 1, 16 );
-	if(ptr==NULL)
-	{
-		asm("nop");
-	}
-
-	goto omin;
-
-	exit:
-	asm("nop");
-
-	omin:
-	asm("nop");
-
-	//mbedtls_free(ptr);
-
 
   /* USER CODE END 3 */
 
@@ -170,7 +103,7 @@ void MX_MBEDTLS_Init(void)
 
 static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/Documentation/02-Kernel/02-Kernel-features/09-Memory-management/01-Memory-management
 {
-	int ret, rene=0;
+	int ret;
 
 	#ifdef MBEDTLS_MEMORY_BUFFER_ALLOC_C
 		mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
@@ -191,16 +124,6 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 	  mbedtls_entropy_init( &entropy );
 
 	  mbedtls_pk_init(&pkey);
-
-//		char *ptr=NULL;
-//		ptr = mbedtls_calloc(1,16200 );
-//		if(ptr==NULL)
-//		{
-//			asm("nop");
-//		}
-//
-//
-//		mbedtls_free(ptr);
 
 	 // https://gitlab.com/suyu-emu/mbedtls/-/blob/mbedtls-2.16/library/certs.c
 		ret = mbedtls_x509_crt_parse(&srvcert, (const unsigned char *) mbedtls_test_srv_crt, mbedtls_test_srv_crt_len);
@@ -242,43 +165,19 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 		if(ret != 0)
 			goto exit;
 
-
-	//	char *ptr=NULL;
-	//	ptr = mbedtls_calloc( 1, 1620 );
-	//	if(ptr==NULL)
-	//	{
-	//		asm("nop");
-	//	}
-
-		ret = mbedtls_ssl_setup(&ssl, &conf);  //Zrobic fajny debug.c SSL !!!!!!!!!!!!!!
+		ret = mbedtls_ssl_setup(&ssl, &conf);
 		if(ret != 0)
 			goto exit;
 
-//
-//		int allow_legacy = MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION;
-//		int renegotiation = MBEDTLS_SSL_RENEGOTIATION_ENABLED;
-//		int max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;
-//		const unsigned char period[8]={0,0,255,255,255,255,255,255};
-//
-//		mbedtls_ssl_conf_legacy_renegotiation(&conf, allow_legacy );
-//
-//		mbedtls_ssl_conf_renegotiation(&conf, renegotiation );
-//
-//		mbedtls_ssl_conf_renegotiation_enforced(&conf, max_records );
-//
-//		 mbedtls_ssl_conf_renegotiation_period(&conf, period);
 
 
   do{
 
 		startt:
 
-//		if(rene==0)
-//		{
 			mbedtls_net_free(&client_fd);
 			mbedtls_ssl_session_reset(&ssl);
 
-		//}
 
 
 
@@ -288,63 +187,93 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 		mbedtls_ssl_set_bio(&ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL);
 
 
-//		if(rene==0)
-//		{
-		//ret = mbedtls_ssl_renegotiate(&ssl);
 			while ((ret = mbedtls_ssl_handshake(&ssl)) != 0)
 			{
 				if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
-					goto startt;  // goto startt
-					//goto exit;
+					goto startt;
 			}
 
-//
-//
-//			rene=1;
-//		}
-//		else
-//		{
-//			while ((ret = mbedtls_ssl_renegotiate(&ssl)) != 0)
-//			{
-//				if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
-//					goto startt;  // goto startt
-//					//goto exit;
-//			}
-//		}
-
-
-
-		//Renegat_Jeszcze:
 
 		int len = sizeof(buf) - 1;
 		memset(buf, 0, sizeof(buf));
 
 		ret = mbedtls_ssl_read(&ssl, (unsigned char*) buf, len); /*buf[30]=0;*/
 
-		//if ((len >= 5) && (strncmp(buf, "GET /", 5) == 0))
-
-		//{
-
-			//len = sprintf(buf, "1234567890");
 
 
-			while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*) "<html><body>1234567890</body></html>", 36)) <= 0)
-			{
-				if (ret == MBEDTLS_ERR_NET_CONN_RESET)
-					goto exit;
+		if(strstr(buf, "GET / "))  //if ((len >= 5) && (strncmp(buf, "GET /", 5) == 0))
+		{
 
-				if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
-					goto exit;
-			}
+			  if(TakeMutex2(Semphr_sdram,Semphr_cardSD,1000))
+			  {
+				  SDCardFileOpen(0,"aaa.htm",FA_READ);
+				  int len = SDCardFileRead(0, GETVAL_ptr(0), 180000);
+				  SDCardFileClose(0);
+
+				  int count=0;
+				  while(1)
+				  {
+					  if(len < 16384)  //MBEDTLS_SSL_OUT_CONTENT_LEN
+					  {
+							while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*)GETVAL_ptr(count), len)) <= 0)
+							{
+								if (ret == MBEDTLS_ERR_NET_CONN_RESET)
+									goto exit;
+								if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
+									goto exit;
+							}
+							break;
+					  }
+					  else
+					  {
+							while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*)GETVAL_ptr(count), 16384)) <= 0)
+							{
+								if (ret == MBEDTLS_ERR_NET_CONN_RESET)
+									goto exit;
+								if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
+									goto exit;
+							}
+							count += 16384;
+							len -= 16384;
+
+					  }
+				  }
+				  GiveMutex2(Semphr_sdram,Semphr_cardSD);
+				  Dbg(1,"\r\nGET_GET_GET...");
+
+			  }
+
+
+    }
+	 else
+	 {
+		 while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*)"1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", 100)) <= 0)
+		 {
+			 if (ret == MBEDTLS_ERR_NET_CONN_RESET)
+				 goto exit;
+			 if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
+				 goto exit;
+		 }
+		 Dbg(1,"i");
+	 }
 
 
 
-		//}
+//			while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*) "<html><body>1234567890</body></html>", 36)) <= 0)
+//			{
+//				if (ret == MBEDTLS_ERR_NET_CONN_RESET)
+//					goto exit;
+//
+//				if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
+//					goto exit;
+//			}
+
+
+
 
 
 // if(XXXXX_DD > SSSS_FFF)
 // 	#error
-// pLcd_smfr -> sdram_dostep_ok
 // w mbdetls dac buffer  GETVAL_ptr() !!!!
 
 	  
@@ -414,7 +343,7 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 
 void https_server_netconn_init(void)
 {
-	defaultTaskHandle2 = sys_thread_new("HTTPS", SSL_Server, NULL, 2000, 4);
+	defaultTaskHandle2 = sys_thread_new("HTTPS", SSL_Server, NULL, 1024, 4);
 }
 
 /* USER CODE END 4 */

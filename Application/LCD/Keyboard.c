@@ -1272,9 +1272,9 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		}
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
-		if(TakeMutex(Semphr_pLcd,1000)){
+		if(TakeMutex(Semphr_sdram,1000)){
 			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,LCD_LIST_TXT_example(pCHAR_PLCD(width*height))+_GetCurrPosTxt(),fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
-			GiveMutex(Semphr_pLcd);
+			GiveMutex(Semphr_sdram);
 		}
 		if(posTxt_temp){
 			_SetCurrPosTxt(_GetCurrPosTxt()+posTxt_temp);
@@ -1302,9 +1302,9 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		int spaceFromFrame = 10;
 		switch(nr){
 			case 0:
-				if(TakeMutex(Semphr_pLcd,1000)){
+				if(TakeMutex(Semphr_sdram,1000)){
 					win.size.w = LCD_LIST_TXT_len(LCD_LIST_TXT_example(pCHAR_PLCD(0)),TxtInRow, fontID_descr,0,NoConstWidth, NULL).inPixel + 2*spaceFromFrame;
-					GiveMutex(Semphr_pLcd);
+					GiveMutex(Semphr_sdram);
 				}
 				calcWinWidth = win.size.w;
 				_WindowSpacesInfo(win.pos.x ,win.pos.y, win.size.w, win.size.h, param, spaceFromFrame); _SetFlagWin();

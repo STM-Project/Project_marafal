@@ -50,7 +50,7 @@ static int LCD_SetOutputOffset(uint32_t width)
 
 void LCD_DisplayBuff(uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t height, uint32_t *pbmp)
 {
-	if(TakeMutex(Semphr_pLcd,1000))
+	if(TakeMutex(Semphr_sdram,1000))
 	{
 		while(HAL_DMA2D_STATE_READY!=HAL_DMA2D_GetState(&hdma2d));
 		LCD_SetOutputOffset(width);
@@ -58,6 +58,6 @@ void LCD_DisplayBuff(uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t heig
 		HAL_DMA2D_Start_IT(&hdma2d, (uint32_t)pbmp, LCD_GetPositionAddress(Xpos,Ypos), width, height);
 		while(HAL_DMA2D_STATE_READY!=HAL_DMA2D_GetState(&hdma2d));
 
-		GiveMutex(Semphr_pLcd);
+		GiveMutex(Semphr_sdram);
 	}
 }

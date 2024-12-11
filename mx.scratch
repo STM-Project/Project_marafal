@@ -14,14 +14,7 @@
       <ProjectName>Stm32F769bit6</ProjectName>
       <ProjectNature>C</ProjectNature>
       <Secure />
-      <filestoremove>
-        <file>
-          <name>Middlewares/Third_Party/mbedTLS/library/rsa.c</name>
-        </file>
-        <file>
-          <name>..\Src\custom.c</name>
-        </file>
-      </filestoremove>
+      <filestoremove />
       <sourceEntriesToRemove>
         <sourceEntry />
       </sourceEntriesToRemove>
@@ -41,8 +34,8 @@
           <LinkSettings>
             <LinkAdditionalLibs />
           </LinkSettings>
-          <heapSize>0x8000</heapSize>
-          <stackSize>0x8000</stackSize>
+          <heapSize>0x1000</heapSize>
+          <stackSize>0x1000</stackSize>
           <cpuclock>216</cpuclock>
           <board>custom</board>
           <debugprobe>swd</debugprobe>
