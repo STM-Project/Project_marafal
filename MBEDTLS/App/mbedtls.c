@@ -105,6 +105,7 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 {
 	int ret;
 
+	XXXXXXXXXXXX:
 	#ifdef MBEDTLS_MEMORY_BUFFER_ALLOC_C
 		mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
 	#endif
@@ -169,7 +170,7 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 		if(ret != 0)
 			goto exit;
 
-
+		mbedtls_ssl_conf_read_timeout( &conf, 2000 );
 
   do{
 
@@ -180,11 +181,17 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 
 
 
+		ret = mbedtls_net_accept(&listen_fd, &client_fd, NULL, 0, NULL);  //To TU OCZEKUJE !!!
+		if (ret != 0){
+			if(ret == MBEDTLS_ERR_NET_ACCEPT_FAILED){
+				goto startt;
+			}
+			else
+				goto startt;
+		}
 
-		if ((ret = mbedtls_net_accept(&listen_fd, &client_fd, NULL, 0, NULL)) != 0)  //To TU OCZEKUJE !!!
-			goto exit;
 
-		mbedtls_ssl_set_bio(&ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL);
+		mbedtls_ssl_set_bio(&ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout);
 
 
 			while ((ret = mbedtls_ssl_handshake(&ssl)) != 0)
@@ -198,8 +205,20 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 		memset(buf, 0, sizeof(buf));
 
 		ret = mbedtls_ssl_read(&ssl, (unsigned char*) buf, len); /*buf[30]=0;*/
+//		if (ret == MBEDTLS_ERR_NET_CONN_RESET || (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE))
+//			goto exit;
 
-
+//int HTTPS_send(mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len)
+//{
+//	while ((ret = mbedtls_ssl_write(ssl, buf, len)) <= 0)
+//	{
+//		if (ret == MBEDTLS_ERR_NET_CONN_RESET)
+//			goto exit;
+//		if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
+//			goto exit;
+//	}
+//
+//}
 
 		if(strstr(buf, "GET / "))  //if ((len >= 5) && (strncmp(buf, "GET /", 5) == 0))
 		{
@@ -217,10 +236,10 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 					  {
 							while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*)GETVAL_ptr(count), len)) <= 0)
 							{
-								if (ret == MBEDTLS_ERR_NET_CONN_RESET)
-									goto exit;
-								if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
-									goto exit;
+								if (ret == MBEDTLS_ERR_NET_CONN_RESET || (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)){
+									GiveMutex2(Semphr_sdram,Semphr_cardSD);
+									goto startt;
+								}
 							}
 							break;
 					  }
@@ -228,10 +247,10 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 					  {
 							while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*)GETVAL_ptr(count), 16384)) <= 0)
 							{
-								if (ret == MBEDTLS_ERR_NET_CONN_RESET)
-									goto exit;
-								if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
-									goto exit;
+								if (ret == MBEDTLS_ERR_NET_CONN_RESET || (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)){
+									GiveMutex2(Semphr_sdram,Semphr_cardSD);
+									goto startt;
+								}
 							}
 							count += 16384;
 							len -= 16384;
@@ -249,10 +268,8 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 	 {
 		 while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*)"1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", 100)) <= 0)
 		 {
-			 if (ret == MBEDTLS_ERR_NET_CONN_RESET)
-				 goto exit;
-			 if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
-				 goto exit;
+				if (ret == MBEDTLS_ERR_NET_CONN_RESET || (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE))
+					goto startt;
 		 }
 		 Dbg(1,"i");
 	 }
@@ -333,6 +350,9 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 
 		mbedtls_ctr_drbg_free(&ctr_drbg);
 		mbedtls_entropy_free(&entropy);
+
+
+		goto XXXXXXXXXXXX;
 
 		osThreadTerminate(defaultTaskHandle2);
 
