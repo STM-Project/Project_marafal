@@ -100,6 +100,33 @@ void MX_MBEDTLS_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+static int HTTPS_send(mbedtls_ssl_context *ssl, char *data, size_t len){
+	int ret=0;
+	while ((ret = mbedtls_ssl_write(ssl, (const unsigned char*)data, len)) <= 0){
+		if (ret == MBEDTLS_ERR_NET_CONN_RESET)
+			return 1;
+		else if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
+			return 2;
+	}
+	return 0;
+}
+
+static void HTTPS_close(void){
+	mbedtls_net_free(&client_fd);
+	mbedtls_net_free(&listen_fd);
+
+	mbedtls_x509_crt_free(&srvcert);
+	mbedtls_pk_free(&pkey);
+	mbedtls_ssl_free(&ssl);
+	mbedtls_ssl_config_free(&conf);
+
+	#if defined(MBEDTLS_SSL_CACHE_C)
+	 mbedtls_ssl_cache_free(&cache);
+	#endif
+
+	mbedtls_ctr_drbg_free(&ctr_drbg);
+	mbedtls_entropy_free(&entropy);
+}
 
 static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/Documentation/02-Kernel/02-Kernel-features/09-Memory-management/01-Memory-management
 {
@@ -208,17 +235,6 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 //		if (ret == MBEDTLS_ERR_NET_CONN_RESET || (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE))
 //			goto exit;
 
-//int HTTPS_send(mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len)
-//{
-//	while ((ret = mbedtls_ssl_write(ssl, buf, len)) <= 0)
-//	{
-//		if (ret == MBEDTLS_ERR_NET_CONN_RESET)
-//			goto exit;
-//		if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
-//			goto exit;
-//	}
-//
-//}
 
 		if(strstr(buf, "GET / "))  //if ((len >= 5) && (strncmp(buf, "GET /", 5) == 0))
 		{
@@ -234,122 +250,56 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 				  {
 					  if(len < 16384)  //MBEDTLS_SSL_OUT_CONTENT_LEN
 					  {
-							while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*)GETVAL_ptr(count), len)) <= 0)
-							{
-								if (ret == MBEDTLS_ERR_NET_CONN_RESET || (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)){
-									GiveMutex2(Semphr_sdram,Semphr_cardSD);
-									goto startt;
-								}
-							}
+						  if(HTTPS_send(&ssl,GETVAL_ptr(count),len)){	GiveMutex2(Semphr_sdram,Semphr_cardSD);
+							  goto startt;	}
 							break;
 					  }
 					  else
 					  {
-							while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*)GETVAL_ptr(count), 16384)) <= 0)
-							{
-								if (ret == MBEDTLS_ERR_NET_CONN_RESET || (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)){
-									GiveMutex2(Semphr_sdram,Semphr_cardSD);
-									goto startt;
-								}
-							}
+						  if(HTTPS_send(&ssl,GETVAL_ptr(count),16384)){	GiveMutex2(Semphr_sdram,Semphr_cardSD);
+							  goto startt;	}
+
 							count += 16384;
 							len -= 16384;
-
 					  }
 				  }
 				  GiveMutex2(Semphr_sdram,Semphr_cardSD);
 				  Dbg(1,"\r\nGET_GET_GET...");
 
 			  }
-
-
     }
 	 else
 	 {
-		 while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*)"1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", 100)) <= 0)
-		 {
-				if (ret == MBEDTLS_ERR_NET_CONN_RESET || (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE))
-					goto startt;
-		 }
+		  if(HTTPS_send(&ssl,(char*)"1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",100)){	GiveMutex2(Semphr_sdram,Semphr_cardSD);
+			  goto startt;	}
+
 		 Dbg(1,"i");
 	 }
 
 
 
-//			while ((ret = mbedtls_ssl_write(&ssl, (unsigned char*) "<html><body>1234567890</body></html>", 36)) <= 0)
-//			{
-//				if (ret == MBEDTLS_ERR_NET_CONN_RESET)
-//					goto exit;
+//#define XXXXX_DD 333
 //
-//				if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
-//					goto exit;
-//			}
+//#if BUFFER_LEN > MBEDTLS_SSL_MAX_CONTENT_LEN
+//#error "adsfsdf"
+//#endif
 
 
-
-
-
-// if(XXXXX_DD > SSSS_FFF)
-// 	#error
-// w mbdetls dac buffer  GETVAL_ptr() !!!!
 
 	  
 		while ((ret = mbedtls_ssl_close_notify(&ssl)) < 0)
 		{
 			if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
-				goto exit;
+				goto startt;
 		}
 
 
-
-		//goto renegat;
-
   }while(1);
-
-	//}while(1);
-
-
-
-//  renegat:
-//
-//  do{
-//
-//
-//
-//		if ((ret = mbedtls_net_accept(&listen_fd, &client_fd, NULL, 0, NULL)) != 0)  //To TU OCZEKUJE !!!
-//			goto exit;
-//
-//
-//		  ret =  mbedtls_ssl_renegotiate(&ssl);
-//			if (ret != 0)
-//				goto exit;
-//
-//			goto Renegat_Jeszcze;
-//
-//
-//
-//  }while(1);
-
-
-
 
 
 		exit:
 
-		mbedtls_net_free(&client_fd);
-		mbedtls_net_free(&listen_fd);
-
-		mbedtls_x509_crt_free(&srvcert);
-		mbedtls_pk_free(&pkey);
-		mbedtls_ssl_free(&ssl);
-		mbedtls_ssl_config_free(&conf);
-
-#if defined(MBEDTLS_SSL_CACHE_C)
-	mbedtls_ssl_cache_free(&cache);
-#endif
-
-		mbedtls_ctr_drbg_free(&ctr_drbg);
-		mbedtls_entropy_free(&entropy);
+		HTTPS_close();
 
 
 		goto XXXXXXXXXXXX;
