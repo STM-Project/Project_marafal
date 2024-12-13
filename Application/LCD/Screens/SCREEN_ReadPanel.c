@@ -413,7 +413,7 @@ static void SCREEN_Test_Circle(void)
 
 		Circle.deg[0]=45;		Circle.degColor[0]=RED;  /* not use yet*/			/* example in future:  float Circle.deg[0]=45.4;*/
 		Circle.deg[1]=125;	Circle.degColor[1]=MYRED;
-		Circle.deg[2]=170;   Circle.degColor[2]=DARKYELLOW;
+		Circle.deg[2]=180;   Circle.degColor[2]=DARKYELLOW;
 		Circle.deg[3]=225;   Circle.degColor[3]=DARKGREEN;
 		Circle.deg[4]=280;   Circle.degColor[4]=DARKBLUE;
 		Circle.deg[5]=320;   Circle.degColor[5]=DARKCYAN;

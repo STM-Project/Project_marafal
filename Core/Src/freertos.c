@@ -183,14 +183,14 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
+	/*
+	 * INFO:
+	 * heap4:	https://www.freertos.org/Documentation/02-Kernel/02-Kernel-features/09-Memory-management/01-Memory-management
+	 * certs:	https://gitlab.com/suyu-emu/mbedtls/-/blob/mbedtls-2.16/library/certs.c
+	 */
+
 	//MX_CRC_Init();
 
-//	char *ptr=NULL;
-//	ptr = mbedtls_calloc( 1, 1620 );
-//	if(ptr==NULL)
-//	{
-//		asm("nop");
-//	}
 
 
 	InitAllMutex();

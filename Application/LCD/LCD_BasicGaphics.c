@@ -12,14 +12,14 @@
 #include "LCD_Common.h"
 #include <stdbool.h>
 
-#define MAX_SIZE_TAB_AA		100
+#define MAX_SIZE_TAB_AA		250
 #define MAX_LINE_BUFF_CIRCLE_SIZE  100
 #define MAX_DEGREE_CIRCLE  10
 
-ALIGN_32BYTES(uint32_t pLcd[LCD_BUFF_XSIZE*LCD_BUFF_YSIZE] __attribute__ ((section(".STemWinMemory"))));
+ALIGN_32BYTES(uint32_t pLcd[LCD_BUFF_XSIZE*LCD_BUFF_YSIZE] __attribute__ ((section(".sdram"))));
 
 static uint32_t k, kCopy;
-static uint32_t buff_AA[MAX_SIZE_TAB_AA];  //sprawdzic czy czasem nie za duzo MAX_SIZE_TAB_AA!!!!
+static uint32_t buff_AA[MAX_SIZE_TAB_AA];
 static uint32_t buff2_AA[MAX_SIZE_TAB_AA];
 static structPosition pos;
 

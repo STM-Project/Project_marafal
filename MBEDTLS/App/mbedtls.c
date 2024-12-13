@@ -30,28 +30,22 @@
 /* USER CODE END 0 */
 
 /* USER CODE BEGIN 1 */
-
-
 #if defined(MBEDTLS_SSL_CACHE_C)
 #include "mbedtls/ssl_cache.h"
 #endif
-
 #include "string.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "sys.h"
 #include "platform.h"
 #include "memory_buffer_alloc.h"
-
 #if defined(MBEDTLS_SSL_CACHE_C)
 #include "mbedtls/ssl_cache.h"
 #endif
-
 #include "string.h"
 #include "ff.h"
 #include "sd_card.h"
 #include "timer.h"
-
 /* USER CODE END 1 */
 
 /* Global variables ---------------------------------------------------------*/
@@ -62,13 +56,14 @@ mbedtls_ctr_drbg_context ctr_drbg;
 mbedtls_entropy_context entropy;
 
 /* USER CODE BEGIN 2 */
+#define HTTPS_MAX_WRITE_BUFF	16384
 
 extern void Dbg(int on, char *txt);
 extern char* GETVAL_ptr();
 
 static mbedtls_net_context listen_fd, client_fd;
-mbedtls_x509_crt srvcert;
-mbedtls_pk_context pkey;
+static mbedtls_x509_crt srvcert;
+static mbedtls_pk_context pkey;
 static const uint8_t *pers = (uint8_t*) "ssl_server";
 
 #if defined(MBEDTLS_SSL_CACHE_C)
@@ -76,11 +71,9 @@ static const uint8_t *pers = (uint8_t*) "ssl_server";
 #endif
 
 static char buf[2400];
+unsigned char memory_buf[4*HTTPS_MAX_WRITE_BUFF];
 
-unsigned char memory_buf[4*16384];// __attribute__ ((section(".sdram")));
-
-sys_thread_t  defaultTaskHandle2;
-
+static sys_thread_t  vTaskHandleServer;
 /* USER CODE END 2 */
 
 /* MBEDTLS init function */
@@ -114,73 +107,63 @@ static int HTTPS_send(mbedtls_ssl_context *ssl, char *data, size_t len){
 static void HTTPS_close(void){
 	mbedtls_net_free(&client_fd);
 	mbedtls_net_free(&listen_fd);
-
 	mbedtls_x509_crt_free(&srvcert);
 	mbedtls_pk_free(&pkey);
 	mbedtls_ssl_free(&ssl);
 	mbedtls_ssl_config_free(&conf);
-
 	#if defined(MBEDTLS_SSL_CACHE_C)
 	 mbedtls_ssl_cache_free(&cache);
 	#endif
-
 	mbedtls_ctr_drbg_free(&ctr_drbg);
 	mbedtls_entropy_free(&entropy);
 }
 
-static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/Documentation/02-Kernel/02-Kernel-features/09-Memory-management/01-Memory-management
+static void SSL_Server(void *arg)
 {
 	int ret;
 
-	XXXXXXXXXXXX:
+	START__SSL_Server:
 	#ifdef MBEDTLS_MEMORY_BUFFER_ALLOC_C
 		mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
 	#endif
-
 	mbedtls_net_init(&listen_fd);
 	mbedtls_net_init(&client_fd);
+	mbedtls_ssl_init(&ssl);
+	mbedtls_ssl_config_init(&conf);
+	#if defined(MBEDTLS_SSL_CACHE_C)
+		mbedtls_ssl_cache_init(&cache);
+	#endif
+	mbedtls_x509_crt_init(&cert);
+	mbedtls_ctr_drbg_init(&ctr_drbg);
+	mbedtls_entropy_init( &entropy );
+
+	mbedtls_pk_init(&pkey);
+
+	ret = mbedtls_x509_crt_parse(&srvcert, (const unsigned char *) mbedtls_test_srv_crt, mbedtls_test_srv_crt_len);
+	if (ret != 0)
+		goto exit;
+
+	ret = mbedtls_x509_crt_parse(&srvcert, (const unsigned char *) mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
+	if (ret != 0)
+		goto exit;
+
+	ret = mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key, mbedtls_test_srv_key_len, NULL, 0);
+	if (ret != 0)
+		goto exit;
 
 
+	if ((ret = mbedtls_net_bind(&listen_fd, NULL, "443", MBEDTLS_NET_PROTO_TCP)) != 0)
+		goto exit;
 
-	  mbedtls_ssl_init(&ssl);
-	  mbedtls_ssl_config_init(&conf);
-#if defined(MBEDTLS_SSL_CACHE_C)
-	mbedtls_ssl_cache_init(&cache);
-#endif
-	  mbedtls_x509_crt_init(&cert);
-	  mbedtls_ctr_drbg_init(&ctr_drbg);
-	  mbedtls_entropy_init( &entropy );
+	ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) pers, strlen((char *) pers));
+	if (ret != 0)
+		goto exit;
 
-	  mbedtls_pk_init(&pkey);
+	ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
+	if (ret != 0)
+		goto exit;
 
-	 // https://gitlab.com/suyu-emu/mbedtls/-/blob/mbedtls-2.16/library/certs.c
-		ret = mbedtls_x509_crt_parse(&srvcert, (const unsigned char *) mbedtls_test_srv_crt, mbedtls_test_srv_crt_len);
-		if (ret != 0)
-			goto exit;
-
-
-		ret = mbedtls_x509_crt_parse(&srvcert, (const unsigned char *) mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
-		if (ret != 0)
-			goto exit;
-
-		ret = mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key, mbedtls_test_srv_key_len, NULL, 0);
-		if (ret != 0)
-			goto exit;
-
-
-		if ((ret = mbedtls_net_bind(&listen_fd, NULL, "443", MBEDTLS_NET_PROTO_TCP)) != 0)
-			goto exit;
-
-		ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) pers, strlen((char *) pers));
-		if (ret != 0)
-			goto exit;
-
-
-		ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
-		if (ret != 0)
-			goto exit;
-
-		mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
+	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 
 
 #if defined(MBEDTLS_SSL_CACHE_C)
@@ -248,7 +231,7 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 				  int count=0;
 				  while(1)
 				  {
-					  if(len < 16384)  //MBEDTLS_SSL_OUT_CONTENT_LEN
+					  if(len < HTTPS_MAX_WRITE_BUFF)  //MBEDTLS_SSL_OUT_CONTENT_LEN
 					  {
 						  if(HTTPS_send(&ssl,GETVAL_ptr(count),len)){	GiveMutex2(Semphr_sdram,Semphr_cardSD);
 							  goto startt;	}
@@ -256,11 +239,11 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
 					  }
 					  else
 					  {
-						  if(HTTPS_send(&ssl,GETVAL_ptr(count),16384)){	GiveMutex2(Semphr_sdram,Semphr_cardSD);
+						  if(HTTPS_send(&ssl,GETVAL_ptr(count),HTTPS_MAX_WRITE_BUFF)){	GiveMutex2(Semphr_sdram,Semphr_cardSD);
 							  goto startt;	}
 
-							count += 16384;
-							len -= 16384;
+							count += HTTPS_MAX_WRITE_BUFF;
+							len -= HTTPS_MAX_WRITE_BUFF;
 					  }
 				  }
 				  GiveMutex2(Semphr_sdram,Semphr_cardSD);
@@ -297,32 +280,19 @@ static void SSL_Server(void *arg)   //INFO o heap4 !!! https://www.freertos.org/
   }while(1);
 
 
-		exit:
+	exit:
+	HTTPS_close();
+	/* goto START__SSL_Server; */
 
-		HTTPS_close();
-
-
-		goto XXXXXXXXXXXX;
-
-		osThreadTerminate(defaultTaskHandle2);
-
-
+	osThreadTerminate(vTaskHandleServer);
 
 }
 
 
 void https_server_netconn_init(void)
 {
-	defaultTaskHandle2 = sys_thread_new("HTTPS", SSL_Server, NULL, 1024, 4);
+	vTaskHandleServer = sys_thread_new("HTTPS", SSL_Server, NULL, 1024, 4);
 }
 
 /* USER CODE END 4 */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
 
