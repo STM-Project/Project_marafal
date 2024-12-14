@@ -40,8 +40,10 @@
 #include "ff.h"
 #include "sd_card.h"
 #include "timer.h"
+
 #include "string.h"
 #include "string_oper.h"
+#include "mini_printf.h"
 /* USER CODE END 1 */
 
 /* Global variables ---------------------------------------------------------*/
@@ -102,7 +104,7 @@ static int HTTPS_send(mbedtls_ssl_context *ssl, char *data, size_t len){
 		else if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
 			return 2;
 	}
-	return 0;
+	return 0;	/* return(ret)  -  'ret' in this line code is bytes written, not use yet */
 }
 static int HTTPS_recv(mbedtls_ssl_context *ssl, char *data, size_t len){
 	int ret = mbedtls_ssl_read(ssl, (unsigned char*)data, len);
@@ -110,7 +112,7 @@ static int HTTPS_recv(mbedtls_ssl_context *ssl, char *data, size_t len){
    	return 1;
    else if(ret < 5)
    	return 2;
-   return 0;
+   return 0;	/* return(ret)  -  'ret' in this line code is bytes read, not use yet */
 }
 
 static void HTTPS_close(void){
@@ -246,8 +248,11 @@ static void SSL_Server(void *arg)
 		}
 		else if(0==strncmp(buffRecv, "GET /test", 9))
 		{
-			if(HTTPS_send(&ssl,"<html><body>Testttt</body></html>",33))
+			mini_snprintf(buffRecv,sizeof(buffRecv)-1,"<html><body>Test: %s</body></html>",mbedtls_ssl_get_ciphersuite(&ssl));
+
+			if(HTTPS_send(&ssl,buffRecv,strlen(buffRecv)))
 				goto RESET_Connection;
+
 			Dbg(HTTPS_DEBUG,"j");
 		}
 		else
