@@ -11,6 +11,4 @@
 void Create_ScreensSelectLCD_Task(void);
 void Create_TEST_Task(void);
 
-void http_server_netconn_init(void);
-
 #endif /* TASKS_SCREENLCDTASK_H_ */

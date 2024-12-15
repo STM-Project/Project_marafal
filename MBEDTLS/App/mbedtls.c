@@ -65,7 +65,7 @@ extern void Dbg(int on, char *txt);
 extern char* GETVAL_ptr();
 
 static mbedtls_net_context listen_fd, client_fd;
-static mbedtls_x509_crt srvcert;		/* Cert hex-ascii or ascii-hex: 	https://base64.guru/converter/decode/hex */
+static mbedtls_x509_crt srvcert;		/* Create own certificate -> https://base64.guru/converter/decode/hex  (hex-ascii or ascii-hex) */
 static mbedtls_pk_context pkey;
 static const uint8_t *pers = (uint8_t*) "ssl_server";
 

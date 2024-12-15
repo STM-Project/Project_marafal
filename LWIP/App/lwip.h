@@ -41,7 +41,7 @@
 #endif /* WITH_RTOS */
 
 /* USER CODE BEGIN 0 */
-
+void http_server_netconn_init(void);
 /* USER CODE END 0 */
 
 /* Global Variables ----------------------------------------------------------*/
