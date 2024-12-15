@@ -20,7 +20,7 @@ void vtask_ScreensSelectLCD(void *pvParameters)
 		vTaskDelay(20);
 	}
 }
-double bufff[100];
+double bufff[110];
 void vtask_TEST(void *pvParameters)
 {
 
@@ -110,7 +110,24 @@ void http_server_serve(struct netconn *conn)
       }
       else
       {
-			netconn_write(conn, "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",100, NETCONN_NOCOPY);
+
+      	static char buffRecv[110];
+			static int testVar=0;
+			char *ptr = Int2Str(++testVar,Zero,6,Sign_none);
+
+			strcpy(buffRecv,"1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
+			buffRecv[0] = *(ptr+0);
+			buffRecv[1] = *(ptr+1);
+			buffRecv[2] = *(ptr+2);
+			buffRecv[3] = *(ptr+3);
+			buffRecv[4] = *(ptr+4);
+			buffRecv[5] = *(ptr+5);
+			buffRecv[6] = ' ';
+			buffRecv[7] = ' ';
+			buffRecv[8] = ' ';
+			buffRecv[9] = ' ';
+
+			netconn_write(conn, buffRecv,100, NETCONN_NOCOPY);
 			Dbg(1,"i");
       }
     }

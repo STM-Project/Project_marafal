@@ -268,6 +268,7 @@ static void SSL_Server(void *arg)
 			buffRecv[4] = *(ptr+4);
 			buffRecv[5] = *(ptr+5);
 			buffRecv[6] = ' ';
+			buffRecv[7] = ' ';
 
 			if(HTTPS_send(&ssl,buffRecv,100))
 				goto RESET_Connection;
@@ -303,4 +304,12 @@ void https_server_netconn_init(void)
 }
 
 /* USER CODE END 4 */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
 

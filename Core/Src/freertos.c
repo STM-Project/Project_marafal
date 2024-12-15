@@ -189,14 +189,13 @@ void StartDefaultTask(void const * argument)
 	 * certs:	https://gitlab.com/suyu-emu/mbedtls/-/blob/mbedtls-2.16/library/certs.c
 	 */
 
-	//MX_CRC_Init();
-
-
-
 	InitAllMutex();
 
+	MX_CRC_Init();
+	MX_RNG_Init();
+
 	MX_FATFS_Init();
-	//MX_LWIP_Init();		/* LAN8742: When nINTSEL is floated or pulled to VDD2A, nINT is selected for operation on the nINT/REFCLKO pin (default). •When nINTSEL is pulled low to VSS, REFCLKO is selected for operation on the nINT/REFCLKO pin. */
+	MX_LWIP_Init();		/* LAN8742: When nINTSEL is floated or pulled to VDD2A, nINT is selected for operation on the nINT/REFCLKO pin (default). •When nINTSEL is pulled low to VSS, REFCLKO is selected for operation on the nINT/REFCLKO pin. */
 
 	DEBUG_Init();
 
@@ -211,8 +210,8 @@ void StartDefaultTask(void const * argument)
 	Create_TouchLcd_Task(); //sprawdz ustawienia w MXCUbe ustawienia freeRTOS z FP70 i wygeneruj projekt jeszcze raz
 	Create_ScreensSelectLCD_Task();
 	Create_TEST_Task();
-	//http_server_netconn_init();
 
+	http_server_netconn_init();
 	https_server_netconn_init();
 
 	osThreadTerminate(NULL);

@@ -91,7 +91,7 @@ struct sockaddr_storage client_addr;
 
 /* Within 'USER CODE' section, code will be kept by default at each generation */
 /* USER CODE BEGIN INCLUDE */
-static int initialized = 0;
+
 /* USER CODE END INCLUDE */
 
 static int net_would_block( const mbedtls_net_context *ctx );
@@ -105,14 +105,12 @@ void mbedtls_net_init( mbedtls_net_context *ctx )
 {
 /* USER CODE BEGIN 0 */
 	  ctx->fd = -1;
-
-	  if (initialized != 0)
-	    return;
+	  return;
 
 /* USER CODE END 0 */
   MX_LWIP_Init();
 /* USER CODE BEGIN 1 */
-  initialized = 1;
+
 /* USER CODE END 1 */
 }
 
