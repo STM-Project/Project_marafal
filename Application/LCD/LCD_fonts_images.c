@@ -32,7 +32,7 @@
 #define MAX_SIZE_CHANGECOLOR_BUFF	300
 #define LCD_XY_POS_MAX_NUMBER_USE	50
 
-#define MAX_STRIP_LISTtxtWIN	30  //do usuniecia !!
+#define MAX_STRIP_LISTtxtWIN	30
 
 #define COMMON_SIGN	'.'
 
@@ -676,7 +676,7 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex)
 	index = pbmp[10] + (pbmp[11] << 8) + (pbmp[12] << 16)  + (pbmp[13] << 24);
 
 	/* Read bitmap width */
-	width = pbmp[18] + (pbmp[19] << 8) + (pbmp[20] << 16)  + (pbmp[21] << 24);  //!!! szerokosc musi byc wielokrotnoscia 4
+	width = pbmp[18] + (pbmp[19] << 8) + (pbmp[20] << 16)  + (pbmp[21] << 24);  		/* 'width' must be multiple of 4 */
 
 	/* Read bitmap height */
 	height = pbmp[22] + (pbmp[23] << 8) + (pbmp[24] << 16)  + (pbmp[25] << 24);
@@ -702,7 +702,7 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex)
 		Font[fontIndex].fontsTabPos[ (int)pChar[j] ][0] = shiftXpos;
 		shiftXpos += (Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1]+1);
 		if(j==0){
-			Font[fontIndex].fontsTabPos[(int)' '   ][1] = (2*Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1])/3; //spacja na podstawie 2/3 dlugosci pierwszej litery z pChar
+			Font[fontIndex].fontsTabPos[(int)' '   ][1] = (2*Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1])/3; 		/* sign pixel width of 'space' is calculated as 2/3 first sign pixel width of tab[] */
 			Font[fontIndex].fontsTabPos[(int)_L_[0]][1] = 0;
 			Font[fontIndex].fontsTabPos[(int)_E_[0]][1] = 0;
 		}
@@ -938,7 +938,7 @@ static StructTxtPxlLen LCD_DrawStrToBuff(uint32_t posBuff,uint32_t windowX,uint3
 	/* Get bitmap data address offset */
 	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
 	/* Read bitmap width */
-	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  //!!! szerokosc musi byc wielokrotnoscia 4
+	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
 	/* Read bitmap height */
 	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
 	/* Read bit/pixel */
@@ -1054,7 +1054,7 @@ static StructTxtPxlLen LCD_DrawStrIndirectToBuffAndDisplay(uint32_t posBuff, int
 	/* Get bitmap data address offset */
 	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
 	/* Read bitmap width */
-	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  //!!! szerokosc musi byc wielokrotnoscia 4
+	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
 	/* Read bitmap height */
 	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
 	/* Read bit/pixel */
@@ -1169,7 +1169,7 @@ static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t wi
 	/* Get bitmap data address offset */
 	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
 	/* Read bitmap width */
-	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  //!!! szerokosc musi byc wielokrotnoscia 4
+	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
 	/* Read bitmap height */
 	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
 	/* Read bit/pixel */
@@ -1271,7 +1271,7 @@ static StructTxtPxlLen LCD_DrawStrChangeColorIndirectToBuffAndDisplay(uint32_t p
 	/* Get bitmap data address offset */
 	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
 	/* Read bitmap width */
-	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  //!!! szerokosc musi byc wielokrotnoscia 4
+	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
 	/* Read bitmap height */
 	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
 	/* Read bit/pixel */
@@ -3239,7 +3239,7 @@ int LCD_SelectedSpaceBetweenFontsIncrDecr(uint8_t incrDecr, uint8_t fontStyle, u
 	return 0xFFFF;
 }
 
-char* LCD_DisplayRemeberedSpacesBetweenFonts(int param, char* buff, int* maxArray){  // to tez dac fontID, space.... jak wyzej !!!!
+char* LCD_DisplayRemeberedSpacesBetweenFonts(int param, char* buff, int* maxArray){
 	char bufTemp[50];
 	switch(param){
 	default:

@@ -211,8 +211,8 @@ void StartDefaultTask(void const * argument)
 	Create_ScreensSelectLCD_Task();
 	Create_TEST_Task();
 
-	http_server_netconn_init();
-	https_server_netconn_init();
+	//http_server_netconn_init();
+	//https_server_netconn_init();
 
 	osThreadTerminate(NULL);
 

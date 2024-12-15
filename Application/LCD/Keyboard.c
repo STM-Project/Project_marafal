@@ -1235,8 +1235,10 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		int heightUpDown = 17;
 		int widthtUpDown = 26;
 
-		int xPosU = MIDDLE(0,		width/2,widthtUpDown);
-		int xPosD = MIDDLE(width/2,width/2,widthtUpDown);
+		int xPosU = width-2*(widthtUpDown+10);
+		int xPosD = width-(widthtUpDown+10);
+//		int xPosU = MIDDLE(0,		width/2,widthtUpDown);
+//		int xPosD = MIDDLE(width/2,width/2,widthtUpDown);
 		int yPosUD = height-heightUpDown-spaceFromFrame;
 
 		uint32_t tabFontColor[6]={BrightDecr(colorDescr,0x20),MYGREEN,CYAN,colorDescr,colorDescr,MYRED};  //poprawic nie wiem cy [6] !!!!!!!!!!!!!!!!!!  zwiazane z textem moze sam automatycznie wyliczyc !!!
@@ -1273,7 +1275,8 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
 		if(TakeMutex(Semphr_sdram,1000)){
-			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,LCD_LIST_TXT_example(pCHAR_PLCD(width*height))+_GetCurrPosTxt(),fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
+			char *ptr = LCD_LIST_TXT_example(pCHAR_PLCD(width*height));//LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL);	/* LCD_LIST_TXT_example(pCHAR_PLCD(width*height)) */
+			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,ptr+_GetCurrPosTxt(),fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
 			GiveMutex(Semphr_sdram);
 		}
 		if(posTxt_temp){
@@ -1303,7 +1306,8 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		switch(nr){
 			case 0:
 				if(TakeMutex(Semphr_sdram,1000)){
-					win.size.w = LCD_LIST_TXT_len(LCD_LIST_TXT_example(pCHAR_PLCD(0)),TxtInRow, fontID_descr,0,NoConstWidth, NULL).inPixel + 2*spaceFromFrame;
+					char *ptr = LCD_LIST_TXT_example(pCHAR_PLCD(0));//LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL);		/* LCD_LIST_TXT_example(pCHAR_PLCD(0)) */
+					win.size.w = LCD_LIST_TXT_len(ptr,TxtInRow, fontID_descr,0,NoConstWidth, NULL).inPixel + 2*spaceFromFrame;
 					GiveMutex(Semphr_sdram);
 				}
 				calcWinWidth = win.size.w;
