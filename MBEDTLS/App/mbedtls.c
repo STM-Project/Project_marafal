@@ -224,25 +224,26 @@ static void SSL_Server(void *arg)
 				SDCardFileOpen(0,"aaa.htm",FA_READ);
 				len = SDCardFileRead(0, GETVAL_ptr(0), 180000);
 				SDCardFileClose(0);
+				GiveMutex(Semphr_cardSD);
 
 				while(1)
 				{
 					if(len < HTTPS_MAX_WRITE_BUFF)
 					{
-						if(HTTPS_send(&ssl,GETVAL_ptr(count),len)){	GiveMutex2(Semphr_sdram,Semphr_cardSD);
+						if(HTTPS_send(&ssl,GETVAL_ptr(count),len)){	GiveMutex(Semphr_sdram);
 							goto RESET_Connection;	}
 						break;
 					}
 					else
 					{
-						if(HTTPS_send(&ssl,GETVAL_ptr(count),HTTPS_MAX_WRITE_BUFF)){	GiveMutex2(Semphr_sdram,Semphr_cardSD);
+						if(HTTPS_send(&ssl,GETVAL_ptr(count),HTTPS_MAX_WRITE_BUFF)){	GiveMutex(Semphr_sdram);
 							goto RESET_Connection;	}
 
 						count += HTTPS_MAX_WRITE_BUFF;
 						len -= HTTPS_MAX_WRITE_BUFF;
 					}
 				}
-				GiveMutex2(Semphr_sdram,Semphr_cardSD);
+				GiveMutex(Semphr_sdram);
 				Dbg(HTTPS_DEBUG,"\r\nGET...");
 			}
 		}

@@ -91,9 +91,11 @@ void http_server_serve(struct netconn *conn)
 				  SDCardFileOpen(0,"aaa.htm",FA_READ);
 				  int len = SDCardFileRead(0, GETVAL_ptr(0), 180000);
 				  SDCardFileClose(0);
+				  GiveMutex(Semphr_cardSD);
+
 				  netconn_write(conn, GETVAL_ptr(0),len, NETCONN_NOCOPY);
 
-				  GiveMutex2(Semphr_sdram,Semphr_cardSD);
+				  GiveMutex(Semphr_sdram);
 				  Dbg(1,"\r\nGET_GET_GET...");
 			  }
 			  else
