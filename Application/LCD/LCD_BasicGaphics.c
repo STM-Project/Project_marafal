@@ -3104,13 +3104,14 @@ SHAPE_PARAMS LCD_Arrow(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uin
 	return params;
 }
 void LCD_Arrow_Indirect(uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor, DIRECTIONS direct){
-	LCD_Arrow(0,width,height, x,y, width,height, frameColor, fillColor, bkpColor, direct);
-	LCD_Display(0,x,y,width,height);
+	LCD_ShapeWindow(LCD_Rectangle, 0, MASK(width,FFFF),MASK(height,FFFF), 0,0, MASK(width,FFFF),MASK(height,FFFF), bkpColor,bkpColor,bkpColor );
+	LCD_Arrow(0,MASK(width,FFFF),MASK(height,FFFF), 0,0, width,height, frameColor, fillColor, bkpColor, direct);
+	LCD_Display(0,x,y,MASK(width,FFFF),MASK(height,FFFF));
 }
 SHAPE_PARAMS LCDSHAPE_Arrow(uint32_t posBuff, SHAPE_PARAMS param){
 	return LCD_Arrow(posBuff,param.bkSize.x,param.bkSize.y, param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[0].bk, param.param[0]);
 }
-void LCDSHAPE_Arrow_Indirect(uint32_t posBuff, SHAPE_PARAMS param){
+void LCDSHAPE_Arrow_Indirect(SHAPE_PARAMS param){
 	return LCD_Arrow_Indirect(param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[0].bk, param.param[0]);
 }
 

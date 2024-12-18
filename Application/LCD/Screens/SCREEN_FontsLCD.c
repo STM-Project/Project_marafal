@@ -2204,8 +2204,66 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	 else 			  lenStr= LCD_StrChangeColorVar(v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, RGB_BK, RGB_FONT,																		 Test.coeff, Test.constWidth, v.COLOR_BkScreen);
 	Test.speed=StopMeasureTime_us("");
 
+
+
+
+
+
+	SHAPE_PARAMS aaa={0};
+
+	aaa = LCD_Arrow(ToStructAndReturn,LCD_X,LCD_Y, 60,300, SetLineBold2Width(26,7), SetTriangHeightCoeff2Height(32-1,3), RED, RED, v.COLOR_BkScreen, Down);
+	LCDSHAPE_Arrow(0, aaa);
+
+	aaa.pos[0].x += 40;
+	aaa.param[0] = Up;
+	LCDSHAPE_Arrow(0, aaa);
+
+
+
+
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
 	if(LoadNoDispScreen != argNmb) LCD_Show();
+
+//	aaa.pos[0].x += 40;   //TO DAC EXAMPLE() !!!!!!!!!!!!!!!!!
+//	aaa.bkSize.x = 26;
+//	aaa.bkSize.y = 32-1;
+//	LCDSHAPE_Arrow_Indirect(aaa);
+//
+//	aaa.pos[0].x += 40;
+//	aaa.param[0] = Down;
+//	LCDSHAPE_Arrow_Indirect(aaa);
+//
+//	aaa.pos[0].x += 40;
+//	aaa.param[0] = Up;
+//	aaa.color[0].frame=DARKYELLOW;
+//	aaa.color[0].fill=DARKYELLOW;
+//	LCDSHAPE_Arrow_Indirect(aaa);
+
+
+
+
+
+
+
+
+	//LCDSHAPE_Window(LCDSHAPE_Arrow,0,arrowDnParam=LCD_Arrow(ToStructAndReturn,100,80, 60,300, SetLineBold2Width(26,7), SetTriangHeightCoeff2Height(32-1,3), RED, RED, bkColor, Down));
+	//LCD_Arrow(0/*ToStructAndReturn*/,100,80, 60,300, SetLineBold2Width(26,7), SetTriangHeightCoeff2Height(32-1,3), RED, RED, bkColor, Down);
+//	arrowDnParam.pos[0].x += win.pos.x;
+//	arrowDnParam.pos[0].y += win.pos.y;
+//	arrowDnParam.bkSize.x = widthtUpDown;
+//	arrowDnParam.bkSize.y = heightUpDown;
+//	arrowDnParam.color[0].frame = WHITE;
+//	arrowDnParam.color[0].fill = WHITE;
+//	arrowDnParam.color[0].bk = BLACK;
+
+
+	//LCDSHAPE_Arrow_Indirect(arrowDnParam);
+
+
+
+
+
+
 }
 
 #undef POS_X_TXT

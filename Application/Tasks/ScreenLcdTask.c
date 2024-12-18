@@ -41,7 +41,7 @@ void vtask_TEST(void *pvParameters)
 
 void Create_ScreensSelectLCD_Task(void)
 {
-	xTaskCreate(vtask_ScreensSelectLCD, (char* )"vtask_ScreensSelectLCD", 1024, NULL, (unsigned portBASE_TYPE ) 1, &vtask_ScreensSelectLCD_Handle);
+	xTaskCreate(vtask_ScreensSelectLCD, (char* )"vtask_ScreensSelectLCD", 4024, NULL, (unsigned portBASE_TYPE ) 1, &vtask_ScreensSelectLCD_Handle);
 }
 
 void Create_TEST_Task(void)

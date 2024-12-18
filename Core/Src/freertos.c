@@ -50,7 +50,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define HTTP_THREAD_ON	0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -197,7 +197,10 @@ void StartDefaultTask(void const * argument)
 	MX_RNG_Init();
 
 	MX_FATFS_Init();
-	MX_LWIP_Init();		/* LAN8742: When nINTSEL is floated or pulled to VDD2A, nINT is selected for operation on the nINT/REFCLKO pin (default). •When nINTSEL is pulled low to VSS, REFCLKO is selected for operation on the nINT/REFCLKO pin. */
+
+	#if HTTP_THREAD_ON
+	 MX_LWIP_Init();		/* LAN8742: When nINTSEL is floated or pulled to VDD2A, nINT is selected for operation on the nINT/REFCLKO pin (default). •When nINTSEL is pulled low to VSS, REFCLKO is selected for operation on the nINT/REFCLKO pin. */
+	#endif
 
 	DEBUG_Init();
 
@@ -213,8 +216,10 @@ void StartDefaultTask(void const * argument)
 	Create_ScreensSelectLCD_Task();
 	Create_TEST_Task();
 
-	http_server_netconn_init();
-	https_server_netconn_init();
+	#if HTTP_THREAD_ON
+	 http_server_netconn_init();
+	 https_server_netconn_init();
+	#endif
 
 	osThreadTerminate(NULL);
 

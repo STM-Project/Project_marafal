@@ -160,7 +160,7 @@ SHAPE_PARAMS LCDSHAPE_Exit(uint32_t posBuff, SHAPE_PARAMS param);
 SHAPE_PARAMS LCDSHAPE_KeyBackspace(uint32_t posBuff, SHAPE_PARAMS param);
 
 void LCD_Arrow_Indirect(uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor, DIRECTIONS direct);
-void LCDSHAPE_Arrow_Indirect(uint32_t posBuff, SHAPE_PARAMS param);
+void LCDSHAPE_Arrow_Indirect(SHAPE_PARAMS param);
 
 /* ------- End Selected Figures ------------------*/
 
