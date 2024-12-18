@@ -1227,6 +1227,8 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	POS_SIZE win = { .pos={ s[k].x+widthAll+1, s[k].y 				 	}, .size={calcWinWidth,250} };
 	POS_SIZE win2 ={ .pos={ 15, 					 s[k].y+heightAll+15 }, .size={600, 		  60} };
 
+	SHAPE_PARAMS arrowUpDnParam = {0};
+
 	void _WinInfo(char* txt){
 		WinInfo(txt, win2.pos.x, win2.pos.y, win2.size.w, win2.size.h, timID);
 	}
@@ -1237,8 +1239,6 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 		int xPosU = width-2*(widthtUpDown+10);
 		int xPosD = width-(widthtUpDown+10);
-//		int xPosU = MIDDLE(0,		width/2,widthtUpDown);
-//		int xPosD = MIDDLE(width/2,width/2,widthtUpDown);
 		int yPosUD = height-heightUpDown-spaceFromFrame;
 
 		uint32_t tabFontColor[6]={BrightDecr(colorDescr,0x20),MYGREEN,CYAN,colorDescr,colorDescr,MYRED};  //poprawic nie wiem cy [6] !!!!!!!!!!!!!!!!!!  zwiazane z textem moze sam automatycznie wyliczyc !!!
@@ -1255,14 +1255,16 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			touchTemp[1].x= touchTemp[0].x + widthtUpDown;
 			touchTemp[0].y= win.pos.y + yPosUD;
 			touchTemp[1].y= touchTemp[0].y + heightUpDown;
-			LCD_TOUCH_Set(ID_TOUCH_POINT,touchAction2,press);
+			//LCD_TOUCH_Set(ID_TOUCH_POINT,touchAction2,press);
+			LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT_WITH_WAIT,touchAction2,TOUCH_GET_PER_X_PROBE);
 			s[k].nmbTouch++;
 
 			touchTemp[0].x= win.pos.x + xPosD;
 			touchTemp[1].x= touchTemp[0].x + widthtUpDown;
 			touchTemp[0].y= win.pos.y + yPosUD;
 			touchTemp[1].y= touchTemp[0].y + heightUpDown;
-			LCD_TOUCH_Set(ID_TOUCH_POINT,touchAction2+1,press);
+			//LCD_TOUCH_Set(ID_TOUCH_POINT,touchAction2+1,press);
+			LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT_WITH_WAIT,touchAction2+1,TOUCH_GET_PER_X_PROBE);
 			s[k].nmbTouch++;
 
 			_SetCurrPosTxt(0);
@@ -1289,11 +1291,12 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		LCD_TOUCH_SusspendTouch(touchAction2+1);
 
 		if(1 < i_posTxtTab || (1==i_posTxtTab && 0==posTxt_temp)){
-			LCDSHAPE_Window(LCDSHAPE_Arrow,0,LCD_Arrow(ToStructAndReturn,width,height, xPosU,yPosUD, SetLineBold2Width(widthtUpDown,7), SetTriangHeightCoeff2Height(heightUpDown,3), colorDescr, colorDescr, bkColor, Up));
+			LCDSHAPE_Window(LCDSHAPE_Arrow,0,arrowUpDnParam=LCD_Arrow(ToStructAndReturn,width,height, xPosU,yPosUD, SetLineBold2Width(widthtUpDown,7), SetTriangHeightCoeff2Height(heightUpDown,3), colorDescr, colorDescr, bkColor, Up));
 			LCD_TOUCH_RestoreSusspendedTouch(touchAction2);
 		}
 		if(0 < posTxt_temp){
-			LCD_Arrow(0,width,height, xPosD,yPosUD, SetLineBold2Width(widthtUpDown,7), SetTriangHeightCoeff2Height(heightUpDown-1,3), colorDescr, colorDescr, bkColor, Down);
+			LCDSHAPE_Window(LCDSHAPE_Arrow,0,arrowUpDnParam=LCD_Arrow(ToStructAndReturn,width,height, xPosD,yPosUD, SetLineBold2Width(widthtUpDown,7), SetTriangHeightCoeff2Height(heightUpDown-1,3), colorDescr, colorDescr, bkColor, Down));
+			//LCD_Arrow(0,width,height, xPosD,yPosUD, SetLineBold2Width(widthtUpDown,7), SetTriangHeightCoeff2Height(heightUpDown-1,3), colorDescr, colorDescr, bkColor, Down);
 			LCD_TOUCH_RestoreSusspendedTouch(touchAction2+1);
 		}
 
@@ -1398,6 +1401,13 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	else if(touchAction+12 == selBlockPress) _CreateWindows(0,Down);
 
 	else if(touchTimer == selBlockPress){ pfunc(FUNC_MAIN_ARG);  LCD_DisplayPart(0, MIDDLE(0,LCD_X,win2.size.w)/* win2.pos.x */, win2.pos.y, win2.size.w, win2.size.h); }
+
+	else{
+		if(_IsFlagWin()){
+			LCDSHAPE_Arrow_Indirect(0,arrowUpDnParam);
+			Dbg(1,"R");
+		}
+	}
 
 
 
