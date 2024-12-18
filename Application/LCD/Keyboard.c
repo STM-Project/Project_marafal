@@ -1383,6 +1383,12 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			}
 			BKCOPY(s[k].widthKey,c.widthKey);
 			BKCOPY(fillColor,fillColor_c[0]);
+
+//			if(_IsFlagWin()){
+//					LCDSHAPE_Arrow_Indirect(0,arrowUpDnParam);
+//					Dbg(1,"R");
+//				}
+
 	}
 	else if(touchAction+0 == selBlockPress) 		_OverArrowTxt_oneBlockDisp(0,outside);
 	else if(touchAction+1 == selBlockPress) 		_OverArrowTxt_oneBlockDisp(1,inside);
@@ -1402,12 +1408,6 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 	else if(touchTimer == selBlockPress){ pfunc(FUNC_MAIN_ARG);  LCD_DisplayPart(0, MIDDLE(0,LCD_X,win2.size.w)/* win2.pos.x */, win2.pos.y, win2.size.w, win2.size.h); }
 
-	else{
-		if(_IsFlagWin()){
-			LCDSHAPE_Arrow_Indirect(0,arrowUpDnParam);
-			Dbg(1,"R");
-		}
-	}
 
 
 

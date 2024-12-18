@@ -56,7 +56,7 @@ uint8_t GATEWAY_ADDRESS[4];
 
 /* USER CODE BEGIN 2 */
 /* ---------------- HTTP ---------------- */
-#define WEBSERVER_THREAD_PRIO    ( tskIDLE_PRIORITY + 4 )
+#define WEBSERVER_THREAD_PRIO    ( tskIDLE_PRIORITY + 0 )
 
 
 extern void Dbg(int on, char *txt);
@@ -173,7 +173,7 @@ static void http_server_netconn_thread(void *arg)
 
 void http_server_netconn_init(void)
 {
-	sys_thread_new("HTTP", http_server_netconn_thread, NULL, 1200, WEBSERVER_THREAD_PRIO);
+	sys_thread_new("HTTP", http_server_netconn_thread, NULL, 1200, -3);
 }
 
 /* USER CODE END 2 */
