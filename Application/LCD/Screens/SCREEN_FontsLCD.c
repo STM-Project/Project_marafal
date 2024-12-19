@@ -425,6 +425,7 @@ typedef enum{
 	KEY_All_release,
 	KEY_Select_one,
 	KEY_Timer,
+	KEY_Timer2,
 
 	KEY_Red_plus,
 	KEY_Green_plus,
@@ -511,6 +512,7 @@ typedef enum{
 typedef enum{
 	TIMER_Cpu,
 	TIMER_InfoWrite,
+	TIMER_Release,
 	TIMER_BlockTouch,
 	TIMER_Scroll,
 }TIMER_FOR_THIS_SCREEN;
@@ -1283,6 +1285,9 @@ static void FILE_NAME(timer)(void)  //sprawdz czy nie uzyc RTOS timer CALLBACK !
 {
 	if(vTimerService(TIMER_InfoWrite, check_stop_time, 2000)){
 		KEYBOARD_TYPE(KEYBOARD_LenOffsWin, KEY_Timer);
+	}
+	if(vTimerService(TIMER_Release, check_stop_time, 200)){
+		KEYBOARD_TYPE(KEYBOARD_LenOffsWin, KEY_Timer2);
 	}
 	if(vTimerService(TIMER_BlockTouch, check_stop_time, 500)){
 		BlockTouchForTime(_OFF);
@@ -2224,7 +2229,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
 	if(LoadNoDispScreen != argNmb) LCD_Show();
 
-//	aaa.pos[0].x += 40;   //TO DAC EXAMPLE() !!!!!!!!!!!!!!!!!
+//	aaa.pos[0].x += 40;   //TO DAC EXAMPLE() !!!!!!!!!!!!!!!!!     //if(arrowUpParam.pos[0].x){ HAL_Delay(20); LCDSHAPE_Arrow_Indirect(arrowUpParam); }
 //	aaa.bkSize.x = 26;
 //	aaa.bkSize.y = 32-1;
 //	LCDSHAPE_Arrow_Indirect(aaa);
