@@ -3250,6 +3250,7 @@ char* LCD_DisplayRemeberedSpacesBetweenFonts(int param, char* buff, int* maxArra
 		Dbg(1,"\r\n");
 		return NULL;
 	case 1:
+		buff[0]=0;
 		int len=0,lenArray=0;	if(maxArray!=NULL) *maxArray=0;
 		for(int i=0; i<StructSpaceCount; i++){
 			lenArray = mini_snprintf(buff+len,100,"%d%c"_L_"%s "_L_"%s "_L_"'%c' "_L_"'%c' "_L_"%d"_E_,i,COMMON_SIGN,LCD_FontStyle2Str(bufTemp,space[i].fontStyle),LCD_FontSize2Str(bufTemp+20,space[i].fontSize),space[i].char1,space[i].char2,space[i].val);
@@ -3756,14 +3757,9 @@ uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt){
 	return ((posY&0xFFFF) | lenTxt<<16);
 }
 
-
-
-
-
-
-
 char*  LCD_LIST_TXT_example(char* buf){
 	INIT(len,0);	INIT(lenArray,0);
+	buf[0]=0;
 	LOOP_FOR(i,207){
 		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, "Agnieszka",	"ASD", "ab","cd",	GET_CODE_LINE);  				len+=lenArray; i++;
 		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, GET_TIME_COMPILATION,	"Markiel",		 "x", "cd",	GET_CODE_LINE);  				len+=lenArray; i++;
@@ -3793,6 +3789,7 @@ uint16_t LCD_LIST_TXT_nmbStripsInLine(GET_SET act, char* bufTxt, int* lenBufTxt)
 StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrip)
 {
 	StructTxtPxlLen len={0};
+	if(0==bufTxt[0]) return len;
 	uint16_t lenMaxWholeLine=0;  /* value depended on 'arangType' */
 	int lenWholeTxt=0;
 	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_CALC,bufTxt,&lenWholeTxt);
@@ -3842,6 +3839,8 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 {
 	#define CURRENT_Y	 nrLine*len.height
 	StructTxtPxlLen len={0};
+	if(0==txt[0]) return len;
+
 	int lenTxt=0, nrLine=0, j=0,i=0, strip=0;
 	char *ptr=txt;
 	int WholeLenTxt=0;
