@@ -1232,7 +1232,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	void _WinInfo(char* txt){
 		WinInfo(txt, win2.pos.x, win2.pos.y, win2.size.w, win2.size.h, timID);
 	}
-	void _WindowSpacesInfo(uint16_t x,uint16_t y, uint16_t width,uint16_t height, int param, int spaceFromFrame){
+	void _WindowSpacesInfo(uint16_t x,uint16_t y, uint16_t width,uint16_t height, int param, int spaceFromFrame, int nmbrStrip){
 		#define MAX_SCREENS	50
 		int heightUpDown = 17;
 		int widthtUpDown = 26;
@@ -1241,7 +1241,14 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		int xPosD = width-(widthtUpDown+10);
 		int yPosUD = height-heightUpDown-spaceFromFrame;
 
-		uint32_t tabFontColor[6]={BrightDecr(colorDescr,0x20),MYGREEN,CYAN,colorDescr,colorDescr,MYRED};  //poprawic nie wiem cy [6] !!!!!!!!!!!!!!!!!!  zwiazane z textem moze sam automatycznie wyliczyc !!!
+		uint32_t tabFontColor[]={BrightDecr(colorDescr,0x20),MYGREEN,CYAN,colorDescr,colorDescr,MYRED};  //poprawic nie wiem cy [6] !!!!!!!!!!!!!!!!!!  zwiazane z textem moze sam automatycznie wyliczyc !!!
+
+		uint32_t *pTabFontColor = (uint32_t*)pvPortMalloc(nmbrStrip*sizeof(uint32_t));
+		LOOP_FOR(i,nmbrStrip){ pTabFontColor[i]=colorDescr; }
+		LOOP_FOR(i,nmbrStrip){
+			if(i >= STRUCT_TAB_SIZE(tabFontColor)) break;
+			pTabFontColor[i] = tabFontColor[i];
+		}
 
 		static uint16_t posTxt_temp=0;
 		static uint16_t posTxtTab[MAX_SCREENS]={0};
@@ -1276,7 +1283,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
 		if(TakeMutex(Semphr_sdram,1000)){
 			char *ptr = LCD_LIST_TXT_example(pCHAR_PLCD(width*height));//LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL);	/* LCD_LIST_TXT_example(pCHAR_PLCD(width*height)) */
-			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,ptr+_GetCurrPosTxt(),fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth, tabFontColor, TOOGLE(AAAAAA)).inChar;
+			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,ptr+_GetCurrPosTxt(),fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth, pTabFontColor, TOOGLE(AAAAAA)).inChar;
 			GiveMutex(Semphr_sdram);
 		}
 		if(posTxt_temp){
@@ -1320,13 +1327,15 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		int spaceFromFrame = 10;
 		switch(nr){
 			case 0:
+				StructTxtPxlLen ret={0};
 				if(TakeMutex(Semphr_sdram,1000)){
-					char *ptr = LCD_LIST_TXT_example(pCHAR_PLCD(0));//LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL);		/* LCD_LIST_TXT_example(pCHAR_PLCD(0)) */
-					win.size.w = LCD_LIST_TXT_len(ptr,TxtInRow, fontID_descr,0,NoConstWidth, NULL).inPixel + 2*spaceFromFrame;
+					char *ptr 	= LCD_LIST_TXT_example(pCHAR_PLCD(0));//LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL);		/* LCD_LIST_TXT_example(pCHAR_PLCD(0)) */
+					ret = LCD_LIST_TXT_len(ptr,TxtInRow, fontID_descr,0,NoConstWidth, NULL);
+					if(ret.inPixel) win.size.w= ret.inPixel + 2*spaceFromFrame;
 					GiveMutex(Semphr_sdram);
 				}
 				calcWinWidth = win.size.w;
-				_WindowSpacesInfo(win.pos.x ,win.pos.y, win.size.w, win.size.h, param, spaceFromFrame); _SetFlagWin();
+				_WindowSpacesInfo(win.pos.x ,win.pos.y, win.size.w, win.size.h, param, spaceFromFrame, ret.height); 	_SetFlagWin();
 				break;
 			case 1:
 				break;
