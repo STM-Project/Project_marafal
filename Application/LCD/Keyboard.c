@@ -68,6 +68,7 @@ static struct KEYBOARD_SETTINGS{
 	uint8_t nmbTouch;
 	uint8_t param;
 	uint32_t param2;
+	uint32_t param3;
 } s[MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY]={0}, c={0};
 
 static int fontID = 0;
@@ -1224,10 +1225,23 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	void 	_RstFlagWin	 (void){	RST_bit(s[k].param,7); }
 
 	static int calcWinWidth=200;
+	static SHAPE_PARAMS arrowUpParam={0}, arrowDnParam={0};
+	static StructTxtPxlLen listTxtStruct={0};
+
 	POS_SIZE win = { .pos={ s[k].x+widthAll+1, s[k].y 				 	}, .size={calcWinWidth,250} };
 	POS_SIZE win2 ={ .pos={ 15, 					 s[k].y+heightAll+15 }, .size={600, 		  60} };
+	int spaceFromFrame = 10;
 
-	static SHAPE_PARAMS arrowUpParam={0}, arrowDnParam={0};
+	if(shape!=0){
+		if(TakeMutex(Semphr_sdram,3000)){
+			listTxtStruct = LCD_LIST_TXT_len( LCD_LIST_TXT_example(pCHAR_PLCD(0)),TxtInRow, fontID_descr,0,NoConstWidth, NULL);  //LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL);		/* LCD_LIST_TXT_example(pCHAR_PLCD(0)) */
+			GiveMutex(Semphr_sdram);
+		}
+		if(listTxtStruct.inPixel){
+			win.size.w= listTxtStruct.inPixel + 2*spaceFromFrame;
+			calcWinWidth = win.size.w;
+		}
+	}
 
 	void _WinInfo(char* txt){
 		WinInfo(txt, win2.pos.x, win2.pos.y, win2.size.w, win2.size.h, timID);
@@ -1329,18 +1343,9 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	}
 	int retVal=0;
 	void _CreateWindows(int nr,int param){
-		int spaceFromFrame = 10;
 		switch(nr){
 			case 0:
-				StructTxtPxlLen ret={0};
-				if(TakeMutex(Semphr_sdram,3000)){
-					char *ptr 	= LCD_LIST_TXT_example(pCHAR_PLCD(0));//LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL);		/* LCD_LIST_TXT_example(pCHAR_PLCD(0)) */
-					ret = LCD_LIST_TXT_len(ptr,TxtInRow, fontID_descr,0,NoConstWidth, NULL);
-					if(ret.inPixel) win.size.w= ret.inPixel + 2*spaceFromFrame;
-					GiveMutex(Semphr_sdram);
-				}
-				calcWinWidth = win.size.w;
-				_WindowSpacesInfo(win.pos.x ,win.pos.y, win.size.w, win.size.h, param, spaceFromFrame, ret.height); 	_SetFlagWin();
+				_WindowSpacesInfo(win.pos.x ,win.pos.y, win.size.w, win.size.h, param, spaceFromFrame, listTxtStruct.height); 	_SetFlagWin();
 				break;
 			case 1:
 				break;
