@@ -15,6 +15,7 @@
 #include "common.h"
 #include "math.h"
 #include "timer.h"
+#include "mini_printf.h"
 
 #define FONT_COEFF	252
 
@@ -63,12 +64,11 @@ static struct KEYBOARD_SETTINGS{
 	uint16_t wKey[MAXNMB_widthKey];
 	uint16_t hKey[MAXNMB_widthKey];
 	uint8_t interSpace;
-	uint8_t forTouchIdx;			/* is not used */
+	uint8_t forTouchIdx;			/* touch for enter to keyboard */
 	uint8_t startTouchIdx;
 	uint8_t nmbTouch;
 	uint8_t param;
 	uint32_t param2;
-	uint32_t param3;
 } s[MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY]={0}, c={0};
 
 static int fontID = 0;
@@ -1234,7 +1234,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 	if(shape!=0){
 		if(TakeMutex(Semphr_sdram,3000)){
-			listTxtStruct = LCD_LIST_TXT_len( LCD_LIST_TXT_example(pCHAR_PLCD(0)),TxtInRow, fontID_descr,0,NoConstWidth, NULL);  //LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL);		/* LCD_LIST_TXT_example(pCHAR_PLCD(0)) */
+			listTxtStruct = LCD_LIST_TXT_len( LCD_LIST_TXT_example(pCHAR_PLCD(0),NULL),TxtInRow, fontID_descr,0,NoConstWidth, NULL);  //LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL);		/* LCD_LIST_TXT_example(pCHAR_PLCD(0)) */
 			GiveMutex(Semphr_sdram);
 		}
 		if(listTxtStruct.inPixel){
@@ -1271,6 +1271,9 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		void 		_SetCurrPosTxt(uint32_t pos){ 		 s[k].param2=pos; }
 		uint32_t _GetCurrPosTxt(void)			 { return s[k].param2; }
 
+		static uint16_t maxScreens=1;
+		StructTxtPxlLen winTxtStruct={0};
+
 		if(NoDirect==param){
 			touchTemp[0].x= win.pos.x + xPosU;
 			touchTemp[1].x= touchTemp[0].x + widthtUpDn;
@@ -1288,6 +1291,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 			_SetCurrPosTxt(0);
 			i_posTxtTab=0;
+			LCD_TOUCH_SusspendTouch(s[k].forTouchIdx);
 		}
 		else if(Up==param){
 			CONDITION(1<i_posTxtTab && 0<posTxt_temp, i_posTxtTab-=2, i_posTxtTab--);
@@ -1296,8 +1300,14 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
 		if(TakeMutex(Semphr_sdram,3000)){
-			char *ptr = LCD_LIST_TXT_example(pCHAR_PLCD(width*height));//LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL);	/* LCD_LIST_TXT_example(pCHAR_PLCD(width*height)) */
-			posTxt_temp = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,ptr+_GetCurrPosTxt(),fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth, pTabFontColor, TOOGLE(AAAAAA)).inChar;
+			int nmbLines=0;
+			char *ptr = LCD_LIST_TXT_example(pCHAR_PLCD(width*height),&nmbLines);//LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL);	/* LCD_LIST_TXT_example(pCHAR_PLCD(width*height)) */
+			winTxtStruct = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,ptr+_GetCurrPosTxt(),fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth, pTabFontColor, TOOGLE(AAAAAA));
+			posTxt_temp = winTxtStruct.inChar;
+			if(posTxt_temp){
+				maxScreens= nmbLines/winTxtStruct.height;
+				if(nmbLines%winTxtStruct.height)	maxScreens++;
+			}
 			GiveMutex(Semphr_sdram);
 		}
 		vPortFree(pTabFontColor);
@@ -1313,6 +1323,10 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 		arrowUpParam.pos[0].x = 0;
 		arrowDnParam.pos[0].x = 0;
+
+		char buftemp[30]={0};
+		mini_snprintf(buftemp,sizeof(buftemp)-1,"Site %d (max %d)",CONDITION(posTxt_temp,i_posTxtTab,i_posTxtTab+1), maxScreens);
+		LCD_StrDependOnColorsWindow(0,width,height,fontID_descr, 10,yPosUD, buftemp, fullHight,0,bkColor,DARKYELLOW,FONT_COEFF, ConstWidth);
 
 		if(1 < i_posTxtTab || (1==i_posTxtTab && 0==posTxt_temp)){
 			uint32_t colorUp=colorDescr;
@@ -1355,6 +1369,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		pfunc(FUNC_MAIN_ARG);	_RstFlagWin();  LCD_DisplayPart(0,win.pos.x ,win.pos.y, win.size.w, win.size.h); retVal=1;
 		LCD_TOUCH_DeleteSelectAndSusspendTouch(touchAction2);
 		LCD_TOUCH_DeleteSelectAndSusspendTouch(touchAction2+1);
+		LCD_TOUCH_RestoreSusspendedTouch(s[k].forTouchIdx);
 		s[k].nmbTouch-=2;
 	}
 	void _OverArrowTxt(int nr, DIRECTIONS direct){

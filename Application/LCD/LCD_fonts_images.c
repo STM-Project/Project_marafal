@@ -3757,14 +3757,15 @@ uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt){
 	return ((posY&0xFFFF) | lenTxt<<16);
 }
 
-char*  LCD_LIST_TXT_example(char* buf){
-	INIT(len,0);	INIT(lenArray,0);
+char*  LCD_LIST_TXT_example(char* buf, int* nmbLines){
+	INIT(len,0); INIT(maxLines,145);	INIT(lenArray,0);
 	buf[0]=0;
-	LOOP_FOR(i,1007){
-		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, "Agnieszka",	"ASD", "ab","cd",	GET_CODE_LINE);  				len+=lenArray; i++;
-		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, GET_TIME_COMPILATION,	"Markiel",		 "x", "cd",	GET_CODE_LINE);  				len+=lenArray; i++;
-		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i,COMMON_SIGN, getName(SetLenTxt2Y),	GET_DATE_COMPILATION,	 "ab","f",	GET_CODE_LINE);  	len+=lenArray;
+	LOOP_FOR(i,maxLines){
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i+1,COMMON_SIGN, "Agnieszka",	"ASD", "ab","cd",	GET_CODE_LINE);  				len+=lenArray; i++;
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i+1,COMMON_SIGN, GET_TIME_COMPILATION,	"Markiel",		 "x", "cd",	GET_CODE_LINE);  				len+=lenArray; i++;
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i+1,COMMON_SIGN, getName(SetLenTxt2Y),	GET_DATE_COMPILATION,	 "ab","f",	GET_CODE_LINE);  	len+=lenArray;
 	}
+	if(NULL != nmbLines) *nmbLines=maxLines;
 	return buf;
 }
 
@@ -3861,7 +3862,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+calcPosX,SetLenTxt2Y(Ypos+CURRENT_Y,j), ptr, OnlyDigits,space,bkColor,color,maxVal,constWidth);
 	}
 
-	StructTxtPxlLen _ReturnFunc(void){	 if(TxtInRow==txtSeqRow) vPortFree(lenMaxLine);		return len; }
+	StructTxtPxlLen _ReturnFunc(void){	 if(TxtInRow==txtSeqRow) vPortFree(lenMaxLine);	 len.height=nrLine;	return len; }
 
 	strip=0; j=0;
 	for(i=0; i<WholeLenTxt; i++)
