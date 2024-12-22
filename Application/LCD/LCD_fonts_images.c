@@ -3887,6 +3887,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 		else j++;
 	}
 
+	len.height=nrLine;
 	len.inChar=0;
 	return _ReturnFunc();
 	#undef CURRENT_Y
