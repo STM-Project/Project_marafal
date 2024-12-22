@@ -1224,7 +1224,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	int 	_IsFlagWin	 (void){ return CHECK_bit(s[k].param,7); }
 	void 	_RstFlagWin	 (void){	RST_bit(s[k].param,7); }
 
-	static char buftemp[30]={0};
+	static LCD_STR_PARAM paramTxt;
 	static int paramCreateWin=0;
 	static int calcWinWidth=200;
 	static SHAPE_PARAMS arrowUpParam={0}, arrowDnParam={0};
@@ -1244,8 +1244,6 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			calcWinWidth = win.size.w;
 		}
 	}
-
-	static int xx1,xx2,xx3,xx4;
 
 	void _WinInfo(char* txt){
 		WinInfo(txt, win2.pos.x, win2.pos.y, win2.size.w, win2.size.h, timID);
@@ -1309,6 +1307,10 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			CONDITION(1<i_posTxtTab && 0<posTxt_temp, i_posTxtTab-=2, i_posTxtTab--);
 			_SetCurrPosTxt(posTxtTab[i_posTxtTab]);
 		}
+		else if(inside==param && posTxt_temp){
+			if(0<i_posTxtTab) i_posTxtTab--;
+			_SetCurrPosTxt(posTxtTab[i_posTxtTab]);
+		}
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
 		if(TakeMutex(Semphr_sdram,3000)){
@@ -1324,7 +1326,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		}
 		vPortFree(pTabFontColor);
 
-		if(posTxt_temp && inside!=param){	/* if whole Win list is full */
+		if(posTxt_temp){	/* if whole Win list is full */
 			_SetCurrPosTxt(_GetCurrPosTxt()+posTxt_temp);
 			if(i_posTxtTab<sizeof(posTxtTab)-2)
 				posTxtTab[++i_posTxtTab]= _GetCurrPosTxt();
@@ -1336,20 +1338,10 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		arrowUpParam.pos[0].x = 0;
 		arrowDnParam.pos[0].x = 0;
 
-		mini_snprintf(buftemp,sizeof(buftemp)-1,"Site %d (max %d)",CONDITION(posTxt_temp,i_posTxtTab,i_posTxtTab+1), maxScreens);
-
-		xx1=yPosUD;
-		xx2=xPosU-20;
-		xx3=heightUpDn;
-
-
-
-
-
-		if(inside==param)
-			LCD_StrDependOnColorsWindow(0,width,height,fontID_descr, 10,yPosUD, buftemp, fullHight,0,bkColor,0xFF909090,FONT_COEFF, ConstWidth);
-		else
-			LCD_StrDependOnColorsWindow(0,width,height,fontID_descr, 10,yPosUD, buftemp, fullHight,0,bkColor,DARKYELLOW,FONT_COEFF, ConstWidth);
+		mini_snprintf(paramTxt.str,MAX_TXT_SIZE__LCD_STR_PARAM-1,"Site %d (max %d)",CONDITION(posTxt_temp,i_posTxtTab,i_posTxtTab+1), maxScreens);
+		paramTxt=LCD_SetStrDescrParam(win.pos.x+spaceBetweenArrows, win.pos.y+yPosUD, GetStrPxlWidth(fontID_descr,paramTxt.str,NoConstWidth), GetHeightFont(fontID_descr), fontID_descr,paramTxt.str,fullHight,0,bkColor,YELLOW,FONT_COEFF,NoConstWidth);
+		uint32_t fontColorInfo = CONDITION(inside==param,RED,paramTxt.fontCol);
+		LCD_StrDependOnColorsWindow(0,width,height,paramTxt.fontId, 10,yPosUD, paramTxt.str, paramTxt.onlyDig,paramTxt.spac,paramTxt.bkCol,fontColorInfo,paramTxt.maxV,paramTxt.constW);
 
 		if(1 < i_posTxtTab || (1==i_posTxtTab && 0==posTxt_temp)){
 			uint32_t colorUp=colorDescr;
@@ -1482,12 +1474,9 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			if(arrowDnParam.pos[0].x) LCDSHAPE_Arrow_Indirect(arrowDnParam);
 			break;
 		case inside:
-			LCD_StrDependOnColorsWindowIndirect(0, win.pos.x+10, win.pos.y+xx1, GetStrPxlWidth(fontID_descr, buftemp, ConstWidth), GetHeightFont(fontID_descr), fontID_descr, 0,0, buftemp, fullHight,0,bkColor,DARKYELLOW,FONT_COEFF, ConstWidth);
+			LCD_StrDependOnColorsWindowIndirectParam(paramTxt);
 			break;
-		}
-		//win.pos.x + spaceBetweenArrows
-
-	}
+	}}
 
 	if(startTouchIdx){
 		for(int i=0; i<_NMB2KEY; ++i)

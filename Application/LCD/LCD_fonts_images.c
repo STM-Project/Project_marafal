@@ -3451,13 +3451,6 @@ StructTxtPxlLen LCD_StrDependOnColorsVar(int idVar, int fontID, uint32_t fontCol
 	return lenStr;
 }
 
-/* for further implementation *//*
-LCD_STR_PARAM LCD_SetStrDescrParam(int fontID, uint32_t fontColor, uint32_t bkColor, int interspace, int directionDescr, char *txt, int OnlyDigits, int space,int maxVal, int constWidth)
-{
-	LCD_STR_PARAM	strParam = {fontID,fontColor,bkColor,interspace,directionDescr,txt,OnlyDigits,space,maxVal,constWidth};
-	return strParam;
-}
-*/
 
 #define MAX_NUMBER_DESCR	12
 #define _STR_DESCR_PARAMS_INIT(nr) 	int fontID##nr, uint32_t fontColor##nr, uint32_t bkColor##nr, int interspace##nr, int directionDescr##nr, char *txt##nr, int OnlyDigits##nr, int space##nr,int maxVal##nr, int constWidth##nr
@@ -3906,3 +3899,18 @@ StructTxtPxlLen LCD_StrDependOnColorsWindowIndirect(uint32_t posBuff, int Xwin, 
 		lenStr=LCD_StrChangeColorWindowIndirect(posBuff,Xwin,Ywin,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 	return lenStr;
 }
+
+StructTxtPxlLen LCD_StrDependOnColorsWindowIndirectParam(LCD_STR_PARAM p){
+	return LCD_StrDependOnColorsWindowIndirect(0, p.ps.pos.x, p.ps.pos.y, p.ps.size.w, p.ps.size.h, p.fontId, 0,0, p.str, p.onlyDig, p.spac, p.bkCol, p.fontCol, p.maxV, p.constW);
+}
+LCD_STR_PARAM LCD_SetStrDescrParam(int x,int y,int w,int h,int fontID,char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth)
+{
+	LCD_STR_PARAM	strParam = {.ps.pos={x,y}, .ps.size={w,h}, .fontId=fontID, .onlyDig=OnlyDigits, .spac=space, .bkCol=bkColor, .fontCol=fontColor, .maxV=maxVal, .constW=constWidth};
+	LOOP_FOR(i,MAX_TXT_SIZE__LCD_STR_PARAM){
+		strParam.str[i]=txt[i];
+		if(txt[i]==0) break;
+	}
+	return strParam;
+}
+
+
