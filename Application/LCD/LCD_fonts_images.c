@@ -3751,7 +3751,7 @@ uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt){
 }
 
 char*  LCD_LIST_TXT_example(char* buf, int* nmbLines){
-	INIT(len,0); INIT(maxLines,145);	INIT(lenArray,0);
+	INIT(len,0); INIT(maxLines,1237);	INIT(lenArray,0);
 	buf[0]=0;
 	LOOP_FOR(i,maxLines){
 		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i+1,COMMON_SIGN, "Agnieszka",	"ASD", "ab","cd",	GET_CODE_LINE);  				len+=lenArray; i++;
