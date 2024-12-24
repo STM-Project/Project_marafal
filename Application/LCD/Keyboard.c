@@ -1270,11 +1270,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			pTabFontColor[i] = tabFontColor[i];
 		}
 
-		static uint32_t posTxt_temp=0;
-
-		//void 		_SetCurrPosTxt(uint32_t pos){ 		 s[k].param2=pos; }
-		uint32_t _GetCurrPosTxt(void)			 { return s[k].param2; }
-
+		static uint32_t posTxt_temp=0;     // UREGULUJ!!!!!	if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1; !!!!
 		StructTxtPxlLen winTxtStruct={0};
 
 		if(NoDirect==param){
@@ -1306,17 +1302,14 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT,touchAction2+3,TOUCH_GET_PER_ANY_PROBE);
 			s[k].nmbTouch++;
 
-			//_SetCurrPosTxt(0);
 			i_posTxtTab=0;
 			LCD_TOUCH_SusspendTouch(s[k].forTouchIdx);
 		}
 		else if(Up==param){
 			CONDITION(1<i_posTxtTab && 0<posTxt_temp, i_posTxtTab-=2, i_posTxtTab--);
-			//_SetCurrPosTxt(posTxtTab[i_posTxtTab]);
 		}
 		else if(inside==param && posTxt_temp){		/* click change style */
 			if(0<i_posTxtTab) i_posTxtTab--;
-			//_SetCurrPosTxt(posTxtTab[i_posTxtTab]);
 		}
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
@@ -1333,13 +1326,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		}
 		vPortFree(pTabFontColor);
 
-		if(posTxt_temp){	/* if whole Win list is full */
-			//_SetCurrPosTxt(_GetCurrPosTxt()+posTxt_temp);
-
-			i_posTxtTab++;
-		/*	if(i_posTxtTab<sizeof(posTxtTab)-2)
-				posTxtTab[++i_posTxtTab]= _GetCurrPosTxt(); */
-		}
+		if(posTxt_temp) i_posTxtTab++;	/* if whole Win list is full */
 
 		LCD_TOUCH_SusspendTouch(touchAction2);
 		LCD_TOUCH_SusspendTouch(touchAction2+1);
@@ -1475,7 +1462,6 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	else if(touchAction+14 == selBlockPress){
 		GetTouchToTemp(touchAction2+3);
 		i_posTxtTab = ( ((y-touchTemp[0].y)* maxScreens) / (touchTemp[1].y-touchTemp[0].y) );
-		//_SetCurrPosTxt(posTxtTab[i_posTxtTab]);
 		_CreateWindows(0,DownUp); vTimerService(timID+1,restart_time,noUse);
 	}
 

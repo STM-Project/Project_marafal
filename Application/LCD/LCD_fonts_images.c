@@ -3882,7 +3882,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 			lenTxt=0;
 			strip=0;
 			nrLine++;
-			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return _ReturnFunc(); }
+			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return _ReturnFunc(); }  //regulu space !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		}
 		else if(*(txt+i)==*_L_)		/* _L_[0] */
 		{
