@@ -3751,7 +3751,7 @@ uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt){
 }
 
 char*  LCD_LIST_TXT_example(char* buf, int* nmbLines){
-	INIT(len,0); INIT(maxLines,638);	INIT(lenArray,0);
+	INIT(len,0); INIT(maxLines,2507);	INIT(lenArray,0);
 	buf[0]=0;
 	LOOP_FOR(i,maxLines){
 		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_E_,i+1,COMMON_SIGN, "Agnieszka",	"ASD", "ab","cd",	GET_CODE_LINE);  				len+=lenArray; i++;
@@ -3780,7 +3780,7 @@ uint16_t LCD_LIST_TXT_nmbStripsInLine(GET_SET act, char* bufTxt, int* lenBufTxt)
 	}
 }
 
-StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrip, uint32_t* tab,int* sizeTab,int heightWin,int heightSpace)
+StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrip, uint32_t* tab,int* sizeTab,int heightWin,int spaceForUpDn)
 {
 	StructTxtPxlLen len={0};
 	if(0==bufTxt[0]) return len;
@@ -3791,8 +3791,7 @@ StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int f
 	uint16_t *lenMaxStrip_= NULL;
 	int nmbrWholeLinesInWin=0, countLines=0;
 	if(NULL!=tab){
-		nmbrWholeLinesInWin = (heightWin-heightSpace)/LCD_GetFontHeight(fontID);
-		if((heightWin-heightSpace)%LCD_GetFontHeight(fontID)) nmbrWholeLinesInWin++;
+		nmbrWholeLinesInWin = (heightWin-spaceForUpDn)/LCD_GetFontHeight(fontID);
 		*sizeTab=1;
 		tab[0]=0;
 	}
@@ -3844,9 +3843,8 @@ StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int f
 	return len;
 }
 
-StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow)
+StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow, int spaceForUpDn)
 {
-	#define CURRENT_Y	 nrLine*len.height
 	StructTxtPxlLen len={0};
 	if(0==txt[0]) return len;
 
@@ -3867,7 +3865,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 		uint16_t calcPosX=0;
 		if(TxtInRow==txtSeqRow){	for(int n=0; n<strip; n++) calcPosX+=lenMaxLine[n];	}
 		else 						  {	calcPosX= lenTxt; }
-		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+calcPosX,SetLenTxt2Y(Ypos+CURRENT_Y,j), ptr, OnlyDigits,space,bkColor,color,maxVal,constWidth);
+		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+calcPosX,SetLenTxt2Y(Ypos+nrLine*len.height,j), ptr, OnlyDigits,space,bkColor,color,maxVal,constWidth);
 	}
 
 	StructTxtPxlLen _ReturnFunc(void){	 if(TxtInRow==txtSeqRow) vPortFree(lenMaxLine);	 len.height=nrLine;	return len; }
@@ -3882,7 +3880,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 			lenTxt=0;
 			strip=0;
 			nrLine++;
-			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return _ReturnFunc(); }  //regulu space !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			if(Ypos+(nrLine+1)*len.height > BkpSizeY-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
 		}
 		else if(*(txt+i)==*_L_)		/* _L_[0] */
 		{
@@ -3890,7 +3888,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 			ptr=(txt+i+1);
 			lenTxt+=len.inPixel;
 			if(strip < MAX_STRIP_LISTtxtWIN-1) strip++;
-			if(CURRENT_Y > BkpSizeY-(3*len.height)){ len.inChar=i+1;  return _ReturnFunc(); }
+			if(Ypos+(nrLine+1)*len.height > BkpSizeY-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
 		}
 		else j++;
 	}
@@ -3898,7 +3896,6 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 	len.height=nrLine;
 	len.inChar=0;
 	return _ReturnFunc();
-	#undef CURRENT_Y
 }
 
 StructTxtPxlLen LCD_StrDependOnColorsWindowIndirect(uint32_t posBuff, int Xwin, int Ywin,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
