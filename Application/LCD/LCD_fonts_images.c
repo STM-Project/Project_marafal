@@ -3843,7 +3843,7 @@ StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int f
 	return len;
 }
 
-StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt,uint32_t seltab, int OnlyDigits, int space, uint32_t bkColor,uint32_t bkColorSel, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow, int spaceForUpDn)
+StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt,int seltab, int OnlyDigits, int space, uint32_t bkColor,uint32_t bkColorSel, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow, int spaceForUpDn)
 {
 	StructTxtPxlLen len={0};
 	if(0==txt[0]) return len;
@@ -3896,6 +3896,14 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 	len.height=nrLine;
 	len.inChar=0;
 	return _ReturnFunc();
+}
+
+int LCD_LIST_TXT_sel(int nrLine, int iTab, int linesWin){
+	int temp = nrLine-iTab*linesWin;
+	if(IS_RANGE(temp,0,linesWin))
+		return temp;
+	else
+		return -1;
 }
 
 StructTxtPxlLen LCD_StrDependOnColorsWindowIndirect(uint32_t posBuff, int Xwin, int Ywin,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)

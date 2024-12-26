@@ -1239,7 +1239,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	int spaceBetweenArrows = 10;
 	int spaceFromFrame = 10;
 	int space2UpDn = spaceFromFrame + heightUpDn + spaceFromFrame;
-	uint32_t bkColorSel = 0xFF202020;
+	uint32_t bkColorSel = 0xFF101010;
 
 	static uint32_t 	posTxtTab[MAX_SCREENS_FOR_LCD_LIST]={0};
 	static int 			maxScreens=0;
@@ -1327,11 +1327,14 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		}
 
 		LCD_ShapeWindow( s[k].shape, 0, width,height, 0,0, width,height, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor );
-		LCD_ShapeWindow( s[k].shape, 0, width,height, s[k].bold+1,spaceFromFrame+6*GetHeightFontDescr(), width-2*(s[k].bold+1),GetHeightFontDescr(), bkColorSel, bkColorSel,bkColorSel );
+		int nrLineSel = LCD_LIST_TXT_sel(1621,i_posTxtTab,nmbrLinesInWin);
+		if(nrLineSel > -1)
+			LCD_ShapeWindow( s[k].shape, 0, width,height, s[k].bold+1,spaceFromFrame+nrLineSel*GetHeightFontDescr(), width-2*(s[k].bold+1),GetHeightFontDescr(), bkColorSel, bkColorSel,bkColorSel );
+
 		if(TakeMutex(Semphr_sdram,3000)){
 			int nmbLines=0;
 			char *ptr = LCD_LIST_TXT_example(pCHAR_PLCD(width*height),&nmbLines);//LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL);	/* LCD_LIST_TXT_example(pCHAR_PLCD(width*height)) */
-			winTxtStruct = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,ptr+posTxtTab[i_posTxtTab],6,fullHight,0,bkColor,bkColorSel,colorDescr,FONT_COEFF,NoConstWidth, pTabFontColor, _GetTxtArrang(),space2UpDn);
+			winTxtStruct = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,ptr+posTxtTab[i_posTxtTab],nrLineSel,fullHight,0,bkColor,bkColorSel,colorDescr,FONT_COEFF,NoConstWidth, pTabFontColor, _GetTxtArrang(),space2UpDn);
 			posTxt_temp = winTxtStruct.inChar;
 		/*	if(posTxt_temp){
 				maxScreens= nmbLines/winTxtStruct.height;
