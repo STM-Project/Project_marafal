@@ -3865,7 +3865,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 		uint16_t calcPosX=0;
 		if(TxtInRow==txtSeqRow){	for(int n=0; n<strip; n++) calcPosX+=lenMaxLine[n];	}
 		else 						  {	calcPosX= lenTxt; }
-		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+calcPosX,SetLenTxt2Y(Ypos+nrLine*len.height,j), ptr, OnlyDigits,space,CONDITION(nrLine==seltab,bkColorSel,bkColor),color,maxVal,constWidth);
+		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+calcPosX,SetLenTxt2Y(Ypos+nrLine*len.height,j), ptr, OnlyDigits,space,CONDITION(nrLine==seltab,bkColorSel,bkColor),color,maxVal,CONDITION(0==strip,ConstWidth,constWidth));
 	}
 
 	StructTxtPxlLen _ReturnFunc(void){	 if(TxtInRow==txtSeqRow) vPortFree(lenMaxLine);	 len.height=nrLine;	return len; }
