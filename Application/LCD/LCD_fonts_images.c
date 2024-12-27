@@ -3780,7 +3780,7 @@ uint16_t LCD_LIST_TXT_nmbStripsInLine(GET_SET act, char* bufTxt, int* lenBufTxt)
 	}
 }
 
-StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrip, uint32_t* tab,int* sizeTab,int heightWin,int spaceForUpDn)
+StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrip, uint32_t* tab,int* sizeTab,int heightWin,int spaceForUpDn, int* nmbrAllLines)
 {
 	StructTxtPxlLen len={0};
 	if(0==bufTxt[0]) return len;
@@ -3802,6 +3802,7 @@ StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int f
 		else						 lenMaxStrip_=lenMaxStrip;
 		LOOP_FOR(n,nmbrStrips){ *(lenMaxStrip_+n)=0; }
 	}
+	if(NULL!=nmbrAllLines) *nmbrAllLines=0;
 
 	for(int i=0,strip=0,lenWholeLine=0; i<lenWholeTxt; i++)
 	{	if(*(bufTxt+i)==*_E_)
@@ -3826,6 +3827,7 @@ StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int f
 				}
 				else countLines++;
 			}
+			if(NULL!=nmbrAllLines) (*nmbrAllLines)++;
 		}
 		else if(*(bufTxt+i)==*_L_){
 			if(strip<MAX_STRIP_LISTtxtWIN-1) strip++;
@@ -3857,7 +3859,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 	if(TxtInRow==txtSeqRow){
 		lenMaxLine = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
 		LOOP_FOR(n,nmbrStrips){ *(lenMaxLine+n)=0; }
-		LCD_LIST_TXT_len(txt,txtSeqRow, fontID,space,constWidth, lenMaxLine,NULL,NULL,0,0);
+		LCD_LIST_TXT_len(txt,txtSeqRow, fontID,space,constWidth, lenMaxLine,NULL,NULL,0,0,NULL);
 	}
 
 	StructTxtPxlLen _Txt(void){

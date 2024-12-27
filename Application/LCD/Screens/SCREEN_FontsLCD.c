@@ -394,6 +394,7 @@ typedef enum{
 	Touch_SpacesInfoDown,
 	Touch_SpacesInfoStyle,
 	Touch_SpacesInfoRoll,
+	Touch_SpacesInfoSel,
 	Touch_MainFramesType,
 	Touch_SetTxt,
 	Move_1,
@@ -491,6 +492,7 @@ typedef enum{
 	KEY_InfoSpacesDown,
 	KEY_InfoSpacesStyle,
 	KEY_InfoSpacesRoll,
+	KEY_InfoSpacesSel,
 
 	KEY_Q,KEY_W,KEY_E,KEY_R,KEY_T,KEY_Y,KEY_U,KEY_I,KEY_O,KEY_P,KEY_A,KEY_S,KEY_D,KEY_F,KEY_G,KEY_H,KEY_J,KEY_K,KEY_L,KEY_big,KEY_Z,KEY_X,KEY_C,KEY_V,KEY_B,KEY_N,KEY_M,KEY_back,KEY_alt,KEY_exit,KEY_space,KEY_comma,KEY_dot,KEY_enter,
 
@@ -1623,8 +1625,8 @@ void FILE_NAME(setTouch)(void)
 		case Touch_SpacesInfoUp: 									 /* here do nothing */  				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_InfoSpacesUp );  break;
 		case Touch_SpacesInfoDown: 								 /* here do nothing */  				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_InfoSpacesDown ); break;  //gdy reset i pusto to button zawiesza sie !!!!!!
 		case Touch_SpacesInfoStyle: 								 /* here do nothing */  				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_InfoSpacesStyle ); break;
-		case Touch_SpacesInfoRoll: 								 /* here do nothing */  				KEYBOARD_TYPE_PARAM(KEYBOARD_LenOffsWin,KEY_InfoSpacesRoll,pos.x,pos.y,0,0,0);  break;
-																															//KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_InfoSpacesRoll );
+		case Touch_SpacesInfoRoll: 								 /* here do nothing */  				KEYBOARD_TYPE_PARAM(KEYBOARD_LenOffsWin,KEY_InfoSpacesRoll,pos.x,pos.y,0,0,0); break;
+		case Touch_SpacesInfoSel: 								 /* here do nothing */  					KEYBOARD_TYPE_PARAM(KEYBOARD_LenOffsWin,KEY_InfoSpacesSel,pos.x,pos.y,0,0,0);  break;
 
 		case Touch_FontSizeRoll:
 			if(LCDTOUCH_IsScrollPress(ROLL_1, state, &pos, TIMER_Scroll))
