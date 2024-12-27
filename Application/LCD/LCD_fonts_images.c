@@ -3780,7 +3780,7 @@ uint16_t LCD_LIST_TXT_nmbStripsInLine(GET_SET act, char* bufTxt, int* lenBufTxt)
 	}
 }
 
-StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrip, uint32_t* tab,int* sizeTab,int heightWin,int spaceForUpDn, int* nmbrAllLines)
+StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrip, uint32_t* tab,int* sizeTab,int heightTxtWin, int* nmbrAllLines)
 {
 	StructTxtPxlLen len={0};
 	if(0==bufTxt[0]) return len;
@@ -3791,7 +3791,7 @@ StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int f
 	uint16_t *lenMaxStrip_= NULL;
 	int nmbrWholeLinesInWin=0, countLines=0;
 	if(NULL!=tab){
-		nmbrWholeLinesInWin = (heightWin-spaceForUpDn)/LCD_GetFontHeight(fontID);
+		nmbrWholeLinesInWin = heightTxtWin/LCD_GetFontHeight(fontID);
 		*sizeTab=1;
 		tab[0]=0;
 	}
@@ -3859,7 +3859,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 	if(TxtInRow==txtSeqRow){
 		lenMaxLine = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
 		LOOP_FOR(n,nmbrStrips){ *(lenMaxLine+n)=0; }
-		LCD_LIST_TXT_len(txt,txtSeqRow, fontID,space,constWidth, lenMaxLine,NULL,NULL,0,0,NULL);
+		LCD_LIST_TXT_len(txt,txtSeqRow, fontID,space,constWidth, lenMaxLine,NULL,NULL,0,NULL);
 	}
 
 	StructTxtPxlLen _Txt(void){
@@ -3882,7 +3882,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 			lenTxt=0;
 			strip=0;
 			nrLine++;
-			if(Ypos+(nrLine+1)*len.height > BkpSizeY-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
+			if((nrLine+1)*len.height > BkpSizeY-Ypos-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
 		}
 		else if(*(txt+i)==*_L_)		/* _L_[0] */
 		{
@@ -3890,7 +3890,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 			ptr=(txt+i+1);
 			lenTxt+=len.inPixel;
 			if(strip < MAX_STRIP_LISTtxtWIN-1) strip++;
-			if(Ypos+(nrLine+1)*len.height > BkpSizeY-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
+			if((nrLine+1)*len.height > BkpSizeY-Ypos-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
 		}
 		else j++;
 	}
