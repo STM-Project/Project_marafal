@@ -1270,43 +1270,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		StructTxtPxlLen winTxtStruct={0};
 
 		if(NoDirect==param){
-			touchTemp[0].x= win.pos.x + xPosU;
-			touchTemp[1].x= touchTemp[0].x + widthtUpDn;
-			touchTemp[0].y= win.pos.y + yPosUD;
-			touchTemp[1].y= touchTemp[0].y + heightUpDn;
-			LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT_WITH_WAIT,touchAction2,TOUCH_GET_PER_X_PROBE);
-			s[k].nmbTouch++;
-
-			touchTemp[0].x= win.pos.x + xPosD;
-			touchTemp[1].x= touchTemp[0].x + widthtUpDn;
-			touchTemp[0].y= win.pos.y + yPosUD;
-			touchTemp[1].y= touchTemp[0].y + heightUpDn;
-			LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT_WITH_WAIT,touchAction2+1,TOUCH_GET_PER_X_PROBE);
-			s[k].nmbTouch++;
-
-			touchTemp[0].x= win.pos.x + spaceFromFrame;
-			touchTemp[1].x= touchTemp[0].x + 180;  //80 !!!!!!!!!!!!!!!!!!!
-			touchTemp[0].y= win.pos.y + yPosUD;
-			touchTemp[1].y= touchTemp[0].y + heightUpDn;
-			LCD_TOUCH_Set(ID_TOUCH_POINT,touchAction2+2,press);
-			s[k].nmbTouch++;
-
-			touchTemp[0].x= win.pos.x + VALPERC(win.size.w,75);
-			touchTemp[1].x= win.pos.x + win.size.w;
-			touchTemp[0].y= win.pos.y + spaceFromFrame;
-			touchTemp[1].y= win.pos.y + height - space2UpDn;
-			LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT,touchAction2+3,TOUCH_GET_PER_ANY_PROBE);
-			s[k].nmbTouch++;
-
-			touchTemp[0].x= win.pos.x;
-			touchTemp[1].x= win.pos.x + VALPERC(win.size.w,75);
-			touchTemp[0].y= win.pos.y + spaceFromFrame;
-			touchTemp[1].y= win.pos.y + height - space2UpDn;
-			LCD_TOUCH_Set(ID_TOUCH_POINT,touchAction2+4,press);
-			s[k].nmbTouch++;
-
 			i_posTxtTab=0;
-			LCD_TOUCH_SusspendTouch(s[k].forTouchIdx);
 		}
 		else if(Up==param){
 			CONDITION(1<i_posTxtTab && 0<posTxt_temp, i_posTxtTab-=2, i_posTxtTab--);
@@ -1335,16 +1299,55 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 		if(posTxt_temp) i_posTxtTab++;	/* if whole Win list is full */
 
-		LCD_TOUCH_SusspendTouch(touchAction2);
-		LCD_TOUCH_SusspendTouch(touchAction2+1);
-
 		arrowUpParam.pos[0].x = 0;
 		arrowDnParam.pos[0].x = 0;
 
-		mini_snprintf(paramTxt.str,MAX_TXT_SIZE__LCD_STR_PARAM-1,"%d (max %d)",CONDITION(posTxt_temp,i_posTxtTab,i_posTxtTab+1), maxScreens);
-		paramTxt=LCD_SetStrDescrParam(win.pos.x+spaceFromFrame, win.pos.y+yPosUD, GetStrPxlWidth(fontID_descr,paramTxt.str,NoConstWidth), GetHeightFont(fontID_descr), fontID_descr,paramTxt.str,fullHight,0,bkColor,YELLOW,FONT_COEFF,ConstWidth);
-		uint32_t fontColorInfo = CONDITION(inside==param,RED,paramTxt.fontCol);
-		LCD_StrDependOnColorsWindow(0,width,height,paramTxt.fontId, 10,yPosUD, paramTxt.str, paramTxt.onlyDig,paramTxt.spac,paramTxt.bkCol,fontColorInfo,paramTxt.maxV,paramTxt.constW);
+		mini_snprintf(paramTxt.str,MAX_TXT_SIZE__LCD_STR_PARAM-1,"%s (max %d)",Int2Str(CONDITION(posTxt_temp,i_posTxtTab,i_posTxtTab+1),' ',3,Sign_none), maxScreens);
+		int len_temp = GetStrPxlWidth(fontID_descr,paramTxt.str,NoConstWidth);
+		int xPosTxt = xPosU-2*spaceBetweenArrows-len_temp;
+		paramTxt=LCD_SetStrDescrParam(win.pos.x+xPosTxt, win.pos.y+yPosUD, len_temp, GetHeightFont(fontID_descr), fontID_descr,paramTxt.str,fullHight,0,bkColor,YELLOW,FONT_COEFF,NoConstWidth);
+		LCD_StrDependOnColorsWindow(0,width,height,paramTxt.fontId, xPosTxt,yPosUD, paramTxt.str, paramTxt.onlyDig,paramTxt.spac,paramTxt.bkCol,CONDITION(inside==param,RED,paramTxt.fontCol),paramTxt.maxV,paramTxt.constW);
+
+		if(NoDirect==param){
+			touchTemp[0].x= win.pos.x + xPosU;
+			touchTemp[1].x= touchTemp[0].x + widthtUpDn;
+			touchTemp[0].y= win.pos.y + yPosUD;
+			touchTemp[1].y= touchTemp[0].y + heightUpDn;
+			LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT_WITH_WAIT,touchAction2,TOUCH_GET_PER_X_PROBE);
+			s[k].nmbTouch++;
+
+			touchTemp[0].x= win.pos.x + xPosD;
+			touchTemp[1].x= touchTemp[0].x + widthtUpDn;
+			touchTemp[0].y= win.pos.y + yPosUD;
+			touchTemp[1].y= touchTemp[0].y + heightUpDn;
+			LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT_WITH_WAIT,touchAction2+1,TOUCH_GET_PER_X_PROBE);
+			s[k].nmbTouch++;
+
+			touchTemp[0].x= win.pos.x + xPosTxt;
+			touchTemp[1].x= touchTemp[0].x + len_temp;
+			touchTemp[0].y= win.pos.y + yPosUD;
+			touchTemp[1].y= touchTemp[0].y + heightUpDn;
+			LCD_TOUCH_Set(ID_TOUCH_POINT,touchAction2+2,press);
+			s[k].nmbTouch++;
+
+			touchTemp[0].x= win.pos.x + VALPERC(win.size.w,75);
+			touchTemp[1].x= win.pos.x + win.size.w;
+			touchTemp[0].y= win.pos.y + spaceFromFrame;
+			touchTemp[1].y= win.pos.y + height - space2UpDn;
+			LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT,touchAction2+3,TOUCH_GET_PER_ANY_PROBE);
+			s[k].nmbTouch++;
+
+			touchTemp[0].x= win.pos.x;
+			touchTemp[1].x= win.pos.x + VALPERC(win.size.w,75);
+			touchTemp[0].y= win.pos.y + spaceFromFrame;
+			touchTemp[1].y= win.pos.y + height - space2UpDn;
+			LCD_TOUCH_Set(ID_TOUCH_POINT,touchAction2+4,press);
+			s[k].nmbTouch++;
+
+			LCD_TOUCH_SusspendTouch(s[k].forTouchIdx);
+		}
+		LCD_TOUCH_SusspendTouch(touchAction2);
+		LCD_TOUCH_SusspendTouch(touchAction2+1);
 
 		if(1 < i_posTxtTab || (1==i_posTxtTab && 0==posTxt_temp)){
 			uint32_t colorUp=colorDescr;
@@ -1468,7 +1471,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	else if(touchAction+14 == selBlockPress){
 		GetTouchToTemp(touchAction2+3);
 		i_posTxtTab = ( ((y-touchTemp[0].y)* maxScreens) / (touchTemp[1].y-touchTemp[0].y) );
-		_CreateWindows(0,DownUp); vTimerService(timID+1,restart_time,noUse);
+		_CreateWindows(0,DownUp);
 	}
 	else if(touchAction+15 == selBlockPress){
 		GetTouchToTemp(touchAction2+4);
