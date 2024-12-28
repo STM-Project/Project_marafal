@@ -1442,15 +1442,16 @@ void FILE_NAME(setTouch)(void)
 				CLR_TOUCH(state);\
 			}}
 
-	//#define _KEYS_RELEASE_LenOffsWin 	if(_WasStatePrev( Touch_LenWin_plus, 	  Touch_ResetSpaces)) 	KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_All_release)
 	#define _KEYS_RELEASE_setTxt 			if(_WasStatePrev( Touch_Q, 				  Touch_enter)) 			KEYBOARD_TYPE( KEYBOARD_setTxt, 	   KEY_All_release)
 
-	static uint16_t statePrev=0;
+	static uint16_t statePrev=0, statePrev2=0;
 	uint16_t state, function=0;
 	XY_Touch_Struct pos;
 
-	void _SaveState(void){ statePrev=state; }
-	void _RstState(void){ statePrev=0; }
+	void _SaveState (void){ statePrev =state; }
+	void _RstState	 (void){ statePrev =0; 		}
+	void _SaveState2(void){ statePrev2=state; }
+	void _RstState2 (void){ statePrev2=0; 		}
 
 	int _WasState(int point){
 		if(release==LCD_TOUCH_isPress() && point==statePrev){
@@ -1502,14 +1503,16 @@ void FILE_NAME(setTouch)(void)
 			case KEYBOARD_fontRGB:	break;
 			case KEYBOARD_fontSize2:	FILE_NAME(keyboard)(KEYBOARD_fontSize2, KEY_Select_one, LCD_Rectangle,0, 610,50, KeysAutoSize,10, 0, state, Touch_FontSizeRoll,KeysDel);  break;
 	}}
-	void _RestoreSusspendedTouchsByAnotherClickItem(TOUCH_POINTS main, TOUCH_POINTS other1,TOUCH_POINTS other2,TOUCH_POINTS other3,TOUCH_POINTS other4,TOUCH_POINTS other5,TOUCH_POINTS other6,TOUCH_POINTS other7,TOUCH_POINTS other8,TOUCH_POINTS other9,TOUCH_POINTS other10){
+	void _RestoreSusspendedTouchsByAnotherClickItem(TOUCH_POINTS main, TOUCH_POINTS mainStart,TOUCH_POINTS mainStop, TOUCH_POINTS other1,TOUCH_POINTS other2,TOUCH_POINTS other3,TOUCH_POINTS other4,TOUCH_POINTS other5,TOUCH_POINTS other6,TOUCH_POINTS other7,TOUCH_POINTS other8,TOUCH_POINTS other9,TOUCH_POINTS other10){
 		if(state){
-			if(main==statePrev && main!=state){
+			if((main==statePrev2 || IS_RANGE(statePrev2,mainStart,mainStop)) && (main!=state && !IS_RANGE(state,mainStart,mainStop)) && (Touch_FontStyle!=state && Touch_FontType!=state && Touch_FontSize!=state)){
 				LCD_TOUCH_RestoreSusspendedTouchs2(other1,other2,other3,other4,other5,other6,other7,other8,other9,other10);
-				statePrev=0;
+				statePrev2=0;
 	}}}
 
 	state = LCD_TOUCH_GetTypeAndPosition(&pos);
+
+	_RestoreSusspendedTouchsByAnotherClickItem(Touch_FontSize2,Touch_size_plus,Touch_size_italic,	Touch_FontLenOffsWin,Touch_FontCoeff,0,0,0,0,0,0,0,0);
 
 	/*	----- Service press specific Keys for Keyboard ----- */
 	_TouchService(Touch_fontRp, Touch_fontBm, KEYBOARD_fontRGB, KEY_All_release, KEY_Red_plus, FUNC_fontColorRGB);
@@ -1531,7 +1534,6 @@ void FILE_NAME(setTouch)(void)
 	_TouchService(Touch_SpacesInfoUp, Touch_SpacesInfoSel,	KEYBOARD_LenOffsWin, KEY_NO_RELEASE,  KEY_InfoSpacesUp, NULL);
 
 
-	_RestoreSusspendedTouchsByAnotherClickItem(Touch_FontSize2, Touch_FontLenOffsWin,Touch_FontCoeff,0,0,0,0,0,0,0,0);
 	switch(state)
 	{
 		/*	----- Initiation new Keyboard ----- */
@@ -1585,7 +1587,11 @@ void FILE_NAME(setTouch)(void)
 		CASE_TOUCH_STATE(state,Touch_FontLenOffsWin, LenWin,Press, TXT_LENOFFS_WIN,252,NoTouch,NoTouch);
 			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_LenOffsWin, KEY_All_release, LCD_RoundRectangle,0, 0,0, KeysAutoSize,8, 10, state, Touch_LenWin_plus,KeysDel);
 								LCDTOUCH_ActiveOnly(state,0,0,0,0,0,0,0,0,0,Touch_LenWin_plus,Touch_ResetSpaces); }
-			else LCD_TOUCH_RestoreAllSusspendedTouchs();
+			else{
+				ClearCursorField();
+				Test.posCursor=0;
+				LCD_TOUCH_RestoreAllSusspendedTouchs();
+			}
 			break;
 
 		CASE_TOUCH_STATE(state,Touch_FontCoeff, Coeff,Press, TXT_COEFF,255,NoTouch,NoTouch);
@@ -1605,8 +1611,8 @@ void FILE_NAME(setTouch)(void)
 
 		CASE_TOUCH_STATE(state,Touch_FontSize2, FontSize,Press, TXT_FONT_SIZE,252,NoTouch,NoTouch);
 			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_fontSize, KEY_Select_one, LCD_RoundRectangle,0, 614,200, KeysAutoSize,10/*80,40*/, 10, state, Touch_size_plus,KeysDel);
-								LCD_TOUCH_SusspendTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,0,0,0,0,0,0,0,0); _SaveState(); }
-			else{ LCD_TOUCH_RestoreSusspendedTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,0,0,0,0,0,0,0,0); _RstState(); }
+								LCD_TOUCH_SusspendTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,0,0,0,0,0,0,0,0); _SaveState2(); }
+			else{ LCD_TOUCH_RestoreSusspendedTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,0,0,0,0,0,0,0,0); _RstState2(); }
 			break;
 
 		CASE_TOUCH_STATE(state,Touch_FontSizeMove, FontSize,Press, TXT_FONT_SIZE,252,NoTouch,NoTouch);

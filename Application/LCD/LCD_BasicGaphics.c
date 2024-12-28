@@ -13,7 +13,7 @@
 #include <stdbool.h>
 
 #define MAX_SIZE_TAB_AA		250
-#define MAX_LINE_BUFF_CIRCLE_SIZE  100
+#define MAX_LINE_BUFF_CIRCLE_SIZE  60
 #define MAX_DEGREE_CIRCLE  10
 
 ALIGN_32BYTES(uint32_t pLcd[LCD_BUFF_XSIZE*LCD_BUFF_YSIZE] __attribute__ ((section(".sdram"))));
