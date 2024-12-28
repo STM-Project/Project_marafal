@@ -1515,7 +1515,9 @@ void FILE_NAME(setTouch)(void)
 	_TouchService(Touch_coeff_plus, Touch_coeff_minus,	 KEYBOARD_fontCoeff, KEY_All_release, KEY_Coeff_plus,  FUNC_FontCoeff);
 
 	_TouchService(Touch_fontCircleSliderR, Touch_CircleSliderStyle,	KEYBOARD_circleSliderRGB, 		KEY_All_release, KEY_fontCircleSliderR, NULL);
-	_TouchService(Touch_LenWin_plus, Touch_ResetSpaces, 					KEYBOARD_LenOffsWin, 			KEY_All_release, KEY_LenWin_plus, 		 FUNC_FontLenOffs);
+
+	_TouchService(Touch_LenWin_plus, Touch_ResetSpaces, 	 	KEYBOARD_LenOffsWin, KEY_All_release, KEY_LenWin_plus,  FUNC_FontLenOffs);
+	_TouchService(Touch_SpacesInfoUp, Touch_SpacesInfoSel,	KEYBOARD_LenOffsWin, KEY_NO_RELEASE,  KEY_InfoSpacesUp, NULL);
 
 
 	switch(state)
@@ -1626,23 +1628,6 @@ void FILE_NAME(setTouch)(void)
 			}
 			break;
 
-//		case Touch_LenWin_plus: 		_KEYS_RELEASE_LenOffsWin;	 Inc_lenWin();  					KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_LenWin_plus ); 	 	_SaveState();  break;
-//		case Touch_LenWin_minus: 		_KEYS_RELEASE_LenOffsWin;	 Dec_lenWin();  					KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_LenWin_minus ); 	 	_SaveState();  break;
-//		case Touch_OffsWin_plus: 		_KEYS_RELEASE_LenOffsWin;	 Inc_offsWin();  					KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_OffsWin_plus );   	_SaveState();  break;
-//		case Touch_OffsWin_minus: 		_KEYS_RELEASE_LenOffsWin;	 Dec_offsWin();  					KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_OffsWin_minus );  	_SaveState();  break;
-//		case Touch_PosInWin_plus: 		_KEYS_RELEASE_LenOffsWin;	 Dec_PosCursor();  				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_PosInWin_plus );  	_SaveState();  break;
-//		case Touch_PosInWin_minus: 	_KEYS_RELEASE_LenOffsWin;	 Inc_PosCursor();  				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_PosInWin_minus ); 	_SaveState();  break;
-//		case Touch_SpaceFonts_plus: 	_KEYS_RELEASE_LenOffsWin;	 IncDec_SpaceBetweenFont(1);  KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_SpaceFonts_plus );  _SaveState();  break;
-//		case Touch_SpaceFonts_minus: 	_KEYS_RELEASE_LenOffsWin;	 IncDec_SpaceBetweenFont(0);  KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_SpaceFonts_minus ); _SaveState();  break;
-//		case Touch_DispSpaces: 	_KEYS_RELEASE_LenOffsWin;	 /* here do nothing */  				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_DispSpaces ); _SaveState();  break;
-//		case Touch_WriteSpaces: _KEYS_RELEASE_LenOffsWin;	LCD_WriteSpacesBetweenFontsOnSDcard();  KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_WriteSpaces ); _SaveState();  break;
-//		case Touch_ResetSpaces: _KEYS_RELEASE_LenOffsWin;	LCD_ResetSpacesBetweenFonts();  			 KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_ResetSpaces ); _SaveState();  break;
-		case Touch_SpacesInfoUp: 									 /* here do nothing */  				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_InfoSpacesUp );  break;
-		case Touch_SpacesInfoDown: 								 /* here do nothing */  				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_InfoSpacesDown ); break;  //gdy reset i pusto to button zawiesza sie !!!!!!
-		case Touch_SpacesInfoStyle: 								 /* here do nothing */  				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_InfoSpacesStyle ); break;
-		case Touch_SpacesInfoRoll: 								 /* here do nothing */  				KEYBOARD_TYPE_PARAM(KEYBOARD_LenOffsWin,KEY_InfoSpacesRoll,pos.x,pos.y,0,0,0); break;
-		case Touch_SpacesInfoSel: 								 /* here do nothing */  					KEYBOARD_TYPE_PARAM(KEYBOARD_LenOffsWin,KEY_InfoSpacesSel,pos.x,pos.y,0,0,0);  break;
-
 		case Touch_FontSizeRoll:
 			if(LCDTOUCH_IsScrollPress(ROLL_1, state, &pos, TIMER_Scroll))
 				KEYBOARD_TYPE( KEYBOARD_fontSize2, KEY_Select_one);
@@ -1678,8 +1663,8 @@ void FILE_NAME(setTouch)(void)
 
 			/* _TouchEndService(Touch_fontCircleSliderR, Touch_CircleSliderStyle, 	KEYBOARD_circleSliderRGB, 		KEY_All_release, NULL); */		/* For circle slider is not needed */
 
-			if(_WasStateRange(Touch_LenWin_plus, Touch_ResetSpaces))  //to zmien!!!!!!!!
-				KEYBOARD_TYPE( KEYBOARD_LenOffsWin, KEY_All_release );
+			_TouchEndService(Touch_LenWin_plus, Touch_ResetSpaces, KEYBOARD_LenOffsWin, 	KEY_All_release, FUNC_FontLenOffs);
+
 
 			if(_WasStateRange(Touch_Q,Touch_enter))
 				KEYBOARD_TYPE( KEYBOARD_setTxt, KEY_All_release );

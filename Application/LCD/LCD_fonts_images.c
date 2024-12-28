@@ -36,6 +36,9 @@
 
 #define COMMON_SIGN	'.'
 
+StructTxtPxlLen StructTxtPxlLen_Zero={0};
+LCD_STR_PARAM	LCD_STR_PARAM_Zero={0};
+
 static const char CharsTab_full[]="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-.,:;[]{}<>'~*()&#^=_$%\xB0@|?!\xA5\xB9\xC6\xE6\xCA\xEA\xA3\xB3\xD1\xF1\xD3\xF3\x8C\x9C\x8F\x9F\xAF\xBF/1234567890";
 static const char CharsTab_digits[]="+-1234567890.";
 
@@ -3253,7 +3256,7 @@ char* LCD_DisplayRemeberedSpacesBetweenFonts(int param, char* buff, int* maxArra
 		buff[0]=0;
 		int len=0,lenArray=0;	if(maxArray!=NULL) *maxArray=0;
 		for(int i=0; i<StructSpaceCount; i++){
-			lenArray = mini_snprintf(buff+len,100,"%d%c"_L_"%s "_L_"%s "_L_"'%c' "_L_"'%c' "_L_"%d"_E_,i,COMMON_SIGN,LCD_FontStyle2Str(bufTemp,space[i].fontStyle),LCD_FontSize2Str(bufTemp+20,space[i].fontSize),space[i].char1,space[i].char2,space[i].val);
+			lenArray = mini_snprintf(buff+len,100,"%d%c"_L_"%s "_L_"%s "_L_"'%c' "_L_"'%c' "_L_"%d"_E_,i+1,COMMON_SIGN,LCD_FontStyle2Str(bufTemp,space[i].fontStyle),LCD_FontSize2Str(bufTemp+20,space[i].fontSize),space[i].char1,space[i].char2,space[i].val);
 			len += lenArray;
 			if(maxArray!=NULL){  if(lenArray>*maxArray) *maxArray=lenArray;  }
 		}
