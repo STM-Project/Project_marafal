@@ -1152,6 +1152,7 @@ static void IncDec_SpaceBetweenFont(int incDec){
 		return;
 	if(Test.posCursor>1){
 		if(0xFFFF!=LCD_SelectedSpaceBetweenFontsIncrDecr(incDec, Test.style, Test.size, Test.txt[Test.posCursor-2], Test.txt[Test.posCursor-1])){
+			AdjustMiddle_X();
 			ClearCursorField();
 			Data2Refresh(FONTS);
 			Test.lenWin=lenStr.inChar;
@@ -1402,8 +1403,14 @@ void FUNC_FontLenOffs(int k){ switch(k){
 	case 7: IncDec_SpaceBetweenFont(0); break;
 	case 8: break;
 	case 9: LCD_WriteSpacesBetweenFontsOnSDcard(); break;
-	case 10: LCD_ResetSpacesBetweenFonts(); break;}
-}
+	case 10:
+		LCD_ResetSpacesBetweenFonts();
+		AdjustMiddle_X();
+		ClearCursorField();
+		Test.posCursor=0;
+		Data2Refresh(FONTS);
+		break;
+}}
 
 void FILE_NAME(setTouch)(void)
 {/*

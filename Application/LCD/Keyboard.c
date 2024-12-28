@@ -1215,10 +1215,6 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		if(CHECK_bit(s[k].param,6)) return TxtInRow;
 		else								 return TxtInSeq;
 	}
-//	void 	_SetListRead(void){	SET_bit(s[k].param,5); }
-//	void 	_RstListRead(void){	RST_bit(s[k].param,5); }
-//	int 	_IsListRead(void) {	return CHECK_bit(s[k].param,5); }
-
 	int heightUpDn = 17;
 	int widthtUpDn = 26;
 	int spaceBetweenArrows = 10;
@@ -1227,7 +1223,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	uint32_t bkColorSel = 0xFF232323;
 
 	static uint32_t 	posTxtTab[MAX_SCREENS_FOR_LCD_LIST]={0};
-	static uint32_t 	posTxt_temp=0;
+	static uint32_t 	isFilledWin=0;
 	static int 			maxScreens=0;
 	static uint32_t 	i_posTxtTab=0;
 	static int 			nmbrLinesInWin=0;
@@ -1240,14 +1236,14 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	static SHAPE_PARAMS 	arrowUpParam={0}, arrowDnParam={0};
 	static StructTxtPxlLen listTxtStruct={0};
 
-	POS_SIZE win = { .pos={ s[k].x+widthAll+1, s[k].y 				 	}, .size={calcWinWidth,350} };
+	POS_SIZE win = { .pos={ s[k].x+widthAll+1, s[k].y 				 	}, .size={calcWinWidth,heightAll} };
 	POS_SIZE win2 ={ .pos={ 15, 					 s[k].y+heightAll+15 }, .size={600, 		  60} };
 
 	if(shape!=0){}
 
 	void _SetInitStaticVar(void){
 		LOOP_FOR(i,MAX_SCREENS_FOR_LCD_LIST){ posTxtTab[i]=0; }
-		posTxt_temp=0;				paramTxt=LCD_STR_PARAM_Zero;
+		isFilledWin=0;				paramTxt=LCD_STR_PARAM_Zero;
 		maxScreens=0;				paramCreateWin=0;
 		i_posTxtTab=0;				calcWinWidth=200;
 		nmbrLinesInWin=0;			arrowUpParam=SHAPE_PARAMS_Zero, arrowDnParam=SHAPE_PARAMS_Zero,
@@ -1276,9 +1272,9 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			i_posTxtTab=0;
 		}
 		else if(Up==param){
-			CONDITION(1<i_posTxtTab && 0<posTxt_temp, i_posTxtTab-=2, i_posTxtTab--);
+			CONDITION(1<i_posTxtTab && 0<isFilledWin, i_posTxtTab-=2, i_posTxtTab--);
 		}
-		else if((inside==param || Horizontal==param) && posTxt_temp){		/* click change style */
+		else if((inside==param || Horizontal==param) && isFilledWin){		/* click change style */
 			if(0<i_posTxtTab) i_posTxtTab--;
 		}
 
@@ -1290,17 +1286,17 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		if(TakeMutex(Semphr_sdram,3000)){
 			char *ptr = LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL);	/* LCD_LIST_TXT_example(pCHAR_PLCD(width*height),NULL) */
 			winTxtStruct = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,ptr+posTxtTab[i_posTxtTab],nrLineSel,fullHight,0,bkColor,bkColorSel,colorDescr,FONT_COEFF,NoConstWidth, pTabFontColor, _GetTxtArrang(),space2UpDn);
-			posTxt_temp = winTxtStruct.inChar;
+			isFilledWin = winTxtStruct.inChar;
 			GiveMutex(Semphr_sdram);
 		}
 		vPortFree(pTabFontColor);
 
-		if(posTxt_temp) i_posTxtTab++;	/* if whole Win list is full */
+		if(isFilledWin) i_posTxtTab++;	/* if whole Win list is full */
 
 		arrowUpParam.pos[0].x = 0;
 		arrowDnParam.pos[0].x = 0;
 
-		mini_snprintf(paramTxt.str,MAX_TXT_SIZE__LCD_STR_PARAM-1,"%s (max %d)",Int2Str(CONDITION(posTxt_temp,i_posTxtTab,i_posTxtTab+1),' ',3,Sign_none), maxScreens);
+		mini_snprintf(paramTxt.str,MAX_TXT_SIZE__LCD_STR_PARAM-1,"%s (max %d)",Int2Str(CONDITION(isFilledWin,i_posTxtTab,i_posTxtTab+1),' ',3,Sign_none), maxScreens);
 		int len_temp = GetStrPxlWidth(fontID_descr,paramTxt.str,NoConstWidth);
 		int xPosTxt = xPosU-2*spaceBetweenArrows-len_temp;
 		paramTxt=LCD_SetStrDescrParam(win.pos.x+xPosTxt, win.pos.y+yPosUD, len_temp, GetHeightFont(fontID_descr), fontID_descr,paramTxt.str,fullHight,0,bkColor,YELLOW,FONT_COEFF,NoConstWidth);
@@ -1347,7 +1343,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		LCD_TOUCH_SusspendTouch(touchAction2);
 		LCD_TOUCH_SusspendTouch(touchAction2+1);
 
-		if(1 < i_posTxtTab || (1==i_posTxtTab && 0==posTxt_temp)){
+		if(1 < i_posTxtTab || (1==i_posTxtTab && 0==isFilledWin)){
 			uint32_t colorUp=colorDescr;
 			if(Up==param) colorUp=BrightIncr(colorDescr,0x40);
 			LCDSHAPE_Window(LCDSHAPE_Arrow,0,arrowUpParam=LCD_Arrow(ToStructAndReturn,width,height, xPosU,yPosUD, SetLineBold2Width(widthtUpDn,7), SetTriangHeightCoeff2Height(heightUpDn,3), colorUp,colorUp,bkColor, Up));
@@ -1359,7 +1355,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			arrowUpParam.color[0].fill=colorDescr;
 			LCD_TOUCH_RestoreSusspendedTouch(touchAction2);
 		}
-		if(0 < posTxt_temp){
+		if(0 < isFilledWin){
 			uint32_t colorDn=colorDescr;
 			if(Down==param) colorDn=BrightIncr(colorDescr,0x40);
 			LCDSHAPE_Window(LCDSHAPE_Arrow,0,arrowDnParam=LCD_Arrow(ToStructAndReturn,width,height, xPosD,yPosUD, SetLineBold2Width(widthtUpDn,7), SetTriangHeightCoeff2Height(heightUpDn,3), colorDn,colorDn,bkColor, Down));
@@ -1491,7 +1487,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		GetTouchToTemp(touchAction2+4);
 		int temp = (y-touchTemp[0].y)/GetHeightFont(fontID_descr);
 		if(temp > nmbrLinesInWin-1) temp=nmbrLinesInWin-1;
-		temp = temp + CONDITION(posTxt_temp,i_posTxtTab-1,i_posTxtTab)*nmbrLinesInWin;
+		temp = temp + CONDITION(isFilledWin,i_posTxtTab-1,i_posTxtTab)*nmbrLinesInWin;
 		if(temp==nrItemSel) nrItemSel=-1;
 		else					  nrItemSel=temp;
 		if(nrItemSel > nmbrAllLines-1) nrItemSel=-1;
