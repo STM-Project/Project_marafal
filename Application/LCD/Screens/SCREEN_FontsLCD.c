@@ -1269,7 +1269,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 static int BlockTouchForTime(int action){
 	static int _blokTouchForTime= 0;
 	switch(action){
-		case _ON:  { _blokTouchForTime= 1;	vTimerService(TIMER_BlockTouch,restart_time,noUse); break; }  //Timer9 nazwac jakos!!!
+		case _ON:  { _blokTouchForTime= 1;	vTimerService(TIMER_BlockTouch,restart_time,noUse); break; }
 		case _OFF: { _blokTouchForTime= 0; break; }
 		case _GET: { break; }
 	}
@@ -1449,9 +1449,8 @@ void FILE_NAME(setTouch)(void)
 	uint16_t state, function=0;
 	XY_Touch_Struct pos;
 
-	void _SaveState(void){
-		statePrev = state;
-	}
+	void _SaveState(void){ statePrev=state; }
+	void _RstState(void){ statePrev=0; }
 
 	int _WasState(int point){
 		if(release==LCD_TOUCH_isPress() && point==statePrev){
@@ -1498,12 +1497,17 @@ void FILE_NAME(setTouch)(void)
 			KEYBOARD_TYPE(keyboard, releaseAll);
 			if(func) func(-1);
 	}}
-
 	void CreateKeyboard(KEYBOARD_TYPES keboard){
 		switch((int)keboard){
 			case KEYBOARD_fontRGB:	break;
 			case KEYBOARD_fontSize2:	FILE_NAME(keyboard)(KEYBOARD_fontSize2, KEY_Select_one, LCD_Rectangle,0, 610,50, KeysAutoSize,10, 0, state, Touch_FontSizeRoll,KeysDel);  break;
 	}}
+	void _RestoreSusspendedTouchsByAnotherClickItem(TOUCH_POINTS main, TOUCH_POINTS other1,TOUCH_POINTS other2,TOUCH_POINTS other3,TOUCH_POINTS other4,TOUCH_POINTS other5,TOUCH_POINTS other6,TOUCH_POINTS other7,TOUCH_POINTS other8,TOUCH_POINTS other9,TOUCH_POINTS other10){
+		if(state){
+			if(main==statePrev && main!=state){
+				LCD_TOUCH_RestoreSusspendedTouchs2(other1,other2,other3,other4,other5,other6,other7,other8,other9,other10);
+				statePrev=0;
+	}}}
 
 	state = LCD_TOUCH_GetTypeAndPosition(&pos);
 
@@ -1527,6 +1531,7 @@ void FILE_NAME(setTouch)(void)
 	_TouchService(Touch_SpacesInfoUp, Touch_SpacesInfoSel,	KEYBOARD_LenOffsWin, KEY_NO_RELEASE,  KEY_InfoSpacesUp, NULL);
 
 
+	_RestoreSusspendedTouchsByAnotherClickItem(Touch_FontSize2, Touch_FontLenOffsWin,Touch_FontCoeff,0,0,0,0,0,0,0,0);
 	switch(state)
 	{
 		/*	----- Initiation new Keyboard ----- */
@@ -1599,8 +1604,9 @@ void FILE_NAME(setTouch)(void)
 			break;
 
 		CASE_TOUCH_STATE(state,Touch_FontSize2, FontSize,Press, TXT_FONT_SIZE,252,NoTouch,NoTouch);
-			if(IsFunc())
-				FILE_NAME(keyboard)(KEYBOARD_fontSize, KEY_Select_one, LCD_RoundRectangle,0, 410,170, KeysAutoSize,10/*80,40*/, 10, state, Touch_size_plus,KeysDel);
+			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_fontSize, KEY_Select_one, LCD_RoundRectangle,0, 614,200, KeysAutoSize,10/*80,40*/, 10, state, Touch_size_plus,KeysDel);
+								LCD_TOUCH_SusspendTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,0,0,0,0,0,0,0,0); _SaveState(); }
+			else{ LCD_TOUCH_RestoreSusspendedTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,0,0,0,0,0,0,0,0); _RstState(); }
 			break;
 
 		CASE_TOUCH_STATE(state,Touch_FontSizeMove, FontSize,Press, TXT_FONT_SIZE,252,NoTouch,NoTouch);

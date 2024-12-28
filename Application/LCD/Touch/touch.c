@@ -735,6 +735,13 @@ void LCD_TOUCH_SusspendTouch(uint16_t idx){
 				susspendTouch[i] = Touch[i].index;
 				Touch[i].index=0;
 }}}}
+void LCD_TOUCH_SusspendTouchs2(uint16_t idx1,uint16_t idx2,uint16_t idx3,uint16_t idx4,uint16_t idx5,uint16_t idx6,uint16_t idx7,uint16_t idx8,uint16_t idx9,uint16_t idx10){
+	for(int i=0; i<MAX_OPEN_TOUCH_SIMULTANEOUSLY; ++i){
+		if(Touch[i].index==idx1||Touch[i].index==idx2||Touch[i].index==idx3||Touch[i].index==idx4||Touch[i].index==idx5||Touch[i].index==idx6||Touch[i].index==idx7||Touch[i].index==idx8||Touch[i].index==idx9||Touch[i].index==idx10){
+			if(0 < Touch[i].index && 0 == susspendTouch[i]){
+				susspendTouch[i] = Touch[i].index;
+				Touch[i].index=0;
+}}}}
 void LCD_TOUCH_SusspendNmbTouch(int nmb, uint16_t start_idx){
 	for(int i=0; i<MAX_OPEN_TOUCH_SIMULTANEOUSLY; ++i){
 		for(int j=0; j<nmb; ++j){
@@ -751,6 +758,14 @@ void LCD_TOUCH_RestoreSusspendedTouch(uint16_t idx){
 			susspendTouch[i]=0;
 			break;
 }}}
+void LCD_TOUCH_RestoreSusspendedTouchs2(uint16_t idx1,uint16_t idx2,uint16_t idx3,uint16_t idx4,uint16_t idx5,uint16_t idx6,uint16_t idx7,uint16_t idx8,uint16_t idx9,uint16_t idx10){
+	for(int i=0; i<MAX_OPEN_TOUCH_SIMULTANEOUSLY; ++i){
+		if(0 < susspendTouch[i]){
+			if(susspendTouch[i]==idx1||susspendTouch[i]==idx2||susspendTouch[i]==idx3||susspendTouch[i]==idx4||susspendTouch[i]==idx5||susspendTouch[i]==idx6||susspendTouch[i]==idx7||susspendTouch[i]==idx8||susspendTouch[i]==idx9||susspendTouch[i]==idx10){
+				if(0 == Touch[i].index){
+					Touch[i].index = susspendTouch[i];
+					susspendTouch[i]=0;
+}}}}}
 void LCD_TOUCH_RestoreSusspendedTouchs(uint16_t start_idx, uint16_t stop_idx){
 	for(int i=0; i<MAX_OPEN_TOUCH_SIMULTANEOUSLY; ++i){
 		if(IS_RANGE(susspendTouch[i], start_idx, stop_idx) && 0 == Touch[i].index){
