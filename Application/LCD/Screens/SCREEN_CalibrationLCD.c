@@ -27,12 +27,12 @@ Ko"ł"o,Circle,\
 
 #define SCREEN_CALIBRATION_SET_PARAMETERS \
 /*  id 	 name					default value */ \
-	X(0, FONT_SIZE_Title, 	 	FONT_16) \
+	X(0, FONT_SIZE_Title, 	 	FONT_24_bold) \
 	X(1, FONT_SIZE_CircleName, FONT_12_bold) \
 	X(2, FONT_SIZE_PosLog,		FONT_12_bold) \
 	X(3, FONT_SIZE_PosPhys,		FONT_12_bold) \
 	\
-	X(4, FONT_STYLE_Title, 	 		Arial) \
+	X(4, FONT_STYLE_Title, 	 		Comic_Saens_MS) \
 	X(5, FONT_STYLE_CircleName, 	Arial) \
 	X(6, FONT_STYLE_PosLog, 		Comic_Saens_MS) \
 	X(7, FONT_STYLE_PosPhys, 		Comic_Saens_MS) \
@@ -48,7 +48,7 @@ Ko"ł"o,Circle,\
 	X(15, COLOR_CircleFillPress, 	0xFF606060) \
 	\
 	X(16, COEFF_COLOR_CircleName, 255)	\
-	X(17, COEFF_COLOR_PosLog,  	255)	\
+	X(17, COEFF_COLOR_PosLog,  	251)	\
 	X(18, COEFF_COLOR_PosPhys,  	255) \
 	\
 	X(19, DEBUG_ON,  	1) \
