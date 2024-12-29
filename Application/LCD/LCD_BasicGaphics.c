@@ -12,7 +12,7 @@
 #include "LCD_Common.h"
 #include <stdbool.h>
 
-#define MAX_SIZE_TAB_AA		230
+#define MAX_SIZE_TAB_AA		250
 #define MAX_LINE_BUFF_CIRCLE_SIZE  100
 #define MAX_DEGREE_CIRCLE  10
 
@@ -2088,10 +2088,6 @@ void LCD_Clear(uint32_t color){
 void LCD_ClearPartScreen(uint32_t posBuff, uint32_t BkpSizeX, uint32_t BkpSizeY, uint32_t color){
 	LCD_ShapeWindow(LCD_Rectangle,posBuff,BkpSizeX,BkpSizeY, 0,0, BkpSizeX, BkpSizeY, color,color,color);
 }
-uint32_t SetBold2Color(uint32_t frameColor, uint8_t thickness){
-	return (frameColor&0xFFFFFF) | (((((uint32_t)thickness)<<24)&0xFF000000));
-}
-
 void LCD_LittleRoundRectangle(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
 	_StartDrawLine(posBuff,BkpSizeX,x,y);
 	_FillBuff(2,BkpColor);	 _FillBuff(width-4,FrameColor);  _FillBuff(2, BkpColor);
