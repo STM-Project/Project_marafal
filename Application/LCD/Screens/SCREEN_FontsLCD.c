@@ -395,6 +395,7 @@ typedef enum{
 	Touch_SpacesInfoStyle,
 	Touch_SpacesInfoRoll,
 	Touch_SpacesInfoSel,
+	Touch_SpacesInfoTest,
 	Touch_MainFramesType,
 	Touch_SetTxt,
 	Move_1,
@@ -1531,7 +1532,7 @@ void FILE_NAME(setTouch)(void)
 	_TouchService(Touch_fontCircleSliderR, Touch_CircleSliderStyle,	KEYBOARD_circleSliderRGB, 		KEY_All_release, KEY_fontCircleSliderR, NULL);
 
 	_TouchService(Touch_LenWin_plus, Touch_ResetSpaces, 	 	KEYBOARD_LenOffsWin, KEY_All_release, KEY_LenWin_plus,  FUNC_FontLenOffs);
-	_TouchService(Touch_SpacesInfoUp, Touch_SpacesInfoSel,	KEYBOARD_LenOffsWin, KEY_NO_RELEASE,  KEY_InfoSpacesUp, NULL);
+	_TouchService(Touch_SpacesInfoUp, Touch_SpacesInfoTest,	KEYBOARD_LenOffsWin, KEY_NO_RELEASE,  KEY_InfoSpacesUp, NULL);
 
 
 	switch(state)

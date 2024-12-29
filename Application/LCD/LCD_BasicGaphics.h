@@ -43,6 +43,7 @@ typedef enum{
 	Left,
 	outside,
 	inside,
+	inside2,
 	DownUp,
 	LeftLeft,
 	RightRight,

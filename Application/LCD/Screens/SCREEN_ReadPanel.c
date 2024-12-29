@@ -61,7 +61,7 @@ void LCD_ArrowTxt(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uint32_t
 	case outside:
 	case inside:
 		len = LCD_StrDependOnColorsWindow(0,bkpSizeX,bkpSizeY,fontId, xTxt=MIDDLE(x,width,LCD_GetWholeStrPxlWidth(fontId,txt,0,NoConstWidth)), MIDDLE(y,height,LCD_GetFontHeight(fontId)),txt, fullHight, 0, bkpColor, txtColor,250, NoConstWidth);
-		LCD_Arrow(0,bkpSizeX,bkpSizeY, x,										MIDDLE(y,height,heightArrow), SetLineBold2Width(xTxt-x-spaceArrowTxt,boldLine), SetTriangHeightCoeff2Height(heightArrow,heightTraingCoeff), frameColor,fillColor,bkpColor,  CONDITION(outside==direct,Left,Right));
+		LCD_Arrow(0,bkpSizeX,bkpSizeY, x,										MIDDLE(y,height,heightArrow), SetLineBold2Width(xTxt-x-spaceArrowTxt,boldLine), SetTriangHeightCoeff2Height(heightArrow,heightTraingCoeff), frameColor,fillColor,bkpColor, CONDITION(outside==direct,Left,Right));
 		LCD_Arrow(0,bkpSizeX,bkpSizeY, xTxt+len.inPixel+spaceArrowTxt, MIDDLE(y,height,heightArrow), SetLineBold2Width(xTxt-x-spaceArrowTxt,boldLine), SetTriangHeightCoeff2Height(heightArrow,heightTraingCoeff), frameColor,fillColor,bkpColor, CONDITION(outside==direct,Right,Left));
 		break;
 
