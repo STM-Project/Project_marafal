@@ -1423,7 +1423,6 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			calcWinWidth = win.size.w;
 			nmbrLinesInWin = listTxtStruct.inChar;
 		}
-		_CreateWindows(0,NoDirect);
 	}
 	void _OverArrowTxt(int nr, DIRECTIONS direct){
 		LCD_ArrowTxt(0,widthAll,heightAll, MIDDLE(posKey[nr].x, s[k].widthKey, widthShape1), MIDDLE(posKey[nr].y, s[k].heightKey, heightShape1), widthShape1,heightShape1, frameColor,frameColor,fillColor, direct,fontID,(char*)txtKey[nr],colorTxtKey[nr]);
@@ -1507,6 +1506,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 //			}
 //			_CreateWindows(0,NoDirect);
 			_SSSSSSSSSSSSSSSS();
+			_CreateWindows(0,NoDirect);
 		}
 	}
 	else if(touchAction+9 == selBlockPress){ 	BKCOPY_VAL(c.widthKey,s[k].widthKey,s[k].widthKey2);  KeyStrPressDisp_oneBlock(k,posKey[9],txtKey[9],colorTxtPressKey[9]);		BKCOPY(s[k].widthKey,c.widthKey); CONDITION(_IsFlagWin(),_DeleteWindows(),NULL);	 _WinInfo(txtDescr);}
@@ -1542,26 +1542,65 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		//CONDITION(_IsFlagTest(),_RstFlagTest(),_SetFlagTest());
 
 
+		int width_temp= win.size.w;
+		int delta_width=0;
 
 		if(_IsFlagTest()){
-			pfunc(FUNC_MAIN_ARG);  LCD_DisplayPart(0,win.pos.x+win.size.w-50 ,win.pos.y, 50, win.size.h);
-			LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w-50, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
+//			pfunc(FUNC_MAIN_ARG);  LCD_DisplayPart(0,win.pos.x+win.size.w-50 ,win.pos.y, 50, win.size.h);
+//			LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w-50, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
 			//LCD_ShapeWindowIndirect(win.pos.x ,win.pos.y,s[k].shape,0,LCD_X, LCD_Y, win.pos.x ,win.pos.y, win.size.w-50, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
 		 //LCD_ShapeWindowIndirect(xPos,yPos,pShape,posBuff,BkpSizeX,BkpSizeY, x,y, width, height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
 
-
+// jezeli pusta lista to problem szerokos jesttaka jak porzednio !!!!
 
 			_SetInitStaticVar();
 			_RstFlagTest();
 			_SSSSSSSSSSSSSSSS();
 
+
+
+
+			delta_width= width_temp - win.size.w;
+			if(delta_width > 0){
+				pfunc(FUNC_MAIN_ARG); //tu chyba semafor !!!!
+				  LCD_DisplayPart(0,win.pos.x+win.size.w-delta_width ,win.pos.y, delta_width, win.size.h);
+				LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w-delta_width, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
+			}
+			else if(delta_width==0){
+				win.size.w=calcWinWidth;
+			}
+			else if(delta_width < 0){
+				LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
+
+			}
+
+			_CreateWindows(0,NoDirect);
+
 		}
 		else{
 			//pfunc(FUNC_MAIN_ARG);  LCD_DisplayPart(0,win.pos.x ,win.pos.y, win.size.w, win.size.h);
-			LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
+			//LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
 			_SetInitStaticVar();
 			_SetFlagTest();
 			_SSSSSSSSSSSSSSSS();
+
+
+			delta_width= width_temp - win.size.w;
+			if(delta_width > 0){
+				pfunc(FUNC_MAIN_ARG); //tu chyba semafor !!!!
+				  LCD_DisplayPart(0,win.pos.x+win.size.w-delta_width ,win.pos.y, delta_width, win.size.h);
+				LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w-delta_width, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
+			}
+			else if(delta_width==0){
+				win.size.w=calcWinWidth;
+			}
+			else if(delta_width < 0){
+				LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
+
+			}
+
+
+			_CreateWindows(0,NoDirect);
 			_CreateWindows(0,inside2);
 
 		}
