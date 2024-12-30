@@ -1293,12 +1293,12 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		if(IS_RANGE(nrLineSel,0,nmbrLinesInWin-1))
 			LCD_ShapeWindow( s[k].shape, 0, width,height, s[k].bold+1,spaceFromFrame+nrLineSel*GetHeightFontDescr(), width-2*(s[k].bold+1),GetHeightFontDescr(), bkColorSel, bkColorSel,bkColorSel );
 
-		if(TakeMutex(Semphr_sdram,3000)){
+	/* if(TakeMutex(Semphr_sdram,3000)){ */
 			char *ptr = CONDITION(_IsFlagTest(), LCD_LIST_TXT_example(pCHAR_PLCD(width*height),NULL), LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL));
 			winTxtStruct = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,ptr+posTxtTab[i_posTxtTab],nrLineSel,fullHight,0,bkColor,bkColorSel,colorDescr,FONT_COEFF,NoConstWidth, pTabFontColor, _GetTxtArrang(),space2UpDn);
 			isFilledWin = winTxtStruct.inChar;
-			GiveMutex(Semphr_sdram);
-		}
+		/* GiveMutex(Semphr_sdram);
+		} */
 		vPortFree(pTabFontColor);
 
 		if(isFilledWin) i_posTxtTab++;	/* if whole Win list is full */
@@ -1416,11 +1416,11 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		LCD_TOUCH_RestoreSusspendedTouch(s[k].forTouchIdx);
 	}
 	int _TakeNewTxtList(void){
-		_SetTxtArrang(TxtInRow); //sprobuk zdjac ten semafor i sprawdz !!!!!!!!!!!!!!!
-		if(TakeMutex(Semphr_sdram,3000)){  /* semaphores don`t give in internal functions ! */
+		_SetTxtArrang(TxtInRow);
+	/* if(TakeMutex(Semphr_sdram,3000)){ */		 /* semaphores don`t give in internal functions ! */
 			listTxtStruct = LCD_LIST_TXT_len(CONDITION(_IsFlagTest(), LCD_LIST_TXT_example(pCHAR_PLCD(0),NULL), LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL)), TxtInRow, fontID_descr,0,NoConstWidth, NULL,posTxtTab,&maxScreens, win.size.h-spaceFromFrame-space2UpDn, &nmbrAllLines);
-			GiveMutex(Semphr_sdram);
-		}
+		/* GiveMutex(Semphr_sdram);
+		} */
 		if(listTxtStruct.inPixel){
 			win.size.w= listTxtStruct.inPixel + 2*spaceFromFrame;
 			calcWinWidth = win.size.w;
