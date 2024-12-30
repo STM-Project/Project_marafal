@@ -173,7 +173,7 @@ static void http_server_netconn_thread(void *arg)
 
 void http_server_netconn_init(void)
 {
-	sys_thread_new("HTTP", http_server_netconn_thread, NULL, 1200, -3);
+	sys_thread_new("HTTP", http_server_netconn_thread, NULL, 1200, -2);
 }
 
 /* USER CODE END 2 */

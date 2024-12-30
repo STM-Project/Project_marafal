@@ -301,7 +301,7 @@ static void SSL_Server(void *arg)
 
 void https_server_netconn_init(void)
 {
-	vTaskHandleServer = sys_thread_new("HTTPS", SSL_Server, NULL, 1024, -3);
+	vTaskHandleServer = sys_thread_new("HTTPS", SSL_Server, NULL, 1024, -2);
 }
 
 /* USER CODE END 4 */
