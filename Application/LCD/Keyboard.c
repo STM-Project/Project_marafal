@@ -1401,8 +1401,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			case 1:
 				break;
 	}}
-	void _DeleteWindows(void){		/* Use function only after displaying (not during) */
-		pfunc(FUNC_MAIN_ARG);	_RstFlagWin();  LCD_DisplayPart(0,win.pos.x ,win.pos.y, win.size.w, win.size.h); retVal=1;
+	void _DeleteAdditionalTouches(void){
 		LCD_TOUCH_DeleteSelectAndSusspendTouch(touchAction2);
 		LCD_TOUCH_DeleteSelectAndSusspendTouch(touchAction2+1);
 		LCD_TOUCH_DeleteSelectTouch(touchAction2+2);
@@ -1410,10 +1409,14 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		LCD_TOUCH_DeleteSelectTouch(touchAction2+4);
 		LCD_TOUCH_DeleteSelectTouch(touchAction2+5);
 		s[k].nmbTouch-=6;
+	}
+	void _DeleteWindows(void){		/* Use function only after displaying (not during) */
+		pfunc(FUNC_MAIN_ARG);	_RstFlagWin();  LCD_DisplayPart(0,win.pos.x ,win.pos.y, win.size.w, win.size.h); retVal=1;
+		_DeleteAdditionalTouches();
 		LCD_TOUCH_RestoreSusspendedTouch(s[k].forTouchIdx);
 	}
-	void _SSSSSSSSSSSSSSSS(void){
-		_SetTxtArrang(TxtInRow);
+	int _TakeNewTxtList(void){
+		_SetTxtArrang(TxtInRow); //sprobuk zdjac ten semafor i sprawdz !!!!!!!!!!!!!!!
 		if(TakeMutex(Semphr_sdram,3000)){  /* semaphores don`t give in internal functions ! */
 			listTxtStruct = LCD_LIST_TXT_len(CONDITION(_IsFlagTest(), LCD_LIST_TXT_example(pCHAR_PLCD(0),NULL), LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL)), TxtInRow, fontID_descr,0,NoConstWidth, NULL,posTxtTab,&maxScreens, win.size.h-spaceFromFrame-space2UpDn, &nmbrAllLines);
 			GiveMutex(Semphr_sdram);
@@ -1422,7 +1425,9 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			win.size.w= listTxtStruct.inPixel + 2*spaceFromFrame;
 			calcWinWidth = win.size.w;
 			nmbrLinesInWin = listTxtStruct.inChar;
+			return 0;
 		}
+		return 1;
 	}
 	void _OverArrowTxt(int nr, DIRECTIONS direct){
 		LCD_ArrowTxt(0,widthAll,heightAll, MIDDLE(posKey[nr].x, s[k].widthKey, widthShape1), MIDDLE(posKey[nr].y, s[k].heightKey, heightShape1), widthShape1,heightShape1, frameColor,frameColor,fillColor, direct,fontID,(char*)txtKey[nr],colorTxtKey[nr]);
@@ -1493,21 +1498,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	else if(touchAction+8 == selBlockPress){
 		BKCOPY_VAL(c.widthKey,s[k].widthKey,s[k].widthKey2);   KeyStrPressDisp_oneBlock(k,posKey[8],txtKey[8],colorTxtPressKey[8]);	BKCOPY(s[k].widthKey,c.widthKey);
 		if(_IsFlagWin()) _DeleteWindows();
-		else{
-//			_SetTxtArrang(TxtInRow);
-//			if(TakeMutex(Semphr_sdram,3000)){  /* semaphores don`t give in internal functions ! */
-//				listTxtStruct = LCD_LIST_TXT_len(CONDITION(_IsFlagTest(), LCD_LIST_TXT_example(pCHAR_PLCD(0),NULL), LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL)), TxtInRow, fontID_descr,0,NoConstWidth, NULL,posTxtTab,&maxScreens, win.size.h-spaceFromFrame-space2UpDn, &nmbrAllLines);
-//				GiveMutex(Semphr_sdram);
-//			}
-//			if(listTxtStruct.inPixel){
-//				win.size.w= listTxtStruct.inPixel + 2*spaceFromFrame;
-//				calcWinWidth = win.size.w;
-//				nmbrLinesInWin = listTxtStruct.inChar;
-//			}
-//			_CreateWindows(0,NoDirect);
-			_SSSSSSSSSSSSSSSS();
-			_CreateWindows(0,NoDirect);
-		}
+		else{				  _TakeNewTxtList();	_CreateWindows(0,NoDirect); }
 	}
 	else if(touchAction+9 == selBlockPress){ 	BKCOPY_VAL(c.widthKey,s[k].widthKey,s[k].widthKey2);  KeyStrPressDisp_oneBlock(k,posKey[9],txtKey[9],colorTxtPressKey[9]);		BKCOPY(s[k].widthKey,c.widthKey); CONDITION(_IsFlagWin(),_DeleteWindows(),NULL);	 _WinInfo(txtDescr);}
 	else if(touchAction+10 == selBlockPress){ BKCOPY_VAL(c.widthKey,s[k].widthKey,s[k].widthKey2);  KeyStrPressDisp_oneBlock(k,posKey[10],txtKey[10],colorTxtPressKey[10]);	BKCOPY(s[k].widthKey,c.widthKey); CONDITION(_IsFlagWin(),_DeleteWindows(),NULL);  _SetInitStaticVar(); _WinInfo(txtDescr2); }
@@ -1530,49 +1521,40 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		if(nrItemSel > nmbrAllLines-1) nrItemSel=-1;
 		 _CreateWindows(0,Horizontal);
 	}
-	else if(touchAction+16 == selBlockPress){ /*_SetInitStaticVar();*/
-		//_DeleteWindows();
-		LCD_TOUCH_DeleteSelectAndSusspendTouch(touchAction2);
-		LCD_TOUCH_DeleteSelectAndSusspendTouch(touchAction2+1);
-		LCD_TOUCH_DeleteSelectTouch(touchAction2+2);
-		LCD_TOUCH_DeleteSelectTouch(touchAction2+3);
-		LCD_TOUCH_DeleteSelectTouch(touchAction2+4);
-		LCD_TOUCH_DeleteSelectTouch(touchAction2+5);
+	else if(touchAction+16 == selBlockPress){
+		_DeleteAdditionalTouches();
 
-		//CONDITION(_IsFlagTest(),_RstFlagTest(),_SetFlagTest());
-
-
-		int width_temp= win.size.w;
+		int width_prev= win.size.w;
 		int delta_width=0;
 
+
+		_SetInitStaticVar();
+
 		if(_IsFlagTest()){
-//			pfunc(FUNC_MAIN_ARG);  LCD_DisplayPart(0,win.pos.x+win.size.w-50 ,win.pos.y, 50, win.size.h);
-//			LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w-50, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
-			//LCD_ShapeWindowIndirect(win.pos.x ,win.pos.y,s[k].shape,0,LCD_X, LCD_Y, win.pos.x ,win.pos.y, win.size.w-50, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
-		 //LCD_ShapeWindowIndirect(xPos,yPos,pShape,posBuff,BkpSizeX,BkpSizeY, x,y, width, height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
 
 // jezeli pusta lista to problem szerokos jesttaka jak porzednio !!!!
 
-			_SetInitStaticVar();
+
 			_RstFlagTest();
-			_SSSSSSSSSSSSSSSS();
+			if(_TakeNewTxtList())
+				win.size.w=calcWinWidth;
 
 
 
 
-			delta_width= width_temp - win.size.w;
+			delta_width= width_prev - win.size.w;
 			if(delta_width > 0){
 				pfunc(FUNC_MAIN_ARG); //tu chyba semafor !!!!
-				  LCD_DisplayPart(0,win.pos.x+win.size.w-delta_width ,win.pos.y, delta_width, win.size.h);
-				LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w-delta_width, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
+				  LCD_DisplayPart(0,win.pos.x+width_prev-delta_width ,win.pos.y, delta_width, win.size.h);
+				//LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w-delta_width, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
 			}
-			else if(delta_width==0){
-				win.size.w=calcWinWidth;
-			}
-			else if(delta_width < 0){
-				LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
-
-			}
+//			else if(delta_width==0){
+//				win.size.w=calcWinWidth;
+//			}
+//			else if(delta_width < 0){
+//				LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
+//
+//			}
 
 			_CreateWindows(0,NoDirect);
 
@@ -1580,28 +1562,28 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		else{
 			//pfunc(FUNC_MAIN_ARG);  LCD_DisplayPart(0,win.pos.x ,win.pos.y, win.size.w, win.size.h);
 			//LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
-			_SetInitStaticVar();
+
 			_SetFlagTest();
-			_SSSSSSSSSSSSSSSS();
+			if(_TakeNewTxtList())
+				win.size.w=calcWinWidth;
 
 
-			delta_width= width_temp - win.size.w;
+			delta_width= width_prev - win.size.w;
 			if(delta_width > 0){
 				pfunc(FUNC_MAIN_ARG); //tu chyba semafor !!!!
-				  LCD_DisplayPart(0,win.pos.x+win.size.w-delta_width ,win.pos.y, delta_width, win.size.h);
-				LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w-delta_width, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
+				  LCD_DisplayPart(0,win.pos.x+width_prev-delta_width ,win.pos.y, delta_width, win.size.h);
+				//LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w-delta_width, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
 			}
-			else if(delta_width==0){
-				win.size.w=calcWinWidth;
-			}
-			else if(delta_width < 0){
-				LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
-
-			}
-
+//			else if(delta_width==0){
+//				win.size.w=calcWinWidth;
+//			}
+//			else if(delta_width < 0){
+//				LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
+//
+//			}
 
 			_CreateWindows(0,NoDirect);
-			_CreateWindows(0,inside2);
+			//_CreateWindows(0,inside2);
 
 		}
 
