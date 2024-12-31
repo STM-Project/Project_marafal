@@ -13,7 +13,9 @@
 
 #define MAX_SIZE_TOUCHIDX_FOR_STRVAR		5
 #define MAX_TXT_SIZE__LCD_STR_PARAM		50
+
 #define MAX_SCREENS_FOR_LCD_LIST	 1000
+#define MAX_STRIP_LISTtxtWIN	30
 
 #define Ą "\xA5"
 #define ą "\xB9"
@@ -219,6 +221,14 @@ typedef struct{
 	uint8_t 	maxV;
 	int 		constW;
 }LCD_STR_PARAM;
+
+typedef struct{
+	int lenWholeTxt;
+	int nmbrAllLines;
+	int nmbrStrips;
+	int lenMaxWholeLine;
+	uint16_t lenMaxStrip[MAX_STRIP_LISTtxtWIN];
+}LIST_TXT;
 
 extern StructTxtPxlLen StructTxtPxlLen_Zero;
 extern LCD_STR_PARAM	LCD_STR_PARAM_Zero;
