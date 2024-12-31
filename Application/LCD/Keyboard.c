@@ -1226,13 +1226,15 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	int space2UpDn = spaceFromFrame + heightUpDn + spaceFromFrame;
 	uint32_t bkColorSel = 0xFF232323;
 
+	static LIST_TXT ListTxtParam={0};
+
 	static uint32_t 	posTxtTab[MAX_SCREENS_FOR_LCD_LIST]={0};
 	static uint32_t 	isFilledWin=0;
 	static int 			maxScreens=0;
 	static uint32_t 	i_posTxtTab=0;
 	static int 			nmbrLinesInWin=0;
 	static int 			nrItemSel=-1;
-	static int			nmbrAllLines=0;
+	static int			nmbrAllLines=0; ///!!!!!!!!!! jak param internal
 
 	static LCD_STR_PARAM paramTxt,paramTxt2;
 	static int 				paramCreateWin=0;
