@@ -32,8 +32,6 @@
 #define MAX_SIZE_CHANGECOLOR_BUFF	300
 #define LCD_XY_POS_MAX_NUMBER_USE	50
 
-#define MAX_STRIP_LISTtxtWIN	30
-
 #define COMMON_SIGN	'.'
 
 StructTxtPxlLen StructTxtPxlLen_Zero={0};
@@ -3783,13 +3781,79 @@ uint16_t LCD_LIST_TXT_nmbStripsInLine(GET_SET act, char* bufTxt, int* lenBufTxt)
 	}
 }
 
+int LCD_LIST_TXT_len____(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, LIST_TXT* pParam, uint32_t* tab,int* sizeTab,int heightTxtWin)
+{
+	if(0==bufTxt[0] || NULL==pParam|| NULL==tab|| NULL==sizeTab) return 0;
+
+	int nmbrAllLines=0, lenWholeTxt=0;
+	uint16_t lenMaxWholeLine=0;  /* value depended on 'arangType' */
+	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_CALC,bufTxt,&lenWholeTxt);		if(nmbrStrips > MAX_STRIP_LISTtxtWIN) nmbrStrips=MAX_STRIP_LISTtxtWIN;
+	uint16_t *lenActStrip = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
+	uint16_t *lenMaxStrip_= NULL;
+	int nmbrWholeLinesInWin=0, countLines=0;
+
+	nmbrWholeLinesInWin = heightTxtWin/LCD_GetFontHeight(fontID);
+	*sizeTab=1;
+	tab[0]=0;
+
+	LOOP_FOR(n,nmbrStrips){ *(lenActStrip+n)=0; }
+
+	if(TxtInRow==arangType){
+		lenMaxStrip_=(uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
+		LOOP_FOR(n,nmbrStrips){ *(lenMaxStrip_+n)=0; }
+	}
+
+	for(int i=0,strip=0,lenWholeLine=0; i<lenWholeTxt; i++)
+	{	if(*(bufTxt+i)==*_E_)
+		{	switch((int)arangType){
+			 case TxtInSeq:
+				 LOOP_FOR(n,nmbrStrips) lenWholeLine+=lenActStrip[n];
+				if(lenWholeLine>lenMaxWholeLine) lenMaxWholeLine=lenWholeLine;
+				lenWholeLine=0;
+				break;
+			 case TxtInRow:
+				 LOOP_FOR(n,nmbrStrips){ if(lenActStrip[n]>lenMaxStrip_[n]) lenMaxStrip_[n]=lenActStrip[n]; }
+				break;
+			}
+			LOOP_FOR(n,nmbrStrips) lenActStrip[n]=0;
+			strip=0;
+
+			if((*sizeTab) < MAX_SCREENS_FOR_LCD_LIST){
+				if(nmbrWholeLinesInWin==countLines+1){
+					tab[(*sizeTab)] = i+1;
+					(*sizeTab)++;
+					countLines=0;
+				}
+				else countLines++;
+			}
+			nmbrAllLines++;
+		}
+		else if(*(bufTxt+i)==*_L_){
+			if(strip<nmbrStrips-1) strip++;
+		}
+		else lenActStrip[strip]+=LCD_GetStrPxlWidth2(fontID,bufTxt+i,1,space,constWidth);
+	}
+	if(TxtInRow==arangType){  LOOP_FOR(n,nmbrStrips) lenMaxWholeLine+=lenMaxStrip_[n];  }
+
+	vPortFree(lenActStrip);
+	if(TxtInRow==arangType) vPortFree(lenMaxStrip_);
+
+	pParam->nmbrAllLines 	= nmbrAllLines;
+	pParam->lenWholeTxt 		= lenWholeTxt;
+	pParam->nmbrStrips 		= nmbrStrips;
+	pParam->lenMaxWholeLine = lenMaxWholeLine;
+	if(TxtInRow==arangType){ LOOP_FOR(n,nmbrStrips){ pParam->lenMaxStrip[n]=lenMaxStrip_[n];} }
+
+	return nmbrWholeLinesInWin;
+}
+
 StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, uint16_t* lenMaxStrip, uint32_t* tab,int* sizeTab,int heightTxtWin, int* nmbrAllLines)
 {
 	StructTxtPxlLen len={0};
 	if(0==bufTxt[0]) return len;
 	uint16_t lenMaxWholeLine=0;  /* value depended on 'arangType' */
 	int lenWholeTxt=0;
-	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_CALC,bufTxt,&lenWholeTxt);
+	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_CALC,bufTxt,&lenWholeTxt);		if(nmbrStrips > MAX_STRIP_LISTtxtWIN) nmbrStrips=MAX_STRIP_LISTtxtWIN;
 	uint16_t *lenActStrip = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
 	uint16_t *lenMaxStrip_= NULL;
 	int nmbrWholeLinesInWin=0, countLines=0;
@@ -3833,7 +3897,7 @@ StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int f
 			if(NULL!=nmbrAllLines) (*nmbrAllLines)++;
 		}
 		else if(*(bufTxt+i)==*_L_){
-			if(strip<MAX_STRIP_LISTtxtWIN-1) strip++;
+			if(strip<nmbrStrips-1) strip++;
 		}
 		else lenActStrip[strip]+=LCD_GetStrPxlWidth2(fontID,bufTxt+i,1,space,constWidth);
 	}
@@ -3847,6 +3911,63 @@ StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int f
 	len.height = nmbrStrips;
 	return len;
 }
+//zrobic PARAM LIST wszystkiego jak LCD_SetStrDescrParam() !!!!
+StructTxtPxlLen LCD_ListTxtWin___(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt,int seltab, int OnlyDigits, int space, uint32_t bkColor,uint32_t bkColorSel, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow, int spaceForUpDn, LIST_TXT pParam)
+{
+	StructTxtPxlLen len={0};
+	if(0==txt[0]) return len;
+
+	int lenTxt=0, nrLine=0, j=0,i=0, strip=0;
+	char *ptr=txt;
+	int WholeLenTxt=0;
+	uint16_t *lenMaxLine=NULL;
+	int nmbrStrips = pParam.nmbrStrips;
+	WholeLenTxt = pParam.lenWholeTxt;  // - ptr TXT
+
+	if(TxtInRow==txtSeqRow){
+		lenMaxLine = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
+		LOOP_FOR(n,nmbrStrips){ *(lenMaxLine+n)=pParam.lenMaxStrip[n]; }
+		//LCD_LIST_TXT_len(txt,txtSeqRow, fontID,space,constWidth, lenMaxLine,NULL,NULL,0,NULL);  //!!!!!!!!!!!!!!!! usun
+
+	}
+
+	StructTxtPxlLen _Txt(void){
+		uint32_t color = CONDITION(NULL==fontColorTab, fontColor, fontColorTab[strip]);
+		uint16_t calcPosX=0;
+		if(TxtInRow==txtSeqRow){	for(int n=0; n<strip; n++) calcPosX+=lenMaxLine[n];	}
+		else 						  {	calcPosX= lenTxt; }
+		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+calcPosX,SetLenTxt2Y(Ypos+nrLine*len.height,j), ptr, OnlyDigits,space,CONDITION(nrLine==seltab,bkColorSel,bkColor),color,maxVal,CONDITION(0==strip,ConstWidth,constWidth));
+	}
+
+	StructTxtPxlLen _ReturnFunc(void){	 if(TxtInRow==txtSeqRow) vPortFree(lenMaxLine);	 len.height=nrLine;	return len; }
+
+	strip=0; j=0;
+	for(i=0; i<WholeLenTxt; i++)
+	{
+		if(*(txt+i)==*_E_)		/* end of line _E_[0] */
+		{
+			j++;	 len =_Txt();	 j=0;
+			ptr=(txt+i+1);
+			lenTxt=0;
+			strip=0;
+			nrLine++;
+			if((nrLine+1)*len.height > BkpSizeY-Ypos-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
+		}
+		else if(*(txt+i)==*_L_)		/* _L_[0] */
+		{
+			j++;	 len =_Txt();	 j=0;
+			ptr=(txt+i+1);
+			lenTxt+=len.inPixel;
+			if(strip < nmbrStrips-1) strip++;
+			if((nrLine+1)*len.height > BkpSizeY-Ypos-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
+		}
+		else j++;
+	}
+
+	len.height=nrLine;
+	len.inChar=0;
+	return _ReturnFunc();
+}
 
 StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt,int seltab, int OnlyDigits, int space, uint32_t bkColor,uint32_t bkColorSel, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow, int spaceForUpDn)
 {
@@ -3857,7 +3978,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 	char *ptr=txt;
 	int WholeLenTxt=0;
 	uint16_t *lenMaxLine=NULL;
-	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_CALC,txt,&WholeLenTxt);		/* LCD_LIST_TXT_nmbStripsInLine(_GET,NULL,&WholeLenTxt) */
+	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_CALC,txt,&WholeLenTxt);	 if(nmbrStrips > MAX_STRIP_LISTtxtWIN) nmbrStrips=MAX_STRIP_LISTtxtWIN;		/* LCD_LIST_TXT_nmbStripsInLine(_GET,NULL,&WholeLenTxt) */
 
 	if(TxtInRow==txtSeqRow){
 		lenMaxLine = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
@@ -3892,7 +4013,7 @@ StructTxtPxlLen LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSi
 			j++;	 len =_Txt();	 j=0;
 			ptr=(txt+i+1);
 			lenTxt+=len.inPixel;
-			if(strip < MAX_STRIP_LISTtxtWIN-1) strip++;
+			if(strip < nmbrStrips-1) strip++;
 			if((nrLine+1)*len.height > BkpSizeY-Ypos-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
 		}
 		else j++;
