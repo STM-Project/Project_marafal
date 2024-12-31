@@ -34,8 +34,9 @@
 
 #define COMMON_SIGN	'.'
 
-StructTxtPxlLen StructTxtPxlLen_Zero={0};
-LCD_STR_PARAM	LCD_STR_PARAM_Zero={0};
+LIST_TXT 		 LIST_TXT_Zero			 = {0};
+StructTxtPxlLen StructTxtPxlLen_Zero = {0};
+LCD_STR_PARAM	 LCD_STR_PARAM_Zero	 = {0};
 
 static const char CharsTab_full[]="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-.,:;[]{}<>'~*()&#^=_$%\xB0@|?!\xA5\xB9\xC6\xE6\xCA\xEA\xA3\xB3\xD1\xF1\xD3\xF3\x8C\x9C\x8F\x9F\xAF\xBF/1234567890";
 static const char CharsTab_digits[]="+-1234567890.";
@@ -3786,7 +3787,7 @@ int LCD_LIST_TXT_len____(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,in
 	if(0==bufTxt[0] || NULL==pParam|| NULL==tab|| NULL==sizeTab) return 0;
 
 	int nmbrAllLines=0, lenWholeTxt=0;
-	uint16_t lenMaxWholeLine=0;  /* value depended on 'arangType' */
+	uint16_t lenMaxWholeLine=0;  	/* value depended on 'arangType' */
 	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_CALC,bufTxt,&lenWholeTxt);		if(nmbrStrips > MAX_STRIP_LISTtxtWIN) nmbrStrips=MAX_STRIP_LISTtxtWIN;
 	uint16_t *lenActStrip = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
 	uint16_t *lenMaxStrip_= NULL;
@@ -3843,6 +3844,7 @@ int LCD_LIST_TXT_len____(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,in
 	pParam->nmbrStrips 		= nmbrStrips;
 	pParam->lenMaxWholeLine = lenMaxWholeLine;
 	if(TxtInRow==arangType){ LOOP_FOR(n,nmbrStrips){ pParam->lenMaxStrip[n]=lenMaxStrip_[n];} }
+	pParam->pTxt = bufTxt;
 
 	return nmbrWholeLinesInWin;
 }
@@ -3912,23 +3914,21 @@ StructTxtPxlLen LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int f
 	return len;
 }
 //zrobic PARAM LIST wszystkiego jak LCD_SetStrDescrParam() !!!!
-StructTxtPxlLen LCD_ListTxtWin___(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt,int seltab, int OnlyDigits, int space, uint32_t bkColor,uint32_t bkColorSel, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow, int spaceForUpDn, LIST_TXT pParam)
+uint16_t LCD_ListTxtWin___(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt,int offs,int seltab, int OnlyDigits, int space, uint32_t bkColor,uint32_t bkColorSel, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow, int spaceForUpDn, LIST_TXT pParam)
 {
 	StructTxtPxlLen len={0};
-	if(0==txt[0]) return len;
+	if(0==txt[0]) return len.inChar;
 
 	int lenTxt=0, nrLine=0, j=0,i=0, strip=0;
-	char *ptr=txt;
+	char *ptr=txt+offs;
 	int WholeLenTxt=0;
 	uint16_t *lenMaxLine=NULL;
 	int nmbrStrips = pParam.nmbrStrips;
-	WholeLenTxt = pParam.lenWholeTxt;  // - ptr TXT
+	WholeLenTxt = pParam.lenWholeTxt - offs;
 
 	if(TxtInRow==txtSeqRow){
 		lenMaxLine = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
 		LOOP_FOR(n,nmbrStrips){ *(lenMaxLine+n)=pParam.lenMaxStrip[n]; }
-		//LCD_LIST_TXT_len(txt,txtSeqRow, fontID,space,constWidth, lenMaxLine,NULL,NULL,0,NULL);  //!!!!!!!!!!!!!!!! usun
-
 	}
 
 	StructTxtPxlLen _Txt(void){
@@ -3939,24 +3939,24 @@ StructTxtPxlLen LCD_ListTxtWin___(uint32_t posBuff,uint32_t BkpSizeX,uint32_t Bk
 		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+calcPosX,SetLenTxt2Y(Ypos+nrLine*len.height,j), ptr, OnlyDigits,space,CONDITION(nrLine==seltab,bkColorSel,bkColor),color,maxVal,CONDITION(0==strip,ConstWidth,constWidth));
 	}
 
-	StructTxtPxlLen _ReturnFunc(void){	 if(TxtInRow==txtSeqRow) vPortFree(lenMaxLine);	 len.height=nrLine;	return len; }
+	int _ReturnFunc(void){	 if(TxtInRow==txtSeqRow) vPortFree(lenMaxLine);	 len.height=nrLine;	return len.inChar; }
 
 	strip=0; j=0;
 	for(i=0; i<WholeLenTxt; i++)
 	{
-		if(*(txt+i)==*_E_)		/* end of line _E_[0] */
+		if(*(txt+offs+i)==*_E_)		/* end of line _E_[0] */
 		{
 			j++;	 len =_Txt();	 j=0;
-			ptr=(txt+i+1);
+			ptr=(txt+offs+i+1);
 			lenTxt=0;
 			strip=0;
 			nrLine++;
 			if((nrLine+1)*len.height > BkpSizeY-Ypos-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
 		}
-		else if(*(txt+i)==*_L_)		/* _L_[0] */
+		else if(*(txt+offs+i)==*_L_)		/* _L_[0] */
 		{
 			j++;	 len =_Txt();	 j=0;
-			ptr=(txt+i+1);
+			ptr=(txt+offs+i+1);
 			lenTxt+=len.inPixel;
 			if(strip < nmbrStrips-1) strip++;
 			if((nrLine+1)*len.height > BkpSizeY-Ypos-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
