@@ -2013,12 +2013,12 @@ void Set_AACoeff_RoundFrameRectangle(float coeff_1, float coeff_2){
 
 void Set_AACoeff_Draw(int pixelsInOneSide, uint32_t colorFrom, uint32_t colorTo, float ratioStart)
 {
-	//int pixelsInOneSide= pixelsInOneSide_==1?3:pixelsInOneSide_;
-	//int pixelsInOneSide;
-//
-//	if(pixelsInOneSide_==1) pixelsInOneSide=2;
-//	else                    pixelsInOneSide=pixelsInOneSide_;
+/*	int pixelsInOneSide= pixelsInOneSide_==1?3:pixelsInOneSide_;
+	int pixelsInOneSide;
 
+	if(pixelsInOneSide_==1) pixelsInOneSide=2;
+	else                    pixelsInOneSide=pixelsInOneSide_;
+*/
 	float incr= (1-ratioStart)/pixelsInOneSide;
 	buff_AA[0]=pixelsInOneSide;
 	for(int i=0;i<pixelsInOneSide;++i){
@@ -2158,6 +2158,81 @@ void LCD_Rectangle(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 			_NextDrawLine(BkpSizeX,width);
 		}
 		_FillBuff(width, FrameColor);
+	}
+}
+void LCD_Rectangle2(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
+	_StartDrawLine(posBuff,BkpSizeX,x,y);
+
+	Set_AACoeff_Draw(height+height/2,FillColor,BrightDecr(FillColor,0xA5),0.0);
+	int g=0;  uint32_t cColor=0;
+
+	_FillBuff(width, buff_AA[1+g]);
+
+
+
+	if(height>1)
+	{
+		_NextDrawLine(BkpSizeX,width);
+		for (int j=0; j<height-2; j++)
+		{
+//			if(j==0){
+//				Set_AACoeff_Draw(height+height/2,FillColor,BrightDecr(FillColor,0xA5),0.0); g=0;   }
+//			else if(j==(height-2)/2){
+//				cColor=buff_AA[1+(g-1)];
+//				Set_AACoeff_Draw(height,cColor,BLUE,0.0);  g=0;    }
+
+			_FillBuff(1, buff_AA[1+g]/*FrameColor*/);
+			_FillBuff(width-2, buff_AA[1+g]);   //MAX_SIZE_TAB_AA   max size !!!!!!
+
+
+//			if(j==(3*height)/4){
+//				FrameColor=BrightDecr(FrameColor,0x48);
+//			}
+			_FillBuff(1, buff_AA[1+g]/*FrameColor*/);
+			_NextDrawLine(BkpSizeX,width);
+			g++;
+		}
+
+		_FillBuff(width,  buff_AA[1+g]/*FrameColor*/);
+
+
+	}
+}
+void LCD_Rectangle3(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
+	_StartDrawLine(posBuff,BkpSizeX,x,y);
+
+	int g=(height-2);  uint32_t cColor=0;
+
+	_FillBuff(width, buff_AA[1+g]);
+
+
+
+	if(height>1)
+	{
+		_NextDrawLine(BkpSizeX,width);
+		for (int j=0; j<height-2; j++)
+		{
+//			if(j==0){
+//				Set_AACoeff_Draw(height+height/2,BrightDecr(FillColor,0xA5),FillColor,0.0); g=0;   }
+//			else if(j==(height-2)/2){
+//				cColor=buff_AA[1+(g-1)];
+//				Set_AACoeff_Draw(height,cColor,BLUE,0.0);  g=0;    }
+
+			_FillBuff(1, buff_AA[1+g]/*FrameColor*/);
+			_FillBuff(width-2, buff_AA[1+g]);   //MAX_SIZE_TAB_AA   max size !!!!!!
+
+
+//			if(j==(3*height)/4){
+//				FrameColor=BrightDecr(FrameColor,0x48);
+//			}
+			_FillBuff(1, buff_AA[1+g]/*FrameColor*/);
+			_NextDrawLine(BkpSizeX,width);
+			g--;
+		}
+
+
+		_FillBuff(width,buff_AA[1+g]/*FrameColor*/);
+
 	}
 }
 void LCD_Frame(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){

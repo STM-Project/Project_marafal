@@ -2245,6 +2245,13 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	Test.speed=StopMeasureTime_us("");
 
 
+
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 20,260, 100, 40, v.COLOR_Frame, BrightIncr(v.COLOR_FillFrame,0x35), v.COLOR_BkScreen);
+	LCD_Rectangle3(0, LCD_X,LCD_Y, 160,260, 100, 40, v.COLOR_Frame, BrightIncr(v.COLOR_FillFrame,0x35), v.COLOR_BkScreen);
+	//LCD_Shape(20,230,LCD_Rectangle2,100,45,RED,GREEN,v.COLOR_BkScreen);
+
+
+
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
 	if(LoadNoDispScreen != argNmb) LCD_Show();
 
