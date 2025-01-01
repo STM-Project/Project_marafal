@@ -1229,37 +1229,28 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	static LIST_TXT struct_ListTxt={0};
 
 	static uint32_t 	posTxtTab[MAX_SCREENS_FOR_LCD_LIST]={0};
-	static uint32_t 	isFilledWin=0;
-	static int 			maxScreens=0;
-	static uint32_t 	i_posTxtTab=0;
+	static uint32_t 	isFilledWin	  =0;
+	static int 			maxScreens	  =0;
+	static uint32_t 	i_posTxtTab	  =0;
 	static int 			nmbrLinesInWin=0;
-	static int 			nrItemSel=-1;
-	static int			nmbrAllLines=0; ///!!!!!!!!!! jak param internal
+	static int 			nrItemSel	  =-1;
 
-	static LCD_STR_PARAM paramTxt,paramTxt2;
+	static LCD_STR_PARAM paramTxt		  ={0}, paramTxt2	  ={0};
+	static SHAPE_PARAMS 	arrowUpParam  ={0}, arrowDnParam={0};
 	static int 				paramCreateWin=0;
-	static int 				calcWinWidth=200;
-	static SHAPE_PARAMS 	arrowUpParam={0}, arrowDnParam={0};
-	static StructTxtPxlLen listTxtStruct={0};
-
+	static int 				calcWinWidth  =200;
 
 	void _SetInitStaticVar(void){
 		LOOP_FOR(i,MAX_SCREENS_FOR_LCD_LIST){ posTxtTab[i]=0; }
-		isFilledWin=0;				paramTxt=LCD_STR_PARAM_Zero;
-		maxScreens=0;				paramCreateWin=0;
-		i_posTxtTab=0;				calcWinWidth=200;
-		nmbrLinesInWin=0;			arrowUpParam=SHAPE_PARAMS_Zero, arrowDnParam=SHAPE_PARAMS_Zero,
-		nrItemSel=-1;				listTxtStruct=StructTxtPxlLen_Zero;
-		nmbrAllLines=0;
-		struct_ListTxt=LIST_TXT_Zero;
+		struct_ListTxt=LIST_TXT_Zero;		 paramTxt	 	=LCD_STR_PARAM_Zero;
+		arrowUpParam  =SHAPE_PARAMS_Zero, arrowDnParam	=SHAPE_PARAMS_Zero,
+		maxScreens	  =0;						 paramCreateWin=0;
+		i_posTxtTab	  =0;						 calcWinWidth	=200;
+		nmbrLinesInWin=0;						 isFilledWin	=0;
+		nrItemSel	  =-1;
 	}
 
-//	if(touchAction+16 == selBlockPress){
-//		_SetInitStaticVar();
-//
-//	}
-
-	POS_SIZE win = { .pos={ s[k].x+widthAll+1, s[k].y 				 	}, .size={calcWinWidth,heightAll} };
+	POS_SIZE win = { .pos={ s[k].x+widthAll+1, s[k].y 				 	}, .size={calcWinWidth,heightAll+58} };
 	POS_SIZE win2 ={ .pos={ 15, 					 s[k].y+heightAll+15 }, .size={600, 		  60} };
 
 	if(shape!=0){}
@@ -1279,7 +1270,6 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			if(i >= STRUCT_TAB_SIZE(tabFontColor)) break;
 			pTabFontColor[i] = tabFontColor[i];
 		}
-		StructTxtPxlLen winTxtStruct={0};
 
 		if(NoDirect==param){
 			i_posTxtTab=0;
@@ -1298,13 +1288,10 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 	/* if(TakeMutex(Semphr_sdram,3000)){ */
 			char *ptr = CONDITION(_IsFlagTest(), LCD_LIST_TXT_example(pCHAR_PLCD(width*height),NULL), LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(width*height),NULL));
-			//winTxtStruct = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,ptr+posTxtTab[i_posTxtTab],nrLineSel,fullHight,0,bkColor,bkColorSel,colorDescr,FONT_COEFF,NoConstWidth, pTabFontColor, _GetTxtArrang(),space2UpDn);
-			isFilledWin = LCD_ListTxtWin___(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,ptr,posTxtTab[i_posTxtTab],nrLineSel,fullHight,0,bkColor,bkColorSel,colorDescr,FONT_COEFF,NoConstWidth, pTabFontColor, _GetTxtArrang(),space2UpDn,struct_ListTxt);
-			//isFilledWin = winTxtStruct.inChar;
+			isFilledWin = LCD_ListTxtWin(0,width,height,fontID_descr,spaceFromFrame,spaceFromFrame,ptr,posTxtTab[i_posTxtTab],nrLineSel,fullHight,0,bkColor,bkColorSel,colorDescr,FONT_COEFF,NoConstWidth, pTabFontColor, _GetTxtArrang(),space2UpDn,struct_ListTxt);
 		/* GiveMutex(Semphr_sdram);
 		} */
 		vPortFree(pTabFontColor);
-
 		if(isFilledWin) i_posTxtTab++;	/* if whole Win list is full */
 
 		arrowUpParam.pos[0].x = 0;
@@ -1422,20 +1409,14 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	int _TakeNewTxtList(void){
 		_SetTxtArrang(TxtInRow);
 	/* if(TakeMutex(Semphr_sdram,3000)){ */		 /* semaphores don`t give in internal functions ! */
-			//listTxtStruct = LCD_LIST_TXT_len(CONDITION(_IsFlagTest(), LCD_LIST_TXT_example(pCHAR_PLCD(0),NULL), LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL)), TxtInRow, fontID_descr,0,NoConstWidth, NULL,posTxtTab,&maxScreens, win.size.h-spaceFromFrame-space2UpDn, &nmbrAllLines);
-			nmbrLinesInWin = LCD_LIST_TXT_len____(CONDITION(_IsFlagTest(), LCD_LIST_TXT_example(pCHAR_PLCD(0),NULL), LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL)), TxtInRow, fontID_descr,0,NoConstWidth, &struct_ListTxt,posTxtTab,&maxScreens, win.size.h-spaceFromFrame-space2UpDn);
+			nmbrLinesInWin = LCD_LIST_TXT_len(CONDITION(_IsFlagTest(), LCD_LIST_TXT_example(pCHAR_PLCD(0),NULL), LCD_DisplayRemeberedSpacesBetweenFonts(1,pCHAR_PLCD(0),NULL)), TxtInRow, fontID_descr,0,NoConstWidth, &struct_ListTxt,posTxtTab,&maxScreens, win.size.h-spaceFromFrame-space2UpDn);
 		/* GiveMutex(Semphr_sdram);
 		} */
-//		if(listTxtStruct.inPixel){
-//			win.size.w= listTxtStruct.inPixel + 2*spaceFromFrame;
-//			calcWinWidth = win.size.w;
-//			nmbrLinesInWin = listTxtStruct.inChar;
-//			return 0;
-//		}
+		if(struct_ListTxt.lenMaxWholeLine){
 			win.size.w= struct_ListTxt.lenMaxWholeLine + 2*spaceFromFrame;
 			calcWinWidth = win.size.w;
 			return 0;
-
+		}
 		return 1;
 	}
 	void _OverArrowTxt(int nr, DIRECTIONS direct){
@@ -1453,15 +1434,13 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			BKCOPY_VAL(frameColor_c[0],frameColor,WHITE);
 				LCD_ShapeWindow( s[k].shape,0,widthAll,heightAll, 0,0, widthAll,heightAll, SetBold2Color(frameMainColor,s[k].bold), fillMainColor,bkColor );		/* s[k].shape(0,widthAll,heightAll, 0,0, widthAll,heightAll, SetColorBoldFrame(frameColor,s[k].bold), bkColor,bkColor); */
 			BKCOPY(frameColor,frameColor_c[0]);
-
 			BKCOPY_VAL(bkColor_c[0],bkColor,fillMainColor);
 		/*	posHead.y = s[k].interSpace/2; */											StrDescr_Xmidd_Yoffs(posHead, 0, txtDescr3, colorDescr);		/* _StrDescr(k,posHead, SL(LANG_LenOffsWin), v.FONT_COLOR_Descr); */
 			posHead.y += LCD_GetFontHeight(fontID_descr)+s[k].interSpace/3;	StrDescr_Xmidd_Yoffs(posHead, 0, txtDescr4, colorDescr);
 			BKCOPY(bkColor,bkColor_c[0]);
 
 			BKCOPY_VAL(fillColor_c[0],fillColor,BrightIncr(fillColor,0xE));
-			for(int i=0; i<_NMB2KEY; ++i)
-			{
+			for(int i=0; i<_NMB2KEY; ++i){
 				Key(k,posKey[i]);
 				switch(i){
 					case 0: 	_OverArrowTxt(i,outside); 	  break;
@@ -1475,11 +1454,10 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 				}
 			}
 			BKCOPY(fillColor,fillColor_c[0]);
-
 			BKCOPY_VAL(fillColor_c[0],fillColor,BrightIncr(fillColor,0x6));
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,s[k].widthKey2);
-			for(int i=_NMB2KEY; i<countKey; ++i)
-			{
+
+			for(int i=_NMB2KEY; i<countKey; ++i){
 				if(i<countKey-1){
 					if(_IsFlagWin() && _NMB2KEY==i){		/* find key to hold press */
 						BKCOPY_VAL(fillColor_c[1],fillColor,fillPressColor);
@@ -1495,21 +1473,23 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			BKCOPY(s[k].widthKey,c.widthKey);
 			BKCOPY(fillColor,fillColor_c[0]);
 	}
-	else if(touchAction+0 == selBlockPress) _OverArrowTxt_oneBlockDisp(0,outside);
-	else if(touchAction+1 == selBlockPress) _OverArrowTxt_oneBlockDisp(1,inside);
-	else if(touchAction+2 == selBlockPress) _OverArrowTxt_oneBlockDisp(2,LeftLeft);
-	else if(touchAction+3 == selBlockPress) _OverArrowTxt_oneBlockDisp(3,RightRight);
-	else if(touchAction+4 == selBlockPress) _OverArrowTxt_oneBlockDisp(4,LeftLeft);
-	else if(touchAction+5 == selBlockPress) _OverArrowTxt_oneBlockDisp(5,RightRight);
-	else if(touchAction+6 == selBlockPress) _OverArrowTxt_oneBlockDisp(6,outside);
-	else if(touchAction+7 == selBlockPress) _OverArrowTxt_oneBlockDisp(7,inside);
-
+	else if(IS_RANGE(selBlockPress,touchAction,touchAction+7)){
+		switch(selBlockPress-touchAction){
+			case 0:	_OverArrowTxt_oneBlockDisp(0,outside);		break;
+			case 1:	_OverArrowTxt_oneBlockDisp(1,inside);		break;
+			case 2:	_OverArrowTxt_oneBlockDisp(2,LeftLeft);	break;
+			case 3:	_OverArrowTxt_oneBlockDisp(3,RightRight);	break;
+			case 4:	_OverArrowTxt_oneBlockDisp(4,LeftLeft);	break;
+			case 5:	_OverArrowTxt_oneBlockDisp(5,RightRight);	break;
+			case 6:	_OverArrowTxt_oneBlockDisp(6,outside);		break;
+			case 7:	_OverArrowTxt_oneBlockDisp(7,inside);		break;
+	}}
 	else if(touchAction+8 == selBlockPress){
 		BKCOPY_VAL(c.widthKey,s[k].widthKey,s[k].widthKey2);   KeyStrPressDisp_oneBlock(k,posKey[8],txtKey[8],colorTxtPressKey[8]);	BKCOPY(s[k].widthKey,c.widthKey);
 		if(_IsFlagWin()) _DeleteWindows();
 		else{				  _TakeNewTxtList();	_CreateWindows(0,NoDirect); }
 	}
-	else if(touchAction+9 == selBlockPress){ 	BKCOPY_VAL(c.widthKey,s[k].widthKey,s[k].widthKey2);  KeyStrPressDisp_oneBlock(k,posKey[9],txtKey[9],colorTxtPressKey[9]);		BKCOPY(s[k].widthKey,c.widthKey); CONDITION(_IsFlagWin(),_DeleteWindows(),NULL);	 _WinInfo(txtDescr);}
+	else if(touchAction+9  == selBlockPress){ BKCOPY_VAL(c.widthKey,s[k].widthKey,s[k].widthKey2);  KeyStrPressDisp_oneBlock(k,posKey[9],txtKey[9],colorTxtPressKey[9]);		BKCOPY(s[k].widthKey,c.widthKey); CONDITION(_IsFlagWin(),_DeleteWindows(),NULL);	 _WinInfo(txtDescr);}
 	else if(touchAction+10 == selBlockPress){ BKCOPY_VAL(c.widthKey,s[k].widthKey,s[k].widthKey2);  KeyStrPressDisp_oneBlock(k,posKey[10],txtKey[10],colorTxtPressKey[10]);	BKCOPY(s[k].widthKey,c.widthKey); CONDITION(_IsFlagWin(),_DeleteWindows(),NULL);  _SetInitStaticVar(); _WinInfo(txtDescr2); }
 
 	else if(touchAction+11 == selBlockPress){ 						  _CreateWindows(0,Up); 	 vTimerService(timID+1,restart_time,noUse); }
@@ -1531,80 +1511,32 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		 _CreateWindows(0,Horizontal);
 	}
 	else if(touchAction+16 == selBlockPress){
-		_DeleteAdditionalTouches();
-
 		int width_prev= win.size.w;
 		int delta_width=0;
-
-
-		_SetInitStaticVar();
-
+		_DeleteAdditionalTouches();  _SetInitStaticVar();
 		if(_IsFlagTest()){
-
-// jezeli pusta lista to problem szerokos jesttaka jak porzednio !!!!
-
-
 			_RstFlagTest();
 			if(_TakeNewTxtList())
 				win.size.w=calcWinWidth;
-
-
-
-
 			delta_width= width_prev - win.size.w;
 			if(delta_width > 0){
-				pfunc(FUNC_MAIN_ARG); //tu chyba semafor !!!!
-				  LCD_DisplayPart(0,win.pos.x+width_prev-delta_width ,win.pos.y, delta_width, win.size.h);
-				//LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w-delta_width, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
+				pfunc(FUNC_MAIN_ARG); 	/* Semphr_sdram ? */
+				LCD_DisplayPart(0,win.pos.x+width_prev-delta_width ,win.pos.y, delta_width, win.size.h);
 			}
-//			else if(delta_width==0){
-//				win.size.w=calcWinWidth;
-//			}
-//			else if(delta_width < 0){
-//				LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
-//
-//			}
-
 			_CreateWindows(0,NoDirect);
-
 		}
 		else{
-			//pfunc(FUNC_MAIN_ARG);  LCD_DisplayPart(0,win.pos.x ,win.pos.y, win.size.w, win.size.h);
-			//LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
-
 			_SetFlagTest();
 			if(_TakeNewTxtList())
 				win.size.w=calcWinWidth;
-
-
 			delta_width= width_prev - win.size.w;
 			if(delta_width > 0){
-				pfunc(FUNC_MAIN_ARG); //tu chyba semafor !!!!
-				  LCD_DisplayPart(0,win.pos.x+width_prev-delta_width ,win.pos.y, delta_width, win.size.h);
-				//LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w-delta_width, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
+				pfunc(FUNC_MAIN_ARG); 	/* Semphr_sdram ? */
+				LCD_DisplayPart(0,win.pos.x+width_prev-delta_width ,win.pos.y, delta_width, win.size.h);
 			}
-//			else if(delta_width==0){
-//				win.size.w=calcWinWidth;
-//			}
-//			else if(delta_width < 0){
-//				LCD_ShapeIndirect(win.pos.x ,win.pos.y,s[k].shape, win.size.w, win.size.h, SetBold2Color(frameColor,s[k].bold), bkColor,bkColor);
-//
-//			}
-
 			_CreateWindows(0,NoDirect);
-			//_CreateWindows(0,inside2);
-
 		}
-
-
-
 	}
-
-
-
-
-
-
 	else if(touchTimer+0 == selBlockPress){
 		pfunc(FUNC_MAIN_ARG);
 		LCD_DisplayPart(0, MIDDLE(0,LCD_X,win2.size.w)/* win2.pos.x */, win2.pos.y, win2.size.w, win2.size.h);
