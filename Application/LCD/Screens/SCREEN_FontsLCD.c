@@ -2246,11 +2246,16 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 
 
 
-	LCD_Rectangle2(0, LCD_X,LCD_Y, 20,260, 100, 40, v.COLOR_Frame, BrightIncr(v.COLOR_FillFrame,0x35), v.COLOR_BkScreen);
-	LCD_Rectangle3(0, LCD_X,LCD_Y, 160,260, 100, 40, v.COLOR_Frame, BrightIncr(v.COLOR_FillFrame,0x35), v.COLOR_BkScreen);
+//	LCD_Rectangle2(0, LCD_X,LCD_Y, 20,260, 100, 40, v.COLOR_Frame, BrightIncr(v.COLOR_FillFrame,0x35), v.COLOR_BkScreen);
+//	LCD_Rectangle3(0, LCD_X,LCD_Y, 160,260, 100, 40, v.COLOR_Frame, BrightIncr(v.COLOR_FillFrame,0x35), v.COLOR_BkScreen);
 	//LCD_Shape(20,230,LCD_Rectangle2,100,45,RED,GREEN,v.COLOR_BkScreen);
 
 
+	LCD_Rectangle2____(0, LCD_X,LCD_Y, 20,240, 100, 40,  v.COLOR_Frame,BrightIncr(v.COLOR_Frame,0x35), v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, Down);
+	LCD_Rectangle2____(0, LCD_X,LCD_Y, 160,240, 100, 40, v.COLOR_Frame,BrightIncr(v.COLOR_Frame,0x35), v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, Up);
+
+	LCD_Rectangle2____(0, LCD_X,LCD_Y, 20,300, 100, 40,  v.COLOR_Frame,BrightIncr(v.COLOR_Frame,0x35), v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, Middle);
+	LCD_Rectangle2____(0, LCD_X,LCD_Y, 160,300, 100, 40, v.COLOR_Frame,BrightIncr(v.COLOR_Frame,0x35), v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, Middle2);
 
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
 	if(LoadNoDispScreen != argNmb) LCD_Show();
