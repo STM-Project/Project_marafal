@@ -2250,12 +2250,15 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 //	LCD_Rectangle3(0, LCD_X,LCD_Y, 160,260, 100, 40, v.COLOR_Frame, BrightIncr(v.COLOR_FillFrame,0x35), v.COLOR_BkScreen);
 	//LCD_Shape(20,230,LCD_Rectangle2,100,45,RED,GREEN,v.COLOR_BkScreen);
 
+	v.COLOR_FillFrame = RED;
 
-	LCD_Rectangle2____(0, LCD_X,LCD_Y, 20,240, 100, 40,  v.COLOR_Frame,BrightIncr(v.COLOR_Frame,0x35), v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, Down);
-	LCD_Rectangle2____(0, LCD_X,LCD_Y, 160,240, 100, 40, v.COLOR_Frame,BrightIncr(v.COLOR_Frame,0x35), v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, Up);
+//STWORZ ANIMACJE parametrow przez uart!!!!!!!!
+	LCD_Rectangle2____(0, LCD_X,LCD_Y, 20,240, 100, 40,  v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x55),   			 v.COLOR_FillFrame,ORANGE,  v.COLOR_BkScreen, 0.0, Down);
+	LCD_Rectangle2____(0, LCD_X,LCD_Y, 160,240, 100, 40, BrightDecr(v.COLOR_Frame,0xA5),BrightDecr(v.COLOR_Frame,0xAE),   v.COLOR_FillFrame,YELLOW,  v.COLOR_BkScreen, 0.0, Up);
+	LCD_Rectangle2____(0, LCD_X,LCD_Y, 270,240, 100, 40, BrightDecr(v.COLOR_Frame,0xAE),BrightDecr(v.COLOR_Frame,0xA5),   v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x65),  v.COLOR_BkScreen, 0.0, Down);
 
-	LCD_Rectangle2____(0, LCD_X,LCD_Y, 20,300, 100, 40,  v.COLOR_Frame,BrightIncr(v.COLOR_Frame,0x35), v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, Middle);
-	LCD_Rectangle2____(0, LCD_X,LCD_Y, 160,300, 100, 40, v.COLOR_Frame,BrightIncr(v.COLOR_Frame,0x35), v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, Middle2);
+	LCD_Rectangle2____(0, LCD_X,LCD_Y, 20,300, 100, 40,  0xFF202020,0xFF282828,   v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x95),  v.COLOR_BkScreen, 0.0, Middle);
+	LCD_Rectangle2____(0, LCD_X,LCD_Y, 160,300, 100, 40, 0xFF202020,0xFF282828,   v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x95),  v.COLOR_BkScreen, 0.0, Middle2);
 
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
 	if(LoadNoDispScreen != argNmb) LCD_Show();

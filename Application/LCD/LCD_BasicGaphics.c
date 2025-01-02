@@ -2235,10 +2235,90 @@ void LCD_Rectangle2____(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, u
 			g++; p++;
 		}
 		_FillBuff(width, buff2_AA[1+p]);
+
 	}
 }
 
 
+
+void LCD_Rectangle3____(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, \
+		uint32_t FrameColorStart,uint32_t FrameColorStop,  uint32_t FillColorStart,uint32_t FillColorStop,  uint32_t BkpColor, \
+		float ratioStart, DIRECTIONS param)
+{
+	int g=0,p=0, maxFramPxl=0, maxFillPxl=0;
+
+	switch((int)param){
+		case Down:
+		case Up:
+			maxFramPxl=height;
+			maxFillPxl=height-2;
+			break;
+		case Middle:
+		case Middle2:
+			maxFramPxl=height;
+			maxFillPxl=(height-2)/2;
+			break;
+	}
+	Set_AACoeff2(maxFramPxl,FrameColorStart,FrameColorStop,ratioStart);
+	Set_AACoeff(maxFillPxl,FillColorStart,FillColorStop,ratioStart);
+
+	_StartDrawLine(posBuff,BkpSizeX,x,y);
+	_FillBuff(width, FrameColorStop/*buff2_AA[1+p++]*/);
+	_NextDrawLine(BkpSizeX,width);
+	_FillBuff(width, FrameColorStop/*buff2_AA[1+p++]*/);
+
+
+	if(height>1)
+	{
+		_NextDrawLine(BkpSizeX,width);
+
+		for (int j=0; j<height-2; j++)
+		{
+
+			_FillBuff(1, FrameColorStart/*buff2_AA[1+p]*/);
+
+			switch((int)param){			/* FillColor */
+				case Down:
+					//_FillBuff(1, 		buff2_AA[1+p]);
+					_FillBuff(width-2, buff_AA[1+g]);
+					break;
+				case Up:
+					//_FillBuff(1, 		buff2_AA[1+(maxFramPxl-1)-p]);
+					_FillBuff(width-2, buff_AA[1+(maxFillPxl-1)-g]);
+					break;
+				case Middle:
+					if(j==0 || j==maxFillPxl){ g=0; p=0; }
+					if(j<maxFillPxl){
+						//_FillBuff(1,		buff2_AA[1+p]);
+						_FillBuff(width-2, buff_AA[1+g]);
+					}
+					else{
+						//_FillBuff(1,		buff2_AA[1+(maxFramPxl-1)-p]);
+						_FillBuff(width-2, buff_AA[1+(maxFillPxl-1)-g]);
+					}
+					break;
+				case Middle2:
+					if(j==0 || j==maxFillPxl){ g=0; p=0; }
+					if(j<maxFillPxl){
+						//_FillBuff(1,		buff2_AA[1+(maxFramPxl-1)-p]);
+						_FillBuff(width-2, buff_AA[1+(maxFillPxl-1)-g]);
+					}
+					else{
+						//_FillBuff(1,		buff2_AA[1+p]);
+						_FillBuff(width-2, buff_AA[1+g]);
+					}
+					break;
+			}
+
+			_FillBuff(1, FrameColorStart/*buff2_AA[1+p]*/);
+
+			_NextDrawLine(BkpSizeX,width);
+			g++; p++;
+		}
+		_FillBuff(width, FrameColorStart/*buff2_AA[1+p]*/);
+
+	}
+}
 
 
 

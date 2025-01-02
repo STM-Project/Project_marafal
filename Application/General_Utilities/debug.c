@@ -143,7 +143,7 @@ void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, vo
 		if(_Decr==dataAction) DECR( *((type*)a), *((type*)step), *((type*)minMax));\
 		if(_float==dataType||_double==dataType) DbgVar(1,50,"\r\n%s: %s ",descr,Float2Str(*((type*)a),' ',1,Sign_none,1));\
 		else 												 DbgVar(1,50,"\r\n%s: %d ",descr, *((type*)a));\
-		if(xfunc!=NULL) xfunc(NULL,NULL);
+		if(xfunc!=NULL) xfunc(NULL,NULL);	/* in future use */
 
 	switch((int)dataType){
 		case _int:		_OPERAT(int) 	  break;
