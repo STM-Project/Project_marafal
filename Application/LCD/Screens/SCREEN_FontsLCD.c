@@ -2261,6 +2261,9 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	LCD_Rectangle2____(0, LCD_X,LCD_Y, 160,300, 100, 40, 0xFF202020,0xFF282828,   v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x95),  v.COLOR_BkScreen, 0.0, Middle2);
 
 
+
+
+
 	LCD_RoundRectangle(0, LCD_X,LCD_Y, 270,300, 100, 40,   0xFFF0F0F0,    0xFFF0F0F0,  			 v.COLOR_BkScreen);
 	LCD_RoundRectangle(0, LCD_X,LCD_Y, 270,302, 100, 40,   v.COLOR_Frame,  v.COLOR_FillFrame,  v.COLOR_BkScreen);
 
