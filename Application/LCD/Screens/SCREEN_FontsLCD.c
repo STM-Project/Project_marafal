@@ -2250,7 +2250,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 //	LCD_Rectangle3(0, LCD_X,LCD_Y, 160,260, 100, 40, v.COLOR_Frame, BrightIncr(v.COLOR_FillFrame,0x35), v.COLOR_BkScreen);
 	//LCD_Shape(20,230,LCD_Rectangle2,100,45,RED,GREEN,v.COLOR_BkScreen);
 
-	v.COLOR_FillFrame = RED;
+	//v.COLOR_FillFrame = RED;
 
 //STWORZ ANIMACJE parametrow przez uart!!!!!!!!
 	LCD_Rectangle2____(0, LCD_X,LCD_Y, 20,240, 100, 40,  v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x55),   			 v.COLOR_FillFrame,ORANGE,  v.COLOR_BkScreen, 0.0, Down);
@@ -2264,18 +2264,27 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 
 
 
-	LCD_RoundRectangle(0, LCD_X,LCD_Y, 270,300, 100, 40,   0xFFF0F0F0,    0xFFF0F0F0,  			 v.COLOR_BkScreen);
-	LCD_RoundRectangle(0, LCD_X,LCD_Y, 270,302, 100, 40,   v.COLOR_Frame,  v.COLOR_FillFrame,  v.COLOR_BkScreen);
+	//LCD_RoundRectangle				 (  0, LCD_X,LCD_Y, 270,300, 100, 40,   0xFFA0A0A0,    0xFFA0A0A0,  			 v.COLOR_BkScreen);
+	//LCD_DrawRoundRectangleFrame____(1,0, LCD_X,LCD_Y, 270,302, 100, 40,   v.COLOR_Frame,  v.COLOR_FillFrame,  v.COLOR_BkScreen);
 
-	LCD_RoundRectangle(0, LCD_X,LCD_Y, 270,400, 100, 40,   0xFF202020,    0xFF202020,  			 v.COLOR_BkScreen);
-	LCD_RoundRectangle(0, LCD_X,LCD_Y, 270,398, 100, 40,   v.COLOR_Frame,  v.COLOR_FillFrame,  v.COLOR_BkScreen);
+	//LCD_RoundRectangle				 (  0, LCD_X,LCD_Y, 270,400, 100, 40,   0xFF101010,    0xFF101010,  			 v.COLOR_BkScreen);
+	//LCD_DrawRoundRectangleFrame____(1,0, LCD_X,LCD_Y, 270,397, 100, 40,   v.COLOR_Frame,  v.COLOR_Frame,  v.COLOR_BkScreen);
+
+	LCD_DrawRoundRectangleFrame____(1,  1,0, LCD_X,LCD_Y,70,350,50,80,v.COLOR_Frame, 0xFF808080, v.COLOR_BkScreen);
+	LCD_DrawRoundRectangleFrame____(1,  1,0, LCD_X,LCD_Y,70,350,50,79,v.COLOR_Frame, 0xFF808080, 1<<24);
+	LCD_DrawRoundRectangleFrame____(1,  1,0, LCD_X,LCD_Y,70,350,50,78,v.COLOR_Frame, 0xFF808080, 1<<24);
+
+	LCD_DrawRoundRectangleFrame____(0,  1,0, LCD_X,LCD_Y,180,350,50,80,v.COLOR_Frame, 0xFF808080, v.COLOR_BkScreen);
+	LCD_DrawRoundRectangleFrame____(0,  1,0, LCD_X,LCD_Y,180,351,50,79,v.COLOR_Frame, 0xFF808080, 1<<24);
+	LCD_DrawRoundRectangleFrame____(0,  1,0, LCD_X,LCD_Y,180,352,50,78,v.COLOR_Frame, 0xFF808080, 1<<24);
 
 
 
-	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,240, 100, 40,   0xFFF0F0F0,    0xFFF0F0F0,  			 v.COLOR_BkScreen);
+
+	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,240, 100, 40,   0xFFA0A0A0,    0xFFA0A0A0,  			 v.COLOR_BkScreen);
 	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,242, 100, 40,   v.COLOR_Frame,  v.COLOR_FillFrame,  v.COLOR_BkScreen);
 
-	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,300, 100, 40,   0xFF202020,    0xFF202020,  			 v.COLOR_BkScreen);
+	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,300, 100, 40,   0xFF404040,    0xFF404040,  			 v.COLOR_BkScreen);
 	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,298, 100, 40,   v.COLOR_Frame,  v.COLOR_FillFrame,  v.COLOR_BkScreen);
 
 
