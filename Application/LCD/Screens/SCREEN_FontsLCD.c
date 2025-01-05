@@ -2253,12 +2253,13 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	//v.COLOR_FillFrame = RED;
 
 //STWORZ ANIMACJE parametrow przez uart!!!!!!!!
-	LCD_Rectangle2____(0, LCD_X,LCD_Y, 20,240, 100, 40,  v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x55),   			 v.COLOR_FillFrame,ORANGE,  v.COLOR_BkScreen, 0.0, Down);
-	LCD_Rectangle2____(0, LCD_X,LCD_Y, 160,240, 100, 40, BrightDecr(v.COLOR_Frame,0xA5),BrightDecr(v.COLOR_Frame,0xAE),   v.COLOR_FillFrame,YELLOW,  v.COLOR_BkScreen, 0.0, Up);
-	LCD_Rectangle2____(0, LCD_X,LCD_Y, 270,240, 100, 40, BrightDecr(v.COLOR_Frame,0xAE),BrightDecr(v.COLOR_Frame,0xA5),   v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x65),  v.COLOR_BkScreen, 0.0, Down);
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 20,240, 100, 40,  v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x55),   			 v.COLOR_FillFrame,ORANGE,  v.COLOR_BkScreen, 0.0, Down);
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 160,240, 100, 40, BrightDecr(v.COLOR_Frame,0xA5),BrightDecr(v.COLOR_Frame,0xAE),   v.COLOR_FillFrame,YELLOW,  v.COLOR_BkScreen, 0.0, Up);
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 270,240, 100, 40, BrightDecr(v.COLOR_Frame,0xA0),BrightIncr(v.COLOR_Frame,0x01),   v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, Left2);
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 380,240, 100, 40, BrightDecr(v.COLOR_Frame,0xA0),BrightIncr(v.COLOR_Frame,0x01),   v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, Right2);
 
-	LCD_Rectangle2____(0, LCD_X,LCD_Y, 20,300, 100, 40,  0xFF202020,0xFF282828,   v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x95),  v.COLOR_BkScreen, 0.0, Middle);
-	LCD_Rectangle2____(0, LCD_X,LCD_Y, 160,300, 100, 40, 0xFF202020,0xFF282828,   v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x95),  v.COLOR_BkScreen, 0.0, Middle2);
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 20,300, 100, 40,  0xFF202020,0xFF282828,   0xFF909090,BrightDecr(0xFF909090,0x20),  v.COLOR_BkScreen, 0.0, Middle);
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 160,300, 100, 40, 0xFF202020,0xFF282828,   0xFF909090,BrightDecr(0xFF909090,0x20),  v.COLOR_BkScreen, 0.0, Middle2);
 
 
 
@@ -2270,22 +2271,23 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	//LCD_RoundRectangle				 (  0, LCD_X,LCD_Y, 270,400, 100, 40,   0xFF101010,    0xFF101010,  			 v.COLOR_BkScreen);
 	//LCD_DrawRoundRectangleFrame____(1,0, LCD_X,LCD_Y, 270,397, 100, 40,   v.COLOR_Frame,  v.COLOR_Frame,  v.COLOR_BkScreen);
 
-	LCD_DrawRoundRectangleFrame____(1,  1,0, LCD_X,LCD_Y,70,350,50,80,v.COLOR_Frame, 0xFF808080, v.COLOR_BkScreen);
-	LCD_DrawRoundRectangleFrame____(1,  1,0, LCD_X,LCD_Y,70,350,50,79,v.COLOR_Frame, 0xFF808080, 1<<24);
-	LCD_DrawRoundRectangleFrame____(1,  1,0, LCD_X,LCD_Y,70,350,50,78,v.COLOR_Frame, 0xFF808080, 1<<24);
+	LCD_DrawRoundRectangleFrame____(1,  1,0, LCD_X,LCD_Y,70,350,50,80,BrightIncr(v.COLOR_Frame,0x25), 0xFF808080, v.COLOR_BkScreen);
+	LCD_DrawRoundRectangleFrame____(1,  1,0, LCD_X,LCD_Y,70,350,50,79,BrightIncr(v.COLOR_Frame,0x25), 0xFF808080, 1<<24);
+	LCD_DrawRoundRectangleFrame____(1,  1,0, LCD_X,LCD_Y,70,350,50,78,BrightIncr(v.COLOR_Frame,0x25), 0xFF808080, 1<<24);
 
-	LCD_DrawRoundRectangleFrame____(0,  1,0, LCD_X,LCD_Y,180,350,50,80,v.COLOR_Frame, 0xFF808080, v.COLOR_BkScreen);
-	LCD_DrawRoundRectangleFrame____(0,  1,0, LCD_X,LCD_Y,180,351,50,79,v.COLOR_Frame, 0xFF808080, 1<<24);
-	LCD_DrawRoundRectangleFrame____(0,  1,0, LCD_X,LCD_Y,180,352,50,78,v.COLOR_Frame, 0xFF808080, 1<<24);
-
-
+	LCD_DrawRoundRectangleFrame____(1,  1,0, LCD_X,LCD_Y,180,350,50,80,BrightIncr(v.COLOR_Frame,0x25), 0xFFA0A0A0, v.COLOR_BkScreen);
+	LCD_DrawRoundRectangleFrame____(1,  1,0, LCD_X,LCD_Y,180,351,50,79,BrightIncr(v.COLOR_Frame,0x25), 0xFFA0A0A0, 1<<24);
+	LCD_DrawRoundRectangleFrame____(1,  1,0, LCD_X,LCD_Y,180,352,50,78,BrightIncr(v.COLOR_Frame,0x25), 0xFFA0A0A0, 1<<24);
 
 
-	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,240, 100, 40,   0xFFA0A0A0,    0xFFA0A0A0,  			 v.COLOR_BkScreen);
-	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,242, 100, 40,   v.COLOR_Frame,  v.COLOR_FillFrame,  v.COLOR_BkScreen);
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 570,240, 100, 40,  v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x55),   			 v.COLOR_FillFrame,ORANGE,  v.COLOR_BkScreen, 0.25, Down);
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 570,300, 100, 40, BrightDecr(v.COLOR_Frame,0xA5),BrightDecr(v.COLOR_Frame,0xAE),   v.COLOR_FillFrame,YELLOW,  v.COLOR_BkScreen, 0.5, Up);
 
-	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,300, 100, 40,   0xFF404040,    0xFF404040,  			 v.COLOR_BkScreen);
-	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,298, 100, 40,   v.COLOR_Frame,  v.COLOR_FillFrame,  v.COLOR_BkScreen);
+//	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,240, 100, 40,   0xFFA0A0A0,    0xFFA0A0A0,  			 v.COLOR_BkScreen);
+//	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,242, 100, 40,   v.COLOR_Frame,  v.COLOR_FillFrame,  v.COLOR_BkScreen);
+//
+//	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,300, 100, 40,   0xFF404040,    0xFF404040,  			 v.COLOR_BkScreen);
+//	LCD_LittleRoundRectangle(0, LCD_X,LCD_Y, 570,298, 100, 40,   v.COLOR_Frame,  v.COLOR_FillFrame,  v.COLOR_BkScreen);
 
 
 
