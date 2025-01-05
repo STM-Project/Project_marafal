@@ -2373,11 +2373,11 @@ SHAPE_PARAMS LCD_Rectangle2(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u3
 
 	switch((int)param){
 		case Down: 	 case Up:		 maxFillPxl= height-2;	 	break;
-		case Middle: case Middle2:	 maxFillPxl=(height-2)/2;  break;
+		case Midd_Y: case Midd_Y2:	 maxFillPxl=(height-2)/2;  break;
 		case Right:  case Left:		 maxFillPxl= width-2;	 	break;
-		case Right2: case Left2:	 maxFillPxl= (width-2)/2; 	break;
+		case Midd_X: case Midd_X2:	 maxFillPxl= (width-2)/2; 	break;
 	}
-	Set_AACoeff2(maxFramPxl,FrameColorStart,FrameColorStop,ratioStart);
+	Set_AACoeff2(maxFramPxl,FrameColorStart,FrameColorStop,ratioStart);		/* careful for {maxFramPxl,maxFillPxl} < MAX_SIZE_TAB_AA */
 	Set_AACoeff (maxFillPxl,FillColorStart, FillColorStop, ratioStart);
 
 	_StartDrawLine(posBuff,BkpSizeX,x,y);
@@ -2396,25 +2396,44 @@ SHAPE_PARAMS LCD_Rectangle2(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u3
 				case Up:
 					_FillBuff(width-2, buff_AA[1+(maxFillPxl-1)-iFill]);
 					break;
-				case Middle:
-					if(j==maxFillPxl || j==0){ /*iFrame=0;*/ iFill=0; }
+				case Midd_Y:
+					if(j==maxFillPxl || j==0) iFill=0;
 					if(j< maxFillPxl) _FillBuff(width-2, buff_AA[1+iFill]);
 					else				   _FillBuff(width-2, buff_AA[1+(maxFillPxl-1)-iFill]);
 					break;
-				case Middle2:
-					if(j==maxFillPxl || j==0){ /*iFrame=0;*/ iFill=0; }  //zmienic nazwy np UpMidd!!!!
+				case Midd_Y2:
+					if(j==maxFillPxl || j==0) iFill=0;
 					if(j< maxFillPxl)	_FillBuff(width-2, buff_AA[1+(maxFillPxl-1)-iFill]);
 					else					_FillBuff(width-2, buff_AA[1+iFill]);
 					break;
-				case Right:  LOOP_FOR(i,width-2){ _FillBuff(1, buff_AA[1+i]); }	 					 break;
-				case Left:	 LOOP_FOR(i,width-2){ _FillBuff(1, buff_AA[1+(maxFillPxl-1)-i]); }	 break;
-				case Right2:
+				case Right:
+					LOOP_FOR(i,maxFillPxl){ _FillBuff(1, buff_AA[1+i]); }
+					break;
+				case Left:
+					LOOP_FOR(i,maxFillPxl){ _FillBuff(1, buff_AA[1+(maxFillPxl-1)-i]); }
+					break;
+				case Midd_X:
 					LOOP_FOR(i,maxFillPxl){ _FillBuff(1, buff_AA[1+i]); }
 					LOOP_FOR(i,maxFillPxl){ _FillBuff(1, buff_AA[1+(maxFillPxl-1)-i]); }
 					break;
-				case Left2:
+				case Midd_X2:
 					LOOP_FOR(i,maxFillPxl){ _FillBuff(1, buff_AA[1+(maxFillPxl-1)-i]); }
 					LOOP_FOR(i,maxFillPxl){ _FillBuff(1, buff_AA[1+i]); }
+					break;
+				case LeftDown:
+					if(width>=height){
+						int ratio = (width-2)/(height-2);
+						Set_AACoeff (width-2,FillColorStart, FillColorStop, ratioStart);
+						u32 colornext = buff_AA[1+((width-2)-1)-ratio*((height-2)-1)+ratio*j];
+						Set_AACoeff (width-2,FillColorStart, colornext, ratioStart);
+						LOOP_FOR(i,width-2){ _FillBuff(1, buff_AA[1+i]); }
+					}
+					else{
+						Set_AACoeff (height-2,FillColorStart, FillColorStop, ratioStart);
+						u32 colornext = buff_AA[1+j];
+						Set_AACoeff (width-2,FillColorStart, colornext, ratioStart);
+						LOOP_FOR(i,width-2){ _FillBuff(1, buff_AA[1+i]); }
+					}
 					break;
 			}
 			_FillBuff(1, buff2_AA[1+iFrame]);
