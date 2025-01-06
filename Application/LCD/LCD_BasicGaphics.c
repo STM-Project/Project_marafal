@@ -2166,28 +2166,30 @@ void LCD_Rectangle(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 
 
 
-void LCD_DrawRoundRectangleFrame____(int rectangleFrame,u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor)
+void LCD_DrawRoundRectangleFrame____(int rectangleFrame,u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart_,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor)
 {
 	#define A(a,b) 	_FillBuff(a,b)
 
 	uint8_t thickness = BkpColor>>24;
 	uint32_t o1,o2,  i1,i2;
 
-	if((thickness==0)||(thickness==255)){
-		o1 = GetTransitionColor(FrameColorStart,BkpColor,AA.c1);
-		o2 = GetTransitionColor(FrameColorStart,BkpColor,AA.c2);
-	}
+//	if((thickness==0)||(thickness==255)){
+//		o1 = GetTransitionColor(FrameColorStart,BkpColor,AA.c1);
+//		o2 = GetTransitionColor(FrameColorStart,BkpColor,AA.c2);
+//	}
 
 
-	int g=0;
+	int iFrame=0, iFill=0;
+
+	Set_AACoeff2(height,FrameColorStart_,FrameColorStop,0.0);		/* careful for {maxFramPxl,maxFillPxl} < MAX_SIZE_TAB_AA */
 
 		Set_AACoeff(height,FillColorStart,FillColorStop,0.0);
 
-		i1 = GetTransitionColor(FrameColorStart,FillColorStart,AA.c1);
-		i2 = GetTransitionColor(FrameColorStart,FillColorStart,AA.c2);
+		i1 = GetTransitionColor(FrameColorStart_,FillColorStart,AA.c1);
+		i2 = GetTransitionColor(FrameColorStart_,FillColorStart,AA.c2);
 
 
-
+		u32 FrameColorStart=buff2_AA[1+iFrame];
 
 
 
@@ -2197,13 +2199,18 @@ void LCD_DrawRoundRectangleFrame____(int rectangleFrame,u32 posBuff,u32 BkpSizeX
 	void _Fill(int x)
 	{
 		if(rectangleFrame)
-			A(x,buff_AA[1+g++] 	/*FillColor*/);
+			A(x,buff_AA[1+iFill++] 	/*FillColor*/);
 		else
 			k+=x;
 	}
 
 	void _Out_AA_left(int stage)		/*FrameColor*/
 	{
+		if((thickness==0)||(thickness==255)){
+			o1 = GetTransitionColor(FrameColorStart,BkpColor,AA.c1);
+			o2 = GetTransitionColor(FrameColorStart,BkpColor,AA.c2);
+		}
+
 		if((thickness==0)||(thickness==255))
 		{	switch(stage)
 			{
@@ -2262,20 +2269,20 @@ void LCD_DrawRoundRectangleFrame____(int rectangleFrame,u32 posBuff,u32 BkpSizeX
 
 
 	_StartDrawLine(posBuff,BkpSizeX,x,y);
-	_Out_AA_left(0); A(width-10,FrameColorStart); _Out_AA_right(0);
+	FrameColorStart=buff2_AA[1+iFrame++];		_Out_AA_left(0); A(width-10,FrameColorStart); _Out_AA_right(0);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(1); A(2,FrameColorStart); A(1,i1);A(1,i2); _Fill(width-14); A(1,i2);A(1,i1);A(2,FrameColorStart); _Out_AA_right(1);
+	FrameColorStart=buff2_AA[1+iFrame++];		_Out_AA_left(1); A(2,FrameColorStart); A(1,i1);A(1,i2); _Fill(width-14); A(1,i2);A(1,i1);A(2,FrameColorStart); _Out_AA_right(1);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(2); A(1,FrameColorStart); A(1,i1); _Fill(width-8); A(1,i1); A(1,FrameColorStart); _Out_AA_right(2);
+	FrameColorStart=buff2_AA[1+iFrame++];		_Out_AA_left(2); A(1,FrameColorStart); A(1,i1); _Fill(width-8); A(1,i1); A(1,FrameColorStart); _Out_AA_right(2);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(3); A(1,FrameColorStart); A(1,i1); _Fill(width-6); A(1,i1); A(1,FrameColorStart); _Out_AA_right(3);
+	FrameColorStart=buff2_AA[1+iFrame++];		_Out_AA_left(3); A(1,FrameColorStart); A(1,i1); _Fill(width-6); A(1,i1); A(1,FrameColorStart); _Out_AA_right(3);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(4); A(1,FrameColorStart); _Fill(width-4); A(1,FrameColorStart); _Out_AA_right(4);
+	FrameColorStart=buff2_AA[1+iFrame++];		_Out_AA_left(4); A(1,FrameColorStart); _Fill(width-4); A(1,FrameColorStart); _Out_AA_right(4);
 	_NextDrawLine(BkpSizeX,width);
 
-	A(1,FrameColorStart);  A(1,i1); _Fill(width-4); A(1,i1); A(1,FrameColorStart);
+	FrameColorStart=buff2_AA[1+iFrame++];		A(1,FrameColorStart);  A(1,i1); _Fill(width-4); A(1,i1); A(1,FrameColorStart);
 	_NextDrawLine(BkpSizeX,width);
-	A(1,FrameColorStart);  A(1,i2); _Fill(width-4); A(1,i2); A(1,FrameColorStart);
+	FrameColorStart=buff2_AA[1+iFrame++];		A(1,FrameColorStart);  A(1,i2); _Fill(width-4); A(1,i2); A(1,FrameColorStart);
 	_NextDrawLine(BkpSizeX,width);
 
 
@@ -2301,8 +2308,9 @@ void LCD_DrawRoundRectangleFrame____(int rectangleFrame,u32 posBuff,u32 BkpSizeX
 	{
 		for (int j=0; j<_height; j++)
 		{
+			FrameColorStart=buff2_AA[1+iFrame++];
 			_FillBuff(1, FrameColorStart);
-			_FillBuff(_width, buff_AA[1+g++] /*FillColor*/);
+			_FillBuff(_width, buff_AA[1+iFill++] /*FillColor*/);
 			_FillBuff(1, FrameColorStart);
 			_NextDrawLine(BkpSizeX,width);
 		}
@@ -2311,6 +2319,7 @@ void LCD_DrawRoundRectangleFrame____(int rectangleFrame,u32 posBuff,u32 BkpSizeX
 	{
 		for (int j=0; j<_height; j++)
 		{
+			FrameColorStart=buff2_AA[1+iFrame++];
 			_FillBuff(1, FrameColorStart);
 			k+=_width;
 			_FillBuff(1, FrameColorStart);
@@ -2325,26 +2334,26 @@ void LCD_DrawRoundRectangleFrame____(int rectangleFrame,u32 posBuff,u32 BkpSizeX
 //	o1 = GetTransitionColor(FrameColor,BkpColor,AA.c1);
 //	o2 = GetTransitionColor(FrameColor,BkpColor,AA.c2);
 //
-	i1 = GetTransitionColor(FrameColorStart,buff_AA[1+g],AA.c1);
-	i2 = GetTransitionColor(FrameColorStart,buff_AA[1+g],AA.c2);
+	i1 = GetTransitionColor(FrameColorStart,buff_AA[1+iFill],AA.c1);
+	i2 = GetTransitionColor(FrameColorStart,buff_AA[1+iFill],AA.c2);
 //}
 
 
 //
-	A(1,FrameColorStart);  A(1,i2); _Fill(width-4); A(1,i2); A(1,FrameColorStart);
+	FrameColorStart=buff2_AA[1+iFrame++];		A(1,FrameColorStart);  A(1,i2); _Fill(width-4); A(1,i2); A(1,FrameColorStart);
 	_NextDrawLine(BkpSizeX,width);
-	A(1,FrameColorStart);  A(1,i1); _Fill(width-4); A(1,i1); A(1,FrameColorStart);
+	FrameColorStart=buff2_AA[1+iFrame++];		A(1,FrameColorStart);  A(1,i1); _Fill(width-4); A(1,i1); A(1,FrameColorStart);
 	_NextDrawLine(BkpSizeX,width);
 
-	_Out_AA_left(4); A(1,FrameColorStart); _Fill(width-4); A(1,FrameColorStart); _Out_AA_right(4);
+	FrameColorStart=buff2_AA[1+iFrame++];		_Out_AA_left(4); A(1,FrameColorStart); _Fill(width-4); A(1,FrameColorStart); _Out_AA_right(4);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(3); A(1,FrameColorStart); A(1,i1); _Fill(width-6); A(1,i1); A(1,FrameColorStart); _Out_AA_right(3);
+	FrameColorStart=buff2_AA[1+iFrame++];		_Out_AA_left(3); A(1,FrameColorStart); A(1,i1); _Fill(width-6); A(1,i1); A(1,FrameColorStart); _Out_AA_right(3);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(2); A(1,FrameColorStart); A(1,i1); _Fill(width-8); A(1,i1); A(1,FrameColorStart); _Out_AA_right(2);
+	FrameColorStart=buff2_AA[1+iFrame++];		_Out_AA_left(2); A(1,FrameColorStart); A(1,i1); _Fill(width-8); A(1,i1); A(1,FrameColorStart); _Out_AA_right(2);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(1); A(2,FrameColorStart); A(1,i1);A(1,i2); _Fill(width-14); A(1,i2);A(1,i1);A(2,FrameColorStart); _Out_AA_right(1);
+	FrameColorStart=buff2_AA[1+iFrame++];		_Out_AA_left(1); A(2,FrameColorStart); A(1,i1);A(1,i2); _Fill(width-14); A(1,i2);A(1,i1);A(2,FrameColorStart); _Out_AA_right(1);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(0); A(width-10,FrameColorStart); _Out_AA_right(0);
+	FrameColorStart=buff2_AA[1+iFrame++];		_Out_AA_left(0); A(width-10,FrameColorStart); _Out_AA_right(0);
 
 	#undef  A
 }
