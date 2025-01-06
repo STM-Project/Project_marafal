@@ -2166,7 +2166,7 @@ void LCD_Rectangle(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 
 
 
-void LCD_DrawRoundRectangleFrame____(int aaa, int rectangleFrame, uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor)
+void LCD_DrawRoundRectangleFrame____(int rectangleFrame,u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor)
 {
 	#define A(a,b) 	_FillBuff(a,b)
 
@@ -2174,29 +2174,23 @@ void LCD_DrawRoundRectangleFrame____(int aaa, int rectangleFrame, uint32_t posBu
 	uint32_t o1,o2,  i1,i2;
 
 	if((thickness==0)||(thickness==255)){
-		o1 = GetTransitionColor(FrameColor,BkpColor,AA.c1);
-		o2 = GetTransitionColor(FrameColor,BkpColor,AA.c2);
+		o1 = GetTransitionColor(FrameColorStart,BkpColor,AA.c1);
+		o2 = GetTransitionColor(FrameColorStart,BkpColor,AA.c2);
 	}
 
 
 	int g=0;
-	if(aaa){
-		Set_AACoeff(height,FillColor,BrightDecr(FillColor,0x44),0.0);
 
-		i1 = GetTransitionColor(FrameColor,FillColor,AA.c1);
-		i2 = GetTransitionColor(FrameColor,FillColor,AA.c2);
+		Set_AACoeff(height,FillColorStart,FillColorStop,0.0);
+
+		i1 = GetTransitionColor(FrameColorStart,FillColorStart,AA.c1);
+		i2 = GetTransitionColor(FrameColorStart,FillColorStart,AA.c2);
 
 
 
-	}
 
-	else{
-		Set_AACoeff(height,BrightDecr(FillColor,0x44),FillColor,0.0);
 
-		i1 = GetTransitionColor(FrameColor,BrightDecr(FillColor,0x44),AA.c1);
-		i2 = GetTransitionColor(FrameColor,BrightDecr(FillColor,0x44),AA.c2);
 
-	}
 
 
 
@@ -2268,20 +2262,20 @@ void LCD_DrawRoundRectangleFrame____(int aaa, int rectangleFrame, uint32_t posBu
 
 
 	_StartDrawLine(posBuff,BkpSizeX,x,y);
-	_Out_AA_left(0); A(width-10,FrameColor); _Out_AA_right(0);
+	_Out_AA_left(0); A(width-10,FrameColorStart); _Out_AA_right(0);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(1); A(2,FrameColor); A(1,i1);A(1,i2); _Fill(width-14); A(1,i2);A(1,i1);A(2,FrameColor); _Out_AA_right(1);
+	_Out_AA_left(1); A(2,FrameColorStart); A(1,i1);A(1,i2); _Fill(width-14); A(1,i2);A(1,i1);A(2,FrameColorStart); _Out_AA_right(1);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(2); A(1,FrameColor); A(1,i1); _Fill(width-8); A(1,i1); A(1,FrameColor); _Out_AA_right(2);
+	_Out_AA_left(2); A(1,FrameColorStart); A(1,i1); _Fill(width-8); A(1,i1); A(1,FrameColorStart); _Out_AA_right(2);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(3); A(1,FrameColor); A(1,i1); _Fill(width-6); A(1,i1); A(1,FrameColor); _Out_AA_right(3);
+	_Out_AA_left(3); A(1,FrameColorStart); A(1,i1); _Fill(width-6); A(1,i1); A(1,FrameColorStart); _Out_AA_right(3);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(4); A(1,FrameColor); _Fill(width-4); A(1,FrameColor); _Out_AA_right(4);
+	_Out_AA_left(4); A(1,FrameColorStart); _Fill(width-4); A(1,FrameColorStart); _Out_AA_right(4);
 	_NextDrawLine(BkpSizeX,width);
 
-	A(1,FrameColor);  A(1,i1); _Fill(width-4); A(1,i1); A(1,FrameColor);
+	A(1,FrameColorStart);  A(1,i1); _Fill(width-4); A(1,i1); A(1,FrameColorStart);
 	_NextDrawLine(BkpSizeX,width);
-	A(1,FrameColor);  A(1,i2); _Fill(width-4); A(1,i2); A(1,FrameColor);
+	A(1,FrameColorStart);  A(1,i2); _Fill(width-4); A(1,i2); A(1,FrameColorStart);
 	_NextDrawLine(BkpSizeX,width);
 
 
@@ -2307,9 +2301,9 @@ void LCD_DrawRoundRectangleFrame____(int aaa, int rectangleFrame, uint32_t posBu
 	{
 		for (int j=0; j<_height; j++)
 		{
-			_FillBuff(1, FrameColor);
+			_FillBuff(1, FrameColorStart);
 			_FillBuff(_width, buff_AA[1+g++] /*FillColor*/);
-			_FillBuff(1, FrameColor);
+			_FillBuff(1, FrameColorStart);
 			_NextDrawLine(BkpSizeX,width);
 		}
 	}
@@ -2317,9 +2311,9 @@ void LCD_DrawRoundRectangleFrame____(int aaa, int rectangleFrame, uint32_t posBu
 	{
 		for (int j=0; j<_height; j++)
 		{
-			_FillBuff(1, FrameColor);
+			_FillBuff(1, FrameColorStart);
 			k+=_width;
-			_FillBuff(1, FrameColor);
+			_FillBuff(1, FrameColorStart);
 			_NextDrawLine(BkpSizeX,width);
 		}
 	}
@@ -2331,26 +2325,26 @@ void LCD_DrawRoundRectangleFrame____(int aaa, int rectangleFrame, uint32_t posBu
 //	o1 = GetTransitionColor(FrameColor,BkpColor,AA.c1);
 //	o2 = GetTransitionColor(FrameColor,BkpColor,AA.c2);
 //
-	i1 = GetTransitionColor(FrameColor,buff_AA[1+g],AA.c1);
-	i2 = GetTransitionColor(FrameColor,buff_AA[1+g],AA.c2);
+	i1 = GetTransitionColor(FrameColorStart,buff_AA[1+g],AA.c1);
+	i2 = GetTransitionColor(FrameColorStart,buff_AA[1+g],AA.c2);
 //}
 
 
 //
-	A(1,FrameColor);  A(1,i2); _Fill(width-4); A(1,i2); A(1,FrameColor);
+	A(1,FrameColorStart);  A(1,i2); _Fill(width-4); A(1,i2); A(1,FrameColorStart);
 	_NextDrawLine(BkpSizeX,width);
-	A(1,FrameColor);  A(1,i1); _Fill(width-4); A(1,i1); A(1,FrameColor);
+	A(1,FrameColorStart);  A(1,i1); _Fill(width-4); A(1,i1); A(1,FrameColorStart);
 	_NextDrawLine(BkpSizeX,width);
 
-	_Out_AA_left(4); A(1,FrameColor); _Fill(width-4); A(1,FrameColor); _Out_AA_right(4);
+	_Out_AA_left(4); A(1,FrameColorStart); _Fill(width-4); A(1,FrameColorStart); _Out_AA_right(4);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(3); A(1,FrameColor); A(1,i1); _Fill(width-6); A(1,i1); A(1,FrameColor); _Out_AA_right(3);
+	_Out_AA_left(3); A(1,FrameColorStart); A(1,i1); _Fill(width-6); A(1,i1); A(1,FrameColorStart); _Out_AA_right(3);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(2); A(1,FrameColor); A(1,i1); _Fill(width-8); A(1,i1); A(1,FrameColor); _Out_AA_right(2);
+	_Out_AA_left(2); A(1,FrameColorStart); A(1,i1); _Fill(width-8); A(1,i1); A(1,FrameColorStart); _Out_AA_right(2);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(1); A(2,FrameColor); A(1,i1);A(1,i2); _Fill(width-14); A(1,i2);A(1,i1);A(2,FrameColor); _Out_AA_right(1);
+	_Out_AA_left(1); A(2,FrameColorStart); A(1,i1);A(1,i2); _Fill(width-14); A(1,i2);A(1,i1);A(2,FrameColorStart); _Out_AA_right(1);
 	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(0); A(width-10,FrameColor); _Out_AA_right(0);
+	_Out_AA_left(0); A(width-10,FrameColorStart); _Out_AA_right(0);
 
 	#undef  A
 }
@@ -2444,9 +2438,6 @@ SHAPE_PARAMS LCD_Rectangle2(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u3
 	}
 	return params;
 }
-
-
-
 
 void LCD_Frame(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
 	_StartDrawLine(posBuff,BkpSizeX,x,y);
