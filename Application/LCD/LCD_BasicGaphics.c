@@ -2236,8 +2236,8 @@ SHAPE_PARAMS LCD_DrawRoundRectangleFrame____(int rectangleFrame,u32 posBuff,u32 
 			case 4:	k+=1; break;
 	}}}
 
-	Set_AACoeff2(height,FrameColorStart,FrameColorStop,0.0);		/* careful for {maxFramPxl,maxFillPxl} < MAX_SIZE_TAB_AA */
-	Set_AACoeff (height,FillColorStart, FillColorStop, 0.0);
+	Set_AACoeff2(height,FrameColorStart,FrameColorStop,ratioStart);		/* careful for {maxFramPxl,maxFillPxl} < MAX_SIZE_TAB_AA */
+	Set_AACoeff (height,FillColorStart, FillColorStop, ratioStart);
 
 	_StartDrawLine(posBuff,BkpSizeX,x,y);
 	FrameColorTemp=buff2_AA[1+iFrameHeight++]; 																						_Out_AA_left(0); 												A(width-10,FrameColorTemp);			 							  _Out_AA_right(0);
