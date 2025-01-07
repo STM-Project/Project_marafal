@@ -194,7 +194,7 @@ typedef struct{
 	structPosition pos[STRUCT_SIZE_SHAPE_POS];
 	structSize 		size[STRUCT_SIZE_SHAPE_POS];
 	structColor 	color[STRUCT_SIZE_SHAPE_POS];
-	uint16_t 		param[STRUCT_SIZE_SHAPE_POS];
+	uint32_t 		param[STRUCT_SIZE_SHAPE_POS];
 	char           *ptr[STRUCT_SIZE_SHAPE_POS];
 }SHAPE_PARAMS;
 
