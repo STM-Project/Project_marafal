@@ -2274,8 +2274,8 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	//LCD_DrawRoundRectangleFrame____(1,0, LCD_X,LCD_Y, 270,397, 100, 40,   v.COLOR_Frame,  v.COLOR_Frame,  v.COLOR_BkScreen);
 
 	LCD_DrawRoundRectangleFrame____(1,0, LCD_X,LCD_Y,70,350,50,80 ,BrightIncr(v.COLOR_Frame,0x35), BrightDecr(v.COLOR_Frame,0x70), 0xFF808080,BrightDecr(0xFF808080,0x44), v.COLOR_BkScreen, 0.0, Down);
-	LCD_DrawRoundRectangleFrame____(1,0, LCD_X,LCD_Y,70,350,50,79, BrightIncr(v.COLOR_Frame,0x35), BrightDecr(v.COLOR_Frame,0x70), 0xFF808080,BrightDecr(0xFF808080,0x44), 1<<24, 0.0, Down);
-	LCD_DrawRoundRectangleFrame____(1,0, LCD_X,LCD_Y,70,350,50,78, BrightIncr(v.COLOR_Frame,0x35), BrightDecr(v.COLOR_Frame,0x70), 0xFF808080,BrightDecr(0xFF808080,0x44), 1<<24, 0.0, Down);
+	//LCD_DrawRoundRectangleFrame____(0,0, LCD_X,LCD_Y,70,350,50,79, BrightIncr(v.COLOR_Frame,0x35), BrightDecr(v.COLOR_Frame,0x70), 0xFF808080,BrightDecr(0xFF808080,0x44), 1<<24, 0.0, Down);
+	//LCD_DrawRoundRectangleFrame____(0,0, LCD_X,LCD_Y,70,350,50,78, BrightIncr(v.COLOR_Frame,0x35), BrightDecr(v.COLOR_Frame,0x70), 0xFF808080,BrightDecr(0xFF808080,0x44), 1<<24, 0.0, Down);
 
 	LCD_DrawRoundRectangleFrame____(1,0, LCD_X,LCD_Y,180,350,50,80, BrightDecr(v.COLOR_Frame,0x70),BrightIncr(v.COLOR_Frame,0x35), BrightDecr(0xFF808080,0x44),0xFF808080, v.COLOR_BkScreen, 0.0, Down);
 	LCD_DrawRoundRectangleFrame____(1,0, LCD_X,LCD_Y,180,351,50,79, BrightDecr(v.COLOR_Frame,0x70),BrightIncr(v.COLOR_Frame,0x35), BrightDecr(0xFF808080,0x44),0xFF808080, 1<<24, 0.0, Down);
