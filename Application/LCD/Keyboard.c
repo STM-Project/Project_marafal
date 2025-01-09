@@ -1668,7 +1668,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		if(press==act) LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
 	}
 
-	int colorFillBk = BrightDecr(bkColor,0x10);
+	int colorFillBk = BrightDecr(bkColor,0x00);
 	if(touchRelease == selBlockPress)
 	{
 			LCD_ShapeWindow( s[k].shape,0,widthAll,heightAll, 0,0, widthAll,heightAll, SetBold2Color(frameMainColor,s[k].bold), fillMainColor/*colorFillBk*/,bkColor );

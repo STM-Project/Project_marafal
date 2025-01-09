@@ -2185,13 +2185,18 @@ SHAPE_PARAMS LCD_DrawRoundRectangleFrame____(int rectangleFrame,u32 posBuff,u32 
 			i3=i2;
 			i4=i1;
 		}
-		else{
+		else if(param==Right){
 			i1 = GetTransitionColor(colorFrame,buff_AA[1+offs],AA.c1);
 			i2 = GetTransitionColor(colorFrame,buff_AA[1+offs],AA.c2);
-			i3 = GetTransitionColor(colorFrame,buff_AA[1+width-offs],AA.c2);
-			i4 = GetTransitionColor(colorFrame,buff_AA[1+width-offs],AA.c1);
+			i3 = GetTransitionColor(colorFrame,buff_AA[1+(width-1)-offs],AA.c2);
+			i4 = GetTransitionColor(colorFrame,buff_AA[1+(width-1)-offs],AA.c1);
 		}
-	}
+		else if(param==Left){
+			i1 = GetTransitionColor(colorFrame,buff_AA[1+(width-1)-offs],AA.c1);
+			i2 = GetTransitionColor(colorFrame,buff_AA[1+(width-1)-offs],AA.c2);
+			i3 = GetTransitionColor(colorFrame,buff_AA[1+offs],AA.c2);
+			i4 = GetTransitionColor(colorFrame,buff_AA[1+offs],AA.c1);
+	}}
 
 	void _Fill(int x,int offs){
 		if(rectangleFrame){
