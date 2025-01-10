@@ -1362,8 +1362,8 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			LCDSHAPE_Window(LCDSHAPE_Arrow,0,arrowUpParam=LCD_Arrow(ToStructAndReturn,width,height, xPosU,yPosUD, SetLineBold2Width(widthtUpDn,7), SetTriangHeightCoeff2Height(heightUpDn,3), colorUp,colorUp,bkColor, Up));
 			arrowUpParam.pos[0].x += win.pos.x;
 			arrowUpParam.pos[0].y += win.pos.y;
-			arrowUpParam.bkSize.x = widthtUpDn;
-			arrowUpParam.bkSize.y = heightUpDn;
+			arrowUpParam.bkSize.w = widthtUpDn;
+			arrowUpParam.bkSize.h = heightUpDn;
 			arrowUpParam.color[0].frame=colorDescr;
 			arrowUpParam.color[0].fill=colorDescr;
 			LCD_TOUCH_RestoreSusspendedTouch(touchAction2);
@@ -1374,8 +1374,8 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 			LCDSHAPE_Window(LCDSHAPE_Arrow,0,arrowDnParam=LCD_Arrow(ToStructAndReturn,width,height, xPosD,yPosUD, SetLineBold2Width(widthtUpDn,7), SetTriangHeightCoeff2Height(heightUpDn,3), colorDn,colorDn,bkColor, Down));
 			arrowDnParam.pos[0].x += win.pos.x;
 			arrowDnParam.pos[0].y += win.pos.y;
-			arrowDnParam.bkSize.x = widthtUpDn;
-			arrowDnParam.bkSize.y = heightUpDn;
+			arrowDnParam.bkSize.w = widthtUpDn;
+			arrowDnParam.bkSize.h = heightUpDn;
 			arrowDnParam.color[0].frame=colorDescr;
 			arrowDnParam.color[0].fill=colorDescr;
 			LCD_TOUCH_RestoreSusspendedTouch(touchAction2+1);
