@@ -173,7 +173,7 @@ typedef struct{
 	int y;
 }structPosition;
 
-typedef struct{  //to zienic !!!!!!
+typedef struct{
 	int w;
 	int h;
 }structSize;
@@ -184,13 +184,8 @@ typedef struct{
 	int bk;
 }structColor;
 
-typedef struct{  //to zienic !!!!!!
-	int x;
-	int y;
-}structBkSize;
-
 typedef struct{
-	structBkSize 	bkSize;
+	structSize 		bkSize;
 	structPosition pos[STRUCT_SIZE_SHAPE_POS];
 	structSize 		size[STRUCT_SIZE_SHAPE_POS];
 	structColor 	color[STRUCT_SIZE_SHAPE_POS];
