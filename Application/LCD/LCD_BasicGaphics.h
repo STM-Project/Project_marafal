@@ -112,7 +112,7 @@ void LCD_BoldRectangle	(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, u
 void LCD_BoldFrame		(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
 
 SHAPE_PARAMS LCD_Rectangle2(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS param);
-SHAPE_PARAMS LCD_DrawRoundRectangleFrame____(int rectangleFrame,u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS param);
+SHAPE_PARAMS LCD_RoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct);
 
 void LCD_RoundFrame			(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
 void LCD_RoundRectangle		(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
@@ -172,13 +172,20 @@ uint32_t SetLineBold2Width(uint32_t width, uint8_t bold);
 uint32_t SetTriangHeightCoeff2Height(uint32_t height, uint8_t coeff);
 
 SHAPE_PARAMS LCDSHAPE_Window(ShapeFunc pShape, uint32_t posBuff, SHAPE_PARAMS param);
-SHAPE_PARAMS LCDSHAPE_Arrow(uint32_t posBuff, SHAPE_PARAMS param);
-SHAPE_PARAMS LCDSHAPE_Enter(uint32_t posBuff, SHAPE_PARAMS param);
-SHAPE_PARAMS LCDSHAPE_Exit(uint32_t posBuff, SHAPE_PARAMS param);
-SHAPE_PARAMS LCDSHAPE_KeyBackspace(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS LCDSHAPE_Arrow			(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS LCDSHAPE_Enter			(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS LCDSHAPE_Exit				(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS LCDSHAPE_KeyBackspace	(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS LCDSHAPE_Rectangle		(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS LCDSHAPE_RoundRectangle(uint32_t posBuff, SHAPE_PARAMS param);
 
 void LCD_Arrow_Indirect(uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor, DIRECTIONS direct);
-void LCDSHAPE_Arrow_Indirect(SHAPE_PARAMS param);
+void LCD_Rectangle_Indirect(u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct);
+void LCD_RoundRectangle_Indirect(int rectFrame,u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct);
+
+void LCDSHAPE_Arrow_Indirect			 (SHAPE_PARAMS param);
+void LCDSHAPE_Rectangle_Indirect		 (SHAPE_PARAMS param);
+void LCDSHAPE_RoundRectangle_Indirect(SHAPE_PARAMS param);
 
 /* ------- End Selected Figures ------------------*/
 
