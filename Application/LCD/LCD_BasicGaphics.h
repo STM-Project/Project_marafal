@@ -60,6 +60,7 @@ typedef enum{
 	Midd_Y,
 	Midd_X2,
 	Midd_Y2,
+	AllEdge,
 }DIRECTIONS;
 
 #define NORMAL_SLIDER_PARAM	2,8,2,2

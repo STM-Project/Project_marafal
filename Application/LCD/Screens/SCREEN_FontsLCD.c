@@ -2252,7 +2252,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 
 	//v.COLOR_FillFrame = RED;
 
-
+	SHAPE_PARAMS par1,par2,par3,par4,par5,par6;
 
 //STWORZ ANIMACJE parametrow przez uart!!!!!!!!
 	LCD_Rectangle2(0, LCD_X,LCD_Y, 20,240, 100, 40,  v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x55),   			 v.COLOR_FillFrame,ORANGE,  v.COLOR_BkScreen, 0.0, Down);
@@ -2265,24 +2265,31 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 
 
 
-	LCD_Rectangle2(0, LCD_X,LCD_Y, 500,360, 100, 25, BrightDecr(v.COLOR_Frame,0xA0),BrightIncr(v.COLOR_Frame,0x01),  v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, LeftDown);
-	LCD_Rectangle2(0, LCD_X,LCD_Y, 610,360, 29, 100, BrightDecr(v.COLOR_Frame,0xA0),BrightIncr(v.COLOR_Frame,0x01),  v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, LeftDown);
+	par3=LCD_Rectangle2(ToStructAndReturn, LCD_X,LCD_Y, 500,360, 100, 25, BrightDecr(v.COLOR_Frame,0xA0),BrightIncr(v.COLOR_Frame,0x01),  v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, LeftDown);
+	par4=LCD_Rectangle2(ToStructAndReturn, LCD_X,LCD_Y, 610,360, 29, 100, BrightDecr(v.COLOR_Frame,0xA0),BrightIncr(v.COLOR_Frame,0x01),  v.COLOR_FillFrame,BrightDecr(v.COLOR_FillFrame,0x35),  v.COLOR_BkScreen, 0.0, LeftDown);
 
 
 
-	LCD_RoundRectangle2(0,PARAM32(Down,bold2,unUsed,Rectangle), LCD_X,LCD_Y,70,350,70,80 ,BrightIncr(v.COLOR_Frame,0x35), BrightDecr(v.COLOR_Frame,0x50), 0xFF808080,BrightDecr(0xFF808080,0x44), v.COLOR_BkScreen, 0.0, Right);
-	LCD_RoundRectangle2(0,PARAM32(Up,bold2,unUsed,Rectangle), 	LCD_X,LCD_Y,180,350,70,80, BrightDecr(v.COLOR_Frame,0x50),BrightIncr(v.COLOR_Frame,0x35), BrightDecr(0xFF808080,0x44),0xFF808080, v.COLOR_BkScreen, 0.0, Left);
+	par1=LCD_RoundRectangle2(ToStructAndReturn,PARAM32(AllEdge,bold6,unUsed,Rectangle), LCD_X,LCD_Y,70,350,70,80 ,BrightIncr(v.COLOR_Frame,0x65), BrightDecr(v.COLOR_Frame,0x20), 0xFF808080,BrightDecr(0xFF808080,0x44), v.COLOR_BkScreen, 0.0, NoDirect);
+	par2=LCD_RoundRectangle2(ToStructAndReturn,PARAM32(Up,bold2,unUsed,Rectangle), 	LCD_X,LCD_Y,180,350,70,80, BrightDecr(v.COLOR_Frame,0x20),BrightIncr(v.COLOR_Frame,0x65), 0xFF808080,BrightDecr(0xFF808080,0x44), v.COLOR_BkScreen, 0.0, Left);
+
+	LCDSHAPE_RoundRectangle(0,par1);
+	LCDSHAPE_RoundRectangle(0,par2);
 
 
-	LCD_Rectangle2(0, LCD_X,LCD_Y, 570,240, 100, 40,  v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x55),   			 v.COLOR_FillFrame,ORANGE,  v.COLOR_BkScreen, 0.25, Down);
-	LCD_Rectangle2(0, LCD_X,LCD_Y, 570,300, 100, 40, BrightDecr(v.COLOR_Frame,0xA5),BrightDecr(v.COLOR_Frame,0xAE),   v.COLOR_FillFrame,YELLOW,  v.COLOR_BkScreen, 0.5, Up);
-
+	par5=LCD_Rectangle2(ToStructAndReturn, LCD_X,LCD_Y, 570,240, 100, 40,  v.COLOR_FillFrame,BrightIncr(v.COLOR_FillFrame,0x55),   			 v.COLOR_FillFrame,ORANGE,  v.COLOR_BkScreen, 0.25, Down);
+	par6=LCD_Rectangle2(ToStructAndReturn, LCD_X,LCD_Y, 570,300, 100, 40, BrightDecr(v.COLOR_Frame,0xA5),BrightDecr(v.COLOR_Frame,0xAE),   v.COLOR_FillFrame,YELLOW,  v.COLOR_BkScreen, 0.5, Up);
 
 
 
 
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
 	if(LoadNoDispScreen != argNmb) LCD_Show();
+
+	LCDSHAPE_Rectangle_Indirect(par3);
+	LCDSHAPE_Rectangle_Indirect(par4);
+	LCDSHAPE_Rectangle_Indirect(par5);
+	LCDSHAPE_Rectangle_Indirect(par6);
 
 }
 
