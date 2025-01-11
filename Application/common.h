@@ -104,6 +104,10 @@
 #define LOOP_FOR(cnt,max) 	for(int (cnt)=0;(cnt)<(max);++(cnt))
 #define LOOP_FOR2(cnt,itx,max) 	for(int (cnt)=0,(itx)=0;(cnt)<(max);++(cnt))
 
+#define PARAM32(a,b,c,d)	((a)<<24|(b)<<16|(c<<8)|(d))
+#define U32_TO_FLOAT(val)	(*((float*)(&(val))))
+#define FLOAT_TO_U32(val)	(*((uint32_t*)(&(val))))
+
 #define _ZERO 0
 #define _ZEROS2 _ZERO,_ZERO
 #define _ZEROS3 _ZEROS2,_ZERO

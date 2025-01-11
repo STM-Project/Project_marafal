@@ -60,7 +60,6 @@ typedef enum{
 	Midd_Y,
 	Midd_X2,
 	Midd_Y2,
-
 }DIRECTIONS;
 
 #define NORMAL_SLIDER_PARAM	2,8,2,2
@@ -74,6 +73,15 @@ typedef enum{
 	Percent,
 	PosXY,
 }SLIDER_PARAMS;
+
+typedef enum{
+	bold0,bold1,bold2,bold3,bold4,bold5,bold6,bold7,bold8,bold9,bold10
+}BOLD_PARAMS;
+
+typedef enum{
+	Frame,
+	Rectangle
+}SHAPE_TYPES;
 
 extern uint32_t LCD_GetXSize(void);
 extern uint32_t LCD_GetYSize(void);

@@ -3478,9 +3478,9 @@ void LCD_HalfCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 	else LCD_DrawHalfCircle(posBuff,BkpSizeX,BkpSizeY,x,y, width,height, FrameColor, FillColor, BkpColor);
 }
 
-SHAPE_PARAMS LCD_RoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct)
+static SHAPE_PARAMS LCD_DrawRoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct)
 {
-	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorStart, .color[1].frame=FrameColorStop, .color[0].fill=FillColorStart, .color[1].fill=FillColorStop, .color[0].bk=BkpColor, .param[0]=direct, .param[1]=(uint32_t)ratioStart, .param[2]=rectangleFrame};
+	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorStart, .color[1].frame=FrameColorStop, .color[0].fill=FillColorStart, .color[1].fill=FillColorStop, .color[0].bk=BkpColor, .param[0]=direct, .param[1]=FLOAT_TO_U32(ratioStart), .param[2]=rectangleFrame};
 	if(ToStructAndReturn == posBuff)
 		return params;
 
@@ -3647,6 +3647,35 @@ SHAPE_PARAMS LCD_RoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,u32
 	#undef  A
 	return params;
 }
+SHAPE_PARAMS LCD_RoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct)
+{
+	SHAPE_PARAMS temp ={0};
+	int boldValue= SHIFT_RIGHT(rectangleFrame,16,FF), boldDirect=0;
+	int rectFrame= MASK(rectangleFrame,FF);									if(rectFrame==Frame){ FillColorStart=BkpColor; FillColorStop=BkpColor; }
+
+	if(boldValue > bold0){
+		boldDirect = SHIFT_RIGHT(rectangleFrame,24,FF);
+		switch(boldDirect){
+			case Down:
+				temp=LCD_DrawRoundRectangle2(posBuff,Frame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
+				LOOP_FOR(i,boldValue){
+					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-bold1,rectFrame,Frame),BkpSizeX,BkpSizeY,x,y,width,height-(i+1),FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,1<<24,ratioStart,direct); }
+				break;
+			case Up:
+				temp=LCD_DrawRoundRectangle2(posBuff,Frame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
+				LOOP_FOR(i,boldValue){
+					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-bold1,rectFrame,Frame),BkpSizeX,BkpSizeY,x,y+(i+1),width,height-(i+1),FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,1<<24,ratioStart,direct); }
+				break;
+	}}
+	else temp=LCD_DrawRoundRectangle2(posBuff,rectFrame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
+
+	return temp;
+}
+
+
+
+
+
 void LCD_RoundRectangle_Indirect(int rectFrame,u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct){
 	uint32_t bkSizeX = MASK(width,FFFF) +0;
 	uint32_t bkSizeY = MASK(height,FFFF)+0;
@@ -3655,15 +3684,15 @@ void LCD_RoundRectangle_Indirect(int rectFrame,u32 x,u32 y, u32 width,u32 height
 	LCD_Display(0,x,y,bkSizeX,bkSizeY);
 }
 SHAPE_PARAMS LCDSHAPE_RoundRectangle(uint32_t posBuff, SHAPE_PARAMS param){
-	return LCD_RoundRectangle2(posBuff, param.param[2], param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, param.param[1], param.param[0]);
+	return LCD_RoundRectangle2(posBuff, param.param[2], param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
 }
 void LCDSHAPE_RoundRectangle_Indirect(SHAPE_PARAMS param){
-	LCD_RoundRectangle_Indirect(param.param[2], param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, param.param[1], param.param[0]);
+	LCD_RoundRectangle_Indirect(param.param[2], param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
 }
 
 SHAPE_PARAMS LCD_Rectangle2(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS param)
 {
-	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorStart, .color[1].frame=FrameColorStop, .color[0].fill=FillColorStart, .color[1].fill=FillColorStop, .color[0].bk=BkpColor, .param[0]=param, .param[1]=(uint32_t)ratioStart};
+	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorStart, .color[1].frame=FrameColorStop, .color[0].fill=FillColorStart, .color[1].fill=FillColorStop, .color[0].bk=BkpColor, .param[0]=param, .param[1]=FLOAT_TO_U32(ratioStart)};
 	if(ToStructAndReturn == posBuff)
 		return params;
 
@@ -3751,10 +3780,10 @@ void LCD_Rectangle_Indirect(u32 x,u32 y, u32 width,u32 height, u32 FrameColorSta
 	LCD_Display(0,x,y,bkSizeX,bkSizeY);
 }
 SHAPE_PARAMS LCDSHAPE_Rectangle(uint32_t posBuff, SHAPE_PARAMS param){
-	return LCD_Rectangle2(posBuff, param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, param.param[1], param.param[0]);
+	return LCD_Rectangle2(posBuff, param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
 }
 void LCDSHAPE_Rectangle_Indirect(SHAPE_PARAMS param){
-	LCD_Rectangle_Indirect(param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, param.param[1], param.param[0]);
+	LCD_Rectangle_Indirect(param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
 }
 
 
