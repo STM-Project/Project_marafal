@@ -2270,7 +2270,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 
 
 
-	par1=LCD_RoundRectangle2(ToStructAndReturn,PARAM32(AllEdge,bold6,unUsed,Rectangle), LCD_X,LCD_Y,70,350,70,80 ,BrightIncr(v.COLOR_Frame,0x65), BrightDecr(v.COLOR_Frame,0x20), 0xFF808080,BrightDecr(0xFF808080,0x44), v.COLOR_BkScreen, 0.0, NoDirect);
+	par1=LCD_RoundRectangle2(ToStructAndReturn,PARAM32(AllEdge,27,unUsed,Rectangle), LCD_X,LCD_Y,70,350,70,80 ,WHITE, WHITE, 0xFFA0A0A0,BrightDecr(0xFFA0A0A0,0x50), v.COLOR_BkScreen, 0.0, Down);
 	par2=LCD_RoundRectangle2(ToStructAndReturn,PARAM32(Up,bold2,unUsed,Rectangle), 	LCD_X,LCD_Y,180,350,70,80, BrightDecr(v.COLOR_Frame,0x20),BrightIncr(v.COLOR_Frame,0x65), 0xFF808080,BrightDecr(0xFF808080,0x44), v.COLOR_BkScreen, 0.0, Left);
 
 	LCDSHAPE_RoundRectangle(0,par1);
