@@ -16,6 +16,8 @@
 #define MAX_LINE_BUFF_CIRCLE_SIZE  100
 #define MAX_DEGREE_CIRCLE  10
 
+#define AA_OUT_OFF  1<<24
+
 typedef uint32_t u32;
 
 ALIGN_32BYTES(uint32_t pLcd[LCD_BUFF_XSIZE*LCD_BUFF_YSIZE] __attribute__ ((section(".sdram"))));
@@ -2420,7 +2422,7 @@ void LCD_BoldRoundRectangle(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSize
 	else
 		thickness--;
 	LCD_DrawRoundRectangleFrame(1,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FrameColor,BkpColor);
-	LCD_DrawRoundRectangleFrame(1,posBuff,BkpSizeX,BkpSizeY,x+thickness,y+thickness,width-2*thickness,height-2*thickness,FrameColor,FillColor,1<<24);
+	LCD_DrawRoundRectangleFrame(1,posBuff,BkpSizeX,BkpSizeY,x+thickness,y+thickness,width-2*thickness,height-2*thickness,FrameColor,FillColor,AA_OUT_OFF);
 }
 
 void LCD_BoldRoundFrame(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
@@ -2433,11 +2435,11 @@ void LCD_BoldRoundFrame(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, u
 	for(i=0;i<thickness;++i){
 		k1=1+i;
 		k2=2*k1;
-		LCD_DrawRoundRectangleFrame(0,posBuff,BkpSizeX,BkpSizeY,x+k1,y+k1,width-k2,height-k2,FrameColor,FrameColor,1<<24);
+		LCD_DrawRoundRectangleFrame(0,posBuff,BkpSizeX,BkpSizeY,x+k1,y+k1,width-k2,height-k2,FrameColor,FrameColor,AA_OUT_OFF);
 	}
 	k1=1+i;
 	k2=2*k1;
-	LCD_DrawRoundRectangleFrame(0,posBuff,BkpSizeX,BkpSizeY,x+k1,y+k1,width-k2,height-k2,FrameColor,FillColor,1<<24);
+	LCD_DrawRoundRectangleFrame(0,posBuff,BkpSizeX,BkpSizeY,x+k1,y+k1,width-k2,height-k2,FrameColor,FillColor,AA_OUT_OFF);
 }
 
 structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len, uint16_t degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
@@ -3654,55 +3656,29 @@ SHAPE_PARAMS LCD_RoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,u32
 
 	if(boldValue > bold0){
 		boldDirect = SHIFT_RIGHT(rectangleFrame,24,FF);
-		switch(boldDirect){     //1<<24 nazwac to !!!!!!!!!!!!!!!!!!!!!!!!
+		switch(boldDirect){
 			case Down:
 				LCD_DrawRoundRectangle2(posBuff,Frame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
 				LOOP_FOR(i,boldValue){
-					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-bold1,rectFrame,Frame),BkpSizeX,BkpSizeY,x,y,width,height-(i+1),FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,1<<24,ratioStart,direct); }
+					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-bold1,rectFrame,Frame),BkpSizeX,BkpSizeY,x,y,width,height-(i+1),FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,AA_OUT_OFF,ratioStart,direct); }
 				break;
 			case Up:
 				LCD_DrawRoundRectangle2(posBuff,Frame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
 				LOOP_FOR(i,boldValue){
-					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-bold1,rectFrame,Frame),BkpSizeX,BkpSizeY,x,y+(i+1),width,height-(i+1),FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,1<<24,ratioStart,direct); }
+					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-bold1,rectFrame,Frame),BkpSizeX,BkpSizeY,x,y+(i+1),width,height-(i+1),FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,AA_OUT_OFF,ratioStart,direct); }
 				break;
 			case AllEdge:
 				u32 colorBuff[boldValue];
 				Set_AACoeff(boldValue,FillColorStart,FillColorStop,ratioStart);	LOOP_FOR(i,boldValue){ colorBuff[i]=buff_AA[1+i]; }
 				LCD_DrawRoundRectangle2(posBuff,Frame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,colorBuff[0],colorBuff[0],BkpColor,ratioStart,direct);
 				LOOP_FOR(i,boldValue-1){
-					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-2,rectFrame,Frame),BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i],colorBuff[i], colorBuff[i+1],colorBuff[i+1], 1<<24, ratioStart,direct);
+					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-2,rectFrame,Frame),BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i],colorBuff[i], colorBuff[i+1],colorBuff[i+1], AA_OUT_OFF, ratioStart,direct);
 				}
 				break;
 	}}
 	else LCD_DrawRoundRectangle2(posBuff,rectFrame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
 	return params;
 }
-
-//SHAPE_PARAMS LCD_RoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct)
-//{
-//	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorStart, .color[1].frame=FrameColorStop, .color[0].fill=FillColorStart, .color[1].fill=FillColorStop, .color[0].bk=BkpColor, .param[0]=direct, .param[1]=FLOAT_TO_U32(ratioStart), .param[2]=rectangleFrame};
-//	if(ToStructAndReturn == posBuff)
-//		return params;
-//
-//	int boldValue= SHIFT_RIGHT(rectangleFrame,16,FF);
-//
-//	Set_AACoeff (height,FillColorStart, FillColorStop, ratioStart);
-//
-//	FrameColorStart=BrightDecr(FrameColorStart,0x40);
-//
-//	LOOP_FOR(i,8){
-//		LCD_DrawRoundRectangle2(posBuff,CONDITION(i==7,Rectangle,Frame),BkpSizeX,BkpSizeY,x+i,y+i,width-2*i,height-2*i, BrightIncr(FrameColorStart,i*5),BrightIncr(FrameColorStart,i*5),   BrightIncr(FrameColorStart,(i+1)*5),BrightIncr(FrameColorStart,(i+1)*5),  CONDITION(i==0,BkpColor,1<<24), ratioStart,direct);
-//	}
-//
-//	return params;
-//}
-
-
-
-
-
-
-
 void LCD_RoundRectangle_Indirect(int rectFrame,u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct){
 	uint32_t bkSizeX = MASK(width,FFFF) +0;
 	uint32_t bkSizeY = MASK(height,FFFF)+0;
@@ -3722,6 +3698,20 @@ SHAPE_PARAMS LCD_Rectangle2(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u3
 	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorStart, .color[1].frame=FrameColorStop, .color[0].fill=FillColorStart, .color[1].fill=FillColorStop, .color[0].bk=BkpColor, .param[0]=param, .param[1]=FLOAT_TO_U32(ratioStart)};
 	if(ToStructAndReturn == posBuff)
 		return params;
+
+	if(AllEdge==param && IS_RANGE(FrameColorStop,1,MINVAL2(width,height)-1)){
+		int boldValue=(int)FrameColorStop;
+		u32 colorBuff[boldValue];
+		Set_AACoeff(boldValue,FillColorStart,FillColorStop,ratioStart);	LOOP_FOR(i,boldValue){ colorBuff[i]=buff_AA[1+i]; }
+		LCD_Frame(posBuff, BkpSizeX,BkpSizeY, x,y, width, height, FrameColorStart, colorBuff[0], BkpColor);
+		LOOP_FOR(i,boldValue-1){
+			if(i==boldValue-2)
+				LCD_Rectangle(posBuff, BkpSizeX,BkpSizeY, x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i], colorBuff[i+1], BkpColor);
+			else
+				LCD_Frame	 (posBuff, BkpSizeX,BkpSizeY, x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i], colorBuff[i+1], BkpColor);
+		}
+		return params;
+	}
 
 	int iFrame=0, iFill=0;
 	int maxFramPxl=height, maxFillPxl=height;
