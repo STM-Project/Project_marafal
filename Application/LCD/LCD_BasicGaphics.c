@@ -1473,12 +1473,26 @@ static int LCD_CIRCLE_GetDegFromPosXY(int posBuff, uint32_t BkpSizeX)
 		else						  return 0;
 	}
 
-		  if(pos.x < Circle.x0 && pos.y > Circle.y0)	deg_offs=0;
-	else if(pos.x > Circle.x0 && pos.y > Circle.y0)	deg_offs=90;
-	else if(pos.x > Circle.x0 && pos.y < Circle.y0)	deg_offs=180;
-	else if(pos.x < Circle.x0 && pos.y < Circle.y0)	deg_offs=270;
+		  if(pos.x < Circle.x0 && pos.y < Circle.y0)	deg_offs=0;
+	else if(pos.x > Circle.x0 && pos.y < Circle.y0)	deg_offs=90;
+	else if(pos.x > Circle.x0 && pos.y > Circle.y0)	deg_offs=180;
+	else if(pos.x < Circle.x0 && pos.y > Circle.y0)	deg_offs=270;
 
 	return DEG(atan(ABS(yPos)/ABS(xPos))) + deg_offs;
+}
+
+static void _DrawRight__(int width, uint32_t color,uint32_t BkpSizeX)
+{
+	int j=width;
+	while(j--){
+		*(pLcd+k)=color;
+
+	 	if(IS_RANGE(LCD_CIRCLE_GetDegFromPosXY(0,BkpSizeX),135,136) /*&& Circle.width/2==*/){
+	 		*(pLcd+k)=BLACK;
+	 	}
+
+		k++;
+	}
 }
 
 static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t __x, uint32_t __y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int outColorRead)
@@ -1496,6 +1510,8 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 
 	uint32_t bkX = BkpSizeX;
 	uint32_t x=__x, y=__y;
+
+
 
 	if((_width==height)&&(_width>0)&&(height>0))
 	{
@@ -1592,24 +1608,12 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 	   	}}
 
 
-	   	 void _DrawRight__(int width, uint32_t color)
-	   	 {
-	   	 	int j=width;
-	   	 	while(j--){
-	   	 		*(pLcd+k)=color;
 
-		   	 	if(LCD_CIRCLE_GetDegFromPosXY(posBuff,BkpSizeX)==45 /*&& Circle.width/2==*/){
-		   	 		*(pLcd+k)=BLACK;
-		   	 	}
-
-	   	 		k++;
-	   	 	}
-	   	 }
 
 			_StartDrawLine(posBuff,bkX,x,y);
 			fillWidth=0;
 			for(int i=0;i<buf[0];++i){
-				_IncDrawPos(bkX-buf[i+1]);	_CopyDrawPos(); k+=buf[i+1];	_RemoveUnnecessaryDots(i,0);  if(i>0)_DrawRight__(2*fillWidth,FillColor);	  _SetCopyDrawPos();	fillHeight++;
+				_IncDrawPos(bkX-buf[i+1]);	_CopyDrawPos(); k+=buf[i+1];	_RemoveUnnecessaryDots(i,0);  if(i>0)_DrawRight__(2*fillWidth,FillColor,BkpSizeX);	  _SetCopyDrawPos();	fillHeight++;
 				fillWidth += buf[i+1];
 			}
 
@@ -1617,7 +1621,7 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 				fillWidth++;
 				_IncDrawPos(-1);
 				for(int j=0; j<buf[buf[0]-i]; ++j){
-					_IncDrawPos(bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){k+=1;_DrawRight__(2*(fillWidth-1),FillColor); _RemoveUnnecessaryDots(i,1); }else{k+=2;_DrawRight__(2*(fillWidth-2),FillColor);}	_SetCopyDrawPos();	fillHeight++;
+					_IncDrawPos(bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){k+=1;_DrawRight__(2*(fillWidth-1),FillColor,BkpSizeX); _RemoveUnnecessaryDots(i,1); }else{k+=2;_DrawRight__(2*(fillWidth-2),FillColor,BkpSizeX);}	_SetCopyDrawPos();	fillHeight++;
 				}
 			}
 
@@ -1626,7 +1630,7 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 			_StartDrawLine(posBuff,bkX,x,y+fillHeight);
 			fillWidth=0;
 			for(int i=0;i<buf[0];++i){
-				_IncDrawPos(-bkX-buf[i+1]); _CopyDrawPos();	k+=buf[i+1];	_RemoveUnnecessaryDots(i,2);  if(i>0)_DrawRight__(2*fillWidth,FillColor);	_SetCopyDrawPos();
+				_IncDrawPos(-bkX-buf[i+1]); _CopyDrawPos();	k+=buf[i+1];	_RemoveUnnecessaryDots(i,2);  if(i>0)_DrawRight__(2*fillWidth,FillColor,BkpSizeX);	_SetCopyDrawPos();
 				fillWidth += buf[i+1];
 			}
 
@@ -1634,7 +1638,7 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 				fillWidth++;
 				_IncDrawPos(-1);
 				for(int j=0; j<buf[buf[0]-i]; ++j){
-					_IncDrawPos(-bkX);	_CopyDrawPos();  if(j==buf[buf[0]-i]-1){k+=1;_DrawRight__(2*(fillWidth-1),FillColor); _RemoveUnnecessaryDots(i,3); }else{k+=2;_DrawRight__(2*(fillWidth-2),FillColor);}	 _SetCopyDrawPos();
+					_IncDrawPos(-bkX);	_CopyDrawPos();  if(j==buf[buf[0]-i]-1){k+=1;_DrawRight__(2*(fillWidth-1),FillColor,BkpSizeX); _RemoveUnnecessaryDots(i,3); }else{k+=2;_DrawRight__(2*(fillWidth-2),FillColor,BkpSizeX);}	 _SetCopyDrawPos();
 				}
 			}
 		}
