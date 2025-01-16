@@ -2260,9 +2260,9 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 
 	uint32_t CircleWidth= 100;
 	uint16_t calcWidth = LCD_CalculateCircleWidth(CircleWidth);
-	LCD_Shape(LCD_X-calcWidth-10-150, LCD_Y-calcWidth-10, LCD_Circle, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,27), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
+	LCD_Shape(LCD_X-calcWidth-10-150, LCD_Y-calcWidth-50, LCD_Circle, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,27), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
 
-	LCD_Shape(LCD_X-calcWidth-10, LCD_Y-calcWidth-10, LCD_Circle____, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,27), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
+	LCD_Shape(LCD_X-calcWidth-10, LCD_Y-calcWidth-50, LCD_Circle____, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,27), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
 
 
 	//--------------------------------------------------------------------------------------------------

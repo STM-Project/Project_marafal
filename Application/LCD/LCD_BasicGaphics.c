@@ -3659,32 +3659,32 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 	int width_max=0, width_min=0;
 
 
-	void _Change_AA(void)
-	{
-		int threshold[Circle.degree[0]];
-		int deltaDeg;
-
-			for(int i=0;i<Circle.degree[0];++i)
-				threshold[i]=LCD_SearchRadiusPoints(posBuff,i,BkpSizeX);
-
-			for(int i=0;i<Circle.degree[0]-1;++i)
-			{
-				deltaDeg=Circle.degree[1+i+1]-Circle.degree[1+i];
-				if( ((deltaDeg>0)&&(deltaDeg<=180)) || (deltaDeg<-180) )
-				{
-					if((threshold[i]==0)&&(threshold[i+1]==2)){
-						pLcd[k]=GetTransitionColor(FrameColor, Circle.degColor[1+i], GetTransitionCoeff(FrameColor,FillColor,pLcd[k]));
-						break;
-					}
-				}
-				else
-				{
-					if((threshold[i]==0)||(threshold[i+1]==2)){
-						pLcd[k]=GetTransitionColor(FrameColor, Circle.degColor[1+i], GetTransitionCoeff(FrameColor,FillColor,pLcd[k]));
-						break;
-			}}}
-			k++;
-	}
+//	void _Change_AA(void)
+//	{
+//		int threshold[Circle.degree[0]];
+//		int deltaDeg;
+//
+//			for(int i=0;i<Circle.degree[0];++i)
+//				threshold[i]=LCD_SearchRadiusPoints(posBuff,i,BkpSizeX);
+//
+//			for(int i=0;i<Circle.degree[0]-1;++i)
+//			{
+//				deltaDeg=Circle.degree[1+i+1]-Circle.degree[1+i];
+//				if( ((deltaDeg>0)&&(deltaDeg<=180)) || (deltaDeg<-180) )
+//				{
+//					if((threshold[i]==0)&&(threshold[i+1]==2)){
+//						pLcd[k]=GetTransitionColor(FrameColor, GREEN/*Circle.degColor[1+i]*/, GetTransitionCoeff(FrameColor,FillColor,pLcd[k]));
+//						break;
+//					}
+//				}
+//				else
+//				{
+//					if((threshold[i]==0)||(threshold[i+1]==2)){
+//						pLcd[k]=GetTransitionColor(FrameColor, GREEN/*Circle.degColor[1+i]*/, GetTransitionCoeff(FrameColor,FillColor,pLcd[k]));
+//						break;
+//			}}}
+//			k++;
+//	}
 
 
 
@@ -3704,7 +3704,7 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 		LCD_SetCopyCircleWidth();
 	}
 
-
+//#define RADIUS ....
 
 	int radius2=0;
 	_StartDrawLine(posBuff,BkpSizeX,x,y);
@@ -3719,17 +3719,18 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 			if(pLcd[k+i]==RED)
 			{
 
-//				radius2 = (Circle.width-i)*(Circle.width-i) + (Circle.width-j)*(Circle.width-j);
-//				if(IS_RANGE(radius2, width_max*width_max, width_min*width_min)){
-//					pLcd[k+i]=GREEN;
-//				}
-
-				pLcd[k+i]=GREEN;
+				radius2 = ABS((Circle.width/2-i)*(Circle.width/2-i)) + ABS((Circle.width/2-j)*(Circle.width/2-j));
+				if(IS_RANGE(radius2,  (Circle.width/2-27)*(Circle.width/2-27)+(Circle.width/2-27)*(Circle.width/2-27),   (Circle.width/2-21)*(Circle.width/2-21)+(Circle.width/2-21)*(Circle.width/2-21)  )){
+					pLcd[k+i]=BLACK;
+				}
+				else
+					pLcd[k+i]=GREEN;
 			}
 
-//			else{
-//				_Change_AA();
-//			}
+
+
+
+
 
 
 
