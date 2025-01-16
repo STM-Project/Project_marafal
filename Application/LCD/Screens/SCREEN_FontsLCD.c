@@ -2245,6 +2245,34 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	Test.speed=StopMeasureTime_us("");
 
 
+
+
+
+
+	//--------------------------------------------------------------------------------------------------
+
+	LCD_SetCircleAA(0.0, 0.0);
+	CorrectLineAA_on();
+
+	uint16_t deg[2] = {0, 78 };
+	uint32_t degColor[2] = {0, CONDITION(deg[1]==deg[0],v.COLOR_FillMainFrame,RED) };
+	LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
+
+	uint32_t CircleWidth= 100;
+	uint16_t calcWidth = LCD_CalculateCircleWidth(CircleWidth);
+	LCD_Shape(LCD_X-calcWidth-10-150, LCD_Y-calcWidth-10, LCD_Circle, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,27), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
+
+	LCD_Shape(LCD_X-calcWidth-10, LCD_Y-calcWidth-10, LCD_Circle____, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,27), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
+
+
+	//--------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
 	if(LoadNoDispScreen != argNmb) LCD_Show();
 }
