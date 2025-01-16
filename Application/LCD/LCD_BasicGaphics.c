@@ -1456,31 +1456,6 @@ static void _DrawArrayBuffRightUp_AA(uint32_t drawColor, uint32_t outColor, uint
 	}
 }
 
-static int LCD_CIRCLE_GetDegFromPosXY(int posBuff, uint32_t BkpSizeX)
-{
-	pos = _GetPosXY(posBuff,BkpSizeX);
-
-	float xPos = pos.x - Circle.x0;
-	float yPos = pos.y - Circle.y0;
-	int deg_offs=0;
-
-	if(pos.x == Circle.x0){
-		if(pos.y >= Circle.y0) return 90;
-		else						  return 270;
-	}
-	if(pos.y == Circle.y0){
-		if(pos.x >= Circle.x0) return 180;
-		else						  return 0;
-	}
-
-		  if(pos.x < Circle.x0 && pos.y < Circle.y0)	deg_offs=0;
-	else if(pos.x > Circle.x0 && pos.y < Circle.y0)	deg_offs=90;
-	else if(pos.x > Circle.x0 && pos.y > Circle.y0)	deg_offs=180;
-	else if(pos.x < Circle.x0 && pos.y > Circle.y0)	deg_offs=270;
-
-	return DEG(atan(ABS(yPos)/ABS(xPos))) + deg_offs;
-}
-
 static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t __x, uint32_t __y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int outColorRead)
 {
 	int matchWidth=0, circleFlag=0;													/* Circle.degColor[0] - is free space for future variable */
@@ -1496,8 +1471,6 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 
 	uint32_t bkX = BkpSizeX;
 	uint32_t x=__x, y=__y;
-
-
 
 	if((_width==height)&&(_width>0)&&(height>0))
 	{
@@ -3650,6 +3623,141 @@ void LCD_Circle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x
 	}
 	#undef EASY_BOLD_CIRCLE
 }
+
+//-------------------------------------------------------------
+static int LCD_CIRCLE_GetDegFromPosXY(int posBuff, uint32_t BkpSizeX, int x,int y)
+{
+	//pos = _GetPosXY(posBuff,BkpSizeX);
+
+	float xPos = x; //pos.x - Circle.x0;
+	float yPos = y; //pos.y - Circle.y0;
+	int deg_offs=0;
+
+	if(pos.x == Circle.x0){
+		if(pos.y >= Circle.y0) return 90;
+		else						  return 270;
+	}
+	if(pos.y == Circle.y0){
+		if(pos.x >= Circle.x0) return 180;
+		else						  return 0;
+	}
+
+		  if(pos.x < Circle.x0 && pos.y < Circle.y0)	deg_offs=0;
+	else if(pos.x > Circle.x0 && pos.y < Circle.y0)	deg_offs=90;
+	else if(pos.x > Circle.x0 && pos.y > Circle.y0)	deg_offs=180;
+	else if(pos.x < Circle.x0 && pos.y > Circle.y0)	deg_offs=270;
+
+	return DEG(atan(ABS(yPos)/ABS(xPos))) + deg_offs;
+}
+
+void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
+	#define EASY_BOLD_CIRCLE	0==param && thickness
+	uint32_t width = _width&0xFFFF;			/* MASK(_width,FFFF) */
+	uint16_t param = _width>>16;				/* MSHIFT_RIGHT(_width,16,FFFF) */
+	uint8_t thickness = FrameColor>>24;		/* SHIFT_RIGHT(_FrameColor,24,FF) */
+
+	int width_max=0, width_min=0;
+
+
+	void _Change_AA(void)
+	{
+		int threshold[Circle.degree[0]];
+		int deltaDeg;
+
+			for(int i=0;i<Circle.degree[0];++i)
+				threshold[i]=LCD_SearchRadiusPoints(posBuff,i,BkpSizeX);
+
+			for(int i=0;i<Circle.degree[0]-1;++i)
+			{
+				deltaDeg=Circle.degree[1+i+1]-Circle.degree[1+i];
+				if( ((deltaDeg>0)&&(deltaDeg<=180)) || (deltaDeg<-180) )
+				{
+					if((threshold[i]==0)&&(threshold[i+1]==2)){
+						pLcd[k]=GetTransitionColor(FrameColor, Circle.degColor[1+i], GetTransitionCoeff(FrameColor,FillColor,pLcd[k]));
+						break;
+					}
+				}
+				else
+				{
+					if((threshold[i]==0)||(threshold[i+1]==2)){
+						pLcd[k]=GetTransitionColor(FrameColor, Circle.degColor[1+i], GetTransitionCoeff(FrameColor,FillColor,pLcd[k]));
+						break;
+			}}}
+			k++;
+	}
+
+
+
+	if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FrameColor, BkpColor, 0);
+	else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FillColor,  BkpColor, 0);
+
+
+	width_max=Circle.width;
+
+	if(thickness){
+		LCD_CopyCircleWidth();
+   	uint32_t width_new = width-2*thickness;
+		int offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
+		if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor, FrameColor, 0);
+		else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor, FillColor,  1);
+		width_min=Circle.width;
+		LCD_SetCopyCircleWidth();
+	}
+
+
+
+	int radius2=0;
+	_StartDrawLine(posBuff,BkpSizeX,x,y);
+
+	for(int j=0; j<width_max; ++j)
+	{
+		for(int i=0; i<width_max; ++i)
+		{
+
+
+
+			if(pLcd[k+i]==RED)
+			{
+
+//				radius2 = (Circle.width-i)*(Circle.width-i) + (Circle.width-j)*(Circle.width-j);
+//				if(IS_RANGE(radius2, width_max*width_max, width_min*width_min)){
+//					pLcd[k+i]=GREEN;
+//				}
+
+				pLcd[k+i]=GREEN;
+			}
+
+//			else{
+//				_Change_AA();
+//			}
+
+
+
+
+		}
+		k+=BkpSizeX;
+
+	}
+
+
+
+
+
+
+
+
+
+	#undef EASY_BOLD_CIRCLE
+
+	//https://dmitrymorozoff.github.io/react-circle-slider/
+	//https://stackoverflow.com/questions/78482981/custom-circular-slider-with-gradient-colour-bar-swift
+}
+
+//-------------------------------------------------------------
+
+
+
+
 
 void LCD_HalfCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
 	uint8_t thickness = FrameColor>>24;
