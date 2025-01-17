@@ -3625,27 +3625,31 @@ void LCD_Circle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x
 }
 
 //-------------------------------------------------------------
-static int LCD_CIRCLE_GetDegFromPosXY(int posBuff, uint32_t BkpSizeX, int x,int y)
+static int LCD_CIRCLE_GetDegFromPosXY(int posBuff, uint32_t BkpSizeX, int x,int y, int x0,int y0)
 {
 	//pos = _GetPosXY(posBuff,BkpSizeX);
 
 	float xPos = x; //pos.x - Circle.x0;
 	float yPos = y; //pos.y - Circle.y0;
+
+	float xPos0 = x0; //pos.x - Circle.x0;
+	float yPos0 = y0; //pos.y - Circle.y0;
+
 	int deg_offs=0;
 
-	if(pos.x == Circle.x0){
-		if(pos.y >= Circle.y0) return 90;
+	if(pos.x == xPos0){
+		if(pos.y >= yPos0) return 90;
 		else						  return 270;
 	}
-	if(pos.y == Circle.y0){
-		if(pos.x >= Circle.x0) return 180;
+	if(pos.y == yPos0){
+		if(pos.x >= xPos0) return 180;
 		else						  return 0;
 	}
 
-		  if(pos.x < Circle.x0 && pos.y < Circle.y0)	deg_offs=0;
-	else if(pos.x > Circle.x0 && pos.y < Circle.y0)	deg_offs=90;
-	else if(pos.x > Circle.x0 && pos.y > Circle.y0)	deg_offs=180;
-	else if(pos.x < Circle.x0 && pos.y > Circle.y0)	deg_offs=270;
+		  if(pos.x < xPos0 && pos.y < yPos0)	deg_offs=0;
+	else if(pos.x > xPos0 && pos.y < yPos0)	deg_offs=90;
+	else if(pos.x > xPos0 && pos.y > yPos0)	deg_offs=180;
+	else if(pos.x < xPos0 && pos.y > yPos0)	deg_offs=270;
 
 	return DEG(atan(ABS(yPos)/ABS(xPos))) + deg_offs;
 }
@@ -3686,7 +3690,7 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 //			k++;
 //	}
 
-
+//ROB MASKI OBRAZOW !!!!!  KWADRAT i KOLO NALOZENIE MASK !!!!!!!
 
 	if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FrameColor, BkpColor, 0);
 	else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FillColor,  BkpColor, 0);
@@ -3714,10 +3718,24 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 		for(int i=0; i<width_max; ++i)
 		{
 
-
+			//zrobic _prev czy poprzedni != RED !!! i wtedy sporawdzac warunki
 
 			if(pLcd[k+i]==RED)
 			{
+
+				if((pLcd[k+i-1]!=RED && pLcd[k+i-1]!=FrameColor) && pLcd[k+i-2]==FrameColor){
+					pLcd[k+i-1]=GetTransitionColor(FrameColor, GREEN/*Circle.degColor[1+i]*/, GetTransitionCoeff(FrameColor,RED,pLcd[k+i-1]));
+				}
+				else if((pLcd[k+i+1]!=RED && pLcd[k+i+1]!=FrameColor) && pLcd[k+i+2]==FrameColor){  //EQUAL2_AND()
+						pLcd[k+i+1]=GetTransitionColor(FrameColor, GREEN/*Circle.degColor[1+i]*/, GetTransitionCoeff(FrameColor,RED,pLcd[k+i+1]));
+					}
+
+
+
+//				  if(53==LCD_CIRCLE_GetDegFromPosXY(posBuff,BkpSizeX,i,j,width_max/2,width_max/2)){
+//					  pLcd[k+i]=YELLOW;
+//				  }
+
 
 				radius2 = ABS((Circle.width/2-i)*(Circle.width/2-i)) + ABS((Circle.width/2-j)*(Circle.width/2-j));
 				if(IS_RANGE(radius2,  (Circle.width/2-27)*(Circle.width/2-27)+(Circle.width/2-27)*(Circle.width/2-27),   (Circle.width/2-21)*(Circle.width/2-21)+(Circle.width/2-21)*(Circle.width/2-21)  )){
@@ -3726,9 +3744,6 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 				else
 					pLcd[k+i]=GREEN;
 			}
-
-
-
 
 
 
