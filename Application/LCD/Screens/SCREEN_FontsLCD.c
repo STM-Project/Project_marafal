@@ -2254,7 +2254,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	LCD_SetCircleAA(0.0, 0.0);
 	CorrectLineAA_on();
 
-	uint16_t deg[2] = {0, 78 };
+	uint16_t deg[2] = {0, 359 };
 	uint32_t degColor[2] = {0, CONDITION(deg[1]==deg[0],v.COLOR_FillMainFrame,RED) };
 	LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
 

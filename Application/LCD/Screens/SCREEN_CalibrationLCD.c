@@ -62,14 +62,14 @@ Ko"ł"o,Circle,\
 
 #define CIRCLE_MACRO \
 	/*	 Name  	 width   x	  y  */ \
-	X("Circle 1", 	50,   50,  50) \
-	X("Circle 2", 	60,  650, 330) \
-	X("Circle 3", 	70,  300, 140) \
-	X("Circle 4", 	80,  	 0, 300) \
-	X("Circle 5", 	90,  150, 250) \
-	X("Circle 6", 100,  603,   1) \
-	X("Circle 7", 110,  650, 199) \
-	X("Circle 8", 120,   90,   0)
+	X("Circle 1", 	48,   50,  50) \
+	X("Circle 2", 	63,  650, 330) \
+	X("Circle 3", 	73,  300, 140) \
+	X("Circle 4", 	77,  	 0, 300) \
+	X("Circle 5", 	93,  150, 250) \
+	X("Circle 6", 103,  603,   1) \
+	X("Circle 7", 105,  450, 199) \
+	X("Circle 8", 123,  140,   0)
 
 
 #define DEBUG_Text_1  "error_touch"
