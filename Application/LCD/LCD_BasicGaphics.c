@@ -12,7 +12,7 @@
 #include "LCD_Common.h"
 #include <stdbool.h>
 
-#define MAX_SIZE_TAB_AA		250
+#define MAX_SIZE_TAB_AA		365
 #define MAX_LINE_BUFF_CIRCLE_SIZE  100
 #define MAX_DEGREE_CIRCLE  10
 
@@ -3683,9 +3683,13 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 
 //#define RADIUS ....
 
-#define PLCD_(k)	(pLcd[k]!=RED && pLcd[k]!=FrameColor && pLcd[k]!=FillColor && pLcd[k]!=BkpColor)
 
-	Set_AACoeff(360/2+1,BROWN, ORANGE, 0.0);
+	Set_AACoeff(180,RED, GREEN, 0.0);
+	Set_AACoeff2(180,GREEN, BLUE, 0.0);
+
+	LOOP_FOR(i,180){
+		buff_AA[1+180+i] = buff2_AA[1+i];
+	}
 
 	_StartDrawLine(posBuff,BkpSizeX,x,y);
 
@@ -3700,10 +3704,8 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 			{
 
 				int degg = LCD_CIRCLE_GetDegFromPosXY(posBuff,BkpSizeX, i-width_max/2,   width_max/2 -j,    0,0);
-				//pLcd[k+i] = BrightIncr(DARKGREEN, degg/3);
-				pLcd[k+i] = buff_AA[1+degg/2];
+				pLcd[k+i] = buff_AA[1+degg];
 
-				//pLcd[k+i]=DARKGREEN;
 
 //				radius2 = ABS((Circle.width/2-i)*(Circle.width/2-i)) + ABS((Circle.width/2-j)*(Circle.width/2-j));
 //				if(IS_RANGE(radius2,  (Circle.width/2-27)*(Circle.width/2-27)+(Circle.width/2-27)*(Circle.width/2-27),   (Circle.width/2-21)*(Circle.width/2-21)+(Circle.width/2-21)*(Circle.width/2-21)  )){
@@ -3718,7 +3720,7 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 				{
 					int degg = LCD_CIRCLE_GetDegFromPosXY(posBuff,BkpSizeX, i-width_max/2,   width_max/2 -j,    0,0);
 
-					pLcd[k+i]=GetTransitionColor(FrameColor, buff_AA[1+degg/2]/*DARKGREEN*/, GetTransitionCoeff(FrameColor,RED,pLcd[k+i]));
+					pLcd[k+i]=GetTransitionColor(FrameColor, buff_AA[1+degg]/*DARKGREEN*/, GetTransitionCoeff(FrameColor,RED,pLcd[k+i]));
 				}
 			}
 
