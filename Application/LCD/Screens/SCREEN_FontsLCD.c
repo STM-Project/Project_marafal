@@ -2254,21 +2254,20 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	LCD_SetCircleAA(0.0, 0.0);
 	CorrectLineAA_on();
 
-	uint16_t deg[2] = {10, 350 };
-	uint32_t degColor[2] = {0, CONDITION(deg[1]==deg[0],v.COLOR_FillMainFrame,RED) };
-	LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
+//	uint16_t deg[2] = {10, 350 };
+//	uint32_t degColor[2] = {0, CONDITION(deg[1]==deg[0],v.COLOR_FillMainFrame,RED) };  // to bedzeie wewnatrz funkcji
+//	LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
 
 	uint32_t CircleWidth= 140;
 	uint16_t calcWidth = LCD_CalculateCircleWidth(CircleWidth);
-	//LCD_Shape(LCD_X-calcWidth-10-550, LCD_Y-calcWidth-50, LCD_Circle, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,95), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
 	StartMeasureTime_us();
 	//LCD_Shape(LCD_X-calcWidth-10-550, LCD_Y-calcWidth-50, LCD_Circle____, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,85), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
-	LCD_Circle____(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-550, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,20), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
+	LCD_Circle____(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-550, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(DARKYELLOW,20), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
 	StopMeasureTime_us("AAAAAAAAAAAAAAAAA:");
 	//--------------------------------------------------------------------------------------------------
 
 
-
+	//LCD_Circle____(FrameColor,  FillColorFrom,FillColorTo,FillColor2From,FillColor2To)
 
 
 
