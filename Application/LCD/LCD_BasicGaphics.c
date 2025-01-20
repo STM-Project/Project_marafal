@@ -3661,12 +3661,21 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 	uint16_t param = _width>>16;				/* MSHIFT_RIGHT(_width,16,FFFF) */
 	uint8_t thickness = FrameColor>>24;		/* SHIFT_RIGHT(_FrameColor,24,FF) */
 
+#define COLOR_FRAME		WHITE
+#define COLOR_BK			MYGRAY
+#define COLOR_FILL		MYGRAY3
+#define COLOR_TEST		RED
+
+	uint16_t deg[2] = {10, 350 };
+	uint32_t degColor[2] = {0, COLOR_TEST };  // to bedzeie wewnatrz funkcji
+	LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
+
 	int width_max=0, width_min=0;
 
 //ROB MASKI OBRAZOW !!!!!  KWADRAT i KOLO NALOZENIE MASK !!!!!!!
 
-	if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FrameColor, BkpColor, 0);
-	else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FillColor,  BkpColor, 0);
+	if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, COLOR_FRAME, COLOR_FRAME, COLOR_BK, 0);
+	else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, COLOR_FRAME, COLOR_FILL,  COLOR_BK, 0);
 
 
 	width_max=Circle.width;
@@ -3675,14 +3684,14 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 		LCD_CopyCircleWidth();
    	uint32_t width_new = width-2*thickness;
 		int offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
-		if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor, FrameColor, 0);
-		else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor, FillColor,  1);
+		if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, COLOR_FRAME, COLOR_FILL, COLOR_FRAME, 0);
+		else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, COLOR_FRAME, COLOR_FILL, COLOR_FILL,  1);
 		width_min=Circle.width;
 		LCD_SetCopyCircleWidth();
 	}
 
 //#define RADIUS ....
-
+	//#define POINT_GRADIENT  (pLcd[k+i]!=RED && pLcd[k+i]!=FrameColor && pLcd[k+i]!=FillColor && pLcd[k+i]!=BkpColor)
 
 	Set_AACoeff(180,RED, GREEN, 0.0);
 	Set_AACoeff2(180,GREEN, BLUE, 0.0);
@@ -3700,7 +3709,7 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 
 			//zrobic _prev czy poprzedni != RED !!! i wtedy sporawdzac warunki
 
-			if(pLcd[k+i]==RED)
+			if(pLcd[k+i]==COLOR_TEST)
 			{
 
 				int degg = LCD_CIRCLE_GetDegFromPosXY(posBuff,BkpSizeX, i-width_max/2,   width_max/2 -j,    0,0);
@@ -3716,11 +3725,15 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 			}
 			else
 			{
-				if((pLcd[k+i]!=RED && pLcd[k+i]!=FrameColor && pLcd[k+i]!=FillColor && pLcd[k+i]!=BkpColor) && ( ((pLcd[k+i]>>16)&0x000000FF)!=((pLcd[k+i]>>8)&0x000000FF) )    )
+				if((pLcd[k+i]!=COLOR_TEST && pLcd[k+i]!=COLOR_FRAME && pLcd[k+i]!=COLOR_FILL && pLcd[k+i]!=COLOR_BK)/* && ( ((pLcd[k+i]>>16)&0x000000FF)!=((pLcd[k+i]>>8)&0x000000FF) )*/    )
 				{
-					int degg = LCD_CIRCLE_GetDegFromPosXY(posBuff,BkpSizeX, i-width_max/2,   width_max/2 -j,    0,0);
+					if(pLcd[k+i+1]==COLOR_TEST ||  pLcd[k+i-1]==COLOR_TEST ||  pLcd[k+i+BkpSizeX]==COLOR_TEST ||  pLcd[k+i-BkpSizeX]==COLOR_TEST)
+					{
+						int degg = LCD_CIRCLE_GetDegFromPosXY(posBuff,BkpSizeX, i-width_max/2,   width_max/2 -j,    0,0);
+						pLcd[k+i]=GetTransitionColor(COLOR_FRAME, buff_AA[1+degg]/*DARKGREEN*/, GetTransitionCoeff(COLOR_FRAME,COLOR_TEST,pLcd[k+i]));
 
-					pLcd[k+i]=GetTransitionColor(FrameColor, buff_AA[1+degg]/*DARKGREEN*/, GetTransitionCoeff(FrameColor,RED,pLcd[k+i]));
+					}
+
 				}
 			}
 
@@ -3733,6 +3746,15 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 
 		k+=BkpSizeX;
 
+	}
+
+
+	for(int j=0; j<width_max; ++j)
+	{
+		for(int i=0; i<width_max; ++i)
+		{
+
+		}
 	}
 
 
