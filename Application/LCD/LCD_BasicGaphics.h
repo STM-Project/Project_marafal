@@ -12,6 +12,7 @@
 #include "common.h"
 
 typedef uint32_t u32;
+typedef uint32_t u16;
 
 #define RATIO_AA_VALUE_MIN 	1.0
 #define RATIO_AA_VALUE_MAX 	0.0
@@ -61,6 +62,7 @@ typedef enum{
 	Midd_X2,
 	Midd_Y2,
 	AllEdge,
+	Round,
 }DIRECTIONS;
 
 #define NORMAL_SLIDER_PARAM	2,8,2,2
@@ -160,7 +162,7 @@ uint16_t LCD_GetNextDecrCircleWidth(uint32_t width);
 structPosition GetCircleMiddPoint(uint16_t *radius);
 
 void LCD_Circle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
-void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
+void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor,u32 selFillColorFrom,u32 selFillColor,u32 selFillColorTo,u16 degree,DIRECTIONS fillDir);
 void LCD_HalfCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
 
 /* ------- Selected Figures ------------------*/
