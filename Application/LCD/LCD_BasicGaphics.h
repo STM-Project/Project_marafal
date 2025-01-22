@@ -44,9 +44,10 @@ typedef enum{
 	Down,
 	Right,
 	Right2,
+	RightDown,
 	Left,
 	Left2,
-	LeftDown,
+	LeftUp,
 	outside,
 	inside,
 	inside2,
@@ -63,6 +64,7 @@ typedef enum{
 	Midd_Y2,
 	AllEdge,
 	Round,
+	Center,
 }DIRECTIONS;
 
 #define NORMAL_SLIDER_PARAM	2,8,2,2
