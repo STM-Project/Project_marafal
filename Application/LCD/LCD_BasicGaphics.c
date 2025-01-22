@@ -3665,7 +3665,7 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 	if(ToStructAndReturn == posBuff)
 		return params;
 
-	#define EASY_BOLD_CIRCLE	0==param && thickness  //param shape dac !!!!!
+	#define EASY_BOLD_CIRCLE	0==param && thickness
 	#define COLOR_TEST		0x12345678
 
 	uint32_t width = _width&0xFFFF;			/* MASK(_width,FFFF) */
@@ -3673,7 +3673,7 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 	uint8_t thickness = FrameColor>>24;		/* SHIFT_RIGHT(_FrameColor,24,FF) */
 	int width_max=0, width_min=0;
 
-	uint16_t deg[2] = {10, degree };
+	uint16_t deg[2] = {3, degree };
 	uint32_t degColor[2] = {0, COLOR_TEST };
 	LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
 
@@ -3691,18 +3691,6 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 		width_min=Circle.width;
 		LCD_SetCopyCircleWidth();
 	}
-
-//#define RADIUS ....
-	//#define POINT_GRADIENT  (pLcd[k+i]!=RED && pLcd[k+i]!=FrameColor && pLcd[k+i]!=FillColor && pLcd[k+i]!=BkpColor)
-
-	//				radius2 = ABS((Circle.width/2-i)*(Circle.width/2-i)) + ABS((Circle.width/2-j)*(Circle.width/2-j));
-	//				if(IS_RANGE(radius2,  (Circle.width/2-27)*(Circle.width/2-27)+(Circle.width/2-27)*(Circle.width/2-27),   (Circle.width/2-21)*(Circle.width/2-21)+(Circle.width/2-21)*(Circle.width/2-21)  )){
-	//					pLcd[k+i]=BLACK;
-	//				}
-	//				else
-	//					pLcd[k+i]=DARKGREEN;
-
-
 
 	int nmbPxls=0, nmbPxlsHalf=0;
 	switch((int)fillDir){
@@ -3722,17 +3710,28 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 	}
 	else if(0!=selFillColorFrom && 0!=selFillColor && 0==selFillColorTo){
 		switch((int)fillDir){
-		case Up: case Left: case LeftUp:	Set_AACoeff(nmbPxls,selFillColor,    selFillColorFrom, 0.0);	break;
-		default:				 					Set_AACoeff(nmbPxls,selFillColorFrom,selFillColor,     0.0);	break;
+		case Up: case Left: case LeftUp: case Center: Set_AACoeff(nmbPxls,selFillColor,    selFillColorFrom, 0.0);	break;
+		default:				 									 Set_AACoeff(nmbPxls,selFillColorFrom,selFillColor,     0.0);	break;
 		}
 	}
 	else if(0!=selFillColorFrom && 0!=selFillColor && 0!=selFillColorTo){
-		if(nmbPxls!=RightDown && nmbPxls!=LeftUp){
+		switch((int)fillDir){
+		case Up: case Left: case Center:
+			Set_AACoeff(nmbPxlsHalf, selFillColorTo,selFillColor,   0.0);
+			Set_AACoeff2(nmbPxlsHalf,selFillColor,  selFillColorFrom, 0.0);
+			LOOP_FOR(i,nmbPxlsHalf){ buff_AA[1+nmbPxlsHalf+i]=buff2_AA[1+i]; }
+			break;
+		case RightDown: case LeftUp:
+			break;
+		default:
 			Set_AACoeff(nmbPxlsHalf, selFillColorFrom,selFillColor,   0.0);
 			Set_AACoeff2(nmbPxlsHalf,selFillColor, 	selFillColorTo, 0.0);
 			LOOP_FOR(i,nmbPxlsHalf){ buff_AA[1+nmbPxlsHalf+i]=buff2_AA[1+i]; }
+			break;
 		}
 	}
+	else LOOP_FOR(i,nmbPxls){ buff_AA[1+i]=0; }
+
 
 	switch((int)fillDir)
 	{
@@ -3744,17 +3743,17 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
 					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
 						int temp = LCD_CIRCLE_GetRadiusFromPosXY(i-width_max/2, width_max/2 -j, 0,0);
-						temp = temp-radius_min;		if(temp>=thickness) temp=thickness-1;
+						temp = temp-radius_min;		if(temp>=thickness) temp=thickness-1; else if(temp<0) temp=0;
 						pLcd[k+i]=GetTransitionColor(FrameColor, buff_AA[1+temp], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
 			}}}
 			k+=BkpSizeX;
 		}
 		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		for(int j=0; j<width_max; ++j){
-			for(int i=0; i<width_max; ++i){
+		LOOP_FOR(j,width_max){
+			LOOP_FOR(i,width_max){
 				if(pLcd[k+i]==COLOR_TEST){
 					int temp = LCD_CIRCLE_GetRadiusFromPosXY(i-width_max/2, width_max/2 -j, 0,0);
-					temp = temp-radius_min;		if(temp>=thickness) temp=thickness-1;
+					temp = temp-radius_min;		if(temp>=thickness) temp=thickness-1; else if(temp<0) temp=0;
 					pLcd[k+i]= buff_AA[1+temp];
 			}}
 			k+=BkpSizeX;
@@ -3824,10 +3823,10 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 		break;
 
 	case RightDown: case LeftUp:
+		int offs=width_max/2-1;
 		_StartDrawLine(posBuff,BkpSizeX,x,y);
 		LOOP_FOR(j,width_max){
-			if(RightDown) Set_AACoeff2(width_max,selFillColorFrom, _DESCR("color next",buff_AA[1+j]), 0.0);
-			else			  Set_AACoeff2(width_max,selFillColor, 	 _DESCR("color next",buff_AA[1+j]), 0.0);
+			Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
 			LOOP_FOR(i,width_max){
 				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
 					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
@@ -3838,7 +3837,7 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 		}
 		_StartDrawLine(posBuff,BkpSizeX,x,y);
 		LOOP_FOR(j,width_max){
-			Set_AACoeff2(width_max,selFillColorFrom, _DESCR("color next",buff_AA[1+j]), 0.0);
+			Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
 			LOOP_FOR(i,width_max){
 				if(pLcd[k+i]==COLOR_TEST)
 					pLcd[k+i]= buff2_AA[1+i];
@@ -3846,42 +3845,10 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 			k+=BkpSizeX;
 		}
 		break;
-
-//	case LeftDown:
-//		int m=0;
-//		_StartDrawLine(posBuff,BkpSizeX,x,y);
-//		for(int j=0; j<width_max; ++j){	m=0;
-//			for(int i=0; i<width_max; ++i){
-//				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
-//					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){	if(0==m){ m=1; Set_AACoeff2(width_max,selFillColorFrom, _DESCR("color next",buff_AA[1+j]), 0.0); }
-//						pLcd[k+i]=GetTransitionColor(FrameColor, buff2_AA[1+i], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
-//			}}}
-//			k+=BkpSizeX;
-//		}
-//		_StartDrawLine(posBuff,BkpSizeX,x,y);
-//		for(int j=0; j<width_max; ++j){	m=0;
-//			for(int i=0; i<width_max; ++i){
-//				if(pLcd[k+i]==COLOR_TEST){		if(0==m){ m=1; Set_AACoeff2(width_max,selFillColorFrom, _DESCR("color next",buff_AA[1+j]), 0.0); }
-//					pLcd[k+i] = buff2_AA[1+i];
-//			}	}
-//			k+=BkpSizeX;
-//		}
-//		break;
 	}
-
-
-
-
-
-
-
-
-
 	return params;
-
 	#undef EASY_BOLD_CIRCLE
 	#undef COLOR_TEST
-
 	//https://dmitrymorozoff.github.io/react-circle-slider/
 	//https://stackoverflow.com/questions/78482981/custom-circular-slider-with-gradient-colour-bar-swift
 }
