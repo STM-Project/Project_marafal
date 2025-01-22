@@ -3659,21 +3659,23 @@ static int LCD_CIRCLE_GetRadiusFromPosXY(int x,int y, int x0,int y0){
 #define _IS_NEXT_PXL(bkX,i,color)	(pLcd[(i)+1]==color || pLcd[(i)-1]==color || pLcd[(i)+bkX]==color || pLcd[(i)-bkX]==color || pLcd[(i)+bkX+1]==color || pLcd[(i)+bkX-1]==color || pLcd[(i)-bkX+1]==color || pLcd[(i)-bkX-1]==color)
 
 
-void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor,u32 selFillColorFrom,u32 selFillColor,u32 selFillColorTo,u16 degree,DIRECTIONS fillDir){
+SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor,u32 selFillColorFrom,u32 selFillColor,u32 selFillColorTo,u16 degree,DIRECTIONS fillDir)
+{
+	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=_width, .size[0].h=height, .color[0].frame=FrameColor, .color[1].frame=FillColor, .color[2].frame=BkpColor, .color[1].fill=selFillColorFrom/*, .color[0].bk=BkpColor, .param[0]=direct, .param[1]=FLOAT_TO_U32(ratioStart), .param[2]=rectangleFrame*/};
+	if(ToStructAndReturn == posBuff)
+		return params;
+
 	#define EASY_BOLD_CIRCLE	0==param && thickness  //param shape dac !!!!!
+	#define COLOR_TEST		0x12345678
+
 	uint32_t width = _width&0xFFFF;			/* MASK(_width,FFFF) */
 	uint16_t param = _width>>16;				/* MSHIFT_RIGHT(_width,16,FFFF) */
 	uint8_t thickness = FrameColor>>24;		/* SHIFT_RIGHT(_FrameColor,24,FF) */
-
-#define COLOR_TEST		0x12345678  //dac to co w PRZYKLADY.c  Rectangle2() jako test !!!!!
-
-	uint16_t deg[2] = {10, degree };
-	uint32_t degColor[2] = {0, COLOR_TEST };  // to bedzeie wewnatrz funkcji
-	LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
-
 	int width_max=0, width_min=0;
 
-//ROB MASKI OBRAZOW !!!!!  KWADRAT i KOLO NALOZENIE MASK !!!!!!!
+	uint16_t deg[2] = {10, degree };
+	uint32_t degColor[2] = {0, COLOR_TEST };
+	LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
 
 	if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FrameColor, BkpColor, 0);
 	else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FillColor,  BkpColor, 0);
@@ -3737,8 +3739,8 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 	case Center:
 		int radius_min=width_min/2;
 		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		for(int j=0; j<width_max; ++j){
-			for(int i=0; i<width_max; ++i){
+		LOOP_FOR(j,width_max){
+			LOOP_FOR(i,width_max){
 				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
 					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
 						int temp = LCD_CIRCLE_GetRadiusFromPosXY(i-width_max/2, width_max/2 -j, 0,0);
@@ -3761,8 +3763,8 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 
 	case Round:
 		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		for(int j=0; j<width_max; ++j){
-			for(int i=0; i<width_max; ++i){
+		LOOP_FOR(j,width_max){
+			LOOP_FOR(i,width_max){
 				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
 					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
 						int degg = LCD_CIRCLE_GetDegFromPosXY(i-width_max/2, width_max/2 -j, 0,0);
@@ -3771,8 +3773,8 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 			k+=BkpSizeX;
 		}
 		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		for(int j=0; j<width_max; ++j){
-			for(int i=0; i<width_max; ++i){
+		LOOP_FOR(j,width_max){
+			LOOP_FOR(i,width_max){
 				if(pLcd[k+i]==COLOR_TEST){
 					int degg = LCD_CIRCLE_GetDegFromPosXY(i-width_max/2, width_max/2 -j, 0,0);
 					pLcd[k+i]= buff_AA[1+degg];
@@ -3783,8 +3785,8 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 
 	case Down: case Up:
 		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		for(int j=0; j<width_max; ++j){
-			for(int i=0; i<width_max; ++i){
+		LOOP_FOR(j,width_max){
+			LOOP_FOR(i,width_max){
 				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
 					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
 						pLcd[k+i]=GetTransitionColor(FrameColor, buff_AA[1+j], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
@@ -3792,8 +3794,8 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 			k+=BkpSizeX;
 		}
 		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		for(int j=0; j<width_max; ++j){
-			for(int i=0; i<width_max; ++i){
+		LOOP_FOR(j,width_max){
+			LOOP_FOR(i,width_max){
 				if(pLcd[k+i]==COLOR_TEST)
 					pLcd[k+i]= buff_AA[1+j];
 			}
@@ -3803,8 +3805,8 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 
 	case Right: case Left:
 		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		for(int j=0; j<width_max; ++j){
-			for(int i=0; i<width_max; ++i){
+		LOOP_FOR(j,width_max){
+			LOOP_FOR(i,width_max){
 				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
 					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
 						pLcd[k+i]=GetTransitionColor(FrameColor, buff_AA[1+i], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
@@ -3812,8 +3814,8 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 			k+=BkpSizeX;
 		}
 		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		for(int j=0; j<width_max; ++j){
-			for(int i=0; i<width_max; ++i){
+		LOOP_FOR(j,width_max){
+			LOOP_FOR(i,width_max){
 				if(pLcd[k+i]==COLOR_TEST)
 					pLcd[k+i]= buff_AA[1+i];
 			}
@@ -3823,10 +3825,10 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 
 	case RightDown: case LeftUp:
 		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		for(int j=0; j<width_max; ++j){
+		LOOP_FOR(j,width_max){
 			if(RightDown) Set_AACoeff2(width_max,selFillColorFrom, _DESCR("color next",buff_AA[1+j]), 0.0);
 			else			  Set_AACoeff2(width_max,selFillColor, 	 _DESCR("color next",buff_AA[1+j]), 0.0);
-			for(int i=0; i<width_max; ++i){
+			LOOP_FOR(i,width_max){
 				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
 					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
 						pLcd[k+i]=GetTransitionColor(FrameColor, buff2_AA[1+i], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
@@ -3835,9 +3837,9 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 			k+=BkpSizeX;
 		}
 		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		for(int j=0; j<width_max; ++j){
+		LOOP_FOR(j,width_max){
 			Set_AACoeff2(width_max,selFillColorFrom, _DESCR("color next",buff_AA[1+j]), 0.0);
-			for(int i=0; i<width_max; ++i){
+			LOOP_FOR(i,width_max){
 				if(pLcd[k+i]==COLOR_TEST)
 					pLcd[k+i]= buff2_AA[1+i];
 			}
@@ -3875,9 +3877,10 @@ void LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 
 
 
-
+	return params;
 
 	#undef EASY_BOLD_CIRCLE
+	#undef COLOR_TEST
 
 	//https://dmitrymorozoff.github.io/react-circle-slider/
 	//https://stackoverflow.com/questions/78482981/custom-circular-slider-with-gradient-colour-bar-swift
