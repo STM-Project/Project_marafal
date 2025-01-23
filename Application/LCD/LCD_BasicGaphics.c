@@ -1456,7 +1456,7 @@ static void _DrawArrayBuffRightUp_AA(uint32_t drawColor, uint32_t outColor, uint
 
 static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t __x, uint32_t __y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int outColorRead)
 {
-	int matchWidth=0, circleFlag=0;													/* Circle.degColor[0] - is free space for future variable */
+	int matchWidth=0, circleFlag=0;													/* Circle.degColor[0] - is free space for future variable */			/* 'FrameColor' must not equal 'FillColor' (if equal then AA is zero) */
 	uint16_t param =width>>16;
 	uint32_t _FillColor, _width=(width&0x0000FFFF)-matchWidth;
 
@@ -1690,14 +1690,14 @@ static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,
 					if( ((deltaDeg>0)&&(deltaDeg<=180)) || (deltaDeg<-180) )
 					{
 						if((threshold[i]==0)&&(threshold[i+1]==2)){
-							pLcd[k]=GetTransitionColor(FrameColor, Circle.degColor[1+i], GetTransitionCoeff(FrameColor,FillColor,pLcd[k]));
+							pLcd[k]=GetTransitionColor(FrameColor, Circle.degColor[1+i], GetTransitionCoeff(FrameColor,FillColor,pLcd[k]));	/* 'FrameColor' must not equal 'FillColor' !!! */
 							break;
 						}
 					}
 					else
 					{
 						if((threshold[i]==0)||(threshold[i+1]==2)){
-							pLcd[k]=GetTransitionColor(FrameColor, Circle.degColor[1+i], GetTransitionCoeff(FrameColor,FillColor,pLcd[k]));
+							pLcd[k]=GetTransitionColor(FrameColor, Circle.degColor[1+i], GetTransitionCoeff(FrameColor,FillColor,pLcd[k]));	/* 'FrameColor' must not equal 'FillColor' !!! */
 							break;
 				}}}
 				k++;
@@ -3673,12 +3673,17 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 	uint8_t thickness = FrameColor>>24;		/* SHIFT_RIGHT(_FrameColor,24,FF) */
 	int width_max=0, width_min=0;
 
-	uint16_t deg[2] = {3, degree };
-	uint32_t degColor[2] = {0, COLOR_TEST };
-	LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
+	if(Percent_Circle==param){
+		uint16_t deg[2] = {0, degree };
+		uint32_t degColor[2] = {0, COLOR_TEST };
+		LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
+	}
 
-	if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FrameColor, BkpColor, 0);
-	else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FillColor,  BkpColor, 0);
+//	if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, COLOR_TEST, BkpColor, 0);
+//	else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FillColor,  BkpColor, 0);
+
+	if(param) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FillColor, BkpColor, 0);
+	else		 LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, COLOR_TEST,  BkpColor, 0);
 
 	width_max=Circle.width;
 
@@ -3686,16 +3691,17 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 		LCD_CopyCircleWidth();
    	uint32_t width_new = width-2*thickness;
 		int offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
-		if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor, FrameColor, 0);
-		else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor, FillColor,  1);
+		LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor/*ORANGE*/, unUsed, 1);
+//		if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor/*ORANGE*/, FrameColor, 0);
+//		else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor/*ORANGE*/, FillColor/*ORANGE*/,  1);
 		width_min=Circle.width;
 		LCD_SetCopyCircleWidth();
 	}
 
 	int nmbPxls=0, nmbPxlsHalf=0;
 	switch((int)fillDir){
-	case Round:  nmbPxls=360; 		  break;
-	case Center: nmbPxls=thickness; break;
+	case Round:  nmbPxls=360; break;
+	case Center: nmbPxls=CONDITION(0<thickness,thickness,width_max/2); break;
 	default:		 nmbPxls=width_max; break;
 	}
 	if(nmbPxls>=MAX_SIZE_TAB_AA-1)
@@ -3743,7 +3749,7 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
 					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
 						int temp = LCD_CIRCLE_GetRadiusFromPosXY(i-width_max/2, width_max/2 -j, 0,0);
-						temp = temp-radius_min;		if(temp>=thickness) temp=thickness-1; else if(temp<0) temp=0;
+						temp = temp-radius_min;		if(temp>=nmbPxls) temp=nmbPxls-1; else if(temp<0) temp=0;
 						pLcd[k+i]=GetTransitionColor(FrameColor, buff_AA[1+temp], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
 			}}}
 			k+=BkpSizeX;
@@ -3753,7 +3759,7 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 			LOOP_FOR(i,width_max){
 				if(pLcd[k+i]==COLOR_TEST){
 					int temp = LCD_CIRCLE_GetRadiusFromPosXY(i-width_max/2, width_max/2 -j, 0,0);
-					temp = temp-radius_min;		if(temp>=thickness) temp=thickness-1; else if(temp<0) temp=0;
+					temp = temp-radius_min;		if(temp>=nmbPxls) temp=nmbPxls-1; else if(temp<0) temp=0;
 					pLcd[k+i]= buff_AA[1+temp];
 			}}
 			k+=BkpSizeX;
@@ -3766,7 +3772,7 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 			LOOP_FOR(i,width_max){
 				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
 					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
-						int degg = LCD_CIRCLE_GetDegFromPosXY(i-width_max/2, width_max/2 -j, 0,0);
+						int degg = LCD_CIRCLE_GetDegFromPosXY(i-width_max/2, width_max/2-j, 0,0);
 						pLcd[k+i]=GetTransitionColor(FrameColor, buff_AA[1+degg], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
 			}}}
 			k+=BkpSizeX;
@@ -3775,7 +3781,7 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 		LOOP_FOR(j,width_max){
 			LOOP_FOR(i,width_max){
 				if(pLcd[k+i]==COLOR_TEST){
-					int degg = LCD_CIRCLE_GetDegFromPosXY(i-width_max/2, width_max/2 -j, 0,0);
+					int degg = LCD_CIRCLE_GetDegFromPosXY(i-width_max/2, width_max/2-j, 0,0);
 					pLcd[k+i]= buff_AA[1+degg];
 			}}
 			k+=BkpSizeX;
@@ -3832,6 +3838,10 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
 						pLcd[k+i]=GetTransitionColor(FrameColor, buff2_AA[1+i], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
 				}}
+//				if(_IS_NOT_PXL(k+i,ORANGE,FrameColor,FillColor,BkpColor)){
+//					if(_IS_NEXT_PXL(BkpSizeX,k+i,ORANGE)){
+//						pLcd[k+i]=GetTransitionColor(FrameColor, buff2_AA[1+i], GetTransitionCoeff(FrameColor,ORANGE,pLcd[k+i]));
+//				}}
 			}
 			k+=BkpSizeX;
 		}
@@ -3841,9 +3851,23 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 			LOOP_FOR(i,width_max){
 				if(pLcd[k+i]==COLOR_TEST)
 					pLcd[k+i]= buff2_AA[1+i];
+//				else if(pLcd[k+i]==ORANGE)
+//					pLcd[k+i]= buff2_AA[1+i];
 			}
 			k+=BkpSizeX;
 		}
+
+
+
+
+
+
+
+
+
+
+
+
 		break;
 	}
 	return params;
