@@ -3665,7 +3665,6 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 	if(ToStructAndReturn == posBuff)
 		return params;
 
-	#define EASY_BOLD_CIRCLE	0==param && thickness
 	#define COLOR_TEST		0x12345678
 
 	uint32_t width = _width&0xFFFF;			/* MASK(_width,FFFF) */
@@ -3679,9 +3678,6 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 		LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
 	}
 
-//	if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, COLOR_TEST, BkpColor, 0);
-//	else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FillColor,  BkpColor, 0);
-
 	if(param) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FillColor, BkpColor, 0);
 	else		 LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, COLOR_TEST,  BkpColor, 0);
 
@@ -3692,8 +3688,6 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
    	uint32_t width_new = width-2*thickness;
 		int offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
 		LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor/*ORANGE*/, unUsed, 1);
-//		if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor/*ORANGE*/, FrameColor, 0);
-//		else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor/*ORANGE*/, FillColor/*ORANGE*/,  1);
 		width_min=Circle.width;
 		LCD_SetCopyCircleWidth();
 	}
@@ -3838,7 +3832,7 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
 						pLcd[k+i]=GetTransitionColor(FrameColor, buff2_AA[1+i], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
 				}}
-//				if(_IS_NOT_PXL(k+i,ORANGE,FrameColor,FillColor,BkpColor)){
+//				if(_IS_NOT_PXL(k+i,ORANGE,FrameColor,FillColor,BkpColor)){  //tylko dla no percent !!!!!
 //					if(_IS_NEXT_PXL(BkpSizeX,k+i,ORANGE)){
 //						pLcd[k+i]=GetTransitionColor(FrameColor, buff2_AA[1+i], GetTransitionCoeff(FrameColor,ORANGE,pLcd[k+i]));
 //				}}
@@ -3871,7 +3865,6 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 		break;
 	}
 	return params;
-	#undef EASY_BOLD_CIRCLE
 	#undef COLOR_TEST
 	//https://dmitrymorozoff.github.io/react-circle-slider/
 	//https://stackoverflow.com/questions/78482981/custom-circular-slider-with-gradient-colour-bar-swift
