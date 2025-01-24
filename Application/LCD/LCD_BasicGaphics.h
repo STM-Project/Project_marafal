@@ -25,6 +25,8 @@ typedef uint32_t u16;
 #define CIRCLE_POS_XY(width,offsX,offsY)		LCD_GetXSize()-LCD_CalculateCircleWidth(width)-(offsX), LCD_GetYSize()-LCD_CalculateCircleWidth(width)-(offsY)
 #define SetBold2Color(frameColor,thickness)		(((frameColor)&0xFFFFFF) | (((((uint32_t)(thickness))<<24)&0xFF000000)))
 
+#define SHAPE_IN_SHAPE_AA_OFF 	1	 /* frame of inShape is covered by mainShape */
+
 enum CircleParam{
 	Half_Circle_0,
 	Half_Circle_90,
@@ -164,7 +166,7 @@ uint16_t LCD_GetNextDecrCircleWidth(uint32_t width);
 structPosition GetCircleMiddPoint(uint16_t *radius);
 
 void LCD_Circle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
-SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor,u32 selFillColorFrom,u32 selFillColor,u32 selFillColorTo,u16 degree,DIRECTIONS fillDir, int outColorRead);
+SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor,u32 selFillColorFrom,u32 selFillColor,u32 selFillColorTo,u16 degree,DIRECTIONS fillDir, u32 outColorRead);
 void LCD_HalfCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
 
 /* ------- Selected Figures ------------------*/
