@@ -2268,7 +2268,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	LCD_Circle____(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(_DESCR("kolor nie istotny",WHITE),0), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown, 1|(SHAPE_IN_SHAPE_AA_OFF<<1));
 
 
-	LCD_Circle____(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-500, LCD_Y-calcWidth-50, SetParamWidthCircle(0/*Percent_Circle*/,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,30), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown,0);
+	LCD_Circle____(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-500, LCD_Y-calcWidth-50, SetParamWidthCircle(0/*Percent_Circle*/,CircleWidth),CircleWidth, SetBold2Color(WHITE,30), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown,0);
 
 	LCD_Circle____(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-150, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,350,Left,0);
 	LCD_Circle____(0,LCD_X,LCD_Y,LCD_X-calcWidth-10, LCD_Y-calcWidth-50,     SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,355,Right,0);
