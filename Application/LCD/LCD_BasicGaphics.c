@@ -3669,24 +3669,18 @@ static int LCD_CIRCLE_GetRadiusFromPosXY(int x,int y, int x0,int y0){
 #define _IS_NOT_PXL(i,color1,color2,color3,color4)		(pLcd[i]!=color1 && pLcd[i]!=color2 && pLcd[i]!=color3 && pLcd[i]!=color4)
 #define _IS_NEXT_PXL(bkX,i,color)	(pLcd[(i)+1]==color || pLcd[(i)-1]==color || pLcd[(i)+bkX]==color || pLcd[(i)-bkX]==color || pLcd[(i)+bkX+1]==color || pLcd[(i)+bkX-1]==color || pLcd[(i)-bkX+1]==color || pLcd[(i)-bkX-1]==color)
 
-	void _SSSS(int k, u32 bkX, u32 colorPxl)
-	{
-		structPosition pos={0};
-		int maxPxls=1, n=0, h=2*(3*2);
-
-		for(int j=-2; j<3; ++j){
-			for(int i=-2; i<3; ++i){
-				if(pLcd[k+(j*BkpSizeX)+i]==colorPxl){
-					if(ABS(i)+ABS(j) < h){
-						pos.x=i;
-						pos.y=j;
-					}
-				}
-			}
-		}
-
-
-	}
+static u32 GetPxlAround(u32 k, u32 bkX, int maxPxls, u32 colorPxl){
+	int radiusMin=2*(maxPxls+1), p=0, k_new=0;
+	for(int j=-maxPxls; j<maxPxls+1; ++j){
+		p=k+j*bkX;
+		for(int i=-maxPxls; i<maxPxls+1; ++i){
+			if(pLcd[p+i]==colorPxl){
+				if(ABS(i)+ABS(j) < radiusMin){
+					radiusMin=ABS(i)+ABS(j);
+					k_new=p+i;
+	}}}}
+	return k_new;
+}
 
 SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor,u32 selFillColorFrom,u32 selFillColor,u32 selFillColorTo,u16 degree,DIRECTIONS fillDir,u32 outColorRead)
 {
@@ -3744,6 +3738,13 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 
 
 	}
+
+
+
+
+
+
+
 
 	int nmbPxls=0, nmbPxlsHalf=0;
 	switch((int)fillDir){
@@ -3897,6 +3898,19 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 				}
 				k+=BkpSizeX;
 			}
+
+			_StartDrawLine(posBuff,BkpSizeX,x,y);
+			LOOP_FOR(j,width_max){
+				LOOP_FOR(i,width_max){
+					if(pLcd[k+i]==FrameColor){
+						uint32_t k_temp=GetPxlAround(k+i,BkpSizeX,2,COLOR_TEST);
+						if(k_temp>0)
+							pLcd[k_temp]=YELLOW;
+					}
+				}
+				k+=BkpSizeX;
+			}
+
 			_StartDrawLine(posBuff,BkpSizeX,x,y);
 			LOOP_FOR(j,width_max){
 				Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
