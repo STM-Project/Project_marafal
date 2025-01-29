@@ -90,6 +90,11 @@ typedef enum{
 	Rectangle
 }SHAPE_TYPES;
 
+#define K_TAB_SIZE 	4
+typedef struct{
+	u32 k[K_TAB_SIZE];
+}structK;
+
 extern uint32_t LCD_GetXSize(void);
 extern uint32_t LCD_GetYSize(void);
 
