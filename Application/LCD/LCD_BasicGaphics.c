@@ -3669,17 +3669,34 @@ static int LCD_CIRCLE_GetRadiusFromPosXY(int x,int y, int x0,int y0){
 #define _IS_NOT_PXL(i,color1,color2,color3,color4)		(pLcd[i]!=color1 && pLcd[i]!=color2 && pLcd[i]!=color3 && pLcd[i]!=color4)
 #define _IS_NEXT_PXL(bkX,i,color)	(pLcd[(i)+1]==color || pLcd[(i)-1]==color || pLcd[(i)+bkX]==color || pLcd[(i)-bkX]==color || pLcd[(i)+bkX+1]==color || pLcd[(i)+bkX-1]==color || pLcd[(i)-bkX+1]==color || pLcd[(i)-bkX-1]==color)
 
-static u32 GetPxlAround(u32 k, u32 bkX, int maxPxls, u32 colorPxl){
-	int radiusMin=2*(maxPxls+1), p=0, k_new=0;
+static structK GetPxlAround(u32 k, u32 bkX, int maxPxls, u32 colorPxl){
+	structPosition pos={0};
+	structK posK={0};
+	int radiusMin=2*(maxPxls+1), p=0;
 	for(int j=-maxPxls; j<maxPxls+1; ++j){
 		p=k+j*bkX;
 		for(int i=-maxPxls; i<maxPxls+1; ++i){
 			if(pLcd[p+i]==colorPxl){
 				if(ABS(i)+ABS(j) < radiusMin){
 					radiusMin=ABS(i)+ABS(j);
-					k_new=p+i;
+					pos.x=i;
+					pos.y=j;
 	}}}}
-	return k_new;
+	posK.k[0]= k +  (pos.y)	 *bkX +  (pos.x);
+	posK.k[1]= k +  (pos.y/2)*bkX +  (pos.x/2);
+	posK.k[2]= k + (-pos.y/2)*bkX + (-pos.x/2);
+	posK.k[3]= k + (-pos.y)	 *bkX + (-pos.x);
+
+	if(pLcd[posK.k[0]]==colorPxl)
+		asm("nop");
+	if(pLcd[posK.k[1]]==colorPxl)
+		asm("nop");
+	if(pLcd[posK.k[2]]==colorPxl)
+		asm("nop");
+	if(pLcd[posK.k[3]]==colorPxl)
+		asm("nop");
+
+	return posK;
 }
 
 SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor,u32 selFillColorFrom,u32 selFillColor,u32 selFillColorTo,u16 degree,DIRECTIONS fillDir,u32 outColorRead)
@@ -3901,11 +3918,21 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 
 			_StartDrawLine(posBuff,BkpSizeX,x,y);
 			LOOP_FOR(j,width_max){
+				Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
 				LOOP_FOR(i,width_max){
 					if(pLcd[k+i]==FrameColor){
-						uint32_t k_temp=GetPxlAround(k+i,BkpSizeX,2,COLOR_TEST);
-						if(k_temp>0)
-							pLcd[k_temp]=YELLOW;
+						structK temp=GetPxlAround(k+i,BkpSizeX,2,COLOR_TEST);
+						if(temp.k[0]>0)
+							pLcd[temp.k[0]]=YELLOW;
+
+
+
+
+						//pLcd[k+i]  = GetTransitionColor( pLcd[temp.k[0]], pLcd[temp.k[3]], 0.5);
+
+						//pLcd[temp.k[1]]  =  GetTransitionColor( pLcd[k+i], pLcd[temp.k[0]], 0.5);
+
+						//pLcd[temp.k[2]]  = GetTransitionColor( pLcd[k+i], pLcd[temp.k[3]], 0.5);
 					}
 				}
 				k+=BkpSizeX;
@@ -3927,8 +3954,30 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 
 
 
-
-
+/*
+			int offs=width_max/2-1;   // InShape width White borde
+			_StartDrawLine(posBuff,BkpSizeX,x,y);
+			LOOP_FOR(j,width_max){
+				Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
+				LOOP_FOR(i,width_max){
+					if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
+						if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
+							pLcd[k+i]=GetTransitionColor(FrameColor, buff2_AA[1+i], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
+						}
+					}
+				}
+				k+=BkpSizeX;
+			}
+			_StartDrawLine(posBuff,BkpSizeX,x,y);
+			LOOP_FOR(j,width_max){
+				Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
+				LOOP_FOR(i,width_max){
+					if(pLcd[k+i]==COLOR_TEST)
+						pLcd[k+i]= buff2_AA[1+i];
+				}
+				k+=BkpSizeX;
+			}
+*/
 		}
 		else
 		{
