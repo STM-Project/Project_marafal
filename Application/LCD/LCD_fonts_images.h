@@ -171,6 +171,7 @@ enum RoundRectangleBkFont
 	BK_Rectangle,
 	BK_Round,
 	BK_LittleRound,
+	BK_None,
 };
 
 enum DESCR_DIRECTION{
