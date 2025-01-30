@@ -3745,7 +3745,7 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 		width_new = width-2*(thickness-1);
 		offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
 
-		params.pos[0].x	= x+offs;
+		params.pos[0].x	= x+offs;  //UREGULUJ TO!!!!
 		params.pos[0].y	= y+offs;
 		params.size[0].w	= width_new;
 		params.size[0].h	= width_new;
@@ -3905,65 +3905,6 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 						if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
 							pLcd[k+i]=GetTransitionColor(FrameColor, buff2_AA[1+i], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
 						}
-//						else if(_IS_NEXT_PXL(BkpSizeX,k+i,BkpColor)){
-//							pLcd[k+i]=GetTransitionColor(buff2_AA[1+i], BkpColor, GetTransitionCoeff(FrameColor,BkpColor,pLcd[k+i]));
-//						}
-//						else if(_IS_NEXT_PXL(BkpSizeX,k+i,FrameColor)){
-//							pLcd[k+i]=GetTransitionColor(buff2_AA[1+i], buff2_AA[1+i+2], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
-//						}
-					}
-				}
-				k+=BkpSizeX;
-			}
-
-			_StartDrawLine(posBuff,BkpSizeX,x,y);
-			LOOP_FOR(j,width_max){
-				Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
-				LOOP_FOR(i,width_max){
-					if(pLcd[k+i]==FrameColor){
-						structK temp=GetPxlAround(k+i,BkpSizeX,2,COLOR_TEST);
-						if(temp.k[0]>0)
-							pLcd[temp.k[0]]=YELLOW;
-
-
-
-
-						//pLcd[k+i]  = GetTransitionColor( pLcd[temp.k[0]], pLcd[temp.k[3]], 0.5);
-
-						//pLcd[temp.k[1]]  =  GetTransitionColor( pLcd[k+i], pLcd[temp.k[0]], 0.5);
-
-						//pLcd[temp.k[2]]  = GetTransitionColor( pLcd[k+i], pLcd[temp.k[3]], 0.5);
-					}
-				}
-				k+=BkpSizeX;
-			}
-
-			_StartDrawLine(posBuff,BkpSizeX,x,y);
-			LOOP_FOR(j,width_max){
-				Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
-				LOOP_FOR(i,width_max){
-					if(pLcd[k+i]==COLOR_TEST)
-						pLcd[k+i]= buff2_AA[1+i];
-//					else if(pLcd[k+i]==FrameColor)   //tylko dla no percent !!!!!
-//						pLcd[k+i]= buff2_AA[1+i];
-				}
-				k+=BkpSizeX;
-			}
-
-
-
-
-
-/*
-			int offs=width_max/2-1;   // InShape width White borde
-			_StartDrawLine(posBuff,BkpSizeX,x,y);
-			LOOP_FOR(j,width_max){
-				Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
-				LOOP_FOR(i,width_max){
-					if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
-						if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
-							pLcd[k+i]=GetTransitionColor(FrameColor, buff2_AA[1+i], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
-						}
 					}
 				}
 				k+=BkpSizeX;
@@ -3977,7 +3918,7 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 				}
 				k+=BkpSizeX;
 			}
-*/
+
 		}
 		else
 		{
@@ -4006,42 +3947,6 @@ SHAPE_PARAMS LCD_Circle____(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY
 			}
 
 		}
-
-
-
-
-//	case RightDown: case LeftUp:
-//		int offs=width_max/2-1;
-//		_StartDrawLine(posBuff,BkpSizeX,x,y);
-//		LOOP_FOR(j,width_max){
-//			Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
-//			LOOP_FOR(i,width_max){
-//				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
-//					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
-//						//pLcd[k+i]=GetTransitionColor(FrameColor, buff2_AA[1+i], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
-//						pLcd[k+i]=GetTransitionColor(buff2_AA[1+i], buff2_AA[1+i], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
-//					}
-//					else if(_IS_NEXT_PXL(BkpSizeX,k+i,BkpColor)){
-//						pLcd[k+i]=GetTransitionColor(buff2_AA[1+i], BkpColor, GetTransitionCoeff(FrameColor,BkpColor,pLcd[k+i]));
-//					}
-//					else if(_IS_NEXT_PXL(BkpSizeX,k+i,FrameColor)){
-//						pLcd[k+i]=GetTransitionColor(buff2_AA[1+i], buff2_AA[1+i+2], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
-//					}
-//				}
-//			}
-//			k+=BkpSizeX;
-//		}
-//		_StartDrawLine(posBuff,BkpSizeX,x,y);
-//		LOOP_FOR(j,width_max){
-//			Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
-//			LOOP_FOR(i,width_max){
-//				if(pLcd[k+i]==COLOR_TEST)
-//					pLcd[k+i]= buff2_AA[1+i];
-//				else if(pLcd[k+i]==FrameColor)   //tylko dla no percent !!!!!
-//					pLcd[k+i]= buff2_AA[1+i];
-//			}
-//			k+=BkpSizeX;
-//		}
 
 		break;
 	}
