@@ -1869,7 +1869,7 @@ StructTxtPxlLen LCD_StrVar(int idVar,int fontID, int Xpos, int Ypos, char *txt, 
 	FontVar[idVar].bkScreenColor = bkScreenColor;
 	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
 	{
-		temp = LCD_Str(FontVar[idVar].bkRoundRect ? fontID|(idVar<<16) : fontID, Xpos,Ypos,txt,OnlyDigits,space,bkColor,coeff,constWidth);
+		temp = LCD_Str( fontID|(idVar<<16)/*FontVar[idVar].bkRoundRect ? fontID|(idVar<<16) : fontID*/, Xpos,Ypos,txt,OnlyDigits,space,bkColor,coeff,constWidth);
 		if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0)){
 			FontVar[idVar].bkScreenColor = bkScreenColor_copy;
 			return temp;
@@ -2030,7 +2030,7 @@ static void LCD_DimensionBkCorrect(int idVar, StructTxtPxlLen temp, uint32_t *Lc
 
 StructTxtPxlLen LCD_StrVarIndirect(int idVar, char *txt){
 	StructTxtPxlLen temp;
-	temp = LCD_StrIndirect( (FontVar[idVar].bkRoundRect ? FontVar[idVar].id|(idVar<<16) : FontVar[idVar].id), FontVar[idVar].xPos,FontVar[idVar].yPos,txt,FontVar[idVar].heightType,FontVar[idVar].space,FontVar[idVar].bkColor,FontVar[idVar].coeff,FontVar[idVar].widthType);
+	temp = LCD_StrIndirect( FontVar[idVar].id|(idVar<<16)/*(FontVar[idVar].bkRoundRect ? FontVar[idVar].id|(idVar<<16) : FontVar[idVar].id)*/, FontVar[idVar].xPos,FontVar[idVar].yPos,txt,FontVar[idVar].heightType,FontVar[idVar].space,FontVar[idVar].bkColor,FontVar[idVar].coeff,FontVar[idVar].widthType);
 	if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0))
 		return temp;
 	LCD_DimensionBkCorrect(idVar,temp,pLcd);
@@ -2043,7 +2043,7 @@ StructTxtPxlLen LCD_StrChangeColorVar(int idVar,int fontID, int Xpos, int Ypos, 
 	FontVar[idVar].bkScreenColor = bkScreenColor;
 	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
 	{
-		temp = LCD_StrChangeColor(FontVar[idVar].bkRoundRect ? fontID|(idVar<<16) : fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+		temp = LCD_StrChangeColor( fontID|(idVar<<16)/*FontVar[idVar].bkRoundRect ? fontID|(idVar<<16) : fontID*/,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 		if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0)){
 			FontVar[idVar].bkScreenColor = bkScreenColor_copy;
 			return temp;
@@ -2172,7 +2172,7 @@ StructTxtPxlLen LCD_StrChangeColorDescrVar(int idVar,int fontID, int Xpos, 		int
 
 StructTxtPxlLen LCD_StrChangeColorVarIndirect(int idVar, char *txt){
 	StructTxtPxlLen temp;
-	temp = LCD_StrChangeColorIndirect( (FontVar[idVar].bkRoundRect ? FontVar[idVar].id|(idVar<<16) : FontVar[idVar].id), FontVar[idVar].xPos,FontVar[idVar].yPos,txt,FontVar[idVar].heightType,FontVar[idVar].space,FontVar[idVar].bkColor,FontVar[idVar].fontColor,FontVar[idVar].coeff,FontVar[idVar].widthType);
+	temp = LCD_StrChangeColorIndirect( FontVar[idVar].id|(idVar<<16)/*(FontVar[idVar].bkRoundRect ? FontVar[idVar].id|(idVar<<16) : FontVar[idVar].id)*/, FontVar[idVar].xPos,FontVar[idVar].yPos,txt,FontVar[idVar].heightType,FontVar[idVar].space,FontVar[idVar].bkColor,FontVar[idVar].fontColor,FontVar[idVar].coeff,FontVar[idVar].widthType);
 	if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0))
 		return temp;
 	LCD_DimensionBkCorrect(idVar,temp,pLcd);
@@ -3727,7 +3727,7 @@ StructTxtPxlLen LCD_StrDependOnColorsDescrVar(int idVar,int fontID, uint32_t fon
 
 StructTxtPxlLen LCD_StrDependOnColorsVarIndirect(int idVar, char *txt){
 	StructTxtPxlLen temp;
-	temp = LCD_StrDependOnColorsIndirect( (FontVar[idVar].bkRoundRect ? FontVar[idVar].id|(idVar<<16) : FontVar[idVar].id), FontVar[idVar].xPos,FontVar[idVar].yPos,txt,FontVar[idVar].heightType,FontVar[idVar].space,FontVar[idVar].bkColor,FontVar[idVar].fontColor,FontVar[idVar].coeff,FontVar[idVar].widthType);
+	temp = LCD_StrDependOnColorsIndirect( FontVar[idVar].id|(idVar<<16)/*(FontVar[idVar].bkRoundRect ? FontVar[idVar].id|(idVar<<16) : FontVar[idVar].id)*/, FontVar[idVar].xPos,FontVar[idVar].yPos,txt,FontVar[idVar].heightType,FontVar[idVar].space,FontVar[idVar].bkColor,FontVar[idVar].fontColor,FontVar[idVar].coeff,FontVar[idVar].widthType);
 	if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0))
 		return temp;
 	LCD_DimensionBkCorrect(idVar,temp,pLcd);
