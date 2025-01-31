@@ -173,21 +173,21 @@ void NOWY_2(void)  //dac mozliwosc zablokowania Dbg definem!!!
 	LCD_LoadFont_DarkgrayGreen(FONT_14, Arial, fontID_7);
 
 
-	lenStr=LCD_StrRotVar(fontVar_1,Rotate_0,fontID_6,  LCD_Xpos(lenStr,SetPos,5),LCD_Ypos(lenStr,SetPos,5), INT2STR(test[0]), halfHight, 0,DARKRED,1,ConstWidth,bkColor);
+	lenStr=LCD_StrRotVar(fontVar_1,Rotate_0,fontID_6,  LCD_Xpos(lenStr,SetPos,5),LCD_Ypos(lenStr,SetPos,5), INT2STR(test[0]), halfHight, 0,DARKRED,0,ConstWidth,bkColor);
 	LCD_Frame(0,LCD_GetXSize(),LCD_GetYSize(),			LCD_Xpos(lenStr,GetPos,-1),LCD_Ypos(lenStr,GetPos,-1), lenStr.inPixel+2,lenStr.height+2,WHITE,0,0);
 
 	lenStr=LCD_StrChangeColorRotVar(fontVar_2,Rotate_0,fontID_7, LCD_Xpos(lenStr,IncPos,5),LCD_Ypos(lenStr,GetPos,0), INT2STR(test[1]), halfHight, 0,GRAY,MYBLUE,249,ConstWidth,bkColor);
 	LCD_Frame(0,LCD_GetXSize(),LCD_GetYSize(),						LCD_Xpos(lenStr,GetPos,-1),LCD_Ypos(lenStr,GetPos,-1), lenStr.inPixel+2,lenStr.height+2,WHITE,0,0);
 
 
-	lenStr=LCD_StrRotVar(fontVar_3,Rotate_90,fontID_6, LCD_Xpos(lenStr,SetPos,5),LCD_Ypos(lenStr,IncPos,10), INT2STR(test[2]), halfHight, 0,DARKRED,1,ConstWidth,bkColor);
+	lenStr=LCD_StrRotVar(fontVar_3,Rotate_90,fontID_6, LCD_Xpos(lenStr,SetPos,5),LCD_Ypos(lenStr,IncPos,10), INT2STR(test[2]), halfHight, 0,DARKRED,0,ConstWidth,bkColor);
 	LCD_Frame(0,LCD_GetXSize(),LCD_GetYSize(),			LCD_Xpos(lenStr,GetPos,-1),LCD_Ypos(lenStr,GetPos,-1), lenStr.inPixel+2,lenStr.height+2,WHITE,0,0);
 
 	lenStr=LCD_StrChangeColorRotVar(fontVar_4,Rotate_90,fontID_7, LCD_Xpos(lenStr,IncPos,5),LCD_Ypos(lenStr,GetPos,0), INT2STR(test[3]), halfHight, 0,GRAY,MYBLUE,249,ConstWidth,bkColor);
 	LCD_Frame(0,LCD_GetXSize(),LCD_GetYSize(),						 LCD_Xpos(lenStr,GetPos,-1),LCD_Ypos(lenStr,GetPos,-1), lenStr.inPixel+2,lenStr.height+2,WHITE,0,0);
 
 
-	lenStr=LCD_StrRotVar(fontVar_5,Rotate_180,fontID_6,  LCD_Xpos(lenStr,SetPos,5),LCD_Ypos(lenStr,IncPos,10), INT2STR(test[4]), halfHight, 0,DARKRED,1,ConstWidth,bkColor);
+	lenStr=LCD_StrRotVar(fontVar_5,Rotate_180,fontID_6,  LCD_Xpos(lenStr,SetPos,5),LCD_Ypos(lenStr,IncPos,10), INT2STR(test[4]), halfHight, 0,DARKRED,0,ConstWidth,bkColor);
 	LCD_Frame(0,LCD_GetXSize(),LCD_GetYSize(),			LCD_Xpos(lenStr,GetPos,-1),LCD_Ypos(lenStr,GetPos,-1), lenStr.inPixel+2,lenStr.height+2,WHITE,0,0);
 
 	lenStr=LCD_StrChangeColorRotVar(fontVar_6,Rotate_180,fontID_7, LCD_Xpos(lenStr,IncPos,5),LCD_Ypos(lenStr,GetPos,0), INT2STR(test[5]), halfHight, 0,GRAY,MYBLUE,249,ConstWidth,bkColor);
@@ -294,9 +294,9 @@ void NOWY_3(void)  //dac mozliwosc zablokowania Dbg definem!!!
 
 // ZMIENIC lOGIKE width i heght gdy tot80 lub 90 !!!
 
-	lenStr=LCD_StrMovH(fontVar_1,Rotate_0,0,109,   fontID_6,  100,0,"AAA11111111111222222222222222 33333333333333333333A",fullHight,0,DARKBLUE,1,1);
-	lenStr=LCD_StrMovH(fontVar_2,Rotate_90,0,109,   fontID_6, 0,0,"BBB1111111111222222222222222 33333333333333333333B",fullHight,0,DARKBLUE,1,1);
-	lenStr=LCD_StrMovH(fontVar_3,Rotate_180,0,109,   fontID_6, 50,0,"CCCC11111111111222222222222222 33333333333333333333C",fullHight,0,DARKBLUE,1,1);
+	lenStr=LCD_StrMovH(fontVar_1,Rotate_0,0,109,   fontID_6,  100,0,"AAA11111111111222222222222222 33333333333333333333A",fullHight,0,DARKBLUE,0,1);
+	lenStr=LCD_StrMovH(fontVar_2,Rotate_90,0,109,   fontID_6, 0,0,"BBB1111111111222222222222222 33333333333333333333B",fullHight,0,DARKBLUE,0,1);
+	lenStr=LCD_StrMovH(fontVar_3,Rotate_180,0,109,   fontID_6, 50,0,"CCCC11111111111222222222222222 33333333333333333333C",fullHight,0,DARKBLUE,0,1);
 
 	lenStr=LCD_StrChangeColorMovH(fontVar_4,Rotate_0,0,80,fontID_7, 100,50,"Zeszyty i ksi��ki to podr�czniki do szko�y dla ��o�A_XY",fullHight,0,DARKYELLOW,DARKRED,254,0);
 	lenStr=LCD_StrChangeColorMovH(fontVar_5,Rotate_90,0,80,fontID_7, 400,0,"Zeszyty i ksi��ki to podr�czniki do szko�y dla ��o�A_XY",fullHight,0,DARKYELLOW,DARKRED,254,0);
@@ -304,13 +304,13 @@ void NOWY_3(void)  //dac mozliwosc zablokowania Dbg definem!!!
 
 
 	lenStr=LCD_StrChangeColorMovV(fontVar_7,Rotate_0,0,100,50,fontID_7,100,100,"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  SEX _XY",fullHight,0,LIGHTGRAY,DARKBLUE,249,0);
-	lenStr=LCD_StrMovV           (fontVar_8,Rotate_0,0,100,50,fontID_6,210,100,"1234567890 abcdefghijklnn opqrstuvw ABCDEFGHIJKLMNOPQRTSUVWXYZ iiiiiiiiiiiijjjjjjjjjjjjSSSSSSSSSSEEEEEEEEEERRRRRRRRRA _XY",fullHight,0,MYGRAY,1,0);
+	lenStr=LCD_StrMovV           (fontVar_8,Rotate_0,0,100,50,fontID_6,210,100,"1234567890 abcdefghijklnn opqrstuvw ABCDEFGHIJKLMNOPQRTSUVWXYZ iiiiiiiiiiiijjjjjjjjjjjjSSSSSSSSSSEEEEEEEEEERRRRRRRRRA _XY",fullHight,0,MYGRAY,0,0);
 
 	lenStr=LCD_StrChangeColorMovV(fontVar_9,Rotate_90,0,100,50,fontID_7,0,160,"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  SEX _XY",fullHight,0,LIGHTGRAY,DARKBLUE,249,0);
-	lenStr=LCD_StrMovV           (fontVar_10,Rotate_90,0,100,50,fontID_6,110,160,"1234567890 abcdefghijklnn opqrstuvw ABCDEFGHIJKLMNOPQRTSUVWXYZ iiiiiiiiiiiijjjjjjjjjjjjSSSSSSSSSSEEEEEEEEEERRRRRRRRRA _XY",fullHight,0,MYGRAY,1,0);
+	lenStr=LCD_StrMovV           (fontVar_10,Rotate_90,0,100,50,fontID_6,110,160,"1234567890 abcdefghijklnn opqrstuvw ABCDEFGHIJKLMNOPQRTSUVWXYZ iiiiiiiiiiiijjjjjjjjjjjjSSSSSSSSSSEEEEEEEEEERRRRRRRRRA _XY",fullHight,0,MYGRAY,0,0);
 
 	lenStr=LCD_StrChangeColorMovV(fontVar_11,Rotate_180,0,100,50,fontID_7,220,160,"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  SEX _XY",fullHight,0,LIGHTGRAY,DARKBLUE,249,0);
-	lenStr=LCD_StrMovV           (fontVar_12,Rotate_180,0,100,50,fontID_6,330,160,"1234567890 abcdefghijklnn opqrstuvw ABCDEFGHIJKLMNOPQRTSUVWXYZ iiiiiiiiiiiijjjjjjjjjjjjSSSSSSSSSSEEEEEEEEEERRRRRRRRRA _XY",fullHight,0,MYGRAY,1,0);
+	lenStr=LCD_StrMovV           (fontVar_12,Rotate_180,0,100,50,fontID_6,330,160,"1234567890 abcdefghijklnn opqrstuvw ABCDEFGHIJKLMNOPQRTSUVWXYZ iiiiiiiiiiiijjjjjjjjjjjjSSSSSSSSSSEEEEEEEEEERRRRRRRRRA _XY",fullHight,0,MYGRAY,0,0);
 
 
 
@@ -431,12 +431,12 @@ static void SCREEN_Test_Circle(void)
 	LCD_SetCirclePercentParam(7,Circle.deg,Circle.degColor);
 	LCD_Clear(RGB2INT(Circle.bk[0],Circle.bk[1],Circle.bk[2]));
 
-	lenStr=LCD_Str(fontID_1, LCD_Xpos(lenStr,SetPos,0),  LCD_Ypos(lenStr,SetPos,0), StrAll(2,"Radius } | ",Int2Str(Circle.width/2,' ',3,Sign_none)), 	 fullHight,0,_BkColor(),1,1);
+	lenStr=LCD_Str(fontID_1, LCD_Xpos(lenStr,SetPos,0),  LCD_Ypos(lenStr,SetPos,0), StrAll(2,"Radius } | ",Int2Str(Circle.width/2,' ',3,Sign_none)), 	 fullHight,0,_BkColor(),0,1);
 	lenStr=LCD_Str(fontID_2, LCD_Xpos(lenStr,IncPos,10), LCD_Ypos(lenStr,GetPos,0), StrAll(2,"angle:",INT2STR_TIME(Circle.deg[0])),fullHight,0,_BkColor(),1,0);
-	lenStr=LCD_Str(fontID_1, LCD_Xpos(lenStr,SetPos,0), LCD_Ypos(lenStr,IncPos,8), StrAll(6,"Frame: ",INT2STR(Circle.frame[0])," ",INT2STR(Circle.frame[1])," ",INT2STR(Circle.frame[2])),  halfHight,0,_BkColor(),1,1);
-	lenStr=LCD_Str(fontID_1, LCD_Xpos(lenStr,GetPos,0), LCD_Ypos(lenStr,IncPos,5), StrAll(6,"Fill:  ",INT2STR(Circle.fill[0]), " ",INT2STR(Circle.fill[1]), " ",INT2STR(Circle.fill[2])),   halfHight,0,_BkColor(),1,1);
-	lenStr=LCD_Str(fontID_1, LCD_Xpos(lenStr,GetPos,0), LCD_Ypos(lenStr,IncPos,5), StrAll(6,"Backup:",INT2STR(Circle.bk[0]),   " ",INT2STR(Circle.bk[1]),   " ",INT2STR(Circle.bk[2])),   halfHight,0,_BkColor(),1,1);
-	lenStr=LCD_Str(fontID_2, LCD_Xpos(lenStr,GetPos,0), LCD_Ypos(lenStr,IncPos,5), StrAll(4,"AA out:",Float2Str(Circle.ratioBk,' ',1,Sign_none,2),"  AA in:",Float2Str(Circle.ratioFill,' ',1,Sign_none,2)), 	 halfHight,0,_BkColor(),1,1);
+	lenStr=LCD_Str(fontID_1, LCD_Xpos(lenStr,SetPos,0), LCD_Ypos(lenStr,IncPos,8), StrAll(6,"Frame: ",INT2STR(Circle.frame[0])," ",INT2STR(Circle.frame[1])," ",INT2STR(Circle.frame[2])),  halfHight,0,_BkColor(),0,1);
+	lenStr=LCD_Str(fontID_1, LCD_Xpos(lenStr,GetPos,0), LCD_Ypos(lenStr,IncPos,5), StrAll(6,"Fill:  ",INT2STR(Circle.fill[0]), " ",INT2STR(Circle.fill[1]), " ",INT2STR(Circle.fill[2])),   halfHight,0,_BkColor(),0,1);
+	lenStr=LCD_Str(fontID_1, LCD_Xpos(lenStr,GetPos,0), LCD_Ypos(lenStr,IncPos,5), StrAll(6,"Backup:",INT2STR(Circle.bk[0]),   " ",INT2STR(Circle.bk[1]),   " ",INT2STR(Circle.bk[2])),   halfHight,0,_BkColor(),1,0);
+	lenStr=LCD_Str(fontID_2, LCD_Xpos(lenStr,GetPos,0), LCD_Ypos(lenStr,IncPos,5), StrAll(4,"AA out:",Float2Str(Circle.ratioBk,' ',1,Sign_none,2),"  AA in:",Float2Str(Circle.ratioFill,' ',1,Sign_none,2)), 	 halfHight,0,_BkColor(),0,1);
 
 	if(Circle.bold > Circle.width/2-1)
 		Circle.bold= Circle.width/2-1;
@@ -459,8 +459,8 @@ static void SCREEN_Test_Circle(void)
 
 	Circle.speed=StopMeasureTime_us("");
 
-	lenStr=LCD_Str(fontID_2, LCD_Xpos(lenStr,GetPos,0), LCD_Ypos(lenStr,IncPos,8), StrAll(5,"Speed Max: ",INT2STR_TIME(Circle.speed)," us    Speed Sum: ",INT2STR_TIME(Circle.speedSum)," us"), 	 halfHight,0,_BkColor(),1,1);
-	lenStr=LCD_Str(fontID_2, LCD_Xpos(lenStr,GetPos,0), LCD_Ypos(lenStr,IncPos,8), StrAll(2,"Bold: ",Int2Str(Circle.bold,' ',2,Sign_none)), halfHight,0,_BkColor(),1,1);
+	lenStr=LCD_Str(fontID_2, LCD_Xpos(lenStr,GetPos,0), LCD_Ypos(lenStr,IncPos,8), StrAll(5,"Speed Max: ",INT2STR_TIME(Circle.speed)," us    Speed Sum: ",INT2STR_TIME(Circle.speedSum)," us"), 	 halfHight,0,_BkColor(),0,1);
+	lenStr=LCD_Str(fontID_2, LCD_Xpos(lenStr,GetPos,0), LCD_Ypos(lenStr,IncPos,8), StrAll(2,"Bold: ",Int2Str(Circle.bold,' ',2,Sign_none)), halfHight,0,_BkColor(),0,1);
 	LCD_Show();
 
 /*	__Show_FrameAndCircle_Indirect(CIRCLE_POS_XY(Circle.width,10,20), Circle.width, Circle.bold);
