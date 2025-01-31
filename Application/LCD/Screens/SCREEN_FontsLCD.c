@@ -589,11 +589,11 @@ static void SetCursor(void)  //KURSOR DLA BIG FONT DAC PODWOJNY !!!!!
 		uint32_t color;
 		switch(Test.type)
 		{
-			case 0:  color=RGB_FONT; break;
-			case 1:  color=MYGREEN; break;
-			case 2:  color=WHITE; 	break;
-			case 3:
-			default: color=BLACK; 	break;
+			case RGB_RGB:  	color=RGB_FONT; break;
+			case Gray_Green:  color=MYGREEN;  break;
+			case RGB_White:  	color=WHITE; 	 break;
+			case White_Black:
+			default: 			color=BLACK; 	 break;
 		}
 		if(Test.posCursor>Test.lenWin)
 			Test.posCursor=Test.lenWin;
@@ -620,7 +620,7 @@ static void Data2Refresh(int nr)
 	case FONTS:
 		switch(Test.type)
 		{
-		case 0:
+		case RGB_RGB:
 			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
 			LCD_SetStrVar_fontColor(v.FONT_VAR_Fonts,RGB_FONT);
 			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,RGB_BK);
@@ -630,16 +630,16 @@ static void Data2Refresh(int nr)
 			Test.speed=StopMeasureTime_us("");
 		   TxtTouch(TouchUpdate);
 			break;
-		case 1:
+		case Gray_Green:
 			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
 			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,MYGRAY);
-			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,0);
+			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
 			StartMeasureTime_us();
 			lenStr=LCD_StrVarIndirect(v.FONT_VAR_Fonts,Test.txt);
 			Test.speed=StopMeasureTime_us("");
 		   TxtTouch(TouchUpdate);
 			break;
-		case 2:
+		case RGB_White:
 			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
 			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,RGB_BK);
 			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
@@ -648,10 +648,10 @@ static void Data2Refresh(int nr)
 		   Test.speed=StopMeasureTime_us("");
 		   TxtTouch(TouchUpdate);
 		   break;
-		case 3:
+		case White_Black:
 			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
 			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,WHITE);
-			Test.coeff=0; LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,0);
+			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
 			StartMeasureTime_us();
 			lenStr=LCD_StrVarIndirect(v.FONT_VAR_Fonts,Test.txt);
 		   Test.speed=StopMeasureTime_us("");
@@ -757,19 +757,35 @@ static void DecStepRGB(void){
 }
 */
 static void IncCoeffRGB(void){
-	if(Test.type>1)
-		Test.coeff>=127 ? 127 : Test.coeff++;
-	else
-		Test.coeff>=255 ? 255 : Test.coeff++;
+	switch(Test.type){
+		case RGB_RGB:
+			Test.coeff>=255 ? 255 : Test.coeff++;
+			break;
+		case RGB_White:
+			Test.coeff>=127 ? 127 : Test.coeff++;
+			break;
+		case Gray_Green:
+		case White_Black:
+			Test.coeff=0;
+			break;
+	}
 	Data2Refresh(FONTS);
 	Data2Refresh(PARAM_COEFF);
 	Data2Refresh(PARAM_SPEED);
 }
 static void DecCoeefRGB(void){
-	if(Test.type>1)
-		Test.coeff<=-127 ? -127 : Test.coeff--;
-	else
-		Test.coeff<=0 ? 0 : Test.coeff--;
+	switch(Test.type){
+		case RGB_RGB:
+			Test.coeff<=0 ? 0 : Test.coeff--;
+			break;
+		case RGB_White:
+			Test.coeff<=-127 ? -127 : Test.coeff--;
+			break;
+		case Gray_Green:
+		case White_Black:
+			Test.coeff=0;
+			break;
+	}
 	Data2Refresh(FONTS);
 	Data2Refresh(PARAM_COEFF);
 	Data2Refresh(PARAM_SPEED);
@@ -817,7 +833,7 @@ static void FONTS_LCD_ResetParam(void)
 	Test.coeff=255;
 	Test.coeff_prev=Test.coeff;
 
-	Test.type=0;
+	Test.type=RGB_RGB;
 	Test.speed=0;
 
 	Test.size=v.FONT_SIZE_Fonts;
@@ -852,14 +868,14 @@ static void LCD_LoadFontVar(void)
 		StartMeasureTime(0);
 		switch(Test.type)
 		{
-		case 0:
-		case 1:
+		case RGB_RGB:
+		case Gray_Green:
 			v.FONT_ID_Fonts = LCD_LoadFont_DarkgrayGreen(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
 			break;
-		case 2:
+		case RGB_White:
 			v.FONT_ID_Fonts = LCD_LoadFont_DarkgrayWhite(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
 			break;
-		case 3:
+		case White_Black:
 			v.FONT_ID_Fonts = LCD_LoadFont_WhiteBlack(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
 			break;
 		}
@@ -1099,16 +1115,19 @@ static void ReplaceLcdStrType(int8_t typeReq)
 		return;
 
 	GOTO_ReplaceLcdStrType:
-	INCR_WRAP(Test.type,1,0,3);
+	INCR_WRAP(Test.type,1, RGB_RGB, White_Black);
 	switch(Test.type)
 	{
-	case 2:
-		Test.coeff_prev=Test.coeff;
-		Test.coeff=1;
-		break;
-	case 0:
-	case 1:
+	case RGB_RGB:
+	case RGB_White:
 		Test.coeff=Test.coeff_prev;
+		break;
+	case Gray_Green:
+	case White_Black:
+		if(0!=Test.coeff){
+			Test.coeff_prev=Test.coeff;
+			Test.coeff=0;
+		}
 		break;
 	}
 
@@ -2238,10 +2257,10 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	if(LoadUserScreen == argNmb){
 
 	}
-
+//LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,RGB_BK);
 	StartMeasureTime_us();
-	 if(Test.type>1) lenStr= LCD_StrVar			  	 (v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, argNmb==0 ? v.COLOR_BkScreen : LCD_GetStrVar_bkColor(v.FONT_VAR_Fonts), 0,			 Test.constWidth, v.COLOR_BkScreen);
-	 else 			  lenStr= LCD_StrChangeColorVar(v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, RGB_BK, RGB_FONT,																		 Test.coeff, Test.constWidth, v.COLOR_BkScreen);
+	 if(Test.type==RGB_RGB) lenStr= LCD_StrChangeColorVar(v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, RGB_BK, RGB_FONT,																		  Test.coeff, Test.constWidth, v.COLOR_BkScreen);
+	 else  						lenStr= LCD_StrVar			  (v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, argNmb==0 ? v.COLOR_BkScreen : LCD_GetStrVar_bkColor(v.FONT_VAR_Fonts), Test.coeff, Test.constWidth, v.COLOR_BkScreen);
 	Test.speed=StopMeasureTime_us("");
 
 
