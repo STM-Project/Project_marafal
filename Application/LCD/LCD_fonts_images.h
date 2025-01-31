@@ -192,6 +192,13 @@ enum DESCR_DIRECTION{
   Right_up,
 };
 
+enum FONTS_TYPES{
+	RGB_RGB,
+	Gray_Green,
+	RGB_White,
+	White_Black,
+};
+
 typedef enum{
 	TxtInSeq,
 	TxtInRow
