@@ -536,7 +536,7 @@ typedef struct{
 	uint16_t yFontsField;
 	int8_t step;
 	int16_t coeff;
-	int16_t coeff_prev;
+	int16_t coeff_prev[2];
 	int8_t size;
 	uint8_t style;
 	uint32_t time;
@@ -831,7 +831,8 @@ static void FONTS_LCD_ResetParam(void)
 
 	Test.step=1;
 	Test.coeff=255;
-	Test.coeff_prev=Test.coeff;
+	Test.coeff_prev[0]=255;		/* for RGB-RGB */
+	Test.coeff_prev[1]=0;		/* for RGB-White */
 
 	Test.type=RGB_RGB;
 	Test.speed=0;
@@ -1111,6 +1112,7 @@ static void ChangeFontBoldItalNorm(int8_t typeReq)
 
 static void ReplaceLcdStrType(int8_t typeReq)
 {
+	int8_t testType=Test.type;
 	if(Test.type == typeReq)
 		return;
 
@@ -1119,21 +1121,29 @@ static void ReplaceLcdStrType(int8_t typeReq)
 	switch(Test.type)
 	{
 	case RGB_RGB:
+		Test.coeff=Test.coeff_prev[0];
+		break;
 	case RGB_White:
-		Test.coeff=Test.coeff_prev;
+		Test.coeff=Test.coeff_prev[1];
 		break;
 	case Gray_Green:
 	case White_Black:
-		if(0!=Test.coeff){
-			Test.coeff_prev=Test.coeff;
+		if(testType==RGB_RGB){
+			Test.coeff_prev[0]=Test.coeff;
+			Test.coeff=0;
+		}
+		else if(testType==RGB_White){
+			Test.coeff_prev[1]=Test.coeff;
 			Test.coeff=0;
 		}
 		break;
 	}
 
 	if(typeReq > NONE_TYPE_REQ){
-		if(typeReq!=Test.type)
+		if(typeReq!=Test.type){
+			testType=Test.type;
 			goto GOTO_ReplaceLcdStrType;
+		}
 	}
 
 	ClearCursorField();
@@ -2257,7 +2267,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	if(LoadUserScreen == argNmb){
 
 	}
-//LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,RGB_BK);
+
 	StartMeasureTime_us();
 	 if(Test.type==RGB_RGB) lenStr= LCD_StrChangeColorVar(v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, RGB_BK, RGB_FONT,																		  Test.coeff, Test.constWidth, v.COLOR_BkScreen);
 	 else  						lenStr= LCD_StrVar			  (v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, argNmb==0 ? v.COLOR_BkScreen : LCD_GetStrVar_bkColor(v.FONT_VAR_Fonts), Test.coeff, Test.constWidth, v.COLOR_BkScreen);
