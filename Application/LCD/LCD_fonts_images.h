@@ -56,8 +56,7 @@
 #define _L_	"\x1"
 #define _E_	"\x2"
 
-enum FontsSize
-{
+enum FontsSize{
 	FONT_8,
 	FONT_8_bold,
 	FONT_8_italics,
@@ -111,8 +110,7 @@ enum FontsSize
 	FONT_130_italics
 };
 
-enum FontsStyle
-{
+enum FontsStyle{
 	Arial,
 	Times_New_Roman,
 	Comic_Saens_MS,
@@ -121,8 +119,7 @@ enum FontsStyle
 	Bodoni_MT_Condenset
 };
 
-enum ID_Fonts
-{
+enum ID_Fonts{
 	fullHight=-3,
 	halfHight=-2,
 	fontNoChange=-1,
@@ -145,29 +142,25 @@ enum ID_Fonts
 	fontID_17
 };
 
-enum Var_Fonts
-{
+enum Var_Fonts{
 	fontVar_1,fontVar_2,fontVar_3,fontVar_4,fontVar_5,fontVar_6,fontVar_7,fontVar_8,fontVar_9,fontVar_10,
 	fontVar_11,fontVar_12,fontVar_13,fontVar_14,fontVar_15,fontVar_16,fontVar_17,fontVar_18,fontVar_19,fontVar_20,
 	fontVar_21,fontVar_22,fontVar_23,fontVar_24,fontVar_25,fontVar_26,fontVar_27,fontVar_28,fontVar_29,fontVar_30,
 	fontVar_31,fontVar_32,fontVar_33,fontVar_34,fontVar_35,fontVar_36,fontVar_37,fontVar_38,fontVar_39,fontVar_40
 };
 
-enum PositionIncrement
-{
+enum PositionIncrement{
 	SetPos,
 	GetPos,
 	IncPos,
 };
 
-enum ConstWidthFontOrNot
-{
+enum ConstWidthFontOrNot{
 	NoConstWidth,
 	ConstWidth,
 };
 
-enum RoundRectangleBkFont
-{
+enum RoundRectangleBkFont{
 	BK_Rectangle,
 	BK_Round,
 	BK_LittleRound,

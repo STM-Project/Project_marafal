@@ -2294,10 +2294,10 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	StartMeasureTime_us();
 	//LCD_Shape(LCD_X-calcWidth-10-550, LCD_Y-calcWidth-50, LCD_Circle____, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,85), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
 
-	par=LCD_Circle____(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle /*0*/,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,33), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, DARKRED,RED,0,165,Center,0);
+	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle /*0*/,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,33), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, DARKRED,RED,0,351,Round,0);
 
-	par=LCD_Circle____(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(v.COLOR_FillMainFrame,15), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x333333,0,360,RightDown,1);
-	LCD_Circle____(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(_DESCR("kolor nie istotny",0x999999),0), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x333333,0,360,LeftUp, 1|(SHAPE_IN_SHAPE_AA_OFF<<1));
+	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(v.COLOR_FillMainFrame,15), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x333333,0,360,RightDown,1);
+	LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(_DESCR("kolor nie istotny",0x999999),0), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x333333,0,360,LeftUp, ReadOutColor|ShapeInShape);
 	LCD_SetBkFontShape(v.FONT_VAR_Title,BK_None);
 	//LCD_StrDependOnColors(v.FONT_SIZE_Coeff, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0, 0x666666, WHITE, 255, ConstWidth);
 	LCD_StrDependOnColorsVar(v.FONT_VAR_Title, v.FONT_ID_Title, WHITE, 0x666666, v.COLOR_BkScreen, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0,255,ConstWidth);
@@ -2309,10 +2309,10 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 
 
 
-	LCD_Circle____(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-450, LCD_Y-calcWidth-50, SetParamWidthCircle(0/*Percent_Circle*/,CircleWidth),CircleWidth, SetBold2Color(WHITE,30), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown,0);
+	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-450, LCD_Y-calcWidth-50, SetParamWidthCircle(0/*Percent_Circle*/,CircleWidth),CircleWidth, SetBold2Color(WHITE,30), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown,0);
 
-	LCD_Circle____(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-150, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,350,Left,0);
-	LCD_Circle____(0,LCD_X,LCD_Y,LCD_X-calcWidth-10, LCD_Y-calcWidth-50,     SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,355,Right,0);
+	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-150, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,350,Left,0);
+	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10, LCD_Y-calcWidth-50,     SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,355,Right,0);
 	StopMeasureTime_us("AAAAAAAAAAAAAAAAA:");
 	//--------------------------------------------------------------------------------------------------
 

@@ -969,18 +969,25 @@ static StructTxtPxlLen LCD_DrawStrToBuff(uint32_t posBuff,uint32_t windowX,uint3
 
 	if(bkColor)
 	{
-		switch(LCD_GetStrVar_bkRoundRect(idVar))
+		if(id==LCD_GetStrVar_fontID(idVar))
 		{
-		case BK_Rectangle:
-			LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,bkColor);
-			break;
-		case BK_Round:
-			LCD_RoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
-			break;
-		case BK_LittleRound:
-			LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
-			break;
+			switch(LCD_GetStrVar_bkRoundRect(idVar))
+			{
+			case BK_Rectangle:
+				LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,bkColor);
+				break;
+			case BK_Round:
+				LCD_RoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				break;
+			case BK_LittleRound:
+				LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				break;
+			case BK_None:
+				break;
+			}
 		}
+		else LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,bkColor);
+
 		Y_bkColor= COLOR_TO_Y(bkColor)+coeff;
 	}
 
@@ -1083,18 +1090,25 @@ static StructTxtPxlLen LCD_DrawStrIndirectToBuffAndDisplay(uint32_t posBuff, int
 
 	if(bkColor)
 	{
-		switch(LCD_GetStrVar_bkRoundRect(idVar))
+		if(id==LCD_GetStrVar_fontID(idVar))
 		{
-		case BK_Rectangle:
-			LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,bkColor);
-			break;
-		case BK_Round:
-			LCD_RoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
-			break;
-		case BK_LittleRound:
-			LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
-			break;
+			switch(LCD_GetStrVar_bkRoundRect(idVar))
+			{
+			case BK_Rectangle:
+				LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,bkColor);
+				break;
+			case BK_Round:
+				LCD_RoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				break;
+			case BK_LittleRound:
+				LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				break;
+			case BK_None:
+				break;
+			}
 		}
+		else LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,bkColor);
+
 		Y_bkColor= COLOR_TO_Y(bkColor)+coeff;
 	}
 
@@ -1198,18 +1212,25 @@ static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t wi
 	}
 	lenTxt=i;
 
-	switch(LCD_GetStrVar_bkRoundRect(idVar))
+	if(id==LCD_GetStrVar_fontID(idVar))
 	{
-	case BK_Rectangle:
-		LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,NewBkColor);
-		break;
-	case BK_Round:
-		LCD_RoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
-		break;
-	case BK_LittleRound:
-		LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
-		break;
+		switch(LCD_GetStrVar_bkRoundRect(idVar))
+		{
+		case BK_Rectangle:
+			LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,NewBkColor);
+			break;
+		case BK_Round:
+			LCD_RoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
+			break;
+		case BK_LittleRound:
+			LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
+			break;
+		case BK_None:
+			break;
+		}
 	}
+	else LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,NewBkColor);
+
 
 	idxChangeColorBuff=0;
    for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
@@ -1298,18 +1319,24 @@ static StructTxtPxlLen LCD_DrawStrChangeColorIndirectToBuffAndDisplay(uint32_t p
 	}
 	lenTxt=i;
 
-	switch(LCD_GetStrVar_bkRoundRect(idVar))
+	if(id==LCD_GetStrVar_fontID(idVar))
 	{
-	case BK_Rectangle:
-		LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,NewBkColor);
-		break;
-	case BK_Round:
-		LCD_RoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
-		break;
-	case BK_LittleRound:
-		LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
-		break;
+		switch(LCD_GetStrVar_bkRoundRect(idVar))
+		{
+		case BK_Rectangle:
+			LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,NewBkColor);
+			break;
+		case BK_Round:
+			LCD_RoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
+			break;
+		case BK_LittleRound:
+			LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
+			break;
+		case BK_None:
+			break;
+		}
 	}
+	else LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,NewBkColor);
 
 	idxChangeColorBuff=0;
    for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
