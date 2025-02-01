@@ -11,9 +11,6 @@
 #include "stm32f7xx_hal.h"
 #include "common.h"
 
-typedef uint32_t u32;
-typedef uint32_t u16;
-
 #define RATIO_AA_VALUE_MIN 	1.0
 #define RATIO_AA_VALUE_MAX 	0.0
 
@@ -174,8 +171,8 @@ uint16_t LCD_GetNextDecrCircleWidth(uint32_t width);
 structPosition GetCircleMiddPoint(uint16_t *radius);
 
 void LCD_Circle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
-SHAPE_PARAMS LCDSHAPE_Create(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor,u32 selFillColorFrom,u32 selFillColor,u32 selFillColorTo,u16 degree,DIRECTIONS fillDir, u32 outColorRead);
 void LCD_HalfCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
+SHAPE_PARAMS LCDSHAPE_Create(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor,u32 selFillColorFrom,u32 selFillColor,u32 selFillColorTo,u16 degree,DIRECTIONS fillDir, u32 outColorRead);
 
 /* ------- Selected Figures ------------------*/
 void LCD_SignStar(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
@@ -210,7 +207,6 @@ void LCD_RoundRectangle_Indirect(int rectFrame,u32 x,u32 y, u32 width,u32 height
 void LCDSHAPE_Arrow_Indirect			 (SHAPE_PARAMS param);
 void LCDSHAPE_Rectangle_Indirect		 (SHAPE_PARAMS param);
 void LCDSHAPE_RoundRectangle_Indirect(SHAPE_PARAMS param);
-
 /* ------- End Selected Figures ------------------*/
 
 

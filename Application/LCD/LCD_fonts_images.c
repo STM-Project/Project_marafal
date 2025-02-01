@@ -1896,11 +1896,6 @@ StructTxtPxlLen LCD_StrVar(int idVar,int fontID, int Xpos, int Ypos, char *txt, 
 	FontVar[idVar].bkScreenColor = bkScreenColor;
 	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
 	{
-		temp = LCD_Str( fontID|(idVar<<16)/*FontVar[idVar].bkRoundRect ? fontID|(idVar<<16) : fontID*/, Xpos,Ypos,txt,OnlyDigits,space,bkColor,coeff,constWidth);
-		if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0)){
-			FontVar[idVar].bkScreenColor = bkScreenColor_copy;
-			return temp;
-		}
 		FontVar[idVar].id=fontID;
 		FontVar[idVar].xPos=Xpos;
 		FontVar[idVar].yPos=Ypos;
@@ -1911,6 +1906,12 @@ StructTxtPxlLen LCD_StrVar(int idVar,int fontID, int Xpos, int Ypos, char *txt, 
 		FontVar[idVar].widthType=constWidth;
 		FontVar[idVar].xPos_prev = FontVar[idVar].xPos;
 		FontVar[idVar].yPos_prev = FontVar[idVar].yPos;
+
+		temp = LCD_Str( fontID|(idVar<<16)/*FontVar[idVar].bkRoundRect ? fontID|(idVar<<16) : fontID*/, Xpos,Ypos,txt,OnlyDigits,space,bkColor,coeff,constWidth);
+		if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0)){
+			FontVar[idVar].bkScreenColor = bkScreenColor_copy;
+			return temp;
+		}
 		FontVar[idVar].widthPxl_prev = temp.inPixel;
 		FontVar[idVar].heightPxl_prev = temp.height;
 		return temp;
@@ -2068,11 +2069,6 @@ StructTxtPxlLen LCD_StrChangeColorVar(int idVar,int fontID, int Xpos, int Ypos, 
 	FontVar[idVar].bkScreenColor = bkScreenColor;
 	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
 	{
-		temp = LCD_StrChangeColor( fontID|(idVar<<16)/*FontVar[idVar].bkRoundRect ? fontID|(idVar<<16) : fontID*/,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
-		if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0)){
-			FontVar[idVar].bkScreenColor = bkScreenColor_copy;
-			return temp;
-		}
 		FontVar[idVar].id=fontID;
 		FontVar[idVar].xPos=Xpos;
 		FontVar[idVar].yPos=Ypos;
@@ -2084,6 +2080,12 @@ StructTxtPxlLen LCD_StrChangeColorVar(int idVar,int fontID, int Xpos, int Ypos, 
 		FontVar[idVar].widthType=constWidth;
 		FontVar[idVar].xPos_prev = FontVar[idVar].xPos;
 		FontVar[idVar].yPos_prev = FontVar[idVar].yPos;
+
+		temp = LCD_StrChangeColor( fontID|(idVar<<16)/*FontVar[idVar].bkRoundRect ? fontID|(idVar<<16) : fontID*/,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+		if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0)){
+			FontVar[idVar].bkScreenColor = bkScreenColor_copy;
+			return temp;
+		}
 		FontVar[idVar].widthPxl_prev = temp.inPixel;
 		FontVar[idVar].heightPxl_prev = temp.height;
 		return temp;

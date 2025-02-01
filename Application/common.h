@@ -9,6 +9,10 @@
 #define COMMON_H_
 #include "string_oper.h"
 
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t u8;
+
 #define EXAMPLE(x)  TEST_##x
 
 #define GET_DATE_COMPILATION  __DATE__
@@ -223,9 +227,8 @@ typedef void TOUCH_FUNC(int);
 typedef void TIMER_FUNC(int,int,int);
 
 typedef void* (*VOID_FUNCTION_TEST)(void*,void*);
-
-
 /* --------- End Functions Definitations ----------- */
+
 int* 			_Int		(int 	val);
 uint8_t* 	_Uint8	(uint8_t val);
 uint16_t* 	_Uint16	(uint16_t val);

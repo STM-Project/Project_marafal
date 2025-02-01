@@ -17,6 +17,9 @@
 #define MAX_DEGREE_CIRCLE  10
 
 #define AA_OUT_OFF  1<<24
+#define COLOR_TEST		0x12345678
+#define COLOR_TEST_1		0x12345677
+#define COLOR_TEST_2		0x12345679
 
 #define _IS_NOT_PXL(i,color1,color2,color3,color4)		(pLcd[i]!=color1 && pLcd[i]!=color2 && pLcd[i]!=color3 && pLcd[i]!=color4)
 #define _IS_NEXT_PXL(bkX,i,color)	(pLcd[(i)+1]==color || pLcd[(i)-1]==color || pLcd[(i)+bkX]==color || pLcd[(i)-bkX]==color || pLcd[(i)+bkX+1]==color || pLcd[(i)+bkX-1]==color || pLcd[(i)-bkX+1]==color || pLcd[(i)-bkX-1]==color)
@@ -3688,8 +3691,6 @@ SHAPE_PARAMS LCDSHAPE_Create(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSize
 	if(ToStructAndReturn == posBuff)
 		return params;
 
-	#define COLOR_TEST		0x12345678
-
 	uint32_t width 			= MASK(_width,FFFF);
 	int 	  	_outColorRead 	= MASK(outColorRead,1);
 	uint16_t param 			= SHIFT_RIGHT(_width,16,FFFF);
@@ -3714,13 +3715,11 @@ SHAPE_PARAMS LCDSHAPE_Create(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSize
    	uint32_t width_new = width-2*thickness;
 		int offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
 		LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor, unUsed, ReadOutColor);
-
 		width_min=Circle.width;
-
 		LCD_SetCopyCircleWidth();
+
 		width_new = width-2*(thickness-1);
 		offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
-
 		params.pos[0].x	= x+offs;
 		params.pos[0].y	= y+offs;
 		params.size[0].w	= width_new;
@@ -3913,9 +3912,8 @@ SHAPE_PARAMS LCDSHAPE_Create(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSize
 	}
 
 	return params;
-	#undef COLOR_TEST
-/*
-	https://dmitrymorozoff.github.io/react-circle-slider/
+
+/*	https://dmitrymorozoff.github.io/react-circle-slider/
 	https://stackoverflow.com/questions/78482981/custom-circular-slider-with-gradient-colour-bar-swift */
 }
 
@@ -4097,5 +4095,46 @@ SHAPE_PARAMS LCDSHAPE_Rectangle(uint32_t posBuff, SHAPE_PARAMS param){
 void LCDSHAPE_Rectangle_Indirect(SHAPE_PARAMS param){
 	LCD_Rectangle_Indirect(param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
 }
+
+
+
+//SHAPE_PARAMS LCD_GradientCircleButton(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY, u32 x, u32 y, u32 width, u32 height, char* txt, u32 FrameColor, u32 FillColorGradStart, u32 FillColorGradStop, u8 bold, uint32_t BkpColor,u32 outColorRead)
+//{
+//	SHAPE_PARAMS par={0};
+//	par=LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, x,				 y, par.size[0].w, par.size[0].h, SetBold2Color(FrameColor,bold), COLOR_TEST_1, BkpColor, FillColorGradStart,FillColorGradStop,0,0,RightDown,outColorRead);
+//		 LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(_DESCR("kolor nie istotny",FrameColor),0), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x333333,0,360,LeftUp, ReadOutColor|ShapeInShape);
+//	if(NULL!=txt){
+//		LCD_SetBkFontShape(v.FONT_VAR_Title,BK_None);
+//		LCD_StrDependOnColorsVar(v.FONT_VAR_Title, v.FONT_ID_Title, WHITE, 0x666666, v.COLOR_BkScreen, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, txt, fullHight,0,252,ConstWidth);
+//}}
+
+
+
+
+
+/*------------------- Example Shape Outline -------------------------------------
+SHAPE_PARAMS LCD_XXX(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS param)
+{
+	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorStart, .color[1].frame=FrameColorStop, .color[0].fill=FillColorStart, .color[1].fill=FillColorStop, .color[0].bk=BkpColor, .param[0]=param, .param[1]=FLOAT_TO_U32(ratioStart)};
+	if(ToStructAndReturn == posBuff)
+		return params;
+	;
+
+	return params;
+}
+void LCD_XXX_Indirect(u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct){
+	uint32_t bkSizeX = MASK(width,FFFF) +0;
+	uint32_t bkSizeY = MASK(height,FFFF)+0;
+	LCD_ShapeWindow(LCD_Rectangle, 0, bkSizeX,bkSizeY, 0,0, bkSizeX,bkSizeY, BkpColor,BkpColor,BkpColor );
+	LCD_XXX(0,bkSizeX,bkSizeY, 0,0, width,height, FrameColorStart,FrameColorStop, FillColorStart, FillColorStop, BkpColor, ratioStart, direct);
+	LCD_Display(0,x,y,bkSizeX,bkSizeY);
+}
+SHAPE_PARAMS LCDSHAPE_XXX(uint32_t posBuff, SHAPE_PARAMS param){
+	return LCD_XXX(posBuff, param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
+}
+void LCDSHAPE_XXX_Indirect(SHAPE_PARAMS param){
+	LCD_XXX_Indirect(param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
+}
+------------------- END Example Shape Outline ------------------------------------- */
 
 

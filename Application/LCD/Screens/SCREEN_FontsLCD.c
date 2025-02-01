@@ -55,7 +55,7 @@
 	X(LANG_WinInfo2, "Reset wszystkich ustawie"ń" dla odst"ę"p"ó"w mi"ę"dzy literami", "xxxxxxx") \
 	X(LANG_MainFrameType, "Zmie"ń" wygl"ą"d", "Change appearance") \
 
-
+/* MYGRAY2 in below because function 'LoadFont' must load font type of 'MYGRAY-MYGREEN' to enable to change font colors (not MYGRAY-WHITE and not enable to change font colors) */
 #define SCREEN_FONTS_SET_PARAMETERS \
 /* id   name							default value */ \
 	X(0, FONT_SIZE_Title, 	 		FONT_24_bold) \
@@ -2221,7 +2221,7 @@ static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int 
 	#undef _FILL_COLOR
 }
 
-void FILE_NAME(main)(int argNmb, char **argVal)
+void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Touch left dac mozliwosc wspolczynnik zmiany
 {
 	if(NULL == argVal)
 		argVal = (char**)ppMain;
@@ -2277,7 +2277,6 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 
 
 
-
 	//--------------------------------------------------------------------------------------------------
 
 	LCD_SetCircleAA(0.0, 0.0);
@@ -2296,11 +2295,11 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 
 	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle /*0*/,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,33), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, DARKRED,RED,0,351,Round,0);
 
-	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(v.COLOR_FillMainFrame,15), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x333333,0,360,RightDown,1);
+	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(v.COLOR_FillMainFrame,15), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x333333,0,360,RightDown,ReadOutColor);
 	LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(_DESCR("kolor nie istotny",0x999999),0), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x333333,0,360,LeftUp, ReadOutColor|ShapeInShape);
-	LCD_SetBkFontShape(v.FONT_VAR_Title,BK_None);
+	LCD_SetBkFontShape(v.FONT_VAR_Speed,BK_None);
 	//LCD_StrDependOnColors(v.FONT_SIZE_Coeff, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0, 0x666666, WHITE, 255, ConstWidth);
-	LCD_StrDependOnColorsVar(v.FONT_VAR_Title, v.FONT_ID_Title, WHITE, 0x666666, v.COLOR_BkScreen, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0,255,ConstWidth);
+	LCD_StrDependOnColorsVar(v.FONT_VAR_Speed, v.FONT_ID_Speed, WHITE, 0x666666, v.COLOR_BkScreen, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0,255,ConstWidth);
 	//LCD_SetBkFontShape(v.FONT_VAR_Title,BK_Rectangle);
 	//LCD_Xmiddle
 	//LCD_GetFontHeight(v.FONT_ID_Title);
@@ -2317,7 +2316,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	//--------------------------------------------------------------------------------------------------
 
 
-	//LCD_Circle____(FrameColor,  selFillColorFrom,selFillColor,selFillColorTo)
+
 
 
 
