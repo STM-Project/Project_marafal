@@ -2293,13 +2293,15 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	StartMeasureTime_us();
 	//LCD_Shape(LCD_X-calcWidth-10-550, LCD_Y-calcWidth-50, LCD_Circle____, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,85), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
 
-	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle /*0*/,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,33), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, DARKRED,RED,0,351,Round,0);
+	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle /*0*/,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,33), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, DARKRED,LIGHTRED,0,351,Down,0);
 
-	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(v.COLOR_FillMainFrame,15), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x333333,0,360,RightDown,ReadOutColor);
-	LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(_DESCR("kolor nie istotny",0x999999),0), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x333333,0,360,LeftUp, ReadOutColor|ShapeInShape);
-	LCD_SetBkFontShape(v.FONT_VAR_Speed,BK_None);
-	//LCD_StrDependOnColors(v.FONT_SIZE_Coeff, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0, 0x666666, WHITE, 255, ConstWidth);
-	LCD_StrDependOnColorsVar(v.FONT_VAR_Speed, v.FONT_ID_Speed, WHITE, 0x666666, v.COLOR_BkScreen, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0,255,ConstWidth);
+	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(v.COLOR_FillMainFrame,15), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, LIGHTBLUE,DARKBLUE,0,360,RightDown,ReadOutColor);
+	LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(GetTransitionColor(LIGHTBLUE,DARKBLUE,0.5),0), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, LIGHTBLUE,DARKBLUE,0,360,LeftUp, ReadOutColor|ShapeInShape);
+
+	LCD_SetBkFontShape(v.FONT_VAR_Title,BK_None);
+	LCD_SetStrVar_fontID(v.FONT_VAR_Title, v.FONT_ID_Title);
+	LCD_StrDependOnColors(v.FONT_VAR_Title, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0, GetTransitionColor(LIGHTBLUE,DARKBLUE,0.5), WHITE, 248, ConstWidth);
+	//LCD_StrDependOnColorsVar(v.FONT_VAR_Title, v.FONT_ID_Title, WHITE, 0x666666, v.COLOR_BkScreen, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0,255,ConstWidth);
 	//LCD_SetBkFontShape(v.FONT_VAR_Title,BK_Rectangle);
 	//LCD_Xmiddle
 	//LCD_GetFontHeight(v.FONT_ID_Title);

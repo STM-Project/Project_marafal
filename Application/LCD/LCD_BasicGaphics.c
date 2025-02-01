@@ -4098,15 +4098,16 @@ void LCDSHAPE_Rectangle_Indirect(SHAPE_PARAMS param){
 
 
 
-//SHAPE_PARAMS LCD_GradientCircleButton(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY, u32 x, u32 y, u32 width, u32 height, char* txt, u32 FrameColor, u32 FillColorGradStart, u32 FillColorGradStop, u8 bold, uint32_t BkpColor,u32 outColorRead)
-//{
-//	SHAPE_PARAMS par={0};
-//	par=LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, x,				 y, par.size[0].w, par.size[0].h, SetBold2Color(FrameColor,bold), COLOR_TEST_1, BkpColor, FillColorGradStart,FillColorGradStop,0,0,RightDown,outColorRead);
-//		 LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(_DESCR("kolor nie istotny",FrameColor),0), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x333333,0,360,LeftUp, ReadOutColor|ShapeInShape);
-//	if(NULL!=txt){
-//		LCD_SetBkFontShape(v.FONT_VAR_Title,BK_None);
-//		LCD_StrDependOnColorsVar(v.FONT_VAR_Title, v.FONT_ID_Title, WHITE, 0x666666, v.COLOR_BkScreen, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, txt, fullHight,0,252,ConstWidth);
-//}}
+SHAPE_PARAMS LCD_GradientCircleButton(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY, u32 x, u32 y, u32 width, u32 height, int idVar, int fontID, char* txt, u32 FrameColor, u32 FillColorGradStart, u32 FillColorGradStop, u8 bold, u32 BkpColor,u32 outColorRead)
+{
+	SHAPE_PARAMS par={0};
+	par=LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, x,				 y, par.size[0].w, par.size[0].h, SetBold2Color(FrameColor,bold), COLOR_TEST_1, BkpColor, FillColorGradStart,FillColorGradStop,0,0,RightDown,outColorRead);
+		 LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(GetTransitionColor(FillColorGradStart,FillColorGradStop,0.5),0), _DESCR("not used",COLOR_TEST_2), BkpColor, FillColorGradStart,FillColorGradStop,0,360,LeftUp, ReadOutColor|ShapeInShape);
+	if(NULL!=txt){
+		LCD_SetBkFontShape(idVar,BK_None);
+		LCD_SetStrVar_fontID(idVar,fontID);  // oddziel text !!!!!
+		LCD_StrDependOnColors(idVar, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, txt, fullHight,0, GetTransitionColor(FillColorGradStart,FillColorGradStop,0.5), WHITE, 255, ConstWidth);
+}}
 
 
 
