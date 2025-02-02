@@ -209,5 +209,7 @@ void LCDSHAPE_Rectangle_Indirect		 (SHAPE_PARAMS param);
 void LCDSHAPE_RoundRectangle_Indirect(SHAPE_PARAMS param);
 /* ------- End Selected Figures ------------------*/
 
+void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLOR_BkScreen);
+
 
 #endif /* LCD_LCD_BASICGAPHICS_H_ */

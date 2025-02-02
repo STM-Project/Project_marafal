@@ -4096,18 +4096,55 @@ void LCDSHAPE_Rectangle_Indirect(SHAPE_PARAMS param){
 	LCD_Rectangle_Indirect(param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
 }
 
-
-
-SHAPE_PARAMS LCD_GradientCircleButton(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY, u32 x, u32 y, u32 width, u32 height, int idVar, int fontID, char* txt, u32 FrameColor, u32 FillColorGradStart, u32 FillColorGradStop, u8 bold, u32 BkpColor,u32 outColorRead)
+void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLOR_BkScreen)
 {
-	SHAPE_PARAMS par={0};
-	par=LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, x,				 y, par.size[0].w, par.size[0].h, SetBold2Color(FrameColor,bold), COLOR_TEST_1, BkpColor, FillColorGradStart,FillColorGradStop,0,0,RightDown,outColorRead);
-		 LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(GetTransitionColor(FillColorGradStart,FillColorGradStop,0.5),0), _DESCR("not used",COLOR_TEST_2), BkpColor, FillColorGradStart,FillColorGradStop,0,360,LeftUp, ReadOutColor|ShapeInShape);
-	if(NULL!=txt){
-		LCD_SetBkFontShape(idVar,BK_None);
-		LCD_SetStrVar_fontID(idVar,fontID);  // oddziel text !!!!!
-		LCD_StrDependOnColors(idVar, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, txt, fullHight,0, GetTransitionColor(FillColorGradStart,FillColorGradStop,0.5), WHITE, 255, ConstWidth);
-}}
+	SHAPE_PARAMS par1,par2,par3,par4,par5,par6;
+
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 20,240, 100, 40,  COLOR_FillFrame,BrightIncr(COLOR_FillFrame,0x55),   			  COLOR_FillFrame,ORANGE,  COLOR_BkScreen, 0.0, Down);
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 160,240, 100, 40, BrightDecr(COLOR_Frame,0xA5),BrightDecr(COLOR_Frame,0xAE),   COLOR_FillFrame,YELLOW,  COLOR_BkScreen, 0.0, Up);
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 270,240, 100, 40, BrightDecr(COLOR_Frame,0xA0),BrightIncr(COLOR_Frame,0x01),   COLOR_FillFrame,BrightDecr(COLOR_FillFrame,0x09),  COLOR_BkScreen, 0.0, Midd_Y);
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 380,240, 100, 40, BrightDecr(COLOR_Frame,0xA0),BrightIncr(COLOR_Frame,0x01),   COLOR_FillFrame,BrightDecr(COLOR_FillFrame,0x15),  COLOR_BkScreen, 0.0, Midd_X);
+
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 20,300, 100, 40,  0xFF202020,0xFF282828,   0xFF909090,BrightDecr(0xFF909090,0x20),  COLOR_BkScreen, 0.0, Midd_Y);
+	//LCD_Rectangle2(0, LCD_X,LCD_Y, 160,300, 100, 40, 0xFF202020,0xFF282828,   0xFF909090,BrightDecr(0xFF909090,0x20),  v.COLOR_BkScreen, 0.0, Midd_Y2);
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 160,300, 100, 40, WHITE,(u32)bold8,   0xFF909090,BrightIncr(0xFF909090,0x20),  COLOR_BkScreen, 0.0, AllEdge);
+
+	par3=LCD_Rectangle2(ToStructAndReturn, LCD_X,LCD_Y, 500,360, 100, 25, BrightDecr(COLOR_Frame,0xA0),BrightIncr(COLOR_Frame,0x01),  COLOR_FillFrame,BrightDecr(COLOR_FillFrame,0x35),  COLOR_BkScreen, 0.0, RightDown);
+	par4=LCD_Rectangle2(ToStructAndReturn, LCD_X,LCD_Y, 610,360, 29, 100, BrightDecr(COLOR_Frame,0xA0),BrightIncr(COLOR_Frame,0x01),  COLOR_FillFrame,BrightDecr(COLOR_FillFrame,0x35),  COLOR_BkScreen, 0.0, RightDown);
+
+	par1=LCD_RoundRectangle2(ToStructAndReturn,PARAM32(AllEdge,bold10,unUsed,Rectangle),LCD_X,LCD_Y,70,350,70,80 ,WHITE, WHITE, 0xFFA0A0A0,BrightDecr(0xFFA0A0A0,0x30), COLOR_BkScreen, 0.0, Down);
+	par2=LCD_RoundRectangle2(ToStructAndReturn,PARAM32(Up,bold2,unUsed,Rectangle), 		LCD_X,LCD_Y,180,350,70,80, BrightDecr(COLOR_Frame,0x20),BrightIncr(COLOR_Frame,0x65), 0xFF808080,BrightDecr(0xFF808080,0x44), COLOR_BkScreen, 0.0, Left);
+		  LCD_RoundRectangle2(0,					 PARAM32(Down,bold3,unUsed,Rectangle), 	LCD_X,LCD_Y,280,390,70,80, BrightDecr(COLOR_Frame,0x20),BrightIncr(COLOR_Frame,0x65), 0xFF808080,BrightDecr(0xFF808080,0x44), COLOR_BkScreen, 0.0, Down);
+
+	LCDSHAPE_RoundRectangle(0,par1);
+	LCDSHAPE_RoundRectangle(0,par2);
+
+	par5=LCD_Rectangle2(ToStructAndReturn, LCD_X,LCD_Y, 570,240, 100, 40, COLOR_FillFrame,				   BrightIncr(COLOR_FillFrame,0x55),   COLOR_FillFrame,ORANGE,  COLOR_BkScreen, 0.25, Down);
+	par6=LCD_Rectangle2(ToStructAndReturn, LCD_X,LCD_Y, 570,300, 100, 40, BrightDecr(COLOR_Frame,0xA5),BrightDecr(COLOR_Frame,0xAE), 		COLOR_FillFrame,YELLOW,  COLOR_BkScreen, 0.3, Up);
+
+	LCDSHAPE_Rectangle(0,par3);
+	LCDSHAPE_Rectangle(0,par4);
+	LCDSHAPE_Rectangle(0,par5);
+	LCDSHAPE_Rectangle(0,par6);
+
+/*	LCDSHAPE_Rectangle_Indirect(par3);
+	LCDSHAPE_Rectangle_Indirect(par4);
+	LCDSHAPE_Rectangle_Indirect(par5);
+	LCDSHAPE_Rectangle_Indirect(par6); */
+}
+
+
+//
+//SHAPE_PARAMS LCD_GradientCircleButton(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY, u32 x, u32 y, u32 width, u32 height, int idVar, int fontID, char* txt, u32 FrameColor, u32 FillColorGradStart, u32 FillColorGradStop, u8 bold, u32 BkpColor,u32 outColorRead)
+//{
+//	SHAPE_PARAMS par={0};
+//	par=LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, x,				 y, par.size[0].w, par.size[0].h, SetBold2Color(FrameColor,bold), COLOR_TEST_1, BkpColor, FillColorGradStart,FillColorGradStop,0,0,RightDown,outColorRead);
+//		 LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(GetTransitionColor(FillColorGradStart,FillColorGradStop,0.2),0), _DESCR("not used",COLOR_TEST_2), BkpColor, FillColorGradStart,FillColorGradStop,0,360,LeftUp, ReadOutColor|ShapeInShape);
+//	if(NULL!=txt){
+//		LCD_SetBkFontShape(idVar,BK_None);
+//		LCD_SetStrVar_fontID(idVar,fontID);  // oddziel text !!!!!
+//		LCD_StrDependOnColors(idVar, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, txt, fullHight,0, GetTransitionColor(FillColorGradStart,FillColorGradStop,0.5), WHITE, 255, ConstWidth);
+//}}
 
 
 

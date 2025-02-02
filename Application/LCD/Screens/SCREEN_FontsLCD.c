@@ -2282,10 +2282,6 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	LCD_SetCircleAA(0.0, 0.0);
 	CorrectLineAA_on();
 
-//	uint16_t deg[2] = {10, 350 };
-//	uint32_t degColor[2] = {0, CONDITION(deg[1]==deg[0],v.COLOR_FillMainFrame,RED) };  // to bedzeie wewnatrz funkcji
-//	LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
-
 	SHAPE_PARAMS par={0};
 
 	uint32_t CircleWidth= 160;
@@ -2293,23 +2289,19 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	StartMeasureTime_us();
 	//LCD_Shape(LCD_X-calcWidth-10-550, LCD_Y-calcWidth-50, LCD_Circle____, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,85), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
 
-	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle /*0*/,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,33), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, DARKRED,LIGHTRED,0,351,Down,0);
+	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle /*0*/,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,33), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x666666,0,351,Center,0);
 
-	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(v.COLOR_FillMainFrame,15), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, LIGHTBLUE,DARKBLUE,0,360,RightDown,ReadOutColor);
-	LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(GetTransitionColor(LIGHTBLUE,DARKBLUE,0.5),0), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, LIGHTBLUE,DARKBLUE,0,360,LeftUp, ReadOutColor|ShapeInShape);
+	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(v.COLOR_FillMainFrame,15), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xC0C0C0,0x333333,0,360,RightDown,ReadOutColor);
+	LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(GetTransitionColor(0xC0C0C0,0x333333,0.2),0), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xC0C0C0,0x333333,0,360,LeftUp, ReadOutColor|ShapeInShape);
 
 	LCD_SetBkFontShape(v.FONT_VAR_Title,BK_None);
 	LCD_SetStrVar_fontID(v.FONT_VAR_Title, v.FONT_ID_Title);
-	LCD_StrDependOnColors(v.FONT_VAR_Title, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0, GetTransitionColor(LIGHTBLUE,DARKBLUE,0.5), WHITE, 248, ConstWidth);
+	LCD_StrDependOnColors(v.FONT_VAR_Title, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0, GetTransitionColor(0xC0C0C0,0x333333,0.5), WHITE, 248, ConstWidth);
 	//LCD_StrDependOnColorsVar(v.FONT_VAR_Title, v.FONT_ID_Title, WHITE, 0x666666, v.COLOR_BkScreen, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0,255,ConstWidth);
 	//LCD_SetBkFontShape(v.FONT_VAR_Title,BK_Rectangle);
 	//LCD_Xmiddle
 	//LCD_GetFontHeight(v.FONT_ID_Title);
 	//LCD_GetWholeStrPxlWidth(v.FONT_ID_Title,"23",0,ConstWidth);
-
-
-
-
 	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-450, LCD_Y-calcWidth-50, SetParamWidthCircle(0/*Percent_Circle*/,CircleWidth),CircleWidth, SetBold2Color(WHITE,30), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown,0);
 
 	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-150, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,350,Left,0);
@@ -2318,6 +2310,15 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	//--------------------------------------------------------------------------------------------------
 
 
+
+
+
+
+	//fajny przyklad---------
+//	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle /*0*/,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,33), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, 0x606060,0xA0A0A0,0x606060,351,Center,0);
+//	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(YELLOW,15), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, LIGHTBLUE,DARKBLUE,0,360,RightDown,ReadOutColor);
+//	LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(GetTransitionColor(LIGHTBLUE,DARKBLUE,0.5),0), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, LIGHTBLUE,DARKBLUE,0,360,LeftUp, ReadOutColor|ShapeInShape);
+//---------------------------
 
 
 
