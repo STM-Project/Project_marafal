@@ -4133,19 +4133,30 @@ void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLO
 	LCDSHAPE_Rectangle_Indirect(par6); */
 }
 
-
-//
-//SHAPE_PARAMS LCD_GradientCircleButton(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY, u32 x, u32 y, u32 width, u32 height, int idVar, int fontID, char* txt, u32 FrameColor, u32 FillColorGradStart, u32 FillColorGradStop, u8 bold, u32 BkpColor,u32 outColorRead)
-//{
-//	SHAPE_PARAMS par={0};
-//	par=LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, x,				 y, par.size[0].w, par.size[0].h, SetBold2Color(FrameColor,bold), COLOR_TEST_1, BkpColor, FillColorGradStart,FillColorGradStop,0,0,RightDown,outColorRead);
-//		 LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(GetTransitionColor(FillColorGradStart,FillColorGradStop,0.2),0), _DESCR("not used",COLOR_TEST_2), BkpColor, FillColorGradStart,FillColorGradStop,0,360,LeftUp, ReadOutColor|ShapeInShape);
-//	if(NULL!=txt){
-//		LCD_SetBkFontShape(idVar,BK_None);
-//		LCD_SetStrVar_fontID(idVar,fontID);  // oddziel text !!!!!
-//		LCD_StrDependOnColors(idVar, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, txt, fullHight,0, GetTransitionColor(FillColorGradStart,FillColorGradStop,0.5), WHITE, 255, ConstWidth);
-//}}
-
+SHAPE_PARAMS LCD_GradientCircleButton(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColor,u32 FillColorGradStart,u32 FillColorGradStop,u32 BkpColor,u32 outColorRead)
+{
+	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColor, .color[0].fill=FillColorGradStart, .color[1].fill=FillColorGradStop, .color[0].bk=BkpColor, .param[0]=outColorRead };
+	if(ToStructAndReturn == posBuff)
+		return params;
+	SHAPE_PARAMS par={0};
+	par=LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, x,				 y, 				width, 			height, 			FrameColor, 																 						 COLOR_TEST_1, 						 BkpColor, FillColorGradStart,FillColorGradStop,0,unUsed,RightDown,outColorRead);
+		 LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(GetTransitionColor(FillColorGradStart,FillColorGradStop,0.2),0), _DESCR("not used",COLOR_TEST_2), BkpColor, FillColorGradStart,FillColorGradStop,0,unUsed,LeftUp, 	 ReadOutColor|ShapeInShape);
+	return params;
+}
+void LCD_GradientCircleButton_Indirect(u32 x,u32 y,u32 width,u32 height,u32 FrameColor,u32 FillColorGradStart,u32 FillColorGradStop,u32 BkpColor,u32 outColorRead){
+	uint32_t bkSizeX = MASK(width,FFFF) +2;
+	uint32_t bkSizeY = MASK(height,FFFF)+2;
+	if(0==MASK(outColorRead,1))
+		LCD_ShapeWindow(LCD_Rectangle, 0, bkSizeX,bkSizeY, 0,0, bkSizeX,bkSizeY, BkpColor,BkpColor,BkpColor );
+	LCD_GradientCircleButton(0,bkSizeX,bkSizeY,1,1,width,height,FrameColor,FillColorGradStart,FillColorGradStop,BkpColor,outColorRead);
+	LCD_Display(0,x,y,bkSizeX,bkSizeY);
+}
+SHAPE_PARAMS LCDSHAPE_GradientCircleButton(uint32_t posBuff, SHAPE_PARAMS param){
+	return LCD_GradientCircleButton(posBuff, param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, param.param[0]);
+}
+void LCDSHAPE_GradientCircleButton_Indirect(SHAPE_PARAMS param){
+	LCD_GradientCircleButton_Indirect(param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, param.param[0]);
+}
 
 
 
