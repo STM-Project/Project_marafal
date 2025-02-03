@@ -4146,8 +4146,7 @@ SHAPE_PARAMS LCD_GradientCircleButton(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 
 void LCD_GradientCircleButton_Indirect(u32 x,u32 y,u32 width,u32 height,u32 FrameColor,u32 FillColorGradStart,u32 FillColorGradStop,u32 BkpColor,u32 outColorRead){
 	uint32_t bkSizeX = MASK(width,FFFF) +2;
 	uint32_t bkSizeY = MASK(height,FFFF)+2;
-	if(0==MASK(outColorRead,1))
-		LCD_ShapeWindow(LCD_Rectangle, 0, bkSizeX,bkSizeY, 0,0, bkSizeX,bkSizeY, BkpColor,BkpColor,BkpColor );
+	if(0==MASK(outColorRead,1)) LCD_ShapeWindow(LCD_Rectangle, 0, bkSizeX,bkSizeY, 0,0, bkSizeX,bkSizeY, BkpColor,BkpColor,BkpColor );
 	LCD_GradientCircleButton(0,bkSizeX,bkSizeY,1,1,width,height,FrameColor,FillColorGradStart,FillColorGradStop,BkpColor,outColorRead);
 	LCD_Display(0,x,y,bkSizeX,bkSizeY);
 }
@@ -4158,7 +4157,18 @@ void LCDSHAPE_GradientCircleButton_Indirect(SHAPE_PARAMS param){
 	LCD_GradientCircleButton_Indirect(param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, param.param[0]);
 }
 
+SHAPE_PARAMS LCD_GradientCircleSlider(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorSlid,u32 FillColorSlid,u32 GradColorStartSlid,u32 GradColorSlid,u32 GradColorStopSlid,u32 FrameColorButt,u32 FillColorStartButt,u32 FillColorStopButt,u32 BkpColor,u16 degree,DIRECTIONS fillDirSlid,u32 outColorRead)
+{
+	SHAPE_PARAMS params = {0};//{.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColor, .color[0].fill=FillColorGradStart, .color[1].fill=FillColorGradStop, .color[0].bk=BkpColor, .param[0]=outColorRead };
+	if(ToStructAndReturn == posBuff)
+		return params;
+	SHAPE_PARAMS par={0};
+	par=LCDSHAPE_Create		(posBuff,BkpSizeX,BkpSizeY, x,				y, 			  SetParamWidthCircle(Percent_Circle,width),width, 		  FrameColorSlid,FillColorSlid, 							 	BkpColor, GradColorStartSlid,GradColorSlid,GradColorStopSlid,degree,fillDirSlid,outColorRead);
+	LCD_GradientCircleButton(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, 									  par.size[0].h, FrameColorButt,FillColorStartButt,FillColorStopButt,BkpColor,																							  ReadOutColor);
 
+
+	return params;
+}
 
 
 /*------------------- Example Shape Outline -------------------------------------
