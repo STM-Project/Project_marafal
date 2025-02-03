@@ -2279,7 +2279,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 	//--------------------------------------------------------------------------------------------------
 
-	LCD_SetCircleAA(0.0, 0.0);
+	LCD_SetCircleAA(0.0, 0.0);   //UWAGA   dla: Percent_Circle   frameColor musi byc rozne od FillColor !!!!!
 	CorrectLineAA_on();
 
 	SHAPE_PARAMS par={0};
@@ -2287,21 +2287,20 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	uint32_t CircleWidth= 160;
 	uint16_t calcWidth = LCD_CalculateCircleWidth(CircleWidth);
 	StartMeasureTime_us();
-	//LCD_Shape(LCD_X-calcWidth-10-550, LCD_Y-calcWidth-50, LCD_Circle____, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(WHITE,85), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen);
+
 
 	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle /*0*/,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,33), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x666666,0,351,Center,0);
 
-	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(v.COLOR_FillMainFrame,15), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xC0C0C0,0x333333,0,360,RightDown,ReadOutColor);
-	LCDSHAPE_Create(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(GetTransitionColor(0xC0C0C0,0x333333,0.2),0), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, 0xC0C0C0,0x333333,0,360,LeftUp, ReadOutColor|ShapeInShape);
+	par=LCD_GradientCircleButton(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(v.COLOR_FillMainFrame,15),0xC0C0C0,0x333333,v.COLOR_BkScreen,ReadOutColor);
 
-	LCD_SetBkFontShape(v.FONT_VAR_Title,BK_None);
-	LCD_SetStrVar_fontID(v.FONT_VAR_Title, v.FONT_ID_Title);
-	LCD_StrDependOnColors(v.FONT_VAR_Title, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0, GetTransitionColor(0xC0C0C0,0x333333,0.5), WHITE, 248, ConstWidth);
-	//LCD_StrDependOnColorsVar(v.FONT_VAR_Title, v.FONT_ID_Title, WHITE, 0x666666, v.COLOR_BkScreen, par.pos[0].x+par.size[0].w/4, par.pos[0].y+par.size[0].h/4, "23", fullHight,0,255,ConstWidth);
-	//LCD_SetBkFontShape(v.FONT_VAR_Title,BK_Rectangle);
-	//LCD_Xmiddle
-	//LCD_GetFontHeight(v.FONT_ID_Title);
-	//LCD_GetWholeStrPxlWidth(v.FONT_ID_Title,"23",0,ConstWidth);
+	LCD_BkFontTransparent(v.FONT_VAR_Title,v.FONT_ID_Title);
+	LCD_StrDependOnColorsMidd(v.FONT_ID_Title, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, "23", fullHight,0, GetTransitionColor(0xC0C0C0,0x333333,0.5), WHITE, 248, ConstWidth);
+
+
+
+
+
+
 	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-450, LCD_Y-calcWidth-50, SetParamWidthCircle(0/*Percent_Circle*/,CircleWidth),CircleWidth, SetBold2Color(WHITE,30), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown,0);
 
 	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-150, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,350,Left,0);
@@ -2321,11 +2320,12 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 //---------------------------
 
 
-
-
-
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
 	if(LoadNoDispScreen != argNmb) LCD_Show();
+
+
+	//LCD_GradientCircleButton_Indirect(LCD_X-calcWidth-10, LCD_Y-calcWidth-50, CircleWidth,CircleWidth, SetBold2Color(v.COLOR_BkScreen,18),LIGHTBLUE,DARKBLUE,v.COLOR_BkScreen,0);
+
 }
 
 #undef POS_X_TXT
