@@ -2289,7 +2289,12 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	StartMeasureTime_us();
 
 
-	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle /*0*/,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,33), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x666666,0,351,Center,0);
+	LCD_GradientCircleSlider(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50,CircleWidth,CircleWidth,   SetBold2Color(v.COLOR_BkScreen,33),v.COLOR_FillMainFrame,0xA0A0A0,0x666666,0xA0A0A0,   SetBold2Color(v.COLOR_FillMainFrame,15),0xC0C0C0,0x333333,  v.COLOR_BkScreen,351,Center,0);
+
+
+
+
+	par=LCDSHAPE_Create(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,33), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, 0xA0A0A0,0x666666,0,351,Center,0);
 
 	par=LCD_GradientCircleButton(0,LCD_X,LCD_Y, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(v.COLOR_FillMainFrame,15),0xC0C0C0,0x333333,v.COLOR_BkScreen,ReadOutColor);
 
