@@ -1642,6 +1642,10 @@ int LCD_GetStrVar_Mov_posWin(int idVar){
 void LCD_SetBkFontShape(int idVar, int bkType){
 	FontVar[idVar].bkRoundRect=bkType;
 }
+void LCD_BkFontTransparent(int idVar, int fontID){
+	LCD_SetStrVar_fontID(idVar, fontID);
+	LCD_SetBkFontShape  (idVar, BK_None);
+}
 
 void LCD_DeleteAllFontAndImages(void)
 {
@@ -3441,6 +3445,19 @@ StructTxtPxlLen LCD_StrDependOnColors(int fontID, int Xpos, int Ypos, char *txt,
 		lenStr=LCD_Str(fontID,Xpos,Ypos,txt, OnlyDigits,space,bkColor,0,constWidth);
 	else
 		lenStr=LCD_StrChangeColor(fontID,Xpos,Ypos,txt, OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+	return lenStr;
+}
+StructTxtPxlLen LCD_StrDependOnColorsMidd(int fontID, int Xpos, int Ypos, u16 width,u16 height, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth)
+{
+	u16 x = MIDDLE(Xpos, width, LCD_GetWholeStrPxlWidth(fontID&0x0000FFFF,txt,space,constWidth));
+	u16 y = MIDDLE(Ypos, height, LCD_GetFontHeight(fontID&0x0000FFFF));
+	StructTxtPxlLen lenStr;
+	if((bkColor==MYGRAY && fontColor == WHITE) ||
+		(bkColor==MYGRAY && fontColor == MYGREEN) ||
+		(bkColor==WHITE  && fontColor == BLACK))
+		lenStr=LCD_Str(fontID,x,y,txt, OnlyDigits,space,bkColor,0,constWidth);
+	else
+		lenStr=LCD_StrChangeColor(fontID,x,y,txt, OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 	return lenStr;
 }
 
