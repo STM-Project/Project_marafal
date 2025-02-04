@@ -4159,14 +4159,12 @@ void LCDSHAPE_GradientCircleButton_Indirect(SHAPE_PARAMS param){
 
 SHAPE_PARAMS LCD_GradientCircleSlider(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorSlid,u32 FillColorSlid,u32 GradColorStartSlid,u32 GradColorSlid,u32 GradColorStopSlid,u32 FrameColorButt,u32 FillColorStartButt,u32 FillColorStopButt,u32 BkpColor,u16 degree,DIRECTIONS fillDirSlid,u32 outColorRead)
 {
-	SHAPE_PARAMS params = {0};//{.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColor, .color[0].fill=FillColorGradStart, .color[1].fill=FillColorGradStop, .color[0].bk=BkpColor, .param[0]=outColorRead };
+	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorSlid, .color[1].frame=FrameColorButt, .color[0].fill=GradColorStartSlid, .color[1].fill=GradColorSlid, .color[2].fill=GradColorStopSlid, .color[0].bk=BkpColor, .color[1].bk=FillColorSlid, .param[0]=FillColorStartButt, .param[1]=FillColorStopButt, .param[2]=outColorRead };
 	if(ToStructAndReturn == posBuff)
 		return params;
 	SHAPE_PARAMS par={0};
 	par=LCDSHAPE_Create		(posBuff,BkpSizeX,BkpSizeY, x,				y, 			  SetParamWidthCircle(Percent_Circle,width),width, 		  FrameColorSlid,FillColorSlid, 							 	BkpColor, GradColorStartSlid,GradColorSlid,GradColorStopSlid,degree,fillDirSlid,outColorRead);
 	LCD_GradientCircleButton(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, 									  par.size[0].h, FrameColorButt,FillColorStartButt,FillColorStopButt,BkpColor,																							  ReadOutColor);
-
-
 	return params;
 }
 
