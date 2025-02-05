@@ -202,16 +202,19 @@ SHAPE_PARAMS LCDSHAPE_KeyBackspace			(uint32_t posBuff, SHAPE_PARAMS param);
 SHAPE_PARAMS LCDSHAPE_Rectangle				(uint32_t posBuff, SHAPE_PARAMS param);
 SHAPE_PARAMS LCDSHAPE_RoundRectangle		(uint32_t posBuff, SHAPE_PARAMS param);
 SHAPE_PARAMS LCDSHAPE_GradientCircleButton(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS LCDSHAPE_GradientCircleSlider(uint32_t posBuff, SHAPE_PARAMS param);
 
 void LCD_Arrow_Indirect						(uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor, DIRECTIONS direct);
 void LCD_Rectangle_Indirect				(u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct);
 void LCD_RoundRectangle_Indirect			(int rectFrame,u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct);
 void LCD_GradientCircleButton_Indirect	(u32 x,u32 y,u32 width,u32 height,u32 FrameColor,u32 FillColorGradStart,u32 FillColorGradStop,u32 BkpColor,u32 outColorRead);
+void LCD_GradientCircleSlider_Indirect(u32 x,u32 y,u32 width,u32 height,u32 FrameColorSlid,u32 FillColorSlid,u32 GradColorStartSlid,u32 GradColorSlid,u32 GradColorStopSlid,u32 FrameColorButt,u32 FillColorStartButt,u32 FillColorStopButt,u32 BkpColor,u16 degree,DIRECTIONS fillDirSlid,u32 outColorRead);
 
 void LCDSHAPE_Arrow_Indirect			 		 (SHAPE_PARAMS param);
 void LCDSHAPE_Rectangle_Indirect		 		 (SHAPE_PARAMS param);
 void LCDSHAPE_RoundRectangle_Indirect		 (SHAPE_PARAMS param);
 void LCDSHAPE_GradientCircleButton_Indirect(SHAPE_PARAMS param);
+void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param);
 /* ------- End Selected Figures ------------------*/
 
 void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLOR_BkScreen);
