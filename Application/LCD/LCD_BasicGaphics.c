@@ -4133,6 +4133,7 @@ void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLO
 	LCDSHAPE_Rectangle_Indirect(par6); */
 }
 
+/* ------------------- CIRCLE BUTTON ------------------------*/
 SHAPE_PARAMS LCD_GradientCircleButton(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColor,u32 FillColorGradStart,u32 FillColorGradStop,u32 BkpColor,u32 outColorRead)
 {
 	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColor, .color[0].fill=FillColorGradStart, .color[1].fill=FillColorGradStop, .color[0].bk=BkpColor, .param[0]=outColorRead };
@@ -4154,30 +4155,34 @@ SHAPE_PARAMS LCDSHAPE_GradientCircleButton(uint32_t posBuff, SHAPE_PARAMS param)
 	return LCD_GradientCircleButton(posBuff, param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, param.param[0]);
 }
 void LCDSHAPE_GradientCircleButton_Indirect(SHAPE_PARAMS param){
-	LCD_GradientCircleButton_Indirect(param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, param.param[0]);
+	LCD_GradientCircleButton_Indirect(param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, param.param[0]);
 }
 
-
+/* ------------------- CIRCLE SLIDER ------------------------*/
 SHAPE_PARAMS LCD_GradientCircleSlider(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorSlid,u32 FillColorSlid,u32 GradColorStartSlid,u32 GradColorSlid,u32 GradColorStopSlid,u32 FrameColorButt,u32 FillColorStartButt,u32 FillColorStopButt,u32 BkpColor,u16 degree,DIRECTIONS fillDirSlid,u32 outColorRead)
 {
-	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorSlid, .color[1].frame=FrameColorButt, .color[0].fill=GradColorStartSlid, .color[1].fill=GradColorSlid, .color[2].fill=GradColorStopSlid, .color[0].bk=BkpColor, .color[1].bk=FillColorSlid, .param[0]=FillColorStartButt, .param[1]=FillColorStopButt, .param[2]=outColorRead };
+	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorSlid, .color[1].frame=FrameColorButt, .color[0].fill=GradColorStartSlid, .color[1].fill=GradColorSlid, .color[2].fill=GradColorStopSlid, .color[0].bk=BkpColor, .color[1].bk=FillColorSlid, .param[0]=FillColorStartButt, .param[1]=FillColorStopButt, .color[2].frame=degree, .color[2].bk=fillDirSlid, .param[2]=outColorRead };
 	if(ToStructAndReturn == posBuff)
 		return params;
 	SHAPE_PARAMS par={0};
-	//to nizej dac mozliwosc bez buttons !!!!!!!!
-	par=LCDSHAPE_Create		(posBuff,BkpSizeX,BkpSizeY, x,				y, 			  SetParamWidthCircle(Percent_Circle,width),width, 		  FrameColorSlid,FillColorSlid, 							 	BkpColor, GradColorStartSlid,GradColorSlid,GradColorStopSlid,degree,fillDirSlid,outColorRead);
-	LCD_GradientCircleButton(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, 									  par.size[0].h, FrameColorButt,FillColorStartButt,FillColorStopButt,BkpColor,																							  ReadOutColor);
+	par=LCDSHAPE_Create			(posBuff,BkpSizeX,BkpSizeY, x,				y, 			  SetParamWidthCircle(Percent_Circle,width),width, 		  FrameColorSlid,FillColorSlid, 							 	BkpColor, GradColorStartSlid,GradColorSlid,GradColorStopSlid,degree,fillDirSlid,outColorRead);
+	if(unUsed!=FrameColorButt && unUsed!=FillColorStartButt && unUsed!=FillColorStopButt)
+		LCD_GradientCircleButton(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, 									  par.size[0].h, FrameColorButt,FillColorStartButt,FillColorStopButt,BkpColor,																							  ReadOutColor);
 	return params;
 }
-//void LCD_GradientCircleSlider_Indirect(){
-//
-//}
-//SHAPE_PARAMS LCDSHAPE_GradientCircleSlider(){
-//
-//}
-//void LCDSHAPE_GradientCircleSlider_Indirect(){
-//
-//}
+void LCD_GradientCircleSlider_Indirect(u32 x,u32 y,u32 width,u32 height,u32 FrameColorSlid,u32 FillColorSlid,u32 GradColorStartSlid,u32 GradColorSlid,u32 GradColorStopSlid,u32 FrameColorButt,u32 FillColorStartButt,u32 FillColorStopButt,u32 BkpColor,u16 degree,DIRECTIONS fillDirSlid,u32 outColorRead){
+	uint32_t bkSizeX = MASK(width,FFFF) +2;
+	uint32_t bkSizeY = MASK(height,FFFF)+2;
+	if(0==MASK(outColorRead,1)) LCD_ShapeWindow(LCD_Rectangle, 0, bkSizeX,bkSizeY, 0,0, bkSizeX,bkSizeY, BkpColor,BkpColor,BkpColor );
+	LCD_GradientCircleSlider(0,bkSizeX,bkSizeY,1,1,width,height,FrameColorSlid,FillColorSlid,GradColorStartSlid,GradColorSlid,GradColorStopSlid,FrameColorButt,FillColorStartButt,FillColorStopButt,BkpColor,degree,fillDirSlid,outColorRead);
+	LCD_Display(0,x,y,bkSizeX,bkSizeY);
+}
+SHAPE_PARAMS LCDSHAPE_GradientCircleSlider(uint32_t posBuff, SHAPE_PARAMS param){
+	return LCD_GradientCircleSlider(posBuff, param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].bk, param.color[0].fill, param.color[1].fill, param.color[2].fill, param.color[1].frame, param.param[0], param.param[1], param.color[0].bk, param.color[2].frame, param.color[2].bk, param.param[2]);
+}
+void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
+	LCD_GradientCircleSlider_Indirect(param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].bk, param.color[0].fill, param.color[1].fill, param.color[2].fill, param.color[1].frame, param.param[0], param.param[1], param.color[0].bk, param.color[2].frame, param.color[2].bk, param.param[2]);
+}
 
 
 /*------------------- Example Shape Outline -------------------------------------
