@@ -2277,39 +2277,33 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
-	//--------------------------------------------------------------------------------------------------
 
-	LCD_SetCircleAA(0.0, 0.0);   //UWAGA   dla: Percent_Circle   frameColor musi byc rozne od FillColor !!!!!
-	CorrectLineAA_on();
 
-	SHAPE_PARAMS par={0}, par2={0};
+
 
 	uint32_t CircleWidth= 160;
+	SHAPE_PARAMS par={0}, par2={0};
 	uint16_t calcWidth = LCD_CalculateCircleWidth(CircleWidth);
+
+	LCD_SetCircleAA(0.0, 0.0);
+	CorrectLineAA_on();
+	LCD_BkFontTransparent(v.FONT_VAR_Title, v.FONT_ID_Title);
+
 	StartMeasureTime_us();
-
-
-
-
-	//par=LCD_GradientCircleSlider(0,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50,CircleWidth,CircleWidth,   SetBold2Color(v.COLOR_BkScreen,23),v.COLOR_FillMainFrame,0x666666,0xBBBBBB,0x666666,   SetBold2Color(v.COLOR_FillMainFrame,15),0xC0C0C0,0x333333,  v.COLOR_BkScreen,285,Center,0);
 	par=LCD_GradientCircleSlider(ToStructAndReturn,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50,CircleWidth,CircleWidth,   SetBold2Color(v.COLOR_BkScreen,23),v.COLOR_FillMainFrame,0x666666,0xBBBBBB,0x666666,   SetBold2Color(v.COLOR_FillMainFrame,15),0xC0C0C0,0x333333,  v.COLOR_BkScreen,270,Center,0);
 	par2=par;
-//	LCDSHAPE_GradientCircleSlider(0,par);
-//
-	LCD_BkFontTransparent(v.FONT_VAR_Title,v.FONT_ID_Title); //TO nie wykomentuj !!!!
-//	LCD_StrDependOnColorsMidd(v.FONT_ID_Title, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, "23", fullHight,0, GetTransitionColor(0xC0C0C0,0x333333,0.5), WHITE, 250, ConstWidth);
-//
+	LCDSHAPE_GradientCircleSlider(0,par);
+	LCD_StrDependOnColorsMidd(FONT_ID_Title, POS_SIZE_CIRCLEBUTTONSLIDER(par,0), "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
+	StopMeasureTime_us("Time:");
 
 
 
 
 
-	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-450, LCD_Y-calcWidth-50, SetParamWidthCircle(0/*Percent_Circle*/,CircleWidth),CircleWidth, SetBold2Color(WHITE,30), v.COLOR_BkScreen /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown,0);
 
-	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-150, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,350,Left,0);
-	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10, LCD_Y-calcWidth-50,     SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame /*TRANSPARENT*/, v.COLOR_BkScreen, RED,BLUE,0,355,Right,0);
-	StopMeasureTime_us("AAAAAAAAAAAAAAAAA:");
-	//--------------------------------------------------------------------------------------------------
+
+
+
 
 
 
@@ -2317,21 +2311,14 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	if(LoadNoDispScreen != argNmb) LCD_Show();
 
 
-	par=LCD_GradientCircleButton(ToStructAndReturn,CircleWidth,CircleWidth,LCD_X-calcWidth-10, LCD_Y-calcWidth-50, CircleWidth,CircleWidth, SetBold2Color(v.COLOR_BkScreen,18),LIGHTBLUE,DARKBLUE,v.COLOR_BkScreen,0);
-	LCDSHAPE_GradientCircleButton_Indirect(par);
- //LCD_GradientCircleButton_Indirect(                                     LCD_X-calcWidth-10, LCD_Y-calcWidth-50, CircleWidth,CircleWidth, SetBold2Color(v.COLOR_BkScreen,18),LIGHTBLUE,DARKBLUE,v.COLOR_BkScreen,0);
+//
+//	par=LCD_GradientCircleButton(ToStructAndReturn,CircleWidth,CircleWidth,LCD_X-calcWidth-10, LCD_Y-calcWidth-50, CircleWidth,CircleWidth, SetBold2Color(COLOR_BkScreen,18),LIGHTBLUE,DARKBLUE,v.COLOR_BkScreen,0);
+//	LCDSHAPE_GradientCircleButton_Indirect(par);
+//	LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER(par,2), v.FONT_ID_Title, "987", fullHight,0, BK_COLOR_CIRCLEBUTTON(par), WHITE, 248, ConstWidth);
+//
+//	LCDSHAPE_GradientCircleSlider_Indirect(par2);
+//	LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER(par2,2), v.FONT_ID_Title, "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par2), WHITE, 248, ConstWidth);
 
-//	LCD_SetStrVar_fontID(v.FONT_VAR_Title, v.FONT_ID_Title);
-//	LCD_SetBkFontShape  (v.FONT_VAR_Title, BK_Rectangle);
-	//LCD_StrDependOnColorsMiddIndirect(v.FONT_ID_Title, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, "23", fullHight,0, GetTransitionColor(LIGHTBLUE,DARKBLUE,0.5), WHITE, 248, ConstWidth);
-	LCD_StrDependOnColorsWindowMiddIndirect(0, par.pos[0].x, par.pos[0].y, par.size[0].w+2, par.size[0].h+2, v.FONT_ID_Title, "987", fullHight,0, GetTransitionColor(par.color[0].fill, par.color[1].fill,0.5), WHITE, 248, ConstWidth);
-																																															//GetTransitionColor(par.color[0].fill, par.color[1].fill ,0.5);
-
-
-
-	LCDSHAPE_GradientCircleSlider_Indirect(par2);
-	LCD_StrDependOnColorsWindowMiddIndirect(0, par2.pos[0].x, par2.pos[0].y, par2.size[0].w+2, par2.size[0].h+2, v.FONT_ID_Title, "23", fullHight,0, GetTransitionColor(par2.color[0].fill, par2.color[1].fill,0.5), WHITE, 248, ConstWidth);
-																																																//GetTransitionColor(par.param[0].fill, par.param[1].fill ,0.5); //dac jako auto funkcje obliczajaca z param,etrem wspolczynnika !!!!
 
 
 
