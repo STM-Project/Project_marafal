@@ -91,7 +91,6 @@ typedef enum{
 
 typedef enum{
 	ReadOutColor = 0x1,
-	ShapeInShape = 0x2,	 /* frame of inShape is covered by mainShape */
 }SHAPE_FLAGS;
 
 #define K_TAB_SIZE 	4

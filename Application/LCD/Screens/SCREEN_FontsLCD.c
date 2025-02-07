@@ -18,6 +18,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "Keyboard.h"
+#include "examples.h"
 
 /*----------------- Main Settings ------------------*/
 #define FILE_NAME(extend) SCREEN_Fonts_##extend
@@ -2274,8 +2275,50 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	Test.speed=StopMeasureTime_us("");
 
 
+
+	uint32_t CircleWidth= 160;
+	SHAPE_PARAMS par={0}, par2={0};
+	uint16_t calcWidth = LCD_CalculateCircleWidth(CircleWidth);
+
+	LCD_SetCircleAA(0.0, 0.0);
+	CorrectLineAA_on();
+	LCD_BkFontTransparent(v.FONT_VAR_Title, v.FONT_ID_Title);
+
+	StartMeasureTime_us();
+	par=LCD_GradientCircleSlider(ToStructAndReturn,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50,CircleWidth,CircleWidth,   SetBold2Color(v.COLOR_BkScreen,23),v.COLOR_FillMainFrame,0x666666,0xBBBBBB,0x666666,   SetBold2Color(v.COLOR_FillMainFrame,15),0xC0C0C0,0x333333,  v.COLOR_BkScreen,270,Center,0);
+	par2=par;
+	LCDSHAPE_GradientCircleSlider(0,par);
+	LCD_StrDependOnColorsMidd(v.FONT_ID_Title, POS_SIZE_CIRCLEBUTTONSLIDER(par,0), "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
+	StopMeasureTime_us("\r\nTime1:");
+
+
+
+	StartMeasureTime_us();
+	par=LCD_GradientCircleButton(ToStructAndReturn,LCD_X,LCD_Y,LCD_X-calcWidth-10, LCD_Y-calcWidth-50, CircleWidth,CircleWidth, SetBold2Color(v.COLOR_BkScreen,18),LIGHTBLUE,DARKBLUE,v.COLOR_BkScreen,0);
+	LCDSHAPE_GradientCircleButton(0,par);
+	LCD_StrDependOnColorsMidd(v.FONT_ID_Title, POS_SIZE_CIRCLEBUTTONSLIDER(par,2), "987", fullHight,0, BK_COLOR_CIRCLEBUTTON(par), WHITE, 248, ConstWidth);
+	StopMeasureTime_us("    Time2:");
+
+
+
+
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
 	if(LoadNoDispScreen != argNmb) LCD_Show();
+
+
+
+//	StartMeasureTime_us();
+//	par=LCD_GradientCircleButton(ToStructAndReturn,CircleWidth,CircleWidth,LCD_X-calcWidth-10, LCD_Y-calcWidth-50, CircleWidth,CircleWidth, SetBold2Color(v.COLOR_BkScreen,18),LIGHTBLUE,DARKBLUE,v.COLOR_BkScreen,0);
+//	LCDSHAPE_GradientCircleButton_Indirect(par);
+//	LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER(par,2), v.FONT_ID_Title, "987", fullHight,0, BK_COLOR_CIRCLEBUTTON(par), WHITE, 248, ConstWidth);
+//	StopMeasureTime_us("\r\nTime1:");
+//
+//
+//	StartMeasureTime_us();
+//	LCDSHAPE_GradientCircleSlider_Indirect(par2);
+//	LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER(par2,2), v.FONT_ID_Title, "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par2), WHITE, 248, ConstWidth);
+//	StopMeasureTime_us("    Time2:");
+
 }
 
 #undef POS_X_TXT
