@@ -3945,11 +3945,18 @@ SHAPE_PARAMS LCD_RoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,u32
 		return params;
 
 	int boldValue= SHIFT_RIGHT(rectangleFrame,16,FF), boldDirect=0;
+	int stepGrad = SHIFT_RIGHT(rectangleFrame,8,FF);
 	int rectFrame= MASK(rectangleFrame,FF);									if(rectFrame==Frame){ FillColorStart=BkpColor; FillColorStop=BkpColor; }
 
 	if(boldValue > bold0){
 		boldDirect = SHIFT_RIGHT(rectangleFrame,24,FF);
 		switch(boldDirect){
+			case Down2:
+				LCD_DrawRoundRectangle2(posBuff,Frame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
+				LOOP_FOR(i,boldValue){
+					if(i==boldValue-bold1)	LCD_DrawRoundRectangle2(posBuff,rectFrame,BkpSizeX,BkpSizeY,x,y,width,height-(i+1),  FrameColorStart,								BrightIncr(FrameColorStop,i*stepGrad),  FillColorStart,FillColorStop,AA_OUT_OFF,ratioStart,direct);
+					else							LCD_DrawRoundRectangle2(posBuff,Frame,		BkpSizeX,BkpSizeY,x,y,width,height-(i+1),  BrightIncr(FrameColorStop,i*stepGrad),BrightIncr(FrameColorStop,i*stepGrad),  FillColorStart,FillColorStop,AA_OUT_OFF,ratioStart,direct); }
+				break;
 			case Down:
 				LCD_DrawRoundRectangle2(posBuff,Frame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
 				LOOP_FOR(i,boldValue){

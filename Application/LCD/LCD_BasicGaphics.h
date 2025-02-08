@@ -43,6 +43,7 @@ typedef enum{
 	NoDirect = -1,
 	Up,
 	Down,
+	Down2,
 	Right,
 	Right2,
 	RightDown,
@@ -81,7 +82,7 @@ typedef enum{
 }SLIDER_PARAMS;
 
 typedef enum{
-	bold0,bold1,bold2,bold3,bold4,bold5,bold6,bold7,bold8,bold9,bold10
+	bold0,bold1,bold2,bold3,bold4,bold5,bold6,bold7,bold8,bold9,bold10,bold11,bold12,bold13,bold14,bold15
 }BOLD_PARAMS;
 
 typedef enum{
