@@ -65,6 +65,7 @@ typedef enum{
 	Midd_X2,
 	Midd_Y2,
 	AllEdge,
+	AllEdge2,
 	Shade,
 	Round,
 	Center,

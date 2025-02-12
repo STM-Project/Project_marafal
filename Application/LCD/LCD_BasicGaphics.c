@@ -2021,7 +2021,7 @@ static void LCD_DrawRoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,
 {
 	#define A(a,b) 	_FillBuff(a,b)
 
-	int stepGrad = SHIFT_RIGHT(rectangleFrame,24,FF);	/* effect 3D*/
+	int stepGrad = SHIFT_RIGHT(rectangleFrame,24,FF);	/* effect 3D */
 	int shapeType = MASK(rectangleFrame,FF);
 	uint8_t thickness = BkpColor>>24;
 	uint32_t o1=0,o2=0,  i1=0,i2=0,i3=0,i4=0,	FrameColorTemp=0;
@@ -3975,6 +3975,16 @@ SHAPE_PARAMS LCD_RoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,u32
 				LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,colorBuff[0],colorBuff[0],BkpColor,ratioStart,direct);
 				LOOP_FOR(i,boldValue-1){
 					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-2,rectFrame,Frame|(stepGrad<<24)),BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i+1],colorBuff[i+1], colorBuff[i+1],colorBuff[i+1], AA_OUT_OFF, ratioStart,direct);
+				}
+				break;
+			case AllEdge2:
+				Set_AACoeff(boldValue,FillColorStart,FillColorStop,ratioStart);	LOOP_FOR(i,boldValue){ colorBuff[i]=buff_AA[1+i]; }
+				LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,colorBuff[0],colorBuff[0],BkpColor,ratioStart,direct);
+				LOOP_FOR(i,boldValue-1){
+					if(i==boldValue-2)
+						LCD_DrawRoundRectangle2(posBuff,rectFrame,           BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad), AA_OUT_OFF, ratioStart,direct);
+					else
+						LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i+1],					  		colorBuff[i+1], 					 		colorBuff[i+1],							colorBuff[i+1], 							 AA_OUT_OFF, ratioStart,direct);
 				}
 				break;
 			case Shade:
