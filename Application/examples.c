@@ -12,7 +12,7 @@
 
 void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLOR_BkScreen)
 {
-	SHAPE_PARAMS par1,par2,par3,par4,par5,par6;
+	SHAPE_PARAMS par1,par2,par3,par4,par5,par6;		/* for LCD_RoundRectangle2() for 'AllEdge' argument 'DIRECTIONS' has no effect */
 
 	LCD_Rectangle2(0, LCD_X,LCD_Y, 20,240, 100, 40,  COLOR_FillFrame,BrightIncr(COLOR_FillFrame,0x55),   			  COLOR_FillFrame,ORANGE,  COLOR_BkScreen, 0.0, Down);
 	LCD_Rectangle2(0, LCD_X,LCD_Y, 160,240, 100, 40, BrightDecr(COLOR_Frame,0xA5),BrightDecr(COLOR_Frame,0xAE),   COLOR_FillFrame,YELLOW,  COLOR_BkScreen, 0.0, Up);
@@ -26,7 +26,7 @@ void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLO
 	par3=LCD_Rectangle2(ToStructAndReturn, LCD_X,LCD_Y, 500,350, 100, 25, BrightDecr(COLOR_Frame,0xA0),BrightIncr(COLOR_Frame,0x01),  COLOR_FillFrame,BrightDecr(COLOR_FillFrame,0x35),  COLOR_BkScreen, 0.0, RightDown);
 	par4=LCD_Rectangle2(ToStructAndReturn, LCD_X,LCD_Y, 610,360, 29, 100, BrightDecr(COLOR_Frame,0xA0),BrightIncr(COLOR_Frame,0x01),  COLOR_FillFrame,BrightDecr(COLOR_FillFrame,0x35),  COLOR_BkScreen, 0.0, RightDown);
 
-	par1=LCD_RoundRectangle2(ToStructAndReturn,PARAM32(AllEdge,bold10,unUsed,Rectangle),LCD_X,LCD_Y,70,350,70,80 ,WHITE,BrightDecr(WHITE,0x30), 0xFFAAAAAA,BrightDecr(0xFFAAAAAA,0x30), COLOR_BkScreen, 0.0, Down);
+	par1=LCD_RoundRectangle2(ToStructAndReturn,PARAM32(AllEdge,bold10,0x20,Rectangle),LCD_X,LCD_Y,70,350,70,80 ,WHITE,BrightDecr(WHITE,0x30), 0xFFAAAAAA,BrightDecr(0xFFAAAAAA,0x30), COLOR_BkScreen, 0.0, Down);  /* 0x20 give effect 3D*/
 	par2=LCD_RoundRectangle2(ToStructAndReturn,PARAM32(Up,bold2,unUsed,Rectangle), 		LCD_X,LCD_Y,180,350,70,80, BrightDecr(COLOR_Frame,0x20),BrightIncr(COLOR_Frame,0x65), 0xFF808080,BrightDecr(0xFF808080,0x44), COLOR_BkScreen, 0.0, Left);
 		  LCD_RoundRectangle2(0,					 PARAM32(Down,bold3,unUsed,Rectangle), 	LCD_X,LCD_Y,280,390,70,80, BrightDecr(COLOR_Frame,0x20),BrightIncr(COLOR_Frame,0x65), 0xFF808080,BrightDecr(0xFF808080,0x44), COLOR_BkScreen, 0.0, Down);
 
@@ -44,15 +44,18 @@ void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLO
 	LCD_RoundRectangle2(0, PARAM32(Down2,bold5,3,Rectangle), LCD_X,LCD_Y,710,240,70,80, BrightDecr(COLOR_Frame,0x40),0x202020, 0xFF808080,BrightDecr(0xFF808080,0x40), COLOR_BkScreen, 0.0, Down);
 	LCD_RoundRectangle2(0, PARAM32(Down2,bold5,12,Rectangle), LCD_X,LCD_Y,710,340,70,80, BrightDecr(COLOR_Frame,0x40),0x202020, 0xFF808080,BrightDecr(0xFF808080,0x40), COLOR_BkScreen, 0.0, Down);
 
-	LCD_RoundRectangle2(0,PARAM32(AllEdge2,bold10,unUsed,Rectangle),LCD_X,LCD_Y,370,390,70,80 ,BrightDecr(WHITE,0x50), BrightDecr(WHITE,0x50), 0xFFA0A0A0,BrightDecr(0xFFA0A0A0,0x50), COLOR_BkScreen, 0.0, Down);
+	LCD_RoundRectangle2(0,PARAM32(AllEdge,bold10,unUsed,Rectangle),LCD_X,LCD_Y,370,390,70,80 ,BrightDecr(WHITE,0x50), BrightDecr(WHITE,0x50), 0xFFA0A0A0,BrightDecr(0xFFA0A0A0,0x50), COLOR_BkScreen, 0.0, Down);
 
 
-int dddd= 8;
-	LOOP_FOR(i,dddd){
-		LCD_RoundRectangle2(0,PARAM32(AllEdge2,bold10,unUsed,Frame),LCD_X,LCD_Y,480-i,393-i,70,80 , BrightDecr(0xFFA0A0A0,0x77), BrightDecr(0xFFA0A0A0,0x77),  BrightDecr(0xFFA0A0A0,0xA0),BrightDecr(0xFFA0A0A0,0xA0), COLOR_BkScreen, 0.0, Down);
-	}
-	LCD_RoundRectangle2(0,PARAM32(AllEdge2,bold10,unUsed,Rectangle),LCD_X,LCD_Y,480-dddd,393-dddd,70,80 ,0xFFA0A0A0,0xFFA0A0A0,  BrightDecr(0xFFA0A0A0,0x30),BrightDecr(0xFFA0A0A0,0x10), COLOR_BkScreen, 0.0, Down);
+//int dddd= 7;
+//	LOOP_FOR(i,dddd){
+//		LCD_RoundRectangle2(0,PARAM32(AllEdge,bold0,unUsed,Frame),LCD_X,LCD_Y,480-i,393-i,70,80 , BrightDecr(0xFFA0A0A0,0x77), BrightDecr(0xFFA0A0A0,0x77),  BrightDecr(0xFFA0A0A0,0xA0),BrightDecr(0xFFA0A0A0,0xA0), COLOR_BkScreen, 0.0, Down);
+//	}
+//	LCD_RoundRectangle2(0,PARAM32(AllEdge,bold10,unUsed,Rectangle),LCD_X,LCD_Y,480-dddd,393-dddd,70,80 ,0xFFA0A0A0,0xFFA0A0A0,  BrightDecr(0xFFA0A0A0,0x30),BrightDecr(0xFFA0A0A0,0x10), COLOR_BkScreen, 0.0, Down);
 
+
+	LCD_RoundRectangle2(0,PARAM32(Shade,  bold6, unUsed,Frame),		LCD_X,LCD_Y,480,393,70,80, BrightDecr(0xFFA0A0A0,0x77),BrightDecr(0xFFA0A0A0,0x77),  BrightDecr(0xFFA0A0A0,0xA0),BrightDecr(0xFFA0A0A0,0xA0), COLOR_BkScreen, 0.0, Down);
+	LCD_RoundRectangle2(0,PARAM32(AllEdge,bold10,unUsed,Rectangle),LCD_X,LCD_Y,480,393,70,80, 0xFFA0A0A0,						 0xFFA0A0A0,  	 					 BrightDecr(0xFFA0A0A0,0x30), BrightDecr(0xFFA0A0A0,0x10),COLOR_BkScreen, 0.0, Down);
 
 //	LCDSHAPE_Rectangle_Indirect(par3);
 //	LCDSHAPE_Rectangle_Indirect(par4);
