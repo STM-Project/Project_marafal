@@ -16,7 +16,8 @@
 #define MAX_LINE_BUFF_CIRCLE_SIZE  100
 #define MAX_DEGREE_CIRCLE  10
 
-#define AA_OUT_OFF  1<<24
+#define AA_OUT_OFF  	 1<<24
+#define READ_BKCOLOR  1<<25
 #define COLOR_TEST		0x12345678
 #define COLOR_TEST_1		0x12345677
 #define COLOR_TEST_2		0x12345679
@@ -2023,9 +2024,12 @@ static void LCD_DrawRoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,
 
 	int stepGrad = SHIFT_RIGHT(rectangleFrame,24,FF);	/* effect 3D */
 	int shapeType = MASK(rectangleFrame,FF);
-	uint8_t thickness = BkpColor>>24;
+	uint8_t AAoutOff    = SHIFT_RIGHT(BkpColor,24,1);
+	uint8_t readBkColor = SHIFT_RIGHT(BkpColor,25,1);
 	uint32_t o1=0,o2=0,  i1=0,i2=0,i3=0,i4=0,	FrameColorTemp=0;
 	int iFrameHeight=0, iFillHeight=0;
+
+	if(MASK(BkpColor,FF000000)==0 || MASK(BkpColor,FF000000)==255){ AAoutOff=0; readBkColor=0; }
 
 	void _CalcInternalTransColor(u32 colorFrame, int offs){
 		if(direct==Up || direct==Down){
@@ -2068,16 +2072,18 @@ static void LCD_DrawRoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,
 	}
 
 	void _Out_AA_left(int stage){		/*FrameColor*/
-		if((thickness==0)||(thickness==255)){
+		#define _A(i)	 if(0==readBkColor) A(i,BkpColor); else k+=i
+		if(0==AAoutOff){
+			if(readBkColor) BkpColor=pLcd[k+1];
 			o1 = GetTransitionColor(FrameColorTemp,BkpColor,AA.c1);		/* _CalcOutTransColor */
 			o2 = GetTransitionColor(FrameColorTemp,BkpColor,AA.c2);
 		}
-		if((thickness==0)||(thickness==255))
+		if(0==AAoutOff)
 		{	switch(stage)
 			{
-			case 0:	A(3,BkpColor); A(1,o2); A(1,o1);  break;
-			case 1:	A(2,BkpColor); A(1,o1);  break;
-			case 2:	A(1,BkpColor); A(1,o1);  break;
+			case 0:	_A(3); A(1,o2); A(1,o1);  break;
+			case 1:	_A(2); A(1,o1);  break;
+			case 2:	_A(1); A(1,o1);  break;
 			case 3:	A(1,o2); break;
 			case 4:	A(1,o1); break;
 			}
@@ -2090,15 +2096,23 @@ static void LCD_DrawRoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,
 			case 2:	k+=2; break;
 			case 3:	k+=1; break;
 			case 4:	k+=1; break;
-	}}}
+	}}
+	#undef _A
+	}
 
 	void _Out_AA_right(int stage){		/*FrameColor*/
-		if((thickness==0)||(thickness==255))
+		#define _A(i)	 if(0==readBkColor) A(i,BkpColor); else k+=i
+		if(readBkColor){
+			BkpColor=pLcd[k+3];
+			o1 = GetTransitionColor(FrameColorTemp,BkpColor,AA.c1);		/* _CalcOutTransColor */
+			o2 = GetTransitionColor(FrameColorTemp,BkpColor,AA.c2);
+		}
+		if(0==AAoutOff)
 		{	switch(stage)
 			{
-			case 0:	A(1,o1); A(1,o2); A(3,BkpColor);  break;
-			case 1:	A(1,o1); A(2,BkpColor);  break;
-			case 2:	A(1,o1); A(1,BkpColor);  break;
+			case 0:	A(1,o1); A(1,o2); _A(3);  break;
+			case 1:	A(1,o1); _A(2);  break;
+			case 2:	A(1,o1); _A(1);  break;
 			case 3:	A(1,o2); break;
 			case 4:	A(1,o1); break;
 			}
@@ -2111,7 +2125,9 @@ static void LCD_DrawRoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,
 			case 2:	k+=2; break;
 			case 3:	k+=1; break;
 			case 4:	k+=1; break;
-	}}}
+	}}
+	#undef _A
+	}
 
 	void _SetFillColor(u32 FillStart, u32 FillStop){
 		switch((int)direct){
@@ -3974,19 +3990,39 @@ SHAPE_PARAMS LCD_RoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,u32
 				Set_AACoeff(boldValue,FillColorStart,FillColorStop,ratioStart);	LOOP_FOR(i,boldValue){ colorBuff[i]=buff_AA[1+i]; }
 				LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,colorBuff[0],colorBuff[0],BkpColor,ratioStart,direct);
 				LOOP_FOR(i,boldValue-1){
-					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-2,rectFrame,Frame|(stepGrad<<24)),BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i+1],colorBuff[i+1], colorBuff[i+1],colorBuff[i+1], AA_OUT_OFF, ratioStart,direct);
+					if(i==boldValue-2) LCD_DrawRoundRectangle2(posBuff,rectFrame,				BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i+1],colorBuff[i+1], colorBuff[i+1],colorBuff[i+1], READ_BKCOLOR, ratioStart,direct);
+					else					 LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i+1],colorBuff[i+1], colorBuff[i+1],colorBuff[i+1], AA_OUT_OFF,   ratioStart,direct);
 				}
 				break;
 			case AllEdge2:
 				Set_AACoeff(boldValue,FillColorStart,FillColorStop,ratioStart);	LOOP_FOR(i,boldValue){ colorBuff[i]=buff_AA[1+i]; }
 				LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,colorBuff[0],colorBuff[0],BkpColor,ratioStart,direct);
 				LOOP_FOR(i,boldValue-1){
-					if(i==boldValue-2)
-						LCD_DrawRoundRectangle2(posBuff,rectFrame,           BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad), AA_OUT_OFF, ratioStart,direct);
-					else
-						LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i+1],					  		colorBuff[i+1], 					 		colorBuff[i+1],							colorBuff[i+1], 							 AA_OUT_OFF, ratioStart,direct);
+					if(i==boldValue-2) LCD_DrawRoundRectangle2(posBuff,rectFrame,           BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad), READ_BKCOLOR, ratioStart,direct);
+					else					 LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i+1],					  		 colorBuff[i+1], 					 		 colorBuff[i+1],							 colorBuff[i+1], 							  AA_OUT_OFF, 	 ratioStart,direct);
 				}
 				break;
+
+
+//			case AllEdge:
+//				Set_AACoeff(boldValue,FillColorStart,FillColorStop,ratioStart);	LOOP_FOR(i,boldValue){ colorBuff[i]=buff_AA[1+i]; }
+//				LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,colorBuff[0],colorBuff[0],BkpColor,ratioStart,direct);
+//				LOOP_FOR(i,boldValue-1){
+//					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-2,rectFrame,Frame|(stepGrad<<24)),BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i+1],colorBuff[i+1], colorBuff[i+1],colorBuff[i+1], AA_OUT_OFF, ratioStart,direct);
+//				}
+//				break;
+//			case AllEdge2:
+//				Set_AACoeff(boldValue,FillColorStart,FillColorStop,ratioStart);	LOOP_FOR(i,boldValue){ colorBuff[i]=buff_AA[1+i]; }
+//				LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,colorBuff[0],colorBuff[0],BkpColor,ratioStart,direct);
+//				LOOP_FOR(i,boldValue-1){
+//					if(i==boldValue-2)
+//						LCD_DrawRoundRectangle2(posBuff,rectFrame,           BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad), AA_OUT_OFF, ratioStart,direct);
+//					else
+//						LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i+1],					  		colorBuff[i+1], 					 		colorBuff[i+1],							colorBuff[i+1], 							 AA_OUT_OFF, ratioStart,direct);
+//				}
+//				break;
+
+
 			case Shade:
 				LOOP_FOR(i,boldValue){
 					LCD_DrawRoundRectangle2(posBuff,rectFrame,BkpSizeX,BkpSizeY,x+boldValue-i,y+boldValue-i,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
