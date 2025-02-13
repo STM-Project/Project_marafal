@@ -2029,7 +2029,7 @@ static void LCD_DrawRoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,
 	uint32_t o1=0,o2=0,  i1=0,i2=0,i3=0,i4=0,	FrameColorTemp=0;
 	int iFrameHeight=0, iFillHeight=0;
 
-	if(MASK(BkpColor,FF000000)==0 || MASK(BkpColor,FF000000)==255){ AAoutOff=0; readBkColor=0; }
+	if(EQUAL2_OR( SHIFT_RIGHT(BkpColor,24,FF),0,255)){ AAoutOff=0; readBkColor=0; }
 
 	void _CalcInternalTransColor(u32 colorFrame, int offs){
 		if(direct==Up || direct==Down){
@@ -2074,7 +2074,7 @@ static void LCD_DrawRoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,
 	void _Out_AA_left(int stage){		/*FrameColor*/
 		#define _A(i)	 if(0==readBkColor) A(i,BkpColor); else k+=i
 		if(0==AAoutOff){
-			if(readBkColor) BkpColor=pLcd[k+1];
+			if(readBkColor) BkpColor=pLcd[k-1];
 			o1 = GetTransitionColor(FrameColorTemp,BkpColor,AA.c1);		/* _CalcOutTransColor */
 			o2 = GetTransitionColor(FrameColorTemp,BkpColor,AA.c2);
 		}
@@ -2103,7 +2103,7 @@ static void LCD_DrawRoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,
 	void _Out_AA_right(int stage){		/*FrameColor*/
 		#define _A(i)	 if(0==readBkColor) A(i,BkpColor); else k+=i
 		if(readBkColor){
-			BkpColor=pLcd[k+3];
+			BkpColor=pLcd[k+5];
 			o1 = GetTransitionColor(FrameColorTemp,BkpColor,AA.c1);		/* _CalcOutTransColor */
 			o2 = GetTransitionColor(FrameColorTemp,BkpColor,AA.c2);
 		}
