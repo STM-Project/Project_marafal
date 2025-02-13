@@ -212,7 +212,8 @@ typedef struct {
 }StructFieldPos;
 
 typedef struct{
-	POS_SIZE ps;
+	POS_SIZE win;
+	POS_SIZE txt;
 	int 		fontId;
 	char 		str[MAX_TXT_SIZE__LCD_STR_PARAM];
 	int 		onlyDig;
@@ -338,12 +339,15 @@ StructTxtPxlLen LCD_StrDependOnColorsVarIndirect	(int idVar, char *txt);
 StructTxtPxlLen LCD_StrDependOnColorsDescrVar(int idVar,int fontID, uint32_t fontColor, uint32_t bkColor, uint32_t bkScreenColor, int Xpos, int Ypos, char *txt, int OnlyDigits, int space,int maxVal, int constWidth, \
 																			int fontID2, uint32_t fontColor2, uint32_t bkColor2, int interspace, int directionDescr, char *txt2, int OnlyDigits2, int space2,int maxVal2, int constWidth2);
 
+StructTxtPxlLen LCD_StrDependOnColorsParam(LCD_STR_PARAM p);
+StructTxtPxlLen LCD_StrDependOnColorsIndirectParam(LCD_STR_PARAM p);
 StructTxtPxlLen LCD_StrDependOnColorsWindow(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth);
+StructTxtPxlLen LCD_StrDependOnColorsWindowParam(LCD_STR_PARAM p);
 StructTxtPxlLen LCD_StrDependOnColorsWindowIndirect(uint32_t posBuff, int Xwin, int Ywin,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth);
 StructTxtPxlLen LCD_StrDependOnColorsWindowMiddIndirect(u32 posBuff, int Xwin,int Ywin, u32 BkpSizeX, u32 BkpSizeY,int fontID, char *txt, int OnlyDigits, int space, u32 bkColor, u32 fontColor, u8 maxVal, int constWidth);
 StructTxtPxlLen LCD_StrDependOnColorsWindowIndirectParam(LCD_STR_PARAM p);
 
-LCD_STR_PARAM LCD_SetStrDescrParam(int x,int y,int w,int h,int fontID,char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth);
+LCD_STR_PARAM LCD_SetStrDescrParam(int xWin,int yWin, int wWin,int hWin, int xStr,int yStr, int wStr,int hStr, int fontID,char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth);
 uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt);
 
 char* LCD_LIST_TXT_example(char* buf, int* nmbLines);

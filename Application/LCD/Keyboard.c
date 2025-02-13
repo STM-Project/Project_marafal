@@ -1078,6 +1078,7 @@ void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PAR
 	int interSp  = VALPERC(s[k].interSpace,60);					/* 'Color2Txt' is 	press color for: pointer, lineSel */
 	XY_Touch_Struct posKey[GetPosKeySize()];
 	StructFieldPos fieldTxtDescr = {0};
+	//static LCD_STR_PARAM paramTxt={0};
 
 	LCD_SetCircleAA(0.0, 0.0);
 	CorrectLineAA_on();
@@ -1091,7 +1092,15 @@ void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PAR
 	}
 	void _FuncAllRelease(void){
 		ShapeWin(k,widthAll,heightAll);
+
+
+
+		//paramTxt =LCD_SetStrDescrParam(win.pos.x+xPosTxt,  win.pos.y+yPosUD, len_temp,  GetHeightFont(fontID_descr), fontID_descr,paramTxt.str, fullHight,0,bkColor,YELLOW,	  FONT_COEFF,NoConstWidth);
 		fieldTxtDescr = TxtDescr(k, 0,0, txtDescr);
+
+
+
+
 		_ChangeFrameColor(s[k].param);
 		KeysAllRelease_CircleSlider(k, posKey,value);
 	}
@@ -1303,8 +1312,8 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		int len_temp2 = GetStrPxlWidth(fontID_descr,paramTxt2.str,NoConstWidth);
 		int xPosTxt  = xPosU-2*spaceBetweenArrows-len_temp;
 		int xPosTxt2 = spaceFromFrame;
-		paramTxt =LCD_SetStrDescrParam(win.pos.x+xPosTxt,  win.pos.y+yPosUD, len_temp,  GetHeightFont(fontID_descr), fontID_descr,paramTxt.str, fullHight,0,bkColor,YELLOW,	  FONT_COEFF,NoConstWidth);
-		paramTxt2=LCD_SetStrDescrParam(win.pos.x+xPosTxt2, win.pos.y+yPosUD, len_temp2, GetHeightFont(fontID_descr), fontID_descr,paramTxt2.str,fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth);
+		paramTxt =LCD_SetStrDescrParam(win.pos.x+xPosTxt,  win.pos.y+yPosUD,  len_temp,  GetHeightFont(fontID_descr), 0,0, unUsed,unUsed, fontID_descr,paramTxt.str, fullHight,0,bkColor,YELLOW,	 FONT_COEFF,NoConstWidth);
+		paramTxt2=LCD_SetStrDescrParam(win.pos.x+xPosTxt2, win.pos.y+yPosUD,  len_temp2, GetHeightFont(fontID_descr), 0,0, unUsed,unUsed, fontID_descr,paramTxt2.str,fullHight,0,bkColor,colorDescr,FONT_COEFF,NoConstWidth);
 		LCD_StrDependOnColorsWindow(0,width,height,paramTxt.fontId,  xPosTxt, yPosUD, paramTxt.str,  paramTxt.onlyDig, paramTxt.spac, paramTxt.bkCol, CONDITION(inside ==param,RED,paramTxt.fontCol), paramTxt.maxV, paramTxt.constW);
 		LCD_StrDependOnColorsWindow(0,width,height,paramTxt2.fontId, xPosTxt2,yPosUD, paramTxt2.str, paramTxt2.onlyDig,paramTxt2.spac,paramTxt2.bkCol,CONDITION(_IsFlagTest(), RED,paramTxt2.fontCol),paramTxt2.maxV,paramTxt2.constW);
 
@@ -1402,8 +1411,8 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 		s[k].nmbTouch-=6;
 	}
 	void _DeleteWindows(void){		/* Use function only after displaying (not during) */
-		pfunc(FUNC_MAIN_ARG);	_RstFlagWin();  LCD_DisplayPart(0,win.pos.x ,win.pos.y, win.size.w, win.size.h); retVal=1;
-		_DeleteAdditionalTouches();
+		pfunc(FUNC_MAIN_ARG);	_RstFlagWin(); _RstFlagTest(); LCD_DisplayPart(0,win.pos.x ,win.pos.y, win.size.w, win.size.h); retVal=1;
+		_DeleteAdditionalTouches();	_SetInitStaticVar();
 		LCD_TOUCH_RestoreSusspendedTouch(s[k].forTouchIdx);
 	}
 	int _TakeNewTxtList(void){

@@ -3969,12 +3969,21 @@ StructTxtPxlLen LCD_StrDependOnColorsWindowMiddIndirect(u32 posBuff, int Xwin,in
 	return lenStr;
 }
 
-StructTxtPxlLen LCD_StrDependOnColorsWindowIndirectParam(LCD_STR_PARAM p){
-	return LCD_StrDependOnColorsWindowIndirect(0, p.ps.pos.x, p.ps.pos.y, p.ps.size.w, p.ps.size.h, p.fontId, 0,0, p.str, p.onlyDig, p.spac, p.bkCol, p.fontCol, p.maxV, p.constW);
+StructTxtPxlLen LCD_StrDependOnColorsParam(LCD_STR_PARAM p){		/* Backup size default: LCD_X , LCD_y */
+	return LCD_StrDependOnColors(p.fontId, p.txt.pos.x, p.txt.pos.y, p.str, p.onlyDig, p.spac, p.bkCol, p.fontCol, p.maxV, p.constW);
 }
-LCD_STR_PARAM LCD_SetStrDescrParam(int x,int y,int w,int h,int fontID,char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth)
+StructTxtPxlLen LCD_StrDependOnColorsIndirectParam(LCD_STR_PARAM p){		/* Backup size default: LCD_X , LCD_y */
+	return LCD_StrDependOnColorsIndirect(p.fontId, p.txt.pos.x, p.txt.pos.y, p.str, p.onlyDig, p.spac, p.bkCol, p.fontCol, p.maxV, p.constW);
+}
+StructTxtPxlLen LCD_StrDependOnColorsWindowParam(LCD_STR_PARAM p){
+	return LCD_StrDependOnColorsWindow(0, p.win.size.w, p.win.size.h, p.fontId, p.txt.pos.x, p.txt.pos.y, p.str, p.onlyDig, p.spac, p.bkCol, p.fontCol, p.maxV, p.constW);
+}
+StructTxtPxlLen LCD_StrDependOnColorsWindowIndirectParam(LCD_STR_PARAM p){
+	return LCD_StrDependOnColorsWindowIndirect(0, p.win.pos.x, p.win.pos.y, p.win.size.w, p.win.size.h, p.fontId, p.txt.pos.x, p.txt.pos.y, p.str, p.onlyDig, p.spac, p.bkCol, p.fontCol, p.maxV, p.constW);
+}
+LCD_STR_PARAM LCD_SetStrDescrParam(int xWin,int yWin, int wWin,int hWin, int xStr,int yStr, int wStr,int hStr, int fontID,char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth)
 {
-	LCD_STR_PARAM	strParam = {.ps.pos={x,y}, .ps.size={w,h}, .fontId=fontID, .onlyDig=OnlyDigits, .spac=space, .bkCol=bkColor, .fontCol=fontColor, .maxV=maxVal, .constW=constWidth};
+	LCD_STR_PARAM	strParam = {.win.pos={xWin,yWin}, .win.size={wWin,hWin}, .txt.pos={xStr,yStr}, .txt.size={wStr,hStr}, .fontId=fontID, .onlyDig=OnlyDigits, .spac=space, .bkCol=bkColor, .fontCol=fontColor, .maxV=maxVal, .constW=constWidth};
 	LOOP_FOR(i,MAX_TXT_SIZE__LCD_STR_PARAM){
 		strParam.str[i]=txt[i];
 		if(txt[i]==0) break;
