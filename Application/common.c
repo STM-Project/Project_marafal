@@ -11,6 +11,7 @@
 #define _BUFF_VAL_SIZE		10
 
 SHAPE_PARAMS SHAPE_PARAMS_Zero={0};
+structPosition structPos_Zero = {0};
 
 int* 			_Int		(int val)		{ static int 		_intVal[_BUFF_VAL_SIZE]={0};	  static int _incIntBuffVal=-1; 	   _incIntBuffVal+1	 >=_BUFF_VAL_SIZE ? _incIntBuffVal=0	:_incIntBuffVal++;  	 _intVal[_incIntBuffVal]=val; 		return &_intVal[_incIntBuffVal]; 		};
 uint8_t*		_Uint8	(uint8_t val)	{ static uint8_t 	_uint8val[_BUFF_VAL_SIZE]={0};  static int _incUint8BuffVal=-1;   _incUint8BuffVal+1 >=_BUFF_VAL_SIZE ? _incUint8BuffVal=0 :_incUint8BuffVal++;  _uint8val[_incUint8BuffVal]=val; 	return &_uint8val[_incUint8BuffVal]; 	};

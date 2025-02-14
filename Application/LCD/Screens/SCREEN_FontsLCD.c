@@ -529,6 +529,7 @@ static int temp;
 static char bufTemp[50];
 static int lenTxt_prev;
 static StructTxtPxlLen lenStr;
+static KEYBOARD_TYPES actualKeyboardType = KEYBOARD_none;
 
 typedef struct{
 	int32_t bk[3];
@@ -1219,6 +1220,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 													 v.COLOR_Frame, 		v.COLOR_FillFrame,
 													 v.COLOR_FramePress, v.COLOR_FillFramePress, v.COLOR_BkScreen);
 
+	actualKeyboardType = type;
 	if(KEYBOARD_StartUp(type, ARG_KEYBOARD_PARAM)) return 1;
 
 	switch((int)type)
@@ -1249,7 +1251,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 		case KEYBOARD_circleSliderRGB:
 			/* CIRCLE_errorDecision(0,_OFF); */
 			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), RED,DARKGREEN,BLUE);
-			KEYBOARD_ServiceCircleSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_fontCircleSliderR, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB);
+			KEYBOARD_ServiceCircleSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_fontCircleSliderR, KEY_Timer2, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB, (TIMER_ID)TIMER_Release);
 			/* CIRCLE_errorDecision(0,_ON); */
 			break;
 
@@ -1322,10 +1324,10 @@ static void BlockingFunc(void){		/* Call this function in long during while(1) *
 static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create new thread vTaskTimer */
 {
 	if(vTimerService(TIMER_InfoWrite, check_stop_time, 2000)){
-		KEYBOARD_TYPE(KEYBOARD_LenOffsWin, KEY_Timer);
+		KEYBOARD_TYPE(actualKeyboardType, KEY_Timer);
 	}
 	if(vTimerService(TIMER_Release, check_stop_time, 100)){
-		KEYBOARD_TYPE(KEYBOARD_LenOffsWin, KEY_Timer2);
+		KEYBOARD_TYPE(actualKeyboardType, KEY_Timer2);
 	}
 	if(vTimerService(TIMER_BlockTouch, check_stop_time, 500)){
 		BlockTouchForTime(_OFF);

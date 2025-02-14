@@ -42,6 +42,7 @@ static Touch_Struct  Touch[MAX_OPEN_TOUCH_SIMULTANEOUSLY];
 static uint16_t susspendTouch[MAX_OPEN_TOUCH_SIMULTANEOUSLY];
 
 XY_Touch_Struct  touchTemp[MAX_NUMBER_PIONTS_TOUCH] = {0};
+XY_Touch_Struct  structXY_Zero = {0};
 
 static uint8_t Calibration_Done = 0;
 

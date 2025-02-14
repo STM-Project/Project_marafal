@@ -55,6 +55,7 @@ typedef struct{
 
 extern uint8_t touchDetect;
 extern XY_Touch_Struct  touchTemp[];
+extern XY_Touch_Struct  structXY_Zero;
 
 void		LCD_TOUCH_Service			(void);
 uint16_t LCD_TOUCH_GetTypeAndPosition				(XY_Touch_Struct *posXY);

@@ -209,6 +209,7 @@ typedef struct{
 }POS_SIZE;
 
 extern SHAPE_PARAMS SHAPE_PARAMS_Zero;
+extern structPosition structPos_Zero;
 
 /* ----------- Functions Definitations ----------- */
 typedef void (*WindowFunc)(uint16_t,uint16_t,uint16_t,uint16_t);

@@ -163,12 +163,6 @@ static StructFieldPos StrDescrParam(int nr,XY_Touch_Struct pos, const char *txt,
 	field.height = field.len.height;
 	return field;
 }
-
-
-
-
-
-
 static void StrPress(const char *txt, uint32_t color){
 	LCD_StrDependOnColorsWindow(0,widthAll,heightAll,fontID, GET_X((char*)txt),GET_Y,(char*)txt, fullHight, 0, fillPressColor, color,FONT_COEFF, NoConstWidth);
 }
@@ -1094,7 +1088,7 @@ void KEYBOARD_ServiceSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	SetTouch_Slider(k, startTouchIdx, elemSliderPos);
 }
 
-void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int TOUCH_Release, int TOUCH_Action, char* txtDescr, int *value, VOID_FUNCTION *pfunc)
+void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int TOUCH_Release, int TOUCH_Action, int touchTimer, char* txtDescr, int *value, VOID_FUNCTION *pfunc, TIMER_ID timID)
 {
 	int head 	 = GetHeightHead(k);									/* 'Color1Txt' is no press color for: outline, pointer */
 	int interSp  = VALPERC(s[k].interSpace,60);					/* 'Color2Txt' is 	press color for: pointer, lineSel */
@@ -1112,22 +1106,17 @@ void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PAR
 		if(type){	if(s[k].bold)  frameColor= bkColor;	}
 		else	  {	if(s[k].bold)  frameColor= BrightDecr(frameColor,0x39);	}
 	}
-	void _FuncAllRelease(void){
+	void _FuncAllRelease(int releasePress){
 		ShapeWin(k,widthAll,heightAll);
-
-
-		//fieldTxtDescr = TxtDescr(k, 0,0, txtDescr);
-		fieldTxtDescr = TxtDescrParam(k, 0,0, txtDescr, &parTxt);
-
-
-
-
+		if(shape!=0) fieldTxtDescr = StrDescrParam(k, structXY_Zero, txtDescr, colorDescr, &parTxt);
+		else			 fieldTxtDescr = StrDescrParam(k, structXY_Zero, txtDescr, CONDITION(press==releasePress,WHITE,colorDescr), NULL);
 		_ChangeFrameColor(s[k].param);
 		KeysAllRelease_CircleSlider(k, posKey,value);
 	}
 
 	bkColor = fillMainColor;
-	if(TOUCH_Release == selBlockPress) _FuncAllRelease();
+	if(TOUCH_Release == selBlockPress) _FuncAllRelease(release);
+	else if(touchTimer+0 == selBlockPress){ LCD_StrDependOnColorsWindowIndirectParam(parTxt); }
 	else
 	{	INIT(nrCircSlid, selBlockPress-TOUCH_Action);
 		float radius = ((float)LCD_GetCircleWidth())/2;
@@ -1138,10 +1127,8 @@ void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PAR
 		}
 		else if(nrCircSlid == GetPosKeySize()){
 			if(TOOGLE(s[k].param) || 0==s[k].bold) s[k].bold= LCD_IncrWrapPercCircleBold(radius, s[k].bold, 20,80, 10);
-			_FuncAllRelease();
-			if(s[k].param) parTxt.fontCol=RED;
-			else 				parTxt.fontCol=YELLOW;
-			LCD_StrDependOnColorsWindowIndirectParam(parTxt);
+			_FuncAllRelease(press);
+			vTimerService(timID+0,restart_time,noUse);
 		}
 	}
 	SetTouch_CircleSlider(k, startTouchIdx, posKey);
@@ -1193,7 +1180,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	int retVal=0;
 	int widthKeyCorrect = 0;
 	int heightKeyCorrect = 5;
-	if(shape!=0){
+	if(shape!=0){		/* Do only once when creating Keyboard */
 		if(KeysAutoSize == widthKey){
 			s[k].widthKey  = heightKey + LCD_GetWholeStrPxlWidth(fontID,(char*)txtKey[ 			 STRING_GetTheLongestTxt(_NMB2KEY-1,(char**)txtKey) 				],0,NoConstWidth) + heightKey -widthKeyCorrect;		/*	space + text + space */
 			s[k].widthKey2 = heightKey + LCD_GetWholeStrPxlWidth(fontID,(char*)txtKey[_NMB2KEY + STRING_GetTheLongestTxt(2,			(char**)(txtKey+_NMB2KEY)) ],0,NoConstWidth) + heightKey -widthKeyCorrect;
