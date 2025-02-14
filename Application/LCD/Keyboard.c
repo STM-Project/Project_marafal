@@ -151,6 +151,24 @@ static StructFieldPos StrDescr(int nr,XY_Touch_Struct pos, const char *txt, uint
 	field.height = field.len.height;
 	return field;
 }
+static StructFieldPos StrDescrParam(int nr,XY_Touch_Struct pos, const char *txt, uint32_t color, LCD_STR_PARAM* par){
+	StructFieldPos field = {0};
+	LCD_Xmiddle(MIDDLE_NR+1,SetPos,SetPosAndWidth(pos.x,widthAll),NULL,0,NoConstWidth);
+	field.x = LCD_Xmiddle(MIDDLE_NR+1,GetPos,fontID_descr,(char*)txt,0,NoConstWidth);
+	field.y = s[nr].interSpace+pos.y;
+	if(NULL!=par)
+		*par 	 = LCD_SetStrDescrParam(s[nr].x+field.x, s[nr].y+field.y,  GetStrPxlWidth(fontID_descr,(char*)txt,NoConstWidth),GetHeightFont(fontID_descr), 0,0, unUsed,unUsed, fontID_descr, (char*)txt, fullHight, 0, bkColor, color,FONT_COEFF, NoConstWidth);
+	field.len = LCD_StrDependOnColorsWindow(0,								  widthAll,														  	 heightAll,						   fontID_descr, field.x,field.y,	 (char*)txt, fullHight, 0, bkColor, color,FONT_COEFF, NoConstWidth);
+	field.width =  field.len.inPixel;
+	field.height = field.len.height;
+	return field;
+}
+
+
+
+
+
+
 static void StrPress(const char *txt, uint32_t color){
 	LCD_StrDependOnColorsWindow(0,widthAll,heightAll,fontID, GET_X((char*)txt),GET_Y,(char*)txt, fullHight, 0, fillPressColor, color,FONT_COEFF, NoConstWidth);
 }
@@ -283,6 +301,10 @@ static void ShapeBkClear(int nr, int width_all, int height_all, uint32_t bkColor
 static StructFieldPos TxtDescr(int nr, uint16_t xPos, uint16_t yPos, char* txtDescr){
 	XY_Touch_Struct posHead = {xPos,yPos};
 	return StrDescr(nr, posHead, txtDescr, colorDescr);
+}
+static StructFieldPos TxtDescrParam(int nr, uint16_t xPos, uint16_t yPos, char* txtDescr, LCD_STR_PARAM* par){
+	XY_Touch_Struct posHead = {xPos,yPos};
+	return StrDescrParam(nr, posHead, txtDescr, colorDescr, par);
 }
 static void TxtDescrMidd(int nr, int head, char* txtDescr){
 	LCD_StrDependOnColorsWindow(0,widthAll,heightAll,fontID_descr,		MIDDLE(0,widthAll,LCD_GetWholeStrPxlWidth(fontID_descr,txtDescr,0,NoConstWidth)),  MIDDLE(0,head,GetHeightFontDescr()), 	 txtDescr, fullHight, 0, bkColor, colorDescr,FONT_COEFF, NoConstWidth);
@@ -1078,7 +1100,7 @@ void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PAR
 	int interSp  = VALPERC(s[k].interSpace,60);					/* 'Color2Txt' is 	press color for: pointer, lineSel */
 	XY_Touch_Struct posKey[GetPosKeySize()];
 	StructFieldPos fieldTxtDescr = {0};
-	//static LCD_STR_PARAM paramTxt={0};
+	static LCD_STR_PARAM parTxt={0};
 
 	LCD_SetCircleAA(0.0, 0.0);
 	CorrectLineAA_on();
@@ -1094,9 +1116,8 @@ void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PAR
 		ShapeWin(k,widthAll,heightAll);
 
 
-
-		//paramTxt =LCD_SetStrDescrParam(win.pos.x+xPosTxt,  win.pos.y+yPosUD, len_temp,  GetHeightFont(fontID_descr), fontID_descr,paramTxt.str, fullHight,0,bkColor,YELLOW,	  FONT_COEFF,NoConstWidth);
-		fieldTxtDescr = TxtDescr(k, 0,0, txtDescr);
+		//fieldTxtDescr = TxtDescr(k, 0,0, txtDescr);
+		fieldTxtDescr = TxtDescrParam(k, 0,0, txtDescr, &parTxt);
 
 
 
@@ -1118,6 +1139,9 @@ void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PAR
 		else if(nrCircSlid == GetPosKeySize()){
 			if(TOOGLE(s[k].param) || 0==s[k].bold) s[k].bold= LCD_IncrWrapPercCircleBold(radius, s[k].bold, 20,80, 10);
 			_FuncAllRelease();
+			if(s[k].param) parTxt.fontCol=RED;
+			else 				parTxt.fontCol=YELLOW;
+			LCD_StrDependOnColorsWindowIndirectParam(parTxt);
 		}
 	}
 	SetTouch_CircleSlider(k, startTouchIdx, posKey);
