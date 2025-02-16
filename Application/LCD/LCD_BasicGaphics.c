@@ -2657,14 +2657,14 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len,
 			if(repeat>1)
 			{
 				for(int i=0;i<repeat;++i){
-					pLcd[k_p-			upDown*BkpSizeX]=	buff_AA[offs+1+i];
-					pLcd[k_p+upDown*nmbPxl_V*BkpSizeX]=	buff2_AA[offs+repeat-i];
+					if(pLcd[k_p-			upDown*BkpSizeX]!=lineColor) pLcd[k_p-			upDown*BkpSizeX]	=	buff_AA[offs+1+i];
+					if(pLcd[k_p+upDown*nmbPxl_V*BkpSizeX]!=lineColor) pLcd[k_p+upDown*nmbPxl_V*BkpSizeX]=	buff2_AA[offs+repeat-i];
 					k_p=k_p+upDown*nmbPxl_V*BkpSizeX+direction;
 				}
 			}
 			else{
-				pLcd[k_p-			upDown*BkpSizeX]=	buff_AA[offs];
-				pLcd[k_p+upDown*nmbPxl_V*BkpSizeX]=	buff2_AA[offs];
+				if(pLcd[k_p-			upDown*BkpSizeX]!=lineColor) pLcd[k_p-			upDown*BkpSizeX]	=	buff_AA[offs];
+				if(pLcd[k_p+upDown*nmbPxl_V*BkpSizeX]!=lineColor) pLcd[k_p+upDown*nmbPxl_V*BkpSizeX]=	buff2_AA[offs];
 				k_p=k_p+upDown*nmbPxl_V*BkpSizeX+direction;
 			}
 			return 0;
@@ -2683,14 +2683,14 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len,
 			if(repeat>1)
 			{
 				for(int i=0;i<repeat;++i){
-					pLcd[k_p-direction]			 =	buff_AA[offs+1+i];
-					pLcd[k_p+direction*nmbPxl_H]=	buff2_AA[offs+repeat-i];
+					if(pLcd[k_p-direction]!=lineColor)			  pLcd[k_p-direction]			=	buff_AA[offs+1+i];
+					if(pLcd[k_p+direction*nmbPxl_H]!=lineColor) pLcd[k_p+direction*nmbPxl_H]=	buff2_AA[offs+repeat-i];
 					k_p=k_p+upDown*BkpSizeX+direction*nmbPxl_H;
 				}
 			}
 			else{
-				pLcd[k_p-direction]			 =	buff_AA[offs];
-				pLcd[k_p+direction*nmbPxl_H]=	buff2_AA[offs];
+				if(pLcd[k_p-direction]!=lineColor) 			  pLcd[k_p-direction]			=	buff_AA[offs];
+				if(pLcd[k_p+direction*nmbPxl_H]!=lineColor) pLcd[k_p+direction*nmbPxl_H]=	buff2_AA[offs];
 				k_p=k_p+upDown*BkpSizeX+direction*nmbPxl_H;
 			}
 			return 0;
