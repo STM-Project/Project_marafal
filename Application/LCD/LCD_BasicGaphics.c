@@ -3730,14 +3730,28 @@ SHAPE_PARAMS LCDSHAPE_Create(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSize
 	if(thickness)
 	{
 		LCD_CopyCircleWidth();
-   	uint32_t width_new = width-2*thickness;
+   	uint32_t width_new = width-2*(thickness+0);
 		int offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
 		LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor, unUsed, ReadOutColor);
 		width_min=Circle.width;
 		LCD_SetCopyCircleWidth();
 
-		width_new = width-2*(thickness-1);  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
+
+
+
+		int offs_=offs,n=0;
+
+		while(offs_==offs){
+			width_new = width-2*(thickness-n);
+			offs_= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
+			n++;
+		}
+		offs=offs_;
+
+
+
+//		width_new = width-2*(thickness-0);
+//		offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
 		params.pos[0].x	= x+offs;
 		params.pos[0].y	= y+offs;
 		params.size[0].w	= width_new;

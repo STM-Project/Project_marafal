@@ -24,7 +24,7 @@
 
 #define BK_COLOR_CIRCLESLIDER(p)					GetTransitionColor(p.param[0], p.param[1],0.5)
 #define BK_COLOR_CIRCLEBUTTON(p)					GetTransitionColor(p.color[0].fill, p.color[1].fill,0.5)
-#define POS_SIZE_CIRCLEBUTTONSLIDER(p,offs)	p.pos[0].x, p.pos[0].y, p.size[0].w+offs, p.size[0].h+offs
+#define POS_SIZE_CIRCLEBUTTONSLIDER(p,offs)	p.pos[0].x-2, p.pos[0].y-2, p.size[0].w+offs, p.size[0].h+offs  //!!!!!!!!!!!!!! offs dla x i y !!!!
 
 enum CircleParam{
 	Half_Circle_0,

@@ -424,10 +424,13 @@ static void KeysAllRelease_CircleSlider(int nr, XY_Touch_Struct posKeys[],int *v
 
 
 		SHAPE_PARAMS par={0};
+		int brightStep = 0;
+		if(degColor[1]==fillColor) brightStep= 0;
+		else								brightStep= 0x40;
 		if(s[nr].bold)
-			par=LCD_GradientCircleSlider(0,widthAll,heightAll, posKeys[i].x, posKeys[i].y, s[nr].widthKey,s[nr].heightKey,   SetBold2Color(frameColor,s[nr].bold),fillColor,BrightDecr(degColor[1],0x40),degColor[1],BrightDecr(degColor[1],0x40),   SetBold2Color(frameColor,15),0xC0C0C0,0x333333,  bkColor,deg[1],Center,0);
+			par=LCD_GradientCircleSlider(0,widthAll,heightAll, posKeys[i].x, posKeys[i].y, s[nr].widthKey,s[nr].heightKey,   SetBold2Color(frameColor,s[nr].bold),fillColor,BrightDecr(degColor[1],brightStep),degColor[1],BrightDecr(degColor[1],brightStep),   SetBold2Color(frameColor,11),0xC0C0C0,0x333333,  bkColor,deg[1],Center,0);
 		else
-			par=LCD_GradientCircleSlider(0,widthAll,heightAll, posKeys[i].x, posKeys[i].y, s[nr].widthKey,s[nr].heightKey,   SetBold2Color(frameColor,s[nr].bold),fillColor,BrightDecr(degColor[1],0x40),degColor[1],BrightDecr(degColor[1],0x40),   unUsed,unUsed,unUsed,  bkColor,deg[1],Center,0);
+			par=LCD_GradientCircleSlider(0,widthAll,heightAll, posKeys[i].x, posKeys[i].y, s[nr].widthKey,s[nr].heightKey,   SetBold2Color(frameColor,s[nr].bold),fillColor,BrightDecr(degColor[1],brightStep),degColor[1],BrightDecr(degColor[1],brightStep),   unUsed,unUsed,unUsed,  									bkColor,deg[1],Center,0);
 
 		//LCD_Circle(0, widthAll,heightAll, posKeys[i].x, posKeys[i].y, SetParamWidthCircle(Percent_Circle,s[nr].widthKey),s[nr].heightKey, SetBold2Color(frameColor,s[nr].bold), fillColor, bkColor);
 
@@ -439,7 +442,7 @@ static void KeysAllRelease_CircleSlider(int nr, XY_Touch_Struct posKeys[],int *v
 		//if(IS_RANGE(s[nr].bold, 1, (LCD_GetCircleWidth()-GetStrPxlWidth(fontID_descr, StrAll(3," ",pTxt," "), ConstWidth))/2) ){
 		if(s[nr].bold){
 			LCD_BkFontTransparent(fontVar_40, fontID_descr);
-			LCD_StrDependOnColorsWindowMidd(0,widthAll,heightAll,fontID_descr|(fontVar_40<<16), POS_SIZE_CIRCLEBUTTONSLIDER(par,0), pTxt, fullHight,0, BK_COLOR_CIRCLESLIDER(par), BrightIncr(colorDescr,0x30), 250, ConstWidth);
+			LCD_StrDependOnColorsWindowMidd(0,widthAll,heightAll,fontID_descr|(fontVar_40<<16), POS_SIZE_CIRCLEBUTTONSLIDER(par,0), pTxt, fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
 			//StrKeyMidd(nr, posKeys[i], pTxt, BrightIncr(colorDescr,0x30), fontID_descr,ConstWidth);
 		}
 	}
