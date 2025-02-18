@@ -3736,7 +3736,7 @@ SHAPE_PARAMS LCDSHAPE_Create(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSize
 		width_min=Circle.width;
 		LCD_SetCopyCircleWidth();
 
-		width_new = width-2*(thickness-1);
+		width_new = width-2*(thickness-1);  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
 		params.pos[0].x	= x+offs;
 		params.pos[0].y	= y+offs;
