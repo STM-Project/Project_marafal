@@ -3460,6 +3460,19 @@ StructTxtPxlLen LCD_StrDependOnColorsMidd(int fontID, int Xpos, int Ypos, u16 wi
 		lenStr=LCD_StrChangeColor(fontID,x,y,txt, OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 	return lenStr;
 }
+StructTxtPxlLen LCD_StrDependOnColorsWindowMidd(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, u16 width,u16 height, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth)
+{
+	u16 x = MIDDLE(Xpos, width, LCD_GetWholeStrPxlWidth(fontID&0x0000FFFF,txt,space,constWidth));
+	u16 y = MIDDLE(Ypos, height, LCD_GetFontHeight(fontID&0x0000FFFF));
+	StructTxtPxlLen lenStr;
+	if((bkColor==MYGRAY && fontColor == WHITE) ||
+		(bkColor==MYGRAY && fontColor == MYGREEN) ||
+		(bkColor==WHITE  && fontColor == BLACK))
+		lenStr=LCD_StrWindow(posBuff,BkpSizeX,BkpSizeY,fontID,x,y,txt, OnlyDigits,space,bkColor,0,constWidth);
+	else
+		lenStr=LCD_StrChangeColorWindow(posBuff,BkpSizeX,BkpSizeY,fontID,x,y,txt, OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+	return lenStr;
+}
 
 StructTxtPxlLen LCD_StrDependOnColorsIndirect(int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth)
 {
