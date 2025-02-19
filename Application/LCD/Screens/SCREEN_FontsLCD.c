@@ -2282,6 +2282,9 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	//LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 	//LCDEXAMPLE_GradientCircleButtonAndSlider(v.FONT_ID_Title,v.FONT_VAR_Title,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 
+
+
+
 	uint32_t CircleWidth= 160;
 	SHAPE_PARAMS par={0}, par2={0};
 	uint16_t calcWidth = LCD_CalculateCircleWidth(CircleWidth);
@@ -2297,7 +2300,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 //	LCDSHAPE_GradientCircleSlider(0,par);
 //	LCD_StrDependOnColorsMidd(FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), POS_SIZE_CIRCLEBUTTONSLIDER(par,0,0), "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
 
-	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-450, LCD_Y-calcWidth-50, SetParamWidthCircle(0,CircleWidth),CircleWidth, SetBold2Color(WHITE,30), v.COLOR_BkScreen, COLOR_BkScreen, RED,BLUE,0,360,RightDown,0);
+	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-450, LCD_Y-calcWidth-50, SetParamWidthCircle(0,CircleWidth),CircleWidth, SetBold2Color(WHITE,30), v.COLOR_BkScreen, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown,0);
 	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-150, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame, v.COLOR_BkScreen, RED,BLUE,0,350,Left,0);
 	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10, LCD_Y-calcWidth-50,     SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame, v.COLOR_BkScreen, RED,BLUE,0,355,Right,0);
 	StopMeasureTime_us("Time:");
@@ -2311,12 +2314,12 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
-		par=LCD_GradientCircleButton(ToStructAndReturn,CircleWidth,CircleWidth,LCD_X-calcWidth-10, LCD_Y-calcWidth-50, CircleWidth,CircleWidth, SetBold2Color(v.COLOR_BkScreen,18),LIGHTBLUE,DARKBLUE,COLOR_BkScreen,0);
+		par=LCD_GradientCircleButton(ToStructAndReturn,CircleWidth,CircleWidth,LCD_X-calcWidth-10, LCD_Y-calcWidth-50, CircleWidth,CircleWidth, SetBold2Color(v.COLOR_BkScreen,18),LIGHTBLUE,DARKBLUE,v.COLOR_BkScreen,0);
 		LCDSHAPE_GradientCircleButton_Indirect(par);
-		LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER(par,1,1), FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), "987", fullHight,0, BK_COLOR_CIRCLEBUTTON(par), WHITE, 248, ConstWidth);
+		LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER(par,0,0), FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), "987", fullHight,0, BK_COLOR_CIRCLEBUTTON(par), WHITE, 248, ConstWidth);
 
 		LCDSHAPE_GradientCircleSlider_Indirect(par2);
-		LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER(par2,1,1), FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par2), WHITE, 248, ConstWidth);
+		LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER(par2,0,0), FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par2), WHITE, 248, ConstWidth);
 
 
 }

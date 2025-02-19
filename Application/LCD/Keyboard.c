@@ -428,15 +428,17 @@ static void KeysAllRelease_CircleSlider(int nr, XY_Touch_Struct posKeys[],int *v
 			else
 				par=LCD_GradientCircleSlider(0,widthAll,heightAll, posKeys[i].x, posKeys[i].y, s[nr].widthKey,s[nr].heightKey,   SetBold2Color(frameColor,s[nr].bold),fillColor,BrightDecr(degColor[1],brightStep),degColor[1],BrightDecr(degColor[1],brightStep),   unUsed,unUsed,unUsed,  									bkColor,deg[1],Center,0);
 			if(s[nr].bold){
-				LCD_BkFontTransparent(fontVar_40, fontID_descr);
-				LCD_StrDependOnColorsWindowMidd(0,widthAll,heightAll,FONT_ID_VAR(fontID_descr,fontVar_40), POS_SIZE_CIRCLEBUTTONSLIDER(par,1,1), pTxt, fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
+				LCD_BkFontTransparent(fontVar_40, fontID_descr); //zlikwidowac txt gdy maly !!!!
+				LCD_StrDependOnColorsWindowMidd(0,widthAll,heightAll,FONT_ID_VAR(fontID_descr,fontVar_40), POS_SIZE_CIRCLEBUTTONSLIDER(par,0,0), pTxt, fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
 			}
 		}
 		else{
 			LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
 			LCD_Circle(0, widthAll,heightAll, posKeys[i].x, posKeys[i].y, SetParamWidthCircle(Percent_Circle,s[nr].widthKey),s[nr].heightKey, SetBold2Color(frameColor,s[nr].bold), fillColor, bkColor);
-			if(IS_RANGE(s[nr].bold, 1, (LCD_GetCircleWidth()-GetStrPxlWidth(fontID_descr, StrAll(3," ",pTxt," "), ConstWidth))/2) )
-				StrKeyMidd(nr, posKeys[i], pTxt, BrightIncr(colorDescr,0x30), fontID_descr,ConstWidth);
+			if(IS_RANGE(s[nr].bold, 1, (LCD_GetCircleWidth()-GetStrPxlWidth(fontID_descr, StrAll(3," ",pTxt," "), ConstWidth))/2) ){
+				XY_Touch_Struct posTemp={ posKeys[i].x-2, posKeys[i].y-2 };
+				StrKeyMidd(nr, posTemp, pTxt, BrightIncr(colorDescr,0x30), fontID_descr,ConstWidth);
+			}
 		}
 	}
 	LCD_Display(0, s[nr].x, s[nr].y, widthAll, heightAll);
