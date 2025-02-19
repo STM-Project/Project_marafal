@@ -24,7 +24,8 @@
 
 #define BK_COLOR_CIRCLESLIDER(p)					GetTransitionColor(p.param[0], p.param[1],0.5)
 #define BK_COLOR_CIRCLEBUTTON(p)					GetTransitionColor(p.color[0].fill, p.color[1].fill,0.5)
-#define POS_SIZE_CIRCLEBUTTONSLIDER(p,offsX,offsY)		p.pos[0].x-3-offsX, p.pos[0].y-3-offsY, p.size[0].w+2, p.size[0].h+2			/*	'+2' because in LCD_GradientCircleButton_Indirect() and LCD_GradientCircleSlider_Indirect() we have '+2' for 'bkSizeX' and 'bkSizeY' */
+#define POS_SIZE_CIRCLEBUTTONSLIDER(p,offsX,offsY)					p.pos[0].x+offsX, p.pos[0].y+offsY, p.size[0].w, p.size[0].h
+#define POS_SIZE_CIRCLEBUTTONSLIDER_indirect(p,offsX,offsY)		p.pos[0].x+offsX, p.pos[0].y+offsY, p.size[0].w+2, p.size[0].h+2			/*	'+2' because in LCD_GradientCircleButton_Indirect() and LCD_GradientCircleSlider_Indirect() we have '+2' for 'bkSizeX' and 'bkSizeY' */
 
 #define FONT_ID_VAR(fontID,fontVAR)		fontID|(fontVAR<<16)
 
