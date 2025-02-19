@@ -657,9 +657,15 @@ static void SetTouch_Additional(int nr, uint16_t startTouchIdx, StructFieldPos f
 		touchTemp[1].x= touchTemp[0].x + field.width;
 		touchTemp[0].y= s[nr].y + field.y;
 		touchTemp[1].y= touchTemp[0].y + field.height;
-		LCD_TOUCH_Set(ID_TOUCH_POINT, 			 s[nr].startTouchIdx + GetPosKeySize()	  , release);
+		LCD_TOUCH_Set(ID_TOUCH_POINT_RELEASE_WITH_HOLD, s[nr].startTouchIdx + GetPosKeySize(), LCD_TOUCH_SetTimeParam_ms(600));
+		s[nr].nmbTouch++;
+
+		touchTemp[0].x= s[nr].x + field.x;
+		touchTemp[1].x= touchTemp[0].x + field.width;
+		touchTemp[0].y= s[nr].y + field.y;
+		touchTemp[1].y= touchTemp[0].y + field.height;
 		LCD_TOUCH_Set(ID_TOUCH_POINT_WITH_HOLD, s[nr].startTouchIdx + GetPosKeySize() +1, LCD_TOUCH_SetTimeParam_ms(700));
-		s[nr].nmbTouch+=2;
+		s[nr].nmbTouch++;
 }}}
 
 static void WinInfo(char* txt, int x,int y, int w,int h, TIMER_ID tim){
@@ -1143,13 +1149,15 @@ void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PAR
 			KeyPress_CircleSlider(k, x,y, posKey[nrCircSlid], radius, value+nrCircSlid, pfunc, colorTxtPressKey[nrCircSlid]);
 		}
 		else if(nrCircSlid == GetPosKeySize()){
-			s[k].param2=0;
 			if(TOOGLE(s[k].param) || 0==s[k].bold) s[k].bold= LCD_IncrWrapPercCircleBold(radius, s[k].bold, 20,80, 10);
+			s[k].param2=0;
 			_FuncAllRelease(press);
 			vTimerService(timID+0,restart_time,noUse);
 		}
 		else if(nrCircSlid == GetPosKeySize()+1){
 			s[k].param2=1;
+			_FuncAllRelease(press);
+			vTimerService(timID+0,restart_time,noUse);
 		}
 	}
 	SetTouch_CircleSlider(k, startTouchIdx, posKey);

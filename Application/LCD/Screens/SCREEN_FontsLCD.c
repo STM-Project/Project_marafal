@@ -1563,7 +1563,7 @@ void FILE_NAME(setTouch)(void)
 	_TouchService(Touch_size_norm, Touch_size_italic,	 KEYBOARD_fontSize,  0, 				  KEY_Select_one,  FUNC_FontBoldItalNorm);
 	_TouchService(Touch_coeff_plus, Touch_coeff_minus,	 KEYBOARD_fontCoeff, KEY_All_release, KEY_Coeff_plus,  FUNC_FontCoeff);
 
-	_TouchService(Touch_fontCircleSliderR, Touch_CircleSliderStyle,	KEYBOARD_circleSliderRGB, 		KEY_All_release, KEY_fontCircleSliderR, NULL);
+	_TouchService(Touch_fontCircleSliderR, Touch_CircleSlider3D,	KEYBOARD_circleSliderRGB, 		KEY_All_release, KEY_fontCircleSliderR, NULL);
 
 	_TouchService(Touch_LenWin_plus, Touch_ResetSpaces, 	 	KEYBOARD_LenOffsWin, KEY_All_release, KEY_LenWin_plus,  FUNC_FontLenOffs);
 	_TouchService(Touch_SpacesInfoUp, Touch_SpacesInfoTest,	KEYBOARD_LenOffsWin, KEY_NO_RELEASE,  KEY_InfoSpacesUp, NULL);
