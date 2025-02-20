@@ -1252,7 +1252,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 
 		case KEYBOARD_circleSliderRGB:
 			/* CIRCLE_errorDecision(0,_OFF); */
-			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), RED,DARKGREEN,BLUE);
+			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), DARKRED,DARKGREEN,DARKBLUE);
 			KEYBOARD_ServiceCircleSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_fontCircleSliderR, KEY_Timer2, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB, (TIMER_ID)TIMER_Release);
 			/* CIRCLE_errorDecision(0,_ON); */
 			break;
@@ -2285,7 +2285,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
-	uint32_t CircleWidth= 125;
+	uint32_t CircleWidth= 150;
 	SHAPE_PARAMS par={0}, par2={0};
 	uint16_t calcWidth = LCD_CalculateCircleWidth(CircleWidth);
 
