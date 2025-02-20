@@ -24,8 +24,8 @@
 
 #define BK_COLOR_CIRCLESLIDER(p)					GetTransitionColor(p.param[0], p.param[1],0.5)
 #define BK_COLOR_CIRCLEBUTTON(p)					GetTransitionColor(p.color[0].fill, p.color[1].fill,0.5)
-#define POS_SIZE_CIRCLEBUTTONSLIDER(p,offsX,offsY)					p.pos[0].x+offsX, p.pos[0].y+offsY, p.size[0].w, p.size[0].h
-#define POS_SIZE_CIRCLEBUTTONSLIDER_indirect(p,offsX,offsY)		p.pos[0].x+offsX, p.pos[0].y+offsY, p.size[0].w+2, p.size[0].h+2			/*	'+2' because in LCD_GradientCircleButton_Indirect() and LCD_GradientCircleSlider_Indirect() we have '+2' for 'bkSizeX' and 'bkSizeY' */
+#define POS_SIZE_CIRCLEBUTTONSLIDER(p,offsX,offsY)					p.pos[0].x+(offsX), p.pos[0].y+(offsY), p.size[0].w, p.size[0].h
+#define POS_SIZE_CIRCLEBUTTONSLIDER_indirect(p,offsX,offsY)		p.pos[0].x+(offsX), p.pos[0].y+(offsY), p.size[0].w+2, p.size[0].h+2			/*	'+2' because in LCD_GradientCircleButton_Indirect() and LCD_GradientCircleSlider_Indirect() we have '+2' for 'bkSizeX' and 'bkSizeY' */
 
 #define FONT_ID_VAR(fontID,fontVAR)		fontID|(fontVAR<<16)
 
@@ -178,6 +178,7 @@ uint16_t LCD_IncrWrapPercCircleBold(uint16_t radius, uint16_t bold, uint8_t minP
 uint16_t LCD_GetNextIncrCircleWidth(uint32_t width);
 uint16_t LCD_GetNextDecrCircleWidth(uint32_t width);
 structPosition GetCircleMiddPoint(uint16_t *radius);
+int LCD_GradCircButtSlidCorrectXY(SHAPE_PARAMS param, u16 bkWidth);
 
 void LCD_Circle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
 void LCD_HalfCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
