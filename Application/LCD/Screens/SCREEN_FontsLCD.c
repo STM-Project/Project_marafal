@@ -1252,7 +1252,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 
 		case KEYBOARD_circleSliderRGB:
 			/* CIRCLE_errorDecision(0,_OFF); */
-			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), DARKRED,DARKGREEN,DARKBLUE);
+			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), RED,DARKGREEN,BLUE);
 			KEYBOARD_ServiceCircleSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_fontCircleSliderR, KEY_Timer2, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB, (TIMER_ID)TIMER_Release);
 			/* CIRCLE_errorDecision(0,_ON); */
 			break;
@@ -2295,7 +2295,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 	StartMeasureTime_us();
 
-	par=LCD_GradientCircleSlider(ToStructAndReturn,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50,CircleWidth,CircleWidth,   SetBold2Color(v.COLOR_BkScreen,23),v.COLOR_FillMainFrame,0x666666,0xBBBBBB,0x666666,   SetBold2Color(v.COLOR_FillMainFrame,15),0xC0C0C0,0x333333,  v.COLOR_BkScreen,270,Center,0);
+	par=LCD_GradientCircleSlider(ToStructAndReturn,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50,CircleWidth,CircleWidth,   SetBold2Color(v.COLOR_BkScreen,23),v.COLOR_FillMainFrame,0x666666,0xBBBBBB,0,   SetBold2Color(v.COLOR_FillMainFrame,15),0xC0C0C0,0x333333,  v.COLOR_BkScreen,270,Round,0);
 	par2=par;
 	LCDSHAPE_GradientCircleSlider(0,par);
 	LCD_StrDependOnColorsMidd(FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), POS_SIZE_CIRCLEBUTTONSLIDER(par,0,0), "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
