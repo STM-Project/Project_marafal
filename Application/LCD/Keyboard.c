@@ -407,6 +407,59 @@ static void _ElemSliderPressDisp_oneBlock(int nr, uint16_t x,uint16_t y, XY_Touc
 	if(pfunc) pfunc();
 }
 
+static SlidButtCircParam SlidButtCircChangeParam(int nrParam, int nrElement, u32 color, int brightStep){
+	SlidButtCircParam slidParam={0};
+	switch(nrParam){
+	case 1:
+		slidParam.dir = Center;
+		slidParam.gradSlidColor = (u64)BrightDecr(color,brightStep)<<32 | color;
+		slidParam.middSlidColor = 0;
+		slidParam.gradButtColor = (u64)0xC0C0C0<<32 | 0x333333;
+		break;
+	case 2:
+		slidParam.dir = Center;
+		slidParam.gradSlidColor = (u64)BrightDecr(color,brightStep)<<32 | color;
+		slidParam.middSlidColor = BrightDecr(color,brightStep);
+		slidParam.gradButtColor = (u64)0xC0C0C0<<32 | 0x333333;
+		break;
+	case 3:
+		slidParam.dir = Round;
+		slidParam.gradSlidColor = (u64)BrightDecr(color,brightStep)<<32 | color;
+		slidParam.middSlidColor = 0;
+		slidParam.gradButtColor = (u64)0xC0C0C0<<32 | 0x333333;
+		break;
+	case 4:
+		switch(nrElement){
+		case 0:
+			slidParam.dir = Round;
+			slidParam.gradSlidColor = (u64)0x505050<<32 | 0xC0C0C0;
+			slidParam.middSlidColor = 0;
+			slidParam.gradButtColor = (u64)LIGHTRED<<32 | DARKRED;
+			break;
+		case 1:
+			slidParam.dir = Round;
+			slidParam.gradSlidColor = (u64)0x505050<<32 | 0xC0C0C0;
+			slidParam.middSlidColor = 0;
+			slidParam.gradButtColor = (u64)LIGHTGREEN<<32 | DARKGREEN;
+			break;
+		case 2:
+			slidParam.dir = Round;
+			slidParam.gradSlidColor = (u64)0x505050<<32 | 0xC0C0C0;
+			slidParam.middSlidColor = 0;
+			slidParam.gradButtColor = (u64)LIGHTBLUE<<32 | DARKBLUE;
+			break;
+		}
+		break;
+	case 5:
+		slidParam.dir = Round;
+		slidParam.gradSlidColor = (u64)RED<<32 | GREEN;
+		slidParam.middSlidColor = BLUE;
+		slidParam.gradButtColor = (u64)0xC0C0C0<<32 | 0x333333;
+		break;
+	}
+	return slidParam;
+}
+
 static void KeysAllRelease_CircleSlider(int nr, XY_Touch_Struct posKeys[],int *value){
 	XY_Touch_Struct posK;
 	uint16_t _GetDegFromVal(int val){ return ((360*val)/255); }
@@ -423,10 +476,12 @@ static void KeysAllRelease_CircleSlider(int nr, XY_Touch_Struct posKeys[],int *v
 			int brightStep = 0;
 			if(degColor[1]==fillColor) brightStep= 0;
 			else								brightStep= (i==1) ? 0xB0/2 : 0xB0;
+			SlidButtCircParam slidParam = SlidButtCircChangeParam(s[nr].param2,i,degColor[1],brightStep);
+
 			if(s[nr].bold)
-				par=LCD_GradientCircleSlider(0,widthAll,heightAll, posKeys[i].x, posKeys[i].y, s[nr].widthKey,s[nr].heightKey,   SetBold2Color(frameColor,s[nr].bold),fillColor,BrightDecr(degColor[1],brightStep),degColor[1],0/*BrightDecr(degColor[1],brightStep)*/, SetBold2Color(fillColor,11),0xC0C0C0,0x333333, bkColor,deg[1],Round,0);
+				par=LCD_GradientCircleSlider(0,widthAll,heightAll, posKeys[i].x, posKeys[i].y, s[nr].widthKey,s[nr].heightKey, SetBold2Color(frameColor,s[nr].bold),fillColor, slidParam.gradSlidColor>>32, slidParam.gradSlidColor, slidParam.middSlidColor, SetBold2Color(fillColor,11), slidParam.gradButtColor>>32, slidParam.gradButtColor, bkColor,deg[1],slidParam.dir,0);
 			else
-				par=LCD_GradientCircleSlider(0,widthAll,heightAll, posKeys[i].x, posKeys[i].y, s[nr].widthKey,s[nr].heightKey,   SetBold2Color(frameColor,s[nr].bold),fillColor,BrightDecr(degColor[1],brightStep),degColor[1],0/*BrightDecr(degColor[1],brightStep)*/, unUsed,unUsed,unUsed,  									bkColor,deg[1],Round,0);
+				par=LCD_GradientCircleSlider(0,widthAll,heightAll, posKeys[i].x, posKeys[i].y, s[nr].widthKey,s[nr].heightKey, SetBold2Color(frameColor,s[nr].bold),fillColor, slidParam.gradSlidColor>>32, slidParam.gradSlidColor, slidParam.middSlidColor, unUsed,							  	unUsed,							  unUsed,  					   bkColor,deg[1],slidParam.dir,0);
 			if(IS_RANGE(s[nr].bold, 1, (LCD_GetCircleWidth()-GetStrPxlWidth(fontID_descr, StrAll(3," ",pTxt," "), ConstWidth))/2) ){
 				LCD_BkFontTransparent(fontVar_40, fontID_descr);
 				LCD_StrDependOnColorsWindowMidd(0,widthAll,heightAll,FONT_ID_VAR(fontID_descr,fontVar_40), POS_SIZE_CIRCLEBUTTONSLIDER(par,-2,-2), pTxt, fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
@@ -451,7 +506,7 @@ static void KeyPress_CircleSlider(int nr, uint16_t x,uint16_t y, XY_Touch_Struct
 	uint16_t _GetValFromDeg(uint16_t deg){
 		return ((255*deg)/360);
 	}
-	uint16_t _GetDegFromPosX(void){
+	uint16_t _GetDegFromPosX(void){    //to moze jako funkcje by latwo uzywac !!!!!
 		uint16_t deg=0;
 		float radi = sqrt( (radius-(float)_GetPosX())*(radius-(float)_GetPosX()) + (radius-(float)_GetPosY())*(radius-(float)_GetPosY()) );
 		float stretch = radius-(float)_GetPosX();
@@ -460,7 +515,7 @@ static void KeyPress_CircleSlider(int nr, uint16_t x,uint16_t y, XY_Touch_Struct
 			deg = 360 - deg;
 		return deg;
 	}
-	INIT(xPosFromMidd_Pow2, ((int)radius-(int)_GetPosX()) );		xPosFromMidd_Pow2 *= xPosFromMidd_Pow2;
+	INIT(xPosFromMidd_Pow2, ((int)radius-(int)_GetPosX()) );		xPosFromMidd_Pow2 *= xPosFromMidd_Pow2;  //to moze jako funkcje by latwo uzywac !!!!!
 	INIT(yPosFromMidd_Pow2, ((int)radius-(int)_GetPosY()) );		yPosFromMidd_Pow2 *= yPosFromMidd_Pow2;
 	INIT(radiusTouch_Pow2, xPosFromMidd_Pow2 + yPosFromMidd_Pow2 );
 
@@ -479,8 +534,10 @@ static void KeyPress_CircleSlider(int nr, uint16_t x,uint16_t y, XY_Touch_Struct
 			int brightStep = 0;
 			if(degColor[1]==fillColor) brightStep= 0;
 			else								brightStep= (nrElement==1) ? 0xB0/2 : 0xB0;
-			if(s[nr].bold) par=LCD_GradientCircleSlider(ToStructAndReturn,s[nr].widthKey,s[nr].heightKey, 0,0, s[nr].widthKey,s[nr].heightKey,   SetBold2Color(frameColor,s[nr].bold),fillColor,BrightDecr(degColor[1],brightStep),degColor[1],0/*BrightDecr(degColor[1],brightStep)*/, SetBold2Color(fillColor,11),LIGHTBLUE,DARKBLUE, bkColor,deg[1],Round,0);
-			else				par=LCD_GradientCircleSlider(ToStructAndReturn,s[nr].widthKey,s[nr].heightKey, 0,0, s[nr].widthKey,s[nr].heightKey,   SetBold2Color(frameColor,s[nr].bold),fillColor,BrightDecr(degColor[1],brightStep),degColor[1],0/*BrightDecr(degColor[1],brightStep)*/, unUsed,unUsed,unUsed,  								  bkColor,deg[1],Round,0);
+			SlidButtCircParam slidParam = SlidButtCircChangeParam(s[nr].param2,nrElement,degColor[1],brightStep);
+
+			if(s[nr].bold) par=LCD_GradientCircleSlider(ToStructAndReturn,s[nr].widthKey,s[nr].heightKey, 0,0, s[nr].widthKey,s[nr].heightKey,   SetBold2Color(frameColor,s[nr].bold),fillColor, slidParam.gradSlidColor>>32, slidParam.gradSlidColor, slidParam.middSlidColor, SetBold2Color(fillColor,11), slidParam.gradButtColor>>32, slidParam.gradButtColor, bkColor,deg[1],slidParam.dir,0);
+			else				par=LCD_GradientCircleSlider(ToStructAndReturn,s[nr].widthKey,s[nr].heightKey, 0,0, s[nr].widthKey,s[nr].heightKey,   SetBold2Color(frameColor,s[nr].bold),fillColor, slidParam.gradSlidColor>>32, slidParam.gradSlidColor, slidParam.middSlidColor, unUsed,unUsed,unUsed,  								  												 bkColor,deg[1],slidParam.dir,0);
 			ShapeBkClear(nr, par.bkSize.w, par.bkSize.h, bkColor);
 			LCDSHAPE_GradientCircleSlider(0,par);
 
@@ -1173,12 +1230,11 @@ void KEYBOARD_ServiceCircleSliderRGB(int k, int selBlockPress, INIT_KEYBOARD_PAR
 		}
 		else if(nrCircSlid == GetPosKeySize()){
 			if(TOOGLE(s[k].param) || 0==s[k].bold) s[k].bold= LCD_IncrWrapPercCircleBold(radius, s[k].bold, 20,80, 10);
-			s[k].param2=0;
 			_FuncAllRelease(press);
 			vTimerService(timID+0,restart_time,noUse);
 		}
 		else if(nrCircSlid == GetPosKeySize()+1){
-			s[k].param2=1;  //tu dac toogle !!!
+			INCR_WRAP(s[k].param2,1,0,5);
 			_FuncAllRelease(press);
 			vTimerService(timID+0,restart_time,noUse);
 		}
