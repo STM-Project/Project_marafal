@@ -44,7 +44,10 @@ typedef enum{
 	MYBLUE    	 = ((uint32_t)0xFF50C8FF),
 	MYRED    	 = ((uint32_t)0xffff7878),
 	MYGREEN    	 = ((uint32_t)0xff50FF50),
-	MYLIGHTGRAY  = ((uint32_t)0xFFB0B0B0)
+	MYLIGHTGRAY  = ((uint32_t)0xFFB0B0B0),
+	VERYDARKRED   = ((uint32_t)0xff400000),
+	VERYDARKGREEN = ((uint32_t)0xff004000),
+	VERYDARKBLUE  = ((uint32_t)0xff000040)
 
 }COLORS_DEFINITION;
 

@@ -434,13 +434,13 @@ static SlidButtCircParam SlidButtCircChangeParam(int nrParam, int nrElement, u32
 			slidParam.dir = Round;
 			slidParam.gradSlidColor = (u64)0x505050<<32 | 0xC0C0C0;
 			slidParam.middSlidColor = 0;
-			slidParam.gradButtColor = (u64)LIGHTRED<<32 | DARKRED;
+			slidParam.gradButtColor = (u64)LIGHTRED<<32 | VERYDARKRED;
 			break;
 		case 1:
 			slidParam.dir = Round;
 			slidParam.gradSlidColor = (u64)0x505050<<32 | 0xC0C0C0;
 			slidParam.middSlidColor = 0;
-			slidParam.gradButtColor = (u64)LIGHTGREEN<<32 | DARKGREEN;
+			slidParam.gradButtColor = (u64)GREEN<<32 | VERYDARKGREEN;
 			break;
 		case 2:
 			slidParam.dir = Round;
@@ -452,7 +452,7 @@ static SlidButtCircParam SlidButtCircChangeParam(int nrParam, int nrElement, u32
 		break;
 	case 5:
 		slidParam.dir = Round;
-		slidParam.gradSlidColor = (u64)RED<<32 | GREEN;
+		slidParam.gradSlidColor = (u64)RED<<32 | DARKGREEN;
 		slidParam.middSlidColor = BLUE;
 		slidParam.gradButtColor = (u64)0xC0C0C0<<32 | 0x333333;
 		break;
