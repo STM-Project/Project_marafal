@@ -104,6 +104,13 @@ typedef struct{
 	u32 k[K_TAB_SIZE];
 }structK;
 
+typedef struct{
+	DIRECTIONS dir;
+	u64 gradSlidColor;
+	u32 middSlidColor;
+	u64 gradButtColor;
+}SlidButtCircParam;
+
 extern uint32_t LCD_GetXSize(void);
 extern uint32_t LCD_GetYSize(void);
 
