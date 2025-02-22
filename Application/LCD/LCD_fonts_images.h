@@ -9,7 +9,7 @@
 #define LCD_LCD_FONTS_IMAGES_H_
 
 #include "stm32f7xx_hal.h"
-#include "common.h"
+#include "LCD_Common.h"
 
 #define MAX_SIZE_TOUCHIDX_FOR_STRVAR		5
 #define MAX_TXT_SIZE__LCD_STR_PARAM		50
@@ -212,9 +212,16 @@ typedef struct {
 }StructFieldPos;
 
 typedef struct{
+	u32 shadeColor;
+	float transCoeff;
+}LCD_TXT_SHADOW;
+
+typedef struct{
 	POS_SIZE win;
 	POS_SIZE txt;
+	int		txtLen;
 	int 		fontId;
+	int 		fontVar;
 	char 		str[MAX_TXT_SIZE__LCD_STR_PARAM];
 	int 		onlyDig;
 	int 		spac;
@@ -222,6 +229,7 @@ typedef struct{
 	uint32_t fontCol;
 	uint8_t 	maxV;
 	int 		constW;
+	LCD_TXT_SHADOW shadow;
 }LCD_STR_PARAM;
 
 typedef struct{
@@ -430,5 +438,6 @@ StructFieldPos LCD_StrDependOnColorsDescrVar_array_xyCorrect(int noDisp, int idV
 		int fontID11, uint32_t fontColor11, uint32_t bkColor11, int interspace11, int directionDescr11, char *txt11, int OnlyDigits11, int space11,int maxVal11, int constWidth11, \
 		int fontID12, uint32_t fontColor12, uint32_t bkColor12, int interspace12, int directionDescr12, char *txt12, int OnlyDigits12, int space12,int maxVal12, int constWidth12 );
 
+LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth);
 
 #endif /* LCD_LCD_FONTS_IMAGES_H_ */

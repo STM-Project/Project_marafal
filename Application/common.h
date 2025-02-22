@@ -212,7 +212,7 @@ typedef struct{
 extern SHAPE_PARAMS SHAPE_PARAMS_Zero;
 extern structPosition structPos_Zero;
 
-/* ----------- Functions Definitations ----------- */
+/* ----------- Functions Definitions ----------- */
 typedef void (*WindowFunc)(uint16_t,uint16_t,uint16_t,uint16_t);
 
 typedef void (*figureShape)(uint32_t,uint32_t,uint32_t,uint32_t,uint32_t,uint32_t,uint32_t,uint32_t,uint32_t,uint32_t);
