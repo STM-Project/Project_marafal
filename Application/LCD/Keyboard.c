@@ -740,11 +740,11 @@ static void SetTouch_Additional(int nr, uint16_t startTouchIdx, StructFieldPos f
 			touchTemp[1].y= touchTemp[0].y + field.height;
 		}
 		_FuncTemp();
-		LCD_TOUCH_Set(ID_TOUCH_POINT_RELEASE_WITH_HOLD, s[nr].startTouchIdx + GetPosKeySize(), LCD_TOUCH_SetTimeParam_ms(600));
+		LCD_TOUCH_Set(ID_TOUCH_POINT_RELEASE_WITH_HOLD, s[nr].startTouchIdx + GetPosKeySize(), LCD_TOUCH_SetTimeParam_ms(400));
 		s[nr].nmbTouch++;
 
 		_FuncTemp();
-		LCD_TOUCH_Set(ID_TOUCH_POINT_WITH_HOLD, s[nr].startTouchIdx + GetPosKeySize() +1, LCD_TOUCH_SetTimeParam_ms(700));
+		LCD_TOUCH_Set(ID_TOUCH_POINT_WITH_HOLD, s[nr].startTouchIdx + GetPosKeySize() +1, LCD_TOUCH_SetTimeParam_ms(500));
 		s[nr].nmbTouch++;
 }}}
 

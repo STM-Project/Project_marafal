@@ -2309,6 +2309,17 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
+
+	LCD_SetBkFontShape (v.FONT_VAR_Fonts, BK_None);
+	StartMeasureTime_us();
+	LCD_StrDependOnColors(v.FONT_ID_Fonts|v.FONT_VAR_Fonts<<16, 370+0,220+0, "Markielowski", fullHight,0, v.COLOR_BkScreen, 0x777777, 250, ConstWidth);
+	LCD_StrDependOnColors(v.FONT_ID_Fonts|v.FONT_VAR_Fonts<<16, 370+1,220+1, "Markielowski", fullHight,0, 0x777777, 0x777777, 250, ConstWidth);
+	LCD_StrDependOnColors(v.FONT_ID_Fonts|v.FONT_VAR_Fonts<<16, 370+2,220+2, "Markielowski", fullHight,0, 0x777777, 0x777777, 250, ConstWidth);
+	LCD_StrDependOnColors(v.FONT_ID_Fonts|v.FONT_VAR_Fonts<<16, 370+3,220+3, "Markielowski", fullHight,0, GetTransitionColor(0x777777,v.COLOR_BkScreen,0.25), WHITE, 250, ConstWidth);
+	StopMeasureTime_us("TimeXXXX:");
+	LCD_SetBkFontShape(v.FONT_VAR_Fonts,BK_Rectangle);
+
+
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
 	if(LoadNoDispScreen != argNmb) LCD_Show();
 

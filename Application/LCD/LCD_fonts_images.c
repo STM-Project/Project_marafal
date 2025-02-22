@@ -483,7 +483,7 @@ static uint32_t GetCalculatedRGB(uint8_t red, uint8_t green, uint8_t blue)
 
    for(int i=0; i<idxChangeColorBuff; i++){
    	if(buffChangeColorIN[i]==temp)
-   			return buffChangeColorOUT[i];
+   		return buffChangeColorOUT[i];
    }
    buffChangeColorIN[idxChangeColorBuff]=temp;
 
