@@ -56,6 +56,12 @@
 #define _L_	"\x1"
 #define _E_	"\x2"
 
+#define NO_TXT_ARGS		0,0,0,0,0,0,0,0,NULL,0,0,0,0,0,0,0,0,0,0
+#define NO_TXT_SHADOW		_ZEROS4
+#define TXT_SHADOW(arg1,arg2,arg3,arg4)		arg1,arg2,arg3,arg4
+
+#define FONT_ID_VAR(fontID,fontVAR)		fontID|(fontVAR<<16)
+
 enum FontsSize{
 	FONT_8,
 	FONT_8_bold,
@@ -213,7 +219,9 @@ typedef struct {
 
 typedef struct{
 	u32 shadeColor;
+	u8 deep;
 	float transCoeff;
+	DIRECTIONS dir;
 }LCD_TXT_SHADOW;
 
 typedef struct{
@@ -438,6 +446,6 @@ StructFieldPos LCD_StrDependOnColorsDescrVar_array_xyCorrect(int noDisp, int idV
 		int fontID11, uint32_t fontColor11, uint32_t bkColor11, int interspace11, int directionDescr11, char *txt11, int OnlyDigits11, int space11,int maxVal11, int constWidth11, \
 		int fontID12, uint32_t fontColor12, uint32_t bkColor12, int interspace12, int directionDescr12, char *txt12, int OnlyDigits12, int space12,int maxVal12, int constWidth12 );
 
-LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth);
+LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int idVar, int Xpos, int Ypos, char *txt, uint32_t fontColor, uint32_t bkColor, int OnlyDigits, int space,int maxVal, int constWidth, u32 shadeColor, u8 deep, float transCoeff, DIRECTIONS dir);
 
 #endif /* LCD_LCD_FONTS_IMAGES_H_ */

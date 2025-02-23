@@ -27,8 +27,6 @@
 #define POS_SIZE_CIRCLEBUTTONSLIDER(p,offsX,offsY)					p.pos[0].x+(offsX), p.pos[0].y+(offsY), p.size[0].w, p.size[0].h
 #define POS_SIZE_CIRCLEBUTTONSLIDER_indirect(p,offsX,offsY)		p.pos[0].x+(offsX), p.pos[0].y+(offsY), p.size[0].w+2, p.size[0].h+2			/*	'+2' because in LCD_GradientCircleButton_Indirect() and LCD_GradientCircleSlider_Indirect() we have '+2' for 'bkSizeX' and 'bkSizeY' */
 
-#define FONT_ID_VAR(fontID,fontVAR)		fontID|(fontVAR<<16)
-
 enum CircleParam{
 	Half_Circle_0,
 	Half_Circle_90,
@@ -41,38 +39,6 @@ enum COPY_TO_SHAPE_STRUCT{
 	ToStructAndReturn = 0x80000001,
 	ToStructAndDisplay = 0x80000000
 };
-
-typedef enum{
-	NoDirect = -1,
-	Up,
-	Down,
-	Down2,
-	Right,
-	Right2,
-	RightDown,
-	Left,
-	Left2,
-	LeftUp,
-	outside,
-	inside,
-	inside2,
-	DownUp,
-	LeftLeft,
-	RightRight,
-	Horizontal,
-	Vertical,
-	Middle,
-	Middle2,
-	Midd_X,
-	Midd_Y,
-	Midd_X2,
-	Midd_Y2,
-	AllEdge,
-	AllEdge2,
-	Shade,
-	Round,
-	Center,
-}DIRECTIONS;
 
 #define NORMAL_SLIDER_PARAM	2,8,2,2
 #define NORMAL_SLIDER_PARAM2	2,6,2,1

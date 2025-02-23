@@ -2306,8 +2306,9 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	StopMeasureTime_us("Time:");
 
 
-
-
+	LCD_STR_PARAM new;
+	LCD_Txt(noDisplay, &new, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 370,220, "Markielowski", WHITE, v.COLOR_BkScreen, fullHight,0,250, ConstWidth, 0x777777, 4, 0.25, RightDown);
+	LCD_Txt(DisplayViaStruct,&new,NO_TXT_ARGS);
 
 //
 //	LCD_SetBkFontShape (v.FONT_VAR_Fonts, BK_None);

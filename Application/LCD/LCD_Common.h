@@ -64,8 +64,6 @@ typedef enum{
 	DisplayIndirectViaStruct,
 }LCD_DISPLAY_ACTION;
 
-#define UNUSED_LCD_TXT_ARG		0,0,0,0,0,0,0,NULL,0,0,0,0,0,0
-
 #define LOAD_FONT_PARAM(name) 			v.FONT_SIZE_##name, v.FONT_STYLE_##name, v.FONT_BKCOLOR_##name, v.FONT_COLOR_##name
 #define STR_FONT_PARAM(name,bkScreen) 	v.FONT_VAR_##name, v.FONT_ID_##name, v.FONT_COLOR_##name, v.FONT_BKCOLOR_##name, v.COLOR_##bkScreen
 #define STR_FONT_PARAM2(name) 	v.FONT_VAR_##name, v.FONT_ID_##name, v.FONT_COLOR_##name, v.FONT_BKCOLOR_##name, v.FONT_BKCOLOR_##name
