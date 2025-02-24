@@ -2282,43 +2282,38 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	//LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 	//LCDEXAMPLE_GradientCircleButtonAndSlider(v.FONT_ID_Title,v.FONT_VAR_Title,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 
-
-
-
 	uint32_t CircleWidth= 150;
-	SHAPE_PARAMS par={0}, par2={0};
-	uint16_t calcWidth = LCD_CalculateCircleWidth(CircleWidth);
+		SHAPE_PARAMS par={0}, par2={0};
+		uint16_t calcWidth = LCD_CalculateCircleWidth(CircleWidth);
 
-	LCD_SetCircleAA(0.0, 0.0);
-	CorrectLineAA_on();
-	LCD_BkFontTransparent(v.FONT_VAR_Title, v.FONT_ID_Title);
+		LCD_SetCircleAA(0.0, 0.0);
+		CorrectLineAA_on();
+		LCD_BkFontTransparent(v.FONT_VAR_Title, v.FONT_ID_Title);
 
-	StartMeasureTime_us();
+		StartMeasureTime_us();
 
-	par=LCD_GradientCircleSlider(ToStructAndReturn,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-50,CircleWidth,CircleWidth,   SetBold2Color(v.COLOR_BkScreen,23),v.COLOR_FillMainFrame,0x666666,0xBBBBBB,0,   SetBold2Color(v.COLOR_FillMainFrame,15),0xC0C0C0,0x333333,  v.COLOR_BkScreen,270,Round,0);
-	par2=par;
-	//LCDSHAPE_GradientCircleSlider(0,par);
-	//LCD_StrDependOnColorsMidd(FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), POS_SIZE_CIRCLEBUTTONSLIDER(par,0,0), "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
+		par=LCD_GradientCircleSlider(ToStructAndReturn,LCD_X,LCD_Y, LCD_X-calcWidth-10-625, LCD_Y-calcWidth-30,CircleWidth,CircleWidth,   SetBold2Color(v.COLOR_BkScreen,23),v.COLOR_FillMainFrame,0x666666,0xBBBBBB,0,   SetBold2Color(v.COLOR_FillMainFrame,15),0xC0C0C0,0x333333,  v.COLOR_BkScreen,270,Round,0);
+		par2=par;
+		//LCDSHAPE_GradientCircleSlider(0,par);
+		//LCD_StrDependOnColorsMidd(FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), POS_SIZE_CIRCLEBUTTONSLIDER(par,0,0), "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
 
-	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-450, LCD_Y-calcWidth-50, SetParamWidthCircle(0,CircleWidth),CircleWidth, SetBold2Color(WHITE,30), v.COLOR_BkScreen, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown,0);
-	LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-150, LCD_Y-calcWidth-50, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame, v.COLOR_BkScreen, RED,BLUE,0,350,Left,0);
-	//LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10, LCD_Y-calcWidth-50,     SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame, v.COLOR_BkScreen, RED,BLUE,0,355,Right,0);
-	StopMeasureTime_us("Time:");
+		LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-450, LCD_Y-calcWidth-30, SetParamWidthCircle(0,CircleWidth),CircleWidth, SetBold2Color(WHITE,30), v.COLOR_BkScreen, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown,0);
+		LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-150, LCD_Y-calcWidth-30, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame, v.COLOR_BkScreen, RED,BLUE,0,350,Left,0);
+		//LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10, LCD_Y-calcWidth-50,     SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame, v.COLOR_BkScreen, RED,BLUE,0,355,Right,0);
+		StopMeasureTime_us("Time:");
 
 
-	LCD_STR_PARAM new;
-	LCD_Txt(noDisplay, &new, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 370,220, "Markielowski", WHITE, v.COLOR_BkScreen, fullHight,0,250, ConstWidth, 0x777777, 4, 0.25, RightDown);
-	LCD_Txt(DisplayViaStruct,&new,NO_TXT_ARGS);
 
-//
-//	LCD_SetBkFontShape (v.FONT_VAR_Fonts, BK_None);
-//	StartMeasureTime_us();
-//	LCD_StrDependOnColors(v.FONT_ID_Fonts|v.FONT_VAR_Fonts<<16, 370+0,220+0, "Markielowski", fullHight,0, v.COLOR_BkScreen, 0x777777, 250, ConstWidth);
-//	LCD_StrDependOnColors(v.FONT_ID_Fonts|v.FONT_VAR_Fonts<<16, 370+1,220+1, "Markielowski", fullHight,0, 0x777777, 0x777777, 250, ConstWidth);
-//	LCD_StrDependOnColors(v.FONT_ID_Fonts|v.FONT_VAR_Fonts<<16, 370+2,220+2, "Markielowski", fullHight,0, 0x777777, 0x777777, 250, ConstWidth);
-//	LCD_StrDependOnColors(v.FONT_ID_Fonts|v.FONT_VAR_Fonts<<16, 370+3,220+3, "Markielowski", fullHight,0, GetTransitionColor(0x777777,v.COLOR_BkScreen,0.25), WHITE, 250, ConstWidth);
-//	StopMeasureTime_us("TimeXXXX:");
-//	LCD_SetBkFontShape(v.FONT_VAR_Fonts,BK_Rectangle);
+
+
+		LCD_STR_PARAM new;
+		LCD_Txt(noDisplay, &new, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, 0.5, RightDown);
+		LCD_Shape(new.txt.pos.x, new.txt.pos.y, LCD_Frame,  new.txt.size.w+new.shadow.deep, new.txt.size.h+new.shadow.deep,  RED,v.COLOR_BkScreen,v.COLOR_BkScreen);
+		LCD_Txt(DisplayViaStruct,&new,NO_TXT_ARGS);
+		//LCD_TxtVar(&new,"1234567890");
+
+
+
 
 
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
@@ -2326,12 +2321,15 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
-		par=LCD_GradientCircleButton(ToStructAndReturn,CircleWidth,CircleWidth,LCD_X-calcWidth-10, LCD_Y-calcWidth-50, CircleWidth,CircleWidth, SetBold2Color(v.COLOR_BkScreen,18),LIGHTBLUE,DARKBLUE,v.COLOR_BkScreen,0);
-		LCDSHAPE_GradientCircleButton_Indirect(par);
-		LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER_indirect(par,0,0), FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), "987", fullHight,0, BK_COLOR_CIRCLEBUTTON(par), WHITE, 248, ConstWidth);
+	par=LCD_GradientCircleButton(ToStructAndReturn,CircleWidth,CircleWidth,LCD_X-calcWidth-10, LCD_Y-calcWidth-30, CircleWidth,CircleWidth, SetBold2Color(v.COLOR_BkScreen,18),LIGHTBLUE,DARKBLUE,v.COLOR_BkScreen,0);
+	LCDSHAPE_GradientCircleButton_Indirect(par);
+	LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER_indirect(par,0,0), FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), "987", fullHight,0, BK_COLOR_CIRCLEBUTTON(par), WHITE, 248, ConstWidth);
 
-		LCDSHAPE_GradientCircleSlider_Indirect(par2);
-		LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER_indirect(par2,0,0), FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par2), WHITE, 248, ConstWidth);
+	LCDSHAPE_GradientCircleSlider_Indirect(par2);
+	LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER_indirect(par2,0,0), FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par2), WHITE, 248, ConstWidth);
+
+
+
 
 
 }

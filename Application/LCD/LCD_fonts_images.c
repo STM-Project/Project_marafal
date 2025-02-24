@@ -1175,7 +1175,7 @@ static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t wi
 	int posX=X, posY=Y_&0xFFFF, Y=Y_&0xFFFF;
 	char *pbmp;
 	uint32_t index=0, width=0, height=0, bit_pixel=0;
-	uint32_t backGround;
+	uint32_t backGround /*=(FontID[id].bkColor & 0x00FFFFFF)*/, currColor, fontColor=(FontID[id].color & 0x00FFFFFF);
 	uint32_t pos, pos2, xi;
 
 	if(constWidth)
@@ -1194,7 +1194,7 @@ static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t wi
 	fontsBuffer += (index + (width * height * bit_pixel));
 	fontsBuffer -= width*bit_pixel;
 
-	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];
+	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];		/* = (FontID[id].color & 0x00FFFFFF) */
 
 	if(OnlyDigits==halfHight)
 		height=Font[fontIndex].heightHalf;
@@ -1230,7 +1230,6 @@ static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t wi
 	}
 	else LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,NewBkColor);
 
-
 	idxChangeColorBuff=0;
    for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
    	buffChangeColorIN[i]=0;
@@ -1251,8 +1250,18 @@ static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t wi
 			o=0;
 			for(i=0; i<xi; ++i)
 			{
-				if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
-					LcdBuffer[pos+i] = GetCalculatedRGB(*(pbmp+o+2),*(pbmp+o+1),*(pbmp+o+0));
+		/*		if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
+					LcdBuffer[pos+i] = GetCalculatedRGB(*(pbmp+o+2),*(pbmp+o+1),*(pbmp+o+0));		*/
+
+				currColor = (*((uint32_t*)(pbmp+o))&0x00FFFFFF);
+				if (currColor != backGround)
+				{
+					if (currColor == fontColor)
+						LcdBuffer[pos+i] = NewFontColor;
+					else	/* transition color */
+						LcdBuffer[pos+i]=GetTransitionColor(NewFontColor&0x00FFFFFF, LcdBuffer[pos+i]&0x00FFFFFF, GetTransitionCoeff(fontColor,backGround,currColor));
+				}
+
 				o+=3;
 			}
 			pbmp -= width*bit_pixel;
@@ -1284,7 +1293,7 @@ static StructTxtPxlLen LCD_DrawStrChangeColorIndirectToBuffAndDisplay(uint32_t p
 	int posX=0;
 	char *pbmp;
 	uint32_t index=0, width=0, height=0, bit_pixel=0;
-	uint32_t backGround;
+	uint32_t backGround /*=(FontID[id].bkColor & 0x00FFFFFF)*/, currColor, fontColor=(FontID[id].color & 0x00FFFFFF);
 	uint32_t pos, pos2, xi;
 
 	if(constWidth)
@@ -1357,8 +1366,18 @@ static StructTxtPxlLen LCD_DrawStrChangeColorIndirectToBuffAndDisplay(uint32_t p
 			o=0;
 			for(i=0; i<xi; ++i)
 			{
-				if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
-					LcdBuffer[pos+i] = GetCalculatedRGB(*(pbmp+o+2),*(pbmp+o+1),*(pbmp+o+0));
+		/*		if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
+					LcdBuffer[pos+i] = GetCalculatedRGB(*(pbmp+o+2),*(pbmp+o+1),*(pbmp+o+0));		*/
+
+				currColor = (*((uint32_t*)(pbmp+o))&0x00FFFFFF);
+				if (currColor != backGround)
+				{
+					if (currColor == fontColor)
+						LcdBuffer[pos+i] = NewFontColor;
+					else	/* transition color */
+						LcdBuffer[pos+i]=GetTransitionColor(NewFontColor&0x00FFFFFF, LcdBuffer[pos+i]&0x00FFFFFF, GetTransitionCoeff(fontColor,backGround,currColor));
+				}
+
 				o+=3;
 			}
 			pbmp -= width*bit_pixel;
@@ -3971,9 +3990,18 @@ LCD_STR_PARAM LCD_SetStrDescrParam(int xWin,int yWin, int wWin,int hWin, int xSt
 	return strParam;
 }
 
+void LCD_SetNewTxt(LCD_STR_PARAM* p, char* newTxt){
+	LOOP_FOR(i,MAX_TXT_SIZE__LCD_STR_PARAM){
+		p->str[i]=newTxt[i];
+		if(newTxt[i]==0) break;
+	}
+	p->txt.size.w=LCD_GetWholeStrPxlWidth(p->fontId, p->str, p->spac, p->constW);
+	p->txt.size.h=LCD_GetFontHeight(p->fontId);
+	p->txtLen=strlen(p->str);
+}
 LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int idVar, int Xpos, int Ypos, char *txt, uint32_t fontColor, uint32_t bkColor, int OnlyDigits, int space,int maxVal, int constWidth, u32 shadeColor, u8 deep, float transCoeff, DIRECTIONS dir)
-{																						/*	NO_TXT_ARGS	*/																																																											/*	NO_TXT_SHADOW	*/	 /*	TXT_SHADOW */
-	StructTxtPxlLen temp={0};		int i,_x,_y;  uint8_t bkShape;
+{																						/*	NO_TXT_ARGS	*/																																																											/*	NO_TXT_SHADOW	*/	 /*	TXT_SHADOW() */
+	StructTxtPxlLen temp={0};		int i,_x,_y, sx,sy;  uint8_t bkShape;
 	LCD_STR_PARAM	strParam = {.win.pos={Xwin,Ywin}, .win.size={BkpSizeX,BkpSizeY}, .txt.pos={Xpos,Ypos}, .txt.size={LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth),LCD_GetFontHeight(fontID)}, .txtLen=strlen(txt), .fontId=fontID, .fontVar=idVar, .onlyDig=OnlyDigits, .spac=space, .bkCol=bkColor, .fontCol=fontColor, .maxV=maxVal, .constW=constWidth, .shadow.shadeColor=shadeColor, .shadow.deep=deep, .shadow.transCoeff=transCoeff, .shadow.dir=dir};
 	LOOP_FOR(i,MAX_TXT_SIZE__LCD_STR_PARAM){
 		strParam.str[i]=txt[i];
@@ -3985,23 +4013,37 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 		strParam.txt.size.h = temp.height;
 		strParam.txtLen = temp.inChar;
 	}
+	void _PosDirFunc(void){
+		switch((int)dir){ 				case RightDown: _x=Xpos; 								  _y=Ypos; 	  								sx= 1, sy= 1; break;
+												case RightUp:	 _x=Xpos; 								  _y=Ypos + deep; 						sx= 1, sy=-1; break;
+												case LeftDown:  _x=Xpos + deep;						  _y=Ypos; 	  								sx=-1, sy= 1; break;
+												case LeftUp: 	 _x=Xpos + deep; 						  _y=Ypos + deep; 						sx=-1, sy=-1; break;	 }
+	}
+	void _PosDirStructFunc(void){
+		switch((int)p->shadow.dir){ 	case RightDown: _x=p->txt.pos.x; 					  _y=p->txt.pos.y; 	  				   sx= 1, sy= 1; break;
+												case RightUp:	 _x=p->txt.pos.x; 					  _y=p->txt.pos.y + p->shadow.deep; sx= 1, sy=-1; break;
+												case LeftDown:  _x=p->txt.pos.x + p->shadow.deep; _y=p->txt.pos.y; 	  					sx=-1, sy= 1; break;
+												case LeftUp: 	 _x=p->txt.pos.x + p->shadow.deep; _y=p->txt.pos.y + p->shadow.deep; sx=-1, sy=-1; break;	 }
+	}
 	StructTxtPxlLen _ShadowFunc(void){
+		_PosDirFunc();
 		bkShape=LCD_GetStrVar_bkRoundRect(idVar);
-		LCD_SetBkFontShape(idVar, BK_None);	_x=Xpos-deep/2; _y=Ypos-deep/2;
-		temp= LCD_StrDependOnColorsWindow(0,BkpSizeX,BkpSizeY,FONT_ID_VAR(fontID,idVar),_x,	 _y,	txt,OnlyDigits,space,bkColor,														  shadeColor,maxVal,constWidth);
+		LCD_SetBkFontShape(idVar, BK_None);
+		temp= LCD_StrDependOnColorsWindow(0,BkpSizeX,BkpSizeY,FONT_ID_VAR(fontID,idVar), _x,	 	_y,		txt,OnlyDigits,space,bkColor,														  shadeColor,maxVal,constWidth);
 		for(i=1; i<deep; ++i)
-			LCD_StrDependOnColorsWindow	(0,BkpSizeX,BkpSizeY,FONT_ID_VAR(fontID,idVar),_x+i,_y+i,txt,OnlyDigits,space,shadeColor,													  shadeColor,maxVal,constWidth);
-		LCD_StrDependOnColorsWindow		(0,BkpSizeX,BkpSizeY,FONT_ID_VAR(fontID,idVar),_x+i,_y+i,txt,OnlyDigits,space,GetTransitionColor(shadeColor,bkColor,transCoeff),fontColor, maxVal,constWidth);
+			LCD_StrDependOnColorsWindow	(0,BkpSizeX,BkpSizeY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,shadeColor,													  shadeColor,maxVal,constWidth);
+		LCD_StrDependOnColorsWindow		(0,BkpSizeX,BkpSizeY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,GetTransitionColor(shadeColor,bkColor,transCoeff),fontColor, maxVal,constWidth);
 		LCD_SetBkFontShape(idVar,bkShape);
 		return temp;
 	}
 	StructTxtPxlLen _ShadowStructFunc(void){
+		_PosDirStructFunc();
 		bkShape=LCD_GetStrVar_bkRoundRect(p->fontVar);
-		LCD_SetBkFontShape(p->fontVar, BK_None);	_x=p->txt.pos.x-deep/2; _y=p->txt.pos.y-deep/2;
-		temp= LCD_StrDependOnColorsWindow(0, p->win.size.w, p->win.size.h, FONT_ID_VAR(p->fontId,p->fontVar),_x,	 _y, 	 p->str,	p->onlyDig, p->spac, p->bkCol,														  			  p->shadow.shadeColor, p->maxV, p->constW);
+		LCD_SetBkFontShape(p->fontVar, BK_None);
+		temp= LCD_StrDependOnColorsWindow(0, p->win.size.w, p->win.size.h, FONT_ID_VAR(p->fontId,p->fontVar), _x,	 	_y, 	 	p->str, p->onlyDig, p->spac, p->bkCol,														  			 					 p->shadow.shadeColor, p->maxV, p->constW);
 		for(i=1; i < p->shadow.deep; ++i)
-			LCD_StrDependOnColorsWindow	(0, p->win.size.w, p->win.size.h, FONT_ID_VAR(p->fontId,p->fontVar),_x+i,_y+i, p->str, p->onlyDig, p->spac, p->shadow.shadeColor,													  p->shadow.shadeColor, p->maxV, p->constW);
-		LCD_StrDependOnColorsWindow		(0, p->win.size.w, p->win.size.h, FONT_ID_VAR(p->fontId,p->fontVar),_x+i,_y+i, p->str, p->onlyDig, p->spac, GetTransitionColor(p->shadow.shadeColor,p->bkCol,transCoeff), p->fontCol, 				p->maxV, p->constW);
+			LCD_StrDependOnColorsWindow	(0, p->win.size.w, p->win.size.h, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, p->shadow.shadeColor,													  	 				 p->shadow.shadeColor, p->maxV, p->constW);
+		LCD_StrDependOnColorsWindow		(0, p->win.size.w, p->win.size.h, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, GetTransitionColor(p->shadow.shadeColor, p->bkCol, p->shadow.transCoeff), p->fontCol, 			  p->maxV, p->constW);
 		LCD_SetBkFontShape(p->fontVar,bkShape);
 		return temp;
 	}
@@ -4020,9 +4062,12 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 			return strParam;
 
 		case DisplayIndirect:
-			temp= LCD_StrDependOnColorsWindowIndirect(0,Xwin,Ywin,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+			if(p->shadow.deep) temp=_ShadowStructFunc();
+			else					 temp=LCD_StrDependOnColorsWindow(0, p->win.size.w, p->win.size.h, p->fontId, p->txt.pos.x, p->txt.pos.y, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, p->maxV, p->constW);
+			//temp= LCD_StrDependOnColorsWindowIndirect(0,Xwin,Ywin,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 			_CopyCurrentParam();
 			if(NULL!=p) *p=strParam;
+			LCD_DisplayBuff((u32)p->win.pos.x, (u32)p->win.pos.y, p->win.size.w, p->win.size.h, pLcd+0);
 			return strParam;
 
 		case DisplayViaStruct:
@@ -4037,9 +4082,12 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 
 		case DisplayIndirectViaStruct:
 			if(NULL!=p){
-				temp= LCD_StrDependOnColorsWindowIndirect(0, p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->txt.pos.x, p->txt.pos.y, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, p->maxV, p->constW);
+				if(p->shadow.deep) temp=_ShadowStructFunc();
+				else					 temp=LCD_StrDependOnColorsWindow(0, p->win.size.w, p->win.size.h, p->fontId, p->txt.pos.x, p->txt.pos.y, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, p->maxV, p->constW);
+				//temp= LCD_StrDependOnColorsWindowIndirect(0, p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->txt.pos.x, p->txt.pos.y, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, p->maxV, p->constW);
 				strParam=*p;
 				_CopyCurrentParam();
+				LCD_DisplayBuff((u32)p->win.pos.x, (u32)p->win.pos.y, p->win.size.w, p->win.size.h, pLcd+0);
 				return strParam;
 			}
 			else return LCD_STR_PARAM_Zero;
@@ -4049,4 +4097,12 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 	}
 }
 
+LCD_STR_PARAM LCD_TxtVar(LCD_STR_PARAM *p, char *txt){
+	LCD_SetNewTxt(p,txt);
+	return LCD_Txt(DisplayViaStruct, p, p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->fontVar, p->txt.pos.x, p->txt.pos.x, txt, p->fontCol, p->bkCol, p->onlyDig, p->spac, p->maxV, p->constW, p->shadow.shadeColor, p->shadow.deep, p->shadow.transCoeff, p->shadow.dir);
+}
+LCD_STR_PARAM LCD_TxtVarInd(LCD_STR_PARAM *p, char *txt){
+	LCD_SetNewTxt(p,txt);
+	return LCD_Txt(DisplayIndirectViaStruct, p, p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->fontVar, p->txt.pos.x, p->txt.pos.x, txt, p->fontCol, p->bkCol, p->onlyDig, p->spac, p->maxV, p->constW, p->shadow.shadeColor, p->shadow.deep, p->shadow.transCoeff, p->shadow.dir);
+}
 
