@@ -4062,11 +4062,11 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 			return strParam;
 
 		case DisplayIndirect:
-			if(deep) temp=_ShadowStructFunc();
+			if(deep) temp=_ShadowFunc();
 			else		temp=LCD_StrDependOnColorsWindow(0,  CONDITION(BkpSizeX==0,strParam.txt.size.w,BkpSizeX), CONDITION(BkpSizeY==0,strParam.txt.size.h,BkpSizeY), fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 			//temp= LCD_StrDependOnColorsWindowIndirect(0,Xwin,Ywin,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 			_CopyCurrentParam();
-			if(NULL!=p) *p=strParam;
+			if(NULL!=p) *p=strParam; //DAC wiekszy rozmiar okna do wyswietlania o deep !!!!
 			LCD_DisplayBuff(Xwin,Ywin, CONDITION(BkpSizeX==0,strParam.txt.size.w,BkpSizeX), CONDITION(BkpSizeY==0,strParam.txt.size.h,BkpSizeY), pLcd+0);
 			return strParam;
 
@@ -4099,10 +4099,10 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 
 LCD_STR_PARAM LCD_TxtVar(LCD_STR_PARAM *p, char *txt){
 	LCD_SetNewTxt(p,txt);
-	return LCD_Txt(DisplayViaStruct, p, p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->fontVar, p->txt.pos.x, p->txt.pos.x, txt, p->fontCol, p->bkCol, p->onlyDig, p->spac, p->maxV, p->constW, p->shadow.shadeColor, p->shadow.deep, p->shadow.dir);
+	return LCD_Txt(DisplayViaStruct, p, NO_TXT_ARGS/*p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->fontVar, p->txt.pos.x, p->txt.pos.x, txt, p->fontCol, p->bkCol, p->onlyDig, p->spac, p->maxV, p->constW, p->shadow.shadeColor, p->shadow.deep, p->shadow.dir*/);
 }
 LCD_STR_PARAM LCD_TxtVarInd(LCD_STR_PARAM *p, char *txt){
 	LCD_SetNewTxt(p,txt);
-	return LCD_Txt(DisplayIndirectViaStruct, p, p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->fontVar, p->txt.pos.x, p->txt.pos.x, txt, p->fontCol, p->bkCol, p->onlyDig, p->spac, p->maxV, p->constW, p->shadow.shadeColor, p->shadow.deep, p->shadow.dir);
+	return LCD_Txt(DisplayIndirectViaStruct, p, NO_TXT_ARGS/*p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->fontVar, p->txt.pos.x, p->txt.pos.x, txt, p->fontCol, p->bkCol, p->onlyDig, p->spac, p->maxV, p->constW, p->shadow.shadeColor, p->shadow.deep, p->shadow.dir*/);
 }
 
