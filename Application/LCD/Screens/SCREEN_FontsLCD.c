@@ -2297,8 +2297,8 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 		//LCDSHAPE_GradientCircleSlider(0,par);
 		//LCD_StrDependOnColorsMidd(FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), POS_SIZE_CIRCLEBUTTONSLIDER(par,0,0), "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
 
-		LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-450, LCD_Y-calcWidth-30, SetParamWidthCircle(0,CircleWidth),CircleWidth, SetBold2Color(WHITE,30), v.COLOR_BkScreen, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown,0);
-		LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-150, LCD_Y-calcWidth-30, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame, v.COLOR_BkScreen, RED,BLUE,0,350,Left,0);
+		LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-450, LCD_Y-calcWidth-30, SetParamWidthCircle(0,CircleWidth),CircleWidth, SetBold2Color(WHITE,30), v.COLOR_BkScreen, v.COLOR_BkScreen, RED,BLUE,0,360,RightDown,1);
+		LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10-150, LCD_Y-calcWidth-30, SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame, v.COLOR_BkScreen, RED,BLUE,0,350,Left,1);
 		//LCDSHAPE_Create(0,LCD_X,LCD_Y,LCD_X-calcWidth-10, LCD_Y-calcWidth-50,     SetParamWidthCircle(Percent_Circle,CircleWidth),CircleWidth, SetBold2Color(v.COLOR_BkScreen,0), v.COLOR_FillMainFrame, v.COLOR_BkScreen, RED,BLUE,0,355,Right,0);
 		StopMeasureTime_us("Time:");
 
@@ -2306,13 +2306,14 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
-		LCD_STR_PARAM new;
+		LCD_STR_PARAM new, new2;
 		LCD_Txt(noDisplay, &new, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);
 		LCD_Shape(new.txt.pos.x, new.txt.pos.y, LCD_Frame,  new.txt.size.w+new.shadow.deep, new.txt.size.h+new.shadow.deep,  RED,v.COLOR_BkScreen,v.COLOR_BkScreen);
 		LCD_Txt(DisplayViaStruct,&new,NO_TXT_ARGS);
 		//LCD_TxtVar(&new,"1234567890");
 
-
+/* {BkpSizeX,BkpSizeXY}=0 because is calculated as text length  */
+		LCD_Txt(noDisplay, &new2, 50,200, 0,0, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 0,0, "12345", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 0, RightDown);
 
 
 
@@ -2330,6 +2331,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
+	LCD_Txt(DisplayIndirectViaStruct,&new2,NO_TXT_ARGS);
 
 
 }

@@ -4062,12 +4062,12 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 			return strParam;
 
 		case DisplayIndirect:
-			if(p->shadow.deep) temp=_ShadowStructFunc();
-			else					 temp=LCD_StrDependOnColorsWindow(0, p->win.size.w, p->win.size.h, p->fontId, p->txt.pos.x, p->txt.pos.y, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, p->maxV, p->constW);
+			if(deep) temp=_ShadowStructFunc();
+			else		temp=LCD_StrDependOnColorsWindow(0,  CONDITION(BkpSizeX==0,strParam.txt.size.w,BkpSizeX), CONDITION(BkpSizeY==0,strParam.txt.size.h,BkpSizeY), fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 			//temp= LCD_StrDependOnColorsWindowIndirect(0,Xwin,Ywin,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 			_CopyCurrentParam();
 			if(NULL!=p) *p=strParam;
-			LCD_DisplayBuff((u32)p->win.pos.x, (u32)p->win.pos.y, p->win.size.w, p->win.size.h, pLcd+0);
+			LCD_DisplayBuff(Xwin,Ywin, CONDITION(BkpSizeX==0,strParam.txt.size.w,BkpSizeX), CONDITION(BkpSizeY==0,strParam.txt.size.h,BkpSizeY), pLcd+0);
 			return strParam;
 
 		case DisplayViaStruct:
@@ -4083,11 +4083,11 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 		case DisplayIndirectViaStruct:
 			if(NULL!=p){
 				if(p->shadow.deep) temp=_ShadowStructFunc();
-				else					 temp=LCD_StrDependOnColorsWindow(0, p->win.size.w, p->win.size.h, p->fontId, p->txt.pos.x, p->txt.pos.y, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, p->maxV, p->constW);
+				else					 temp=LCD_StrDependOnColorsWindow(0, CONDITION(p->win.size.w==0,p->txt.size.w,p->win.size.w), CONDITION(p->win.size.h==0,p->txt.size.h,p->win.size.h), p->fontId, p->txt.pos.x, p->txt.pos.y, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, p->maxV, p->constW);
 				//temp= LCD_StrDependOnColorsWindowIndirect(0, p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->txt.pos.x, p->txt.pos.y, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, p->maxV, p->constW);
 				strParam=*p;
 				_CopyCurrentParam();
-				LCD_DisplayBuff((u32)p->win.pos.x, (u32)p->win.pos.y, p->win.size.w, p->win.size.h, pLcd+0);
+				LCD_DisplayBuff((u32)p->win.pos.x, (u32)p->win.pos.y, CONDITION(p->win.size.w==0,p->txt.size.w,p->win.size.w), CONDITION(p->win.size.h==0,p->txt.size.h,p->win.size.h), pLcd+0);
 				return strParam;
 			}
 			else return LCD_STR_PARAM_Zero;
