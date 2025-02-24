@@ -3999,10 +3999,10 @@ void LCD_SetNewTxt(LCD_STR_PARAM* p, char* newTxt){
 	p->txt.size.h=LCD_GetFontHeight(p->fontId);
 	p->txtLen=strlen(p->str);
 }
-LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int idVar, int Xpos, int Ypos, char *txt, uint32_t fontColor, uint32_t bkColor, int OnlyDigits, int space,int maxVal, int constWidth, u32 shadeColor, u8 deep, float transCoeff, DIRECTIONS dir)
+LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int idVar, int Xpos, int Ypos, char *txt, uint32_t fontColor, uint32_t bkColor, int OnlyDigits, int space,int maxVal, int constWidth, u32 shadeColor, u8 deep, DIRECTIONS dir)
 {																						/*	NO_TXT_ARGS	*/																																																											/*	NO_TXT_SHADOW	*/	 /*	TXT_SHADOW() */
 	StructTxtPxlLen temp={0};		int i,_x,_y, sx,sy;  uint8_t bkShape;
-	LCD_STR_PARAM	strParam = {.win.pos={Xwin,Ywin}, .win.size={BkpSizeX,BkpSizeY}, .txt.pos={Xpos,Ypos}, .txt.size={LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth),LCD_GetFontHeight(fontID)}, .txtLen=strlen(txt), .fontId=fontID, .fontVar=idVar, .onlyDig=OnlyDigits, .spac=space, .bkCol=bkColor, .fontCol=fontColor, .maxV=maxVal, .constW=constWidth, .shadow.shadeColor=shadeColor, .shadow.deep=deep, .shadow.transCoeff=transCoeff, .shadow.dir=dir};
+	LCD_STR_PARAM	strParam = {.win.pos={Xwin,Ywin}, .win.size={BkpSizeX,BkpSizeY}, .txt.pos={Xpos,Ypos}, .txt.size={LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth),LCD_GetFontHeight(fontID)}, .txtLen=strlen(txt), .fontId=fontID, .fontVar=idVar, .onlyDig=OnlyDigits, .spac=space, .bkCol=bkColor, .fontCol=fontColor, .maxV=maxVal, .constW=constWidth, .shadow.shadeColor=shadeColor, .shadow.deep=deep, .shadow.dir=dir};
 	LOOP_FOR(i,MAX_TXT_SIZE__LCD_STR_PARAM){
 		strParam.str[i]=txt[i];
 		if(txt[i]==0) break;
@@ -4029,10 +4029,10 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 		_PosDirFunc();
 		bkShape=LCD_GetStrVar_bkRoundRect(idVar);
 		LCD_SetBkFontShape(idVar, BK_None);
-		temp= LCD_StrDependOnColorsWindow(0,BkpSizeX,BkpSizeY,FONT_ID_VAR(fontID,idVar), _x,	 	_y,		txt,OnlyDigits,space,bkColor,														  shadeColor,maxVal,constWidth);
+		temp= LCD_StrDependOnColorsWindow(0,BkpSizeX,BkpSizeY,FONT_ID_VAR(fontID,idVar), _x,	 	_y,		txt,OnlyDigits,space,bkColor,	  shadeColor,maxVal,constWidth);
 		for(i=1; i<deep; ++i)
-			LCD_StrDependOnColorsWindow	(0,BkpSizeX,BkpSizeY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,shadeColor,													  shadeColor,maxVal,constWidth);
-		LCD_StrDependOnColorsWindow		(0,BkpSizeX,BkpSizeY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,GetTransitionColor(shadeColor,bkColor,transCoeff),fontColor, maxVal,constWidth);
+			LCD_StrDependOnColorsWindow	(0,BkpSizeX,BkpSizeY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,shadeColor,shadeColor,maxVal,constWidth);
+		LCD_StrDependOnColorsWindow		(0,BkpSizeX,BkpSizeY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,shadeColor,fontColor, maxVal,constWidth);
 		LCD_SetBkFontShape(idVar,bkShape);
 		return temp;
 	}
@@ -4040,10 +4040,10 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 		_PosDirStructFunc();
 		bkShape=LCD_GetStrVar_bkRoundRect(p->fontVar);
 		LCD_SetBkFontShape(p->fontVar, BK_None);
-		temp= LCD_StrDependOnColorsWindow(0, p->win.size.w, p->win.size.h, FONT_ID_VAR(p->fontId,p->fontVar), _x,	 	_y, 	 	p->str, p->onlyDig, p->spac, p->bkCol,														  			 					 p->shadow.shadeColor, p->maxV, p->constW);
+		temp= LCD_StrDependOnColorsWindow(0, p->win.size.w, p->win.size.h, FONT_ID_VAR(p->fontId,p->fontVar), _x,	 	_y, 	 	p->str, p->onlyDig, p->spac, p->bkCol,					p->shadow.shadeColor, p->maxV, p->constW);
 		for(i=1; i < p->shadow.deep; ++i)
-			LCD_StrDependOnColorsWindow	(0, p->win.size.w, p->win.size.h, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, p->shadow.shadeColor,													  	 				 p->shadow.shadeColor, p->maxV, p->constW);
-		LCD_StrDependOnColorsWindow		(0, p->win.size.w, p->win.size.h, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, GetTransitionColor(p->shadow.shadeColor, p->bkCol, p->shadow.transCoeff), p->fontCol, 			  p->maxV, p->constW);
+			LCD_StrDependOnColorsWindow	(0, p->win.size.w, p->win.size.h, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, p->shadow.shadeColor,	p->shadow.shadeColor, p->maxV, p->constW);
+		LCD_StrDependOnColorsWindow		(0, p->win.size.w, p->win.size.h, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, 			  				 p->maxV, p->constW);
 		LCD_SetBkFontShape(p->fontVar,bkShape);
 		return temp;
 	}
@@ -4099,10 +4099,10 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 
 LCD_STR_PARAM LCD_TxtVar(LCD_STR_PARAM *p, char *txt){
 	LCD_SetNewTxt(p,txt);
-	return LCD_Txt(DisplayViaStruct, p, p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->fontVar, p->txt.pos.x, p->txt.pos.x, txt, p->fontCol, p->bkCol, p->onlyDig, p->spac, p->maxV, p->constW, p->shadow.shadeColor, p->shadow.deep, p->shadow.transCoeff, p->shadow.dir);
+	return LCD_Txt(DisplayViaStruct, p, p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->fontVar, p->txt.pos.x, p->txt.pos.x, txt, p->fontCol, p->bkCol, p->onlyDig, p->spac, p->maxV, p->constW, p->shadow.shadeColor, p->shadow.deep, p->shadow.dir);
 }
 LCD_STR_PARAM LCD_TxtVarInd(LCD_STR_PARAM *p, char *txt){
 	LCD_SetNewTxt(p,txt);
-	return LCD_Txt(DisplayIndirectViaStruct, p, p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->fontVar, p->txt.pos.x, p->txt.pos.x, txt, p->fontCol, p->bkCol, p->onlyDig, p->spac, p->maxV, p->constW, p->shadow.shadeColor, p->shadow.deep, p->shadow.transCoeff, p->shadow.dir);
+	return LCD_Txt(DisplayIndirectViaStruct, p, p->win.pos.x, p->win.pos.y, p->win.size.w, p->win.size.h, p->fontId, p->fontVar, p->txt.pos.x, p->txt.pos.x, txt, p->fontCol, p->bkCol, p->onlyDig, p->spac, p->maxV, p->constW, p->shadow.shadeColor, p->shadow.deep, p->shadow.dir);
 }
 

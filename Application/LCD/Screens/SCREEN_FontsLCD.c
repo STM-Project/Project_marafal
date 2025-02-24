@@ -2307,7 +2307,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 		LCD_STR_PARAM new;
-		LCD_Txt(noDisplay, &new, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, 0.5, RightDown);
+		LCD_Txt(noDisplay, &new, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);
 		LCD_Shape(new.txt.pos.x, new.txt.pos.y, LCD_Frame,  new.txt.size.w+new.shadow.deep, new.txt.size.h+new.shadow.deep,  RED,v.COLOR_BkScreen,v.COLOR_BkScreen);
 		LCD_Txt(DisplayViaStruct,&new,NO_TXT_ARGS);
 		//LCD_TxtVar(&new,"1234567890");
