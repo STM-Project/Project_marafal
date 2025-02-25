@@ -4050,12 +4050,12 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 
 	switch((int)act){
 		case Display:  case DisplayIndirect:
-			bkX = CONDITION(BkpSizeX==0,strParam.txt.size.w+deep,BkpSizeX);
-			bkY = CONDITION(BkpSizeY==0,strParam.txt.size.h+deep,BkpSizeY);
+			bkX = CONDITION(BkpSizeX==0, strParam.txt.size.w+deep, BkpSizeX);
+			bkY = CONDITION(BkpSizeY==0, strParam.txt.size.h+deep, BkpSizeY);
 			break;
 		case DisplayViaStruct:  case DisplayIndirectViaStruct:
-			bkX = CONDITION(p->win.size.w==0,p->txt.size.w+p->shadow.deep,p->win.size.w);
-			bkY = CONDITION(p->win.size.h==0,p->txt.size.h+p->shadow.deep,p->win.size.h);
+			bkX = CONDITION(p->win.size.w==0, p->txt.size.w+p->shadow.deep, p->win.size.w);
+			bkY = CONDITION(p->win.size.h==0, p->txt.size.h+p->shadow.deep, p->win.size.h);
 			break;
 		default:
 			bkX=0; bkY=0;
