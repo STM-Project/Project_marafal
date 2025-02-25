@@ -2304,10 +2304,11 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
-		LCD_STR_PARAM temp, new;
+
 
 
 /* 5 Methods for noIndirect */
+		LCD_STR_PARAM temp, new;
 		new =  LCD_Txt(noDisplay, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);	/* load parameters to 'new' */
 		temp = LCD_Txt(noDisplay, &new, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);	/* load parameters to 'new' and 'temp' */
 		temp = LCD_Txt(Display,   NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);	/* 1 method */
