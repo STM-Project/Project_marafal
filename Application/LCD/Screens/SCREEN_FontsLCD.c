@@ -2304,16 +2304,28 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
+		LCD_STR_PARAM temp, new;
 
 
-		LCD_STR_PARAM new, new2;
-		LCD_Txt(noDisplay, &new, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);
-		LCD_Shape(new.txt.pos.x, new.txt.pos.y, LCD_Frame,  new.txt.size.w+new.shadow.deep, new.txt.size.h+new.shadow.deep,  RED,v.COLOR_BkScreen,v.COLOR_BkScreen);
-		LCD_Txt(DisplayViaStruct,&new,NO_TXT_ARGS);
-		//LCD_TxtVar(&new,"1234567890");
+/* 5 Methods for noIndirect */
+		new =  LCD_Txt(noDisplay, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);	/* load parameters to 'new' */
+		temp = LCD_Txt(noDisplay, &new, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);	/* load parameters to 'new' and 'temp' */
+		temp = LCD_Txt(Display,   NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);	/* 1 method */
+		temp = LCD_Txt(Display,   &new, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);	/* 2 method */
 
-/* {BkpSizeX,BkpSizeXY}=0 because is calculated as text length  */
-		LCD_Txt(noDisplay, &new2, 50,200, 0,0, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 0,0, "12345", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 0, RightDown);
+		LCD_Shape(new.txt.pos.x, new.txt.pos.y, LCD_Frame,  new.txt.size.w+new.shadow.deep, new.txt.size.h+new.shadow.deep,  RED,v.COLOR_BkScreen,v.COLOR_BkScreen);	/* test frame around the text */
+
+		temp = LCD_Txt(DisplayViaStruct,&new,NO_TXT_ARGS);		/* 3 method */
+		temp = LCD_TxtVar(&new,NULL);									/* 4 method */
+		temp = LCD_TxtVar(&new,"new text");							/* 5 method */
+/* -------  END -------- */
+
+
+
+
+
+
+
 
 
 
@@ -2330,9 +2342,17 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	LCD_StrDependOnColorsWindowMiddIndirect(0, POS_SIZE_CIRCLEBUTTONSLIDER_indirect(par2,0,0), FONT_ID_VAR(v.FONT_ID_Title,v.FONT_VAR_Title), "23", fullHight,0, BK_COLOR_CIRCLESLIDER(par2), WHITE, 248, ConstWidth);
 
 
-
-	LCD_Txt(DisplayIndirectViaStruct,&new2,NO_TXT_ARGS);
-
+/* 5 Methods for Indirect */
+	LCD_STR_PARAM temp2,new2;
+	temp2 = LCD_Txt(noDisplay, &new2, 50,200, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 0,0, "12345", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 3, RightDown);	/* load parameters to 'new2' and 'temp2' */
+	new2 =  LCD_Txt(noDisplay, NULL,  50,200, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 0,0, "12345", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 3, RightDown);	/* load parameters to 'new2' */
+											/* {BkpSizeX,BkpSizeXY}=0 because is calculated as text length  */
+	temp2 = LCD_Txt(DisplayIndirectViaStruct,&new2,NO_TXT_ARGS);	/* 1 method */
+	temp2 = LCD_TxtVarInd(&new2, NULL);										/* 2 method */
+	temp2 = LCD_TxtVarInd(&new2, "new text");								/* 3 method */
+	temp2 = LCD_Txt(DisplayIndirect, &new2, 50,250, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 6, RightDown);		/* 4 method */
+	temp2 = LCD_Txt(DisplayIndirect, NULL,  50,250, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 6, RightDown);		/* 5 method */
+/* -------  END -------- */
 
 }
 

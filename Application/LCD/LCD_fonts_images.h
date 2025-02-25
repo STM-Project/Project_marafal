@@ -59,7 +59,7 @@
 #define NO_TXT_ARGS		0,0,0,0,0,0,0,0,NULL,0,0,0,0,0,0,0,0,0
 #define NO_TXT_SHADOW		_ZEROS3
 #define TXT_SHADOW(arg1,arg2,arg3)		arg1,arg2,arg3
-
+#define BK_SIZE_IS_TXT_SIZE		0,0
 #define FONT_ID_VAR(fontID,fontVAR)		fontID|(fontVAR<<16)
 
 enum FontsSize{
