@@ -1247,6 +1247,18 @@ static uint8_t LCD_SearchRadiusPoints(int posBuff, int nrDeg, uint32_t BkpSizeX)
 			return 3;
 }
 
+void AAAAAAAAAAAAAA(void){
+
+_StartDrawLine(0,LCD_X,150,270);
+_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 11, 10,5,1,1,1,4,5,6,7,8,3);
+_DrawArrayRightUp_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 11,   10,5,1,1,1,4,5,6,7,8,3);
+_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 11, 10,5,1,1,1,4,5,6,7,8,3);
+_DrawArrayRightUp_AA(WHITE, 0x383838, 0.0, LCD_X, 1, 11,   10,5,1,1,1,4,5,6,7,8,3);
+_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 11, 10,5,1,1,1,4,5,6,7,8,3);
+_DrawArrayRightUp_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 11,   10,5,1,1,1,4,5,6,7,8,3);
+
+}
+
 static void _DrawArrayBuffRightDown_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2, i_prev;

@@ -199,6 +199,6 @@ void LCDSHAPE_RoundRectangle_Indirect		 (SHAPE_PARAMS param);
 void LCDSHAPE_GradientCircleButton_Indirect(SHAPE_PARAMS param);
 void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param);
 /* ------- End Selected Figures ------------------*/
-
+void AAAAAAAAAAAAAA(void);
 
 #endif /* LCD_LCD_BASICGAPHICS_H_ */
