@@ -2279,9 +2279,11 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	Test.speed=StopMeasureTime_us("");
 
 
-//	LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
+	LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen, v.FONT_ID_Descr);
 //	LCDEXAMPLE_GradientCircleButtonAndSlider(v.FONT_ID_Title,v.FONT_VAR_Title,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 //	LCDEXAMPLE_LcdTxt(v.FONT_ID_Fonts,v.FONT_VAR_Fonts,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
+
+	DrawLine(0,50,230,50,29,WHITE, LCD_X, 0.0, 0.0 ,v.COLOR_BkScreen, v.COLOR_BkScreen);  //DrawLine(0,50,230,50,29,WHITE, LCD_X, 0.0, 0.0 ,v.COLOR_BkScreen, v.COLOR_BkScreen);
 
 
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
