@@ -484,7 +484,7 @@ static void KeysAllRelease_CircleSlider(int nr, XY_Touch_Struct posKeys[],int *v
 				par=LCD_GradientCircleSlider(0,widthAll,heightAll, posKeys[i].x, posKeys[i].y, s[nr].widthKey,s[nr].heightKey, SetBold2Color(frameColor,s[nr].bold),fillColor, slidParam.gradSlidColor>>32, slidParam.gradSlidColor, slidParam.middSlidColor, unUsed,							  	unUsed,							  unUsed,  					   bkColor,deg[1],slidParam.dir,0);
 			if(IS_RANGE(s[nr].bold, 1, (LCD_GetCircleWidth()-GetStrPxlWidth(fontID_descr, StrAll(3," ",pTxt," "), ConstWidth))/2) ){
 				LCD_BkFontTransparent(fontVar_40, fontID_descr);
-				LCD_StrDependOnColorsWindowMidd(0,widthAll,heightAll,FONT_ID_VAR(fontID_descr,fontVar_40), POS_SIZE_CIRCLEBUTTONSLIDER(par,-2,-2), pTxt, fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
+				LCD_StrDependOnColorsWindowMidd(0,widthAll,heightAll,FONT_ID_VAR(fontID_descr,fontVar_40), POS_SIZE_CIRCLEBUTTONSLIDER(par,-2,-2), pTxt, fullHight,0, unUsed /*BK_COLOR_CIRCLESLIDER(par)*/, WHITE, 250, ConstWidth);
 			}
 		}
 		else{
@@ -543,7 +543,7 @@ static void KeyPress_CircleSlider(int nr, uint16_t x,uint16_t y, XY_Touch_Struct
 
 			if(_ShowTxtFunc()){
 				LCD_BkFontTransparent(fontVar_40, fontID_descr);
-				LCD_StrDependOnColorsWindowMidd(0, par.bkSize.w, par.bkSize.h, FONT_ID_VAR(fontID_descr,fontVar_40), POS_SIZE_CIRCLEBUTTONSLIDER(par,-2,-2), pTxt, fullHight,0, BK_COLOR_CIRCLESLIDER(par), WHITE, 250, ConstWidth);
+				LCD_StrDependOnColorsWindowMidd(0, par.bkSize.w, par.bkSize.h, FONT_ID_VAR(fontID_descr,fontVar_40), POS_SIZE_CIRCLEBUTTONSLIDER(par,-2,-2), pTxt, fullHight,0, unUsed /*BK_COLOR_CIRCLESLIDER(par)*/, WHITE, 250, ConstWidth);
 			}
 			int correctXY = LCD_GradCircButtSlidCorrectXY(par,s[nr].widthKey);
 			LCD_Display(0, s[nr].x+posKeys.x+correctXY, s[nr].y+posKeys.y+correctXY,  par.bkSize.w, par.bkSize.h);
