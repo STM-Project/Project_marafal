@@ -1247,19 +1247,226 @@ static uint8_t LCD_SearchRadiusPoints(int posBuff, int nrDeg, uint32_t BkpSizeX)
 			return 3;
 }
 
-void AAAAAAAAAAAAAA(void){
 
-_StartDrawLine(0,LCD_X,150,270);
-_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 11, 10,5,1,1,1,4,5,6,7,8,3);
-_DrawArrayRightUp_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 11,   10,5,1,1,1,4,5,6,7,8,3);
-_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 11, 10,5,1,1,1,4,5,6,7,8,3);
-_DrawArrayRightUp_AA(WHITE, 0x383838, 0.0, LCD_X, 1, 11,   10,5,1,1,1,4,5,6,7,8,3);
-_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 11, 10,5,1,1,1,4,5,6,7,8,3);
-_DrawArrayRightUp_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 11,   10,5,1,1,1,4,5,6,7,8,3);
+void _DrawArrayBuffRightDown_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf);
+void _DrawArrayBuffRightUp_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf);
+
+typedef struct{
+ u16 posY;
+ u8 funcType;
+ u16 nmbPxls;
+}CHART_FFFF;
+
+// RightDownDir0: 3,1,2     RightUpDir0: 3,1     //RightDownDir1: 4
+//                   3*       +1    2*(+1)    3*(-1)      -1   +4
+typedef enum{
+	RightUpDir1,
+	RightUpDir0,
+	RightDownDir0,
+	RightDownDir1,
+	Equal
+}CHART_EEE;
+int funcType_prev=0, currentYY=0;
+CHART_FFFF chartPar[1000]={0};  int ichart=0;
+
+int tab[1100]={0}, tab2[1100]={0};
+
+
+
+u16 posY[]={270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,  271,271,271,271,271,271,271,271,271,271,271,271,271,271,271,271,271,271,271,271,  272,272,272,272,272,272,272,272,272,272, \
+				271,271,271,271,271,271,271,271,271,271,271,271,271,271,271,   270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,  272,  273,  274,274,274,274,274,274,274,274,274,274,274,274,274,274,
+				273,272,271,270, 273,273,273,273,273,273,273,273,273,273,273,273};
+
+
+
+//u16 posY1[11]={270,270,270,  271,  272,272,  271,271,271,  270,  273};
+u16 posY_prev,posY_prevEqual;
+void AAAAAAAAAAAAAA(void){
+	posY_prev = posY[0];
+	posY_prevEqual=0;
+
+	int sizeTab = sizeof(posY)/2;
+
+
+	int j=0,b=0;
+	for(int i=0; i<sizeTab; ++i)
+	{
+		if(i<sizeTab-1 && posY[i]==posY[i+1])
+		{
+			b++;
+		}
+		else
+		{
+			tab[j] = posY[i];
+			tab2[j]= 1+b;
+			j++;
+			b=0;
+		}
+	}
+
+	int Size_22 = j;
+
+ asm("nop");
+
+
+ ichart=0;
+ int i=0;
+
+	for(i=0; i<1; ++i)
+	{
+		if		 (tab[i]+1 == tab[i+1])
+			chartPar[ichart].funcType=RightDownDir0;
+		else if(tab[i]-1 == tab[i+1])
+			chartPar[ichart].funcType=RightUpDir0;
+		else if(tab[i]-1 > tab[i+1])
+			chartPar[ichart].funcType=RightUpDir1;
+		else if(tab[i]+1 < tab[i+1])
+			chartPar[ichart].funcType=RightDownDir1;
+		else
+		{
+			asm("nop");
+		}
+
+		chartPar[ichart].nmbPxls=tab2[i];
+		chartPar[ichart].posY=tab[i];
+		ichart++;
+	}
+
+	for(i=1; i<Size_22; ++i)
+	{
+		if		 (tab[i-1]+1 == tab[i])
+			chartPar[ichart].funcType=RightDownDir0;
+		else if(tab[i-1]-1 == tab[i])
+			chartPar[ichart].funcType=RightUpDir0;
+		else if(tab[i-1]-1 > tab[i])
+			chartPar[ichart].funcType=RightUpDir1;
+		else if(tab[i-1]+1 < tab[i])
+			chartPar[ichart].funcType=RightDownDir1;
+		else
+		{
+			asm("nop");
+		}
+
+		chartPar[ichart].nmbPxls=tab2[i];
+		chartPar[ichart].posY=tab[i];
+		ichart++;
+	}
+
+	 asm("nop");
+
+   int posX=30;
+	 _StartDrawLine(0,LCD_X,posX,posY[0]);
+	 ichart=0;
+	 int prev__=0;  	 uint8_t bufa[20];
+
+	 for(i=0; i<Size_22; ++i)
+	 {
+
+		 switch(chartPar[ichart].funcType)
+		 {
+		 case RightDownDir0:
+			 _StartDrawLine(0,LCD_X,posX,chartPar[ichart].posY);
+			 bufa[1]=chartPar[ichart].nmbPxls;  		posX+=chartPar[ichart].nmbPxls;
+			 for(j=1; j<Size_22; ++j){
+				 if(chartPar[ichart+j].funcType!=RightDownDir0){ bufa[0]=j; break; }
+				 bufa[1+j]=chartPar[ichart+j].nmbPxls;
+				 posX+=chartPar[ichart+j].nmbPxls;
+			 }
+			 ichart+=j;
+			 _DrawArrayBuffRightDown_AA(RED, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 0, bufa);
+			 break;
+		 case RightDownDir1:
+			 _StartDrawLine(0,LCD_X,posX,chartPar[ichart].posY);
+			 bufa[1]=chartPar[ichart].nmbPxls;  		posX+=chartPar[ichart].nmbPxls;
+			 for(j=1; j<Size_22; ++j){
+				 if(chartPar[ichart+j].funcType!=RightDownDir1){ bufa[0]=j; break; }
+				 bufa[1+j]=chartPar[ichart+j].nmbPxls;
+				 posX+=chartPar[ichart+j].nmbPxls;
+			 }
+			 ichart+=j;
+			 _DrawArrayBuffRightDown_AA(BLUE, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 1, bufa);
+			 break;
+		 case RightUpDir0:
+			 _StartDrawLine(0,LCD_X,posX,chartPar[ichart].posY);
+			 bufa[1]=chartPar[ichart].nmbPxls;  		posX+=chartPar[ichart].nmbPxls;
+			 for(j=1; j<Size_22; ++j){
+				 if(chartPar[ichart+j].funcType!=RightUpDir0){ bufa[0]=j; break; }
+				 bufa[1+j]=chartPar[ichart+j].nmbPxls;
+				 posX+=chartPar[ichart+j].nmbPxls;
+			 }
+			 ichart+=j;
+			 _DrawArrayBuffRightUp_AA(GREEN, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 0, bufa);
+			 break;
+		 case RightUpDir1:
+			 _StartDrawLine(0,LCD_X,posX,chartPar[ichart].posY);
+			 bufa[1]=chartPar[ichart].nmbPxls;  		posX+=chartPar[ichart].nmbPxls;
+			 for(j=1; j<Size_22; ++j){
+				 if(chartPar[ichart+j].funcType!=RightUpDir1){ bufa[0]=j; break; }
+				 bufa[1+j]=chartPar[ichart+j].nmbPxls;
+				 posX+=chartPar[ichart+j].nmbPxls;
+			 }
+			 ichart+=j;
+			 _DrawArrayBuffRightUp_AA(BLACK, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 1, bufa);
+			 break;
+		 }
+	 }
+
+
+
+//
+//_StartDrawLine(0,LCD_X,30,210);
+//_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 3, 30,10,20);
+//_DrawArrayRightUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 2, 30,10);
+//_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 3, 30,10,20);
+//_DrawArrayRightUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 2, 30,10);
+////_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 1, 1, 40);
+//
+//_StartDrawLine(0,LCD_X,30,260);
+//_DrawArrayRightDown_AA(WHITE, 0x383838, 0.1, LCD_X, 0, 3, 30,10,20);
+//k-=(2*LCD_X); k+=(30+10-1);  _DrawArrayLeftDown_AA  (WHITE, 0x383838, 0.1, LCD_X, 0, 2, 10,30);
+//k-=(2*LCD_X); k+=(30+10-1); _DrawArrayRightDown_AA(WHITE, 0x383838, 0.1, LCD_X, 0, 3, 30,10,20);
+//k-=(2*LCD_X); k+=(30+10-1);  _DrawArrayLeftDown_AA  (WHITE, 0x383838, 0.1, LCD_X, 0, 2, 10,30);
+////_DrawArrayRightDown_AA(WHITE, 0x383838, 0.1, LCD_X, 1, 1, 40);
+//
+//_StartDrawLine(0,LCD_X,30,300);
+//_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 3+1, 1,29,10,20);
+//_DrawArrayRightUp_AA  (WHITE, 0x383838, 0.0, LCD_X, 0, 2+1, 1,29,10);
+//_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 3+1, 1,29,10,20);
+//_DrawArrayRightUp_AA  (WHITE, 0x383838, 0.0, LCD_X, 0, 2+1, 1,29,10);
+//
+
+
+//	 for(i=0; i<30; ++i) posY[i]=270;
+//	 for(i=0; i<10; ++i) posY[i]=271;
+//	 for(i=0; i<20; ++i) posY[i]=272;
+//
+//	 for(i=0; i<30; ++i) posY[i]=271;
+//	 for(i=0; i<10; ++i) posY[i]=270;
+//
+//	 for(i=0; i<30; ++i) posY[i]=273;
+
+
+//	 _StartDrawLine(0,LCD_X,30,360);
+//	 bufa[0]=3; bufa[1]=30; bufa[2]=10; bufa[3]=20; _DrawArrayBuffRightDown_AA(WHITE, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 0, bufa);
+//	 bufa[0]=2; bufa[1]=30; bufa[2]=10;             _DrawArrayBuffRightUp_AA  (RED, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 0, bufa);
+//	 bufa[0]=3; bufa[1]=30; bufa[2]=10; bufa[3]=20; _DrawArrayBuffRightDown_AA(WHITE, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 0, bufa);
+//	 bufa[0]=2; bufa[1]=30; bufa[2]=10;             _DrawArrayBuffRightUp_AA  (BLUE, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 0, bufa);
+
+
+
+	 LOOP_FOR(a,sizeTab){
+		 pLcd[30+(posY[a]+20)*LCD_X+a]=WHITE; //wZOR !!!
+	 }
+
+//_StartDrawLine(0,LCD_X,30,360);
+//bufa[0]=4; bufa[1]=1; bufa[2]=29; bufa[3]=10; bufa[4]=20; _DrawArrayBuffRightDown_AA(WHITE, 0x383838, 0x383838, 0.0, 0.0, LCD_X, 0, bufa);
+//bufa[0]=3; bufa[1]=1; bufa[2]=29; bufa[3]=10;             _DrawArrayBuffRightUp_AA  (WHITE, 0x383838, 0x383838, 0.0, 0.0, LCD_X, 0, bufa);
+//bufa[0]=4; bufa[1]=1; bufa[2]=29; bufa[3]=10; bufa[4]=20; _DrawArrayBuffRightDown_AA(WHITE, 0x383838, 0x383838, 0.0, 0.0, LCD_X, 0, bufa);
+//bufa[0]=3; bufa[1]=1; bufa[2]=29; bufa[3]=10;             _DrawArrayBuffRightUp_AA  (WHITE, 0x383838, 0x383838, 0.0, 0.0, LCD_X, 0, bufa);
 
 }
 
-static void _DrawArrayBuffRightDown_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+void _DrawArrayBuffRightDown_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2, i_prev;
 	uint32_t drawColor=_drawColor;
@@ -1419,7 +1626,7 @@ static void _DrawArrayBuffLeftUp_AA(uint32_t drawColor, uint32_t outColor, uint3
 	}
 }
 
-static void _DrawArrayBuffRightUp_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+void _DrawArrayBuffRightUp_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2, i_prev;
 	uint32_t _outColor=outColor;
