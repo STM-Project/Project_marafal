@@ -1266,7 +1266,7 @@ typedef enum{
 	RightDownDir1,
 	Equal
 }CHART_EEE;
-int funcType_prev=0, currentYY=0;
+int =0, currentYY=0;
 CHART_FFFF chartPar[1000]={0};  int ichart=0;
 
 int tab[1100]={0}, tab2[1100]={0};
@@ -1463,6 +1463,94 @@ void AAAAAAAAAAAAAA(void){
 //bufa[0]=3; bufa[1]=1; bufa[2]=29; bufa[3]=10;             _DrawArrayBuffRightUp_AA  (WHITE, 0x383838, 0x383838, 0.0, 0.0, LCD_X, 0, bufa);
 //bufa[0]=4; bufa[1]=1; bufa[2]=29; bufa[3]=10; bufa[4]=20; _DrawArrayBuffRightDown_AA(WHITE, 0x383838, 0x383838, 0.0, 0.0, LCD_X, 0, bufa);
 //bufa[0]=3; bufa[1]=1; bufa[2]=29; bufa[3]=10;             _DrawArrayBuffRightUp_AA  (WHITE, 0x383838, 0x383838, 0.0, 0.0, LCD_X, 0, bufa);
+
+
+
+
+
+
+
+
+
+	 //---------------------------WZOR_2-------------------------------------------------
+	 _StartDrawLine(0,LCD_X,30,210);  //WZOR
+	 _DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 3, 30,20,100);  k-=2*LCD_X;
+	 _DrawArrayRightUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 2, 20,30);      k+=1*LCD_X;
+	 _DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 1, 3, 1,30,20,50);
+
+	 _StartDrawLine(0,LCD_X,30,270); //corect
+	 _DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 3, 30,20,50);
+	 _DrawArrayRightUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 4, 1,49,20,30);
+	 _DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 1, 4, 1,29,20,50);
+	 _StartDrawLine(0,LCD_X,30,330);
+	 _DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 3, 30,20,50);
+	 _DrawArrayRightUp_AA  (WHITE, 0x383838, 0.0, LCD_X, 0, 4, 1,49,20,30);
+	 _DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 1, 4, 1,29,20,50);
+	 //---------------------------END WZOR_2----------------------------------------------------------------
+
+
+
+
+
+	 //---------------------------WZOR_3-------------------------------------------------  //wygiecie w druga strone w stousnku do WZOR
+//	 _StartDrawLine(0,LCD_X,30,210);  //WZOR
+//	 _DrawArrayRightUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 3, 30,20,100);  k+=2*LCD_X;
+//	 _DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 2, 20,30);
+//
+//	 _StartDrawLine(0,LCD_X,30,260); //corect
+//	 _DrawArrayRightUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 3, 30,20,50);
+//	 _DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 4, 1,49,20,30);
+//	 _StartDrawLine(0,LCD_X,30,270);
+//	 _DrawArrayRightUp_AA  (WHITE, 0x383838, 0.0, LCD_X, 0, 3, 30,20,50);
+//	 _DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 4, 1,49,20,30);
+//
+//
+//
+//	 _StartDrawLine(0,LCD_X,600,210);  //WZOR
+//	 _DrawArrayLeftDown_AA  (WHITE, 0x383838, 1.0, LCD_X, 1, 3, 30,20,100);  k+=2;
+//	 _DrawArrayRightDown_AA (WHITE, 0x383838, 1.0, LCD_X, 1, 2, 20,30);
+//
+//	 _StartDrawLine(0,LCD_X,620,210); //corect
+//	 _DrawArrayLeftDown_AA  (WHITE, 0x383838, 1.0, LCD_X, 1, 3, 30,20,50);
+//	 _DrawArrayRightDown_AA (WHITE, 0x383838, 1.0, LCD_X, 1, 4, 1,49,20,30);
+//	 _StartDrawLine(0,LCD_X,640,210);
+//	 _DrawArrayLeftDown_AA  (WHITE, 0x383838, 0.0, LCD_X, 1, 3, 30,20,50);
+//	 _DrawArrayRightDown_AA (WHITE, 0x383838, 0.0, LCD_X, 1, 4, 1,49,20,30);
+	 //---------------------------END WZOR_3----------------------------------------------------------------
+
+
+//---------------------------WZOR-------------------------------------------------
+//_StartDrawLine(0,LCD_X,30,210);  //WZOR
+//_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 3, 30,20,100);  k-=2*LCD_X;
+//_DrawArrayRightUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 2, 20,30);
+//
+//_StartDrawLine(0,LCD_X,30,260); //corect
+//_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 3, 30,20,50);
+//_DrawArrayRightUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 4, 1,49,20,30);
+//_StartDrawLine(0,LCD_X,30,270);
+//_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 3, 30,20,50);
+//_DrawArrayRightUp_AA  (WHITE, 0x383838, 0.0, LCD_X, 0, 4, 1,49,20,30);
+//
+//
+//
+//_StartDrawLine(0,LCD_X,600,210);  //WZOR
+//_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 1, 3, 30,20,100);  k-=2;
+//_DrawArrayLeftDown_AA (WHITE, 0x383838, 1.0, LCD_X, 1, 2, 20,30);
+//
+//_StartDrawLine(0,LCD_X,620,210); //corect
+//_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 1, 3, 30,20,50);
+//_DrawArrayLeftDown_AA (WHITE, 0x383838, 1.0, LCD_X, 1, 4, 1,49,20,30);
+//_StartDrawLine(0,LCD_X,640,210);
+//_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 1, 3, 30,20,50);
+//_DrawArrayLeftDown_AA (WHITE, 0x383838, 0.0, LCD_X, 1, 4, 1,49,20,30);
+//---------------------------END WZOR----------------------------------------------------------------
+
+
+
+
+
+
+	
 
 }
 
