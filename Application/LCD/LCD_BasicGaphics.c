@@ -1279,6 +1279,141 @@ u16 posY[]={270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,270,
 
 
 
+typedef struct{
+	u16 x,y;
+	int rx,ry;
+}point_struct;
+
+void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
+{
+	structPosition posXY[1000]={0};
+	point_struct xxxx[200];
+	int n=0;
+
+	void XY(int x, int y){
+		posXY[n].x = x;
+		posXY[n].y = y;
+		n++;
+	}
+	void p(int stepX, int stepY){
+		posXY[n].x = posXY[n-1].x + stepX;
+		posXY[n].y = posXY[n-1].y + stepY;
+		n++;
+	}
+	void pX(int r){	LOOP_FOR(i,r)	p( 1, 0);  }
+	void pX_(int r){	LOOP_FOR(i,r)	p(-1, 0);  }
+	void pY(int r){	LOOP_FOR(i,r)	p( 0, 1);  }
+	void pY_(int r){	LOOP_FOR(i,r)	p( 0,-1);  }
+	void s(int r){		LOOP_FOR(i,r)	p( 1, 1);  }
+	void _s_(int r){	LOOP_FOR(i,r)	p(-1,-1);  }
+	void _s(int r){	LOOP_FOR(i,r)	p(-1, 1);  }
+	void s_(int r){	LOOP_FOR(i,r)	p( 1,-1);  }
+
+
+	XY(30,210);
+	pX(30);  s(1);pX(20);  s(1);pX(100);		  s_(1);pX(20);  s_(1);pX(30);
+
+
+	int j=0,b=0, prev=0;
+	for(int i=0; i<n; ++i)
+	{
+
+		if(prev==1)
+		{
+			if(posXY[i].x+1==posXY[i+1].x && posXY[i].y==posXY[i+1].y);
+			else
+			{
+				xxxx[j].ry++;
+				prev=0;
+				j++;
+			}
+		}
+		else if(prev==2)
+		{
+			if(posXY[i].x-1==posXY[i+1].x && posXY[i].y==posXY[i+1].y);
+			else
+			{
+				xxxx[j].ry--;
+				prev=0;
+				j++;
+			}
+		}
+		else if(prev==3)
+		{
+			if(posXY[i].y+1==posXY[i+1].y && posXY[i].x==posXY[i+1].x);
+			else
+			{
+				xxxx[j].rx++;
+				prev=0;
+				j++;
+			}
+		}
+		else if(prev==4)
+		{
+			if(posXY[i].y-1==posXY[i+1].y && posXY[i].x==posXY[i+1].x);
+			else
+			{
+				xxxx[j].rx--;
+				prev=0;
+				j++;
+			}
+		}
+
+
+		if(i<n-1)
+		{
+			if(posXY[i].x+1==posXY[i+1].x && posXY[i].y==posXY[i+1].y)
+			{
+				if(prev==0){
+					prev=1;
+					xxxx[j].x = posXY[i].x;
+					xxxx[j].y = posXY[i].y;
+				}
+				xxxx[j].ry++;
+			}
+			else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y==posXY[i+1].y)
+			{
+				if(prev==0){
+					prev=2;
+					xxxx[j].x = posXY[i].x;
+					xxxx[j].y = posXY[i].y;
+				}
+				xxxx[j].ry--;
+			}
+			else if(posXY[i].y+1==posXY[i+1].y && posXY[i].x==posXY[i+1].x)
+			{
+				if(prev==0){
+					prev=3;
+					xxxx[j].x = posXY[i].x;
+					xxxx[j].y = posXY[i].y;
+				}
+				xxxx[j].rx++;
+			}
+			else if(posXY[i].y-1==posXY[i+1].y && posXY[i].x==posXY[i+1].x)
+			{
+				if(prev==0){
+					prev=4;
+					xxxx[j].x = posXY[i].x;
+					xxxx[j].y = posXY[i].y;
+				}
+				xxxx[j].rx--;
+			}
+			else
+			{
+				xxxx[j].x = posXY[i].x;
+				xxxx[j].y = posXY[i].y;
+				xxxx[j].rx = 0;
+				xxxx[j].ry = 0;
+				j++;
+				b=0;
+			}
+		}
+	}
+
+
+
+
+}
 //u16 posY1[11]={270,270,270,  271,  272,272,  271,271,271,  270,  273};
 u16 posY_prev,posY_prevEqual;
 void AAAAAAAAAAAAAA(void){
