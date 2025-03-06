@@ -1250,6 +1250,8 @@ static uint8_t LCD_SearchRadiusPoints(int posBuff, int nrDeg, uint32_t BkpSizeX)
 
 void _DrawArrayBuffRightDown_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf);
 void _DrawArrayBuffRightUp_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf);
+static void _DrawArrayBuffLeftUp_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf);
+static void _DrawArrayBuffLeftDown_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf);
 
 typedef struct{
  u16 posY;
@@ -1264,6 +1266,10 @@ typedef enum{
 	RightUpDir0,
 	RightDownDir0,
 	RightDownDir1,
+	LeftUpDir1,
+	LeftUpDir0,
+	LeftDownDir0,
+	LeftDownDir1,
 	Equal
 }CHART_EEE;
 int j=0, currentYY=0;
@@ -1287,7 +1293,7 @@ typedef struct{
 void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 {
 	structPosition posXY[1000]={0};
-	point_struct xxxx[200]={0};
+	point_struct xxxx[50]={0};
 	int n=0;
 
 	void XY(int x, int y){
@@ -1315,8 +1321,14 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 //	pX(30);  s(1);pX(19);  s(1);pX(99);		  s_(1);pX(19);  s_(1);pX(29);
 
 
-	XY(30,210);
-	pY(30);  s(1);pY(19);  s(1);pY(99);		  _s(1);pY(19);  _s(1);pY(29);
+//	XY(30,210);
+//	pY(30);  s(1);pY(19);  s(1);pY(99);		  _s(1);pY(19);  _s(1);pY(29);
+
+
+	XY(100,210);
+	pX(30);  s(1);pX(19);  s(1);pX(99);		s_(1);pX(19);  s_(1);pX(29);	         s(1);pX(19);	 /*s(1);s(1);s(1);s(1);s(1);s(1);*/			 s(1);pY(29);  s(1);pY(19);  s(1);pY(99);		  _s(1);pY(19);  _s(1);pY(29);
+
+	_s(1);pX_(19);  _s_(1);pX_(9);  _s_(1);pX_(4);		/*_s_(1);_s_(1);_s_(1);_s_(1);_s_(1);_s_(1);_s_(1);_s_(1);*/
 
 
 	 LOOP_FOR(a,n){
@@ -1325,11 +1337,11 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 
 
 
-	int j=0,b=0, prev=0;
-	for(int i=0; i<n; ++i)
+	int j=0, prev=0;
+	for(int i=0; i<n; ++i)  //I segregacja, redukcja redundancji po x i po y
 	{
 
-		if(prev==1)
+		if(prev==1)    //if(i<n-1) !!!!!!!!!!!!!!!!!!!!!!!!!
 		{
 			if(posXY[i].x+1==posXY[i+1].x && posXY[i].y==posXY[i+1].y);
 			else
@@ -1416,8 +1428,15 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				xxxx[j].rx = 0;
 				xxxx[j].ry = 0;
 				j++;
-				b=0;
 			}
+		}
+		else
+		{
+			xxxx[j].x = posXY[i].x;
+			xxxx[j].y = posXY[i].y;
+			xxxx[j].rx = 0;
+			xxxx[j].ry = 0;
+			j++;
 		}
 
 		dfdfdfdfa:
@@ -1427,15 +1446,185 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 
 //	 LOOP_FOR(a,j){
 //		 LOOP_FOR(b,xxxx[a].ry){
-//			 pLcd[20*LCD_X  +  xxxx[a].y*LCD_X + xxxx[a].x  + b]=WHITE; //wZOR !!!
+//			 pLcd[20*LCD_X  +  xxxx[a].y*LCD_X + xxxx[a].x  + b]=WHITE;
 //		 }
 //	 }
 
-	 LOOP_FOR(a,j){
-		 LOOP_FOR(b,xxxx[a].rx){
-			 pLcd[50  +  (xxxx[a].y+b)*LCD_X + xxxx[a].x]=WHITE; //wZOR !!!
+//	 LOOP_FOR(a,j){
+//		 LOOP_FOR(b,xxxx[a].rx){
+//			 pLcd[50  +  (xxxx[a].y+b)*LCD_X + xxxx[a].x]=WHITE;
+//		 }
+//	 }
+
+
+	int startK = 0;//20*LCD_X - 50;
+	 LOOP_FOR(a,j)
+	 {
+		 if(xxxx[a].ry!=0){
+			 LOOP_FOR(b,ABS(xxxx[a].ry)){
+				 if(xxxx[a].ry > 0)	pLcd[startK  +  xxxx[a].y*LCD_X + xxxx[a].x  + b]=RED;
+				 else						pLcd[startK  +  xxxx[a].y*LCD_X + xxxx[a].x  - b]=RED;
+			 }
+		 }
+		 else if(xxxx[a].rx!=0){
+			 LOOP_FOR(b,ABS(xxxx[a].rx)){
+				 if(xxxx[a].rx > 0)	pLcd[startK  +  (xxxx[a].y+b)*LCD_X + xxxx[a].x]=RED;
+				 else						pLcd[startK  +  (xxxx[a].y-b)*LCD_X + xxxx[a].x]=RED;
+			 }
+		 }
+		 else{
+			 if(xxxx[a].ry==0 && xxxx[a].rx==0){
+				 pLcd[startK  +  xxxx[a].y*LCD_X + xxxx[a].x]=RED;
+			 }
 		 }
 	 }
+
+
+	 u8 buff[50]={0};
+	 u8 functionType = 100;
+
+	 buff[0]=0;
+	 _StartDrawLine(0,LCD_X,10,230);
+	 for(int i=0; i<j; ++i)  //II segregacja, zamiana na funcType:  RightDown .... itd
+	 {
+		 if(i<j-1);
+
+
+		 if(xxxx[i].x+ABS(xxxx[i].ry) == xxxx[i+1].x  &&  xxxx[i].y+1==xxxx[i+1].y	&& (functionType==100 || functionType==RightDownDir0)){
+			 buff[1+buff[0]++]=ABS(xxxx[i].ry);
+			 functionType = RightDownDir0;
+		 }
+		 else{
+			 if(functionType == RightDownDir0){
+				 buff[1+buff[0]++]=ABS(xxxx[i].ry);
+				 _DrawArrayBuffRightDown_AA(WHITE, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 0, buff);    _StartDrawLine(0,LCD_X,xxxx[i].x,xxxx[i].y);    //k-=2*LCD_X;
+				 functionType=100;
+				 buff[0]=0;
+				 goto dfdfdfdfaAAAA;
+			 }
+		 }
+
+		 if(xxxx[i].x+ABS(xxxx[i].ry) == xxxx[i+1].x  &&  xxxx[i].y-1==xxxx[i+1].y	&& (functionType==100 || functionType==RightUpDir0)){
+			 buff[1+buff[0]++]=ABS(xxxx[i].ry);
+			 functionType = RightUpDir0;
+		 }
+		 else{
+			 if(functionType == RightUpDir0){
+				 buff[1+buff[0]++]=ABS(xxxx[i].ry);
+				 _DrawArrayBuffRightUp_AA(WHITE, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 0, buff);    _StartDrawLine(0,LCD_X,xxxx[i].x,xxxx[i].y);//    k+=2*LCD_X;
+				 functionType=100;
+				 buff[0]=0;
+				 goto dfdfdfdfaAAAA;
+
+			 }
+		 }
+
+		 if(xxxx[i].y+ABS(xxxx[i].rx) == xxxx[i+1].y  &&  xxxx[i].x+1==xxxx[i+1].x	&& (functionType==100 || functionType==RightDownDir1)){
+			 buff[1+buff[0]++]=ABS(xxxx[i].rx);
+			 functionType = RightDownDir1;
+		 }
+		 else{
+			 if(functionType == RightDownDir1){
+				 buff[1+buff[0]++]=ABS(xxxx[i].rx);
+				 _DrawArrayBuffRightDown_AA(WHITE, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 1, buff);    _StartDrawLine(0,LCD_X,xxxx[i].x,xxxx[i].y);//   k-=2;
+				 functionType=100;
+				 buff[0]=0;
+				 goto dfdfdfdfaAAAA;
+			 }
+		 }
+
+		 if(xxxx[i].y-ABS(xxxx[i].rx) == xxxx[i+1].y  &&  xxxx[i].x+1==xxxx[i+1].x	&& (functionType==100 || functionType==RightUpDir1)){
+			 buff[1+buff[0]++]=ABS(xxxx[i].rx);
+			 functionType = RightUpDir1;
+		 }
+		 else{
+			 if(functionType == RightUpDir1){
+				 buff[1+buff[0]++]=ABS(xxxx[i].rx);
+				 _DrawArrayBuffRightUp_AA(WHITE, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 1, buff);    _StartDrawLine(0,LCD_X,xxxx[i].x,xxxx[i].y);//   k+=2;
+				 functionType=100;
+				 buff[0]=0;
+				 goto dfdfdfdfaAAAA;
+			 }
+		 }
+
+
+
+
+
+
+
+
+
+
+		 if(xxxx[i].x-ABS(xxxx[i].ry) == xxxx[i+1].x  &&  xxxx[i].y+1==xxxx[i+1].y	&& (functionType==100 || functionType==LeftDownDir0)){
+			 buff[1+buff[0]++]=ABS(xxxx[i].ry);
+			 functionType = LeftDownDir0;
+		 }
+		 else{
+			 if(functionType == LeftDownDir0){
+				 buff[1+buff[0]++]=ABS(xxxx[i].ry);
+				 _DrawArrayBuffLeftDown_AA(WHITE, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 0, buff);    _StartDrawLine(0,LCD_X,xxxx[i].x,xxxx[i].y);//   k-=2*LCD_X;
+				 functionType=100;
+				 buff[0]=0;
+				 goto dfdfdfdfaAAAA;
+			 }
+		 }
+
+		 if(xxxx[i].x-ABS(xxxx[i].ry) == xxxx[i+1].x  &&  xxxx[i].y-1==xxxx[i+1].y	&& (functionType==100 || functionType==LeftUpDir0)){
+			 buff[1+buff[0]++]=ABS(xxxx[i].ry);
+			 functionType = LeftUpDir0;
+		 }
+		 else{
+			 if(functionType == LeftUpDir0){
+				 buff[1+buff[0]++]=ABS(xxxx[i].ry);
+				 _DrawArrayBuffLeftUp_AA(WHITE, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 0, buff);     _StartDrawLine(0,LCD_X,xxxx[i].x,xxxx[i].y);//  k+=2*LCD_X;
+				 functionType=100;
+				 buff[0]=0;
+				 goto dfdfdfdfaAAAA;
+
+			 }
+		 }
+
+		 if(xxxx[i].y+ABS(xxxx[i].rx) == xxxx[i+1].y  &&  xxxx[i].x-1==xxxx[i+1].x	&& (functionType==100 || functionType==LeftDownDir1)){
+			 buff[1+buff[0]++]=ABS(xxxx[i].rx);
+			 functionType = LeftDownDir1;
+		 }
+		 else{
+			 if(functionType == LeftDownDir1){
+				 buff[1+buff[0]++]=ABS(xxxx[i].rx);
+				 _DrawArrayBuffLeftDown_AA(WHITE, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 1, buff);     _StartDrawLine(0,LCD_X,xxxx[i].x,xxxx[i].y);//  k+=2;
+				 functionType=100;
+				 buff[0]=0;
+				 goto dfdfdfdfaAAAA;
+			 }
+		 }
+
+		 if(xxxx[i].y-ABS(xxxx[i].rx) == xxxx[i+1].y  &&  xxxx[i].x-1==xxxx[i+1].x	&& (functionType==100 || functionType==LeftUpDir1)){
+			 buff[1+buff[0]++]=ABS(xxxx[i].rx);
+			 functionType = LeftUpDir1;
+		 }
+		 else{
+			 if(functionType == LeftUpDir1){
+				 buff[1+buff[0]++]=ABS(xxxx[i].rx);
+				 _DrawArrayBuffLeftUp_AA(WHITE, 0x383838, 0x383838, 1.0, 1.0, LCD_X, 1, buff);      _StartDrawLine(0,LCD_X,xxxx[i].x,xxxx[i].y);  // k-=2;
+				 functionType=100;
+				 buff[0]=0;
+				 goto dfdfdfdfaAAAA;
+			 }
+		 }
+
+
+		 if(functionType==100){
+
+
+		 }
+
+		dfdfdfdfaAAAA:
+		asm("nop");
+
+
+	 }
+
 
 
 
@@ -1449,77 +1638,77 @@ void AAAAAAAAAAAAAA(void){
 	BBBBBBBBBBBBBBBBBBBBBBBBB();
 
 
-	posY_prev = posY[0];
-	posY_prevEqual=0;
-
-	int sizeTab = sizeof(posY)/2;
-
-
-	int j=0,b=0;
-	for(int i=0; i<sizeTab; ++i)
-	{
-		if(i<sizeTab-1 && posY[i]==posY[i+1])
-		{
-			b++;
-		}
-		else
-		{
-			tab[j] = posY[i];
-			tab2[j]= 1+b;
-			j++;
-			b=0;
-		}
-	}
-
-	int Size_22 = j;
-
- asm("nop");
-
-
- ichart=0;
- int i=0;
-
-	for(i=0; i<1; ++i)
-	{
-		if		 (tab[i]+1 == tab[i+1])
-			chartPar[ichart].funcType=RightDownDir0;
-		else if(tab[i]-1 == tab[i+1])
-			chartPar[ichart].funcType=RightUpDir0;
-		else if(tab[i]-1 > tab[i+1])
-			chartPar[ichart].funcType=RightUpDir1;
-		else if(tab[i]+1 < tab[i+1])
-			chartPar[ichart].funcType=RightDownDir1;
-		else
-		{
-			asm("nop");
-		}
-
-		chartPar[ichart].nmbPxls=tab2[i];
-		chartPar[ichart].posY=tab[i];
-		ichart++;
-	}
-
-	for(i=1; i<Size_22; ++i)
-	{
-		if		 (tab[i-1]+1 == tab[i])
-			chartPar[ichart].funcType=RightDownDir0;
-		else if(tab[i-1]-1 == tab[i])
-			chartPar[ichart].funcType=RightUpDir0;
-		else if(tab[i-1]-1 > tab[i])
-			chartPar[ichart].funcType=RightUpDir1;
-		else if(tab[i-1]+1 < tab[i])
-			chartPar[ichart].funcType=RightDownDir1;
-		else
-		{
-			asm("nop");
-		}
-
-		chartPar[ichart].nmbPxls=tab2[i];
-		chartPar[ichart].posY=tab[i];
-		ichart++;
-	}
-
-	 asm("nop");
+//	posY_prev = posY[0];
+//	posY_prevEqual=0;
+//
+//	int sizeTab = sizeof(posY)/2;
+//
+//
+//	int j=0,b=0;
+//	for(int i=0; i<sizeTab; ++i)
+//	{
+//		if(i<sizeTab-1 && posY[i]==posY[i+1])
+//		{
+//			b++;
+//		}
+//		else
+//		{
+//			tab[j] = posY[i];
+//			tab2[j]= 1+b;
+//			j++;
+//			b=0;
+//		}
+//	}
+//
+//	int Size_22 = j;
+//
+// asm("nop");
+//
+//
+// ichart=0;
+// int i=0;
+//
+//	for(i=0; i<1; ++i)
+//	{
+//		if		 (tab[i]+1 == tab[i+1])
+//			chartPar[ichart].funcType=RightDownDir0;
+//		else if(tab[i]-1 == tab[i+1])
+//			chartPar[ichart].funcType=RightUpDir0;
+//		else if(tab[i]-1 > tab[i+1])
+//			chartPar[ichart].funcType=RightUpDir1;
+//		else if(tab[i]+1 < tab[i+1])
+//			chartPar[ichart].funcType=RightDownDir1;
+//		else
+//		{
+//			asm("nop");
+//		}
+//
+//		chartPar[ichart].nmbPxls=tab2[i];
+//		chartPar[ichart].posY=tab[i];
+//		ichart++;
+//	}
+//
+//	for(i=1; i<Size_22; ++i)
+//	{
+//		if		 (tab[i-1]+1 == tab[i])
+//			chartPar[ichart].funcType=RightDownDir0;
+//		else if(tab[i-1]-1 == tab[i])
+//			chartPar[ichart].funcType=RightUpDir0;
+//		else if(tab[i-1]-1 > tab[i])
+//			chartPar[ichart].funcType=RightUpDir1;
+//		else if(tab[i-1]+1 < tab[i])
+//			chartPar[ichart].funcType=RightDownDir1;
+//		else
+//		{
+//			asm("nop");
+//		}
+//
+//		chartPar[ichart].nmbPxls=tab2[i];
+//		chartPar[ichart].posY=tab[i];
+//		ichart++;
+//	}
+//
+//	 asm("nop");
 
 //   int posX=30;
 //	 _StartDrawLine(0,LCD_X,posX,posY[0]);
