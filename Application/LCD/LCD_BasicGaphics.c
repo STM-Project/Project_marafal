@@ -2060,23 +2060,23 @@ void AAAAAAAAAAAAAA(void){
 //_DrawArrayLeftDown_AA (WHITE, 0x383838, 1.0, LCD_X, 1, 2, 20,30);
 ////
 _StartDrawLine(0,LCD_X,50,230); //corect
-_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 5, 2,3,1,2,4);
-_DrawArrayRightUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 5, 1,1,2,3,7);
-_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 3, 10,1,1);
-_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 1, 5, 1,3,2,4,2);
-_DrawArrayLeftDown_AA (WHITE, 0x383838, 1.0, LCD_X, 1, 5, 5,5,3,4,1);
-_DrawArrayLeftDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 3, 1,2,1);
-_DrawArrayLeftUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 5, 5,2,3,1,2);
+_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 5, 30,20,50,20,20);
+_DrawArrayRightUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 5, 30,20,50,20,20);
+_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 3, 1,1,1);
+_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 1, 5, 5,5,10,5,5);
+_DrawArrayLeftDown_AA (WHITE, 0x383838, 1.0, LCD_X, 1, 5, 5,5,10,5,5);
+_DrawArrayLeftDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 3, 1,1,1);
+_DrawArrayLeftUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 5, 5,5,10,5,5);
 
 
 _StartDrawLine(0,LCD_X,20,240); //corect
-_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 5, 2,3,1,2,4);
-_DrawArrayRightUp_AA  (WHITE, 0x383838, 0.0, LCD_X, 0, 5, 1,1,2,3,7);
-_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 3, 10,1,1);
-_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 1, 5, 1,3,2,4,2);
-_DrawArrayLeftDown_AA (WHITE, 0x383838, 0.0, LCD_X, 1, 5, 5,5,3,4,1);
-_DrawArrayLeftDown_AA (WHITE, 0x383838, 0.0, LCD_X, 0, 3, 1,2,1);
-_DrawArrayLeftUp_AA   (WHITE, 0x383838, 0.0, LCD_X, 0, 5, 5,2,3,1,2);
+_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 5, 30,20,50,20,20);
+_DrawArrayRightUp_AA  (WHITE, 0x383838, 0.0, LCD_X, 0, 5, 30,20,50,20,20);
+_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 3, 1,1,1);
+_DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 1, 5, 5,5,10,5,5);
+_DrawArrayLeftDown_AA (WHITE, 0x383838, 0.0, LCD_X, 1, 5, 5,5,10,5,5);
+_DrawArrayLeftDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 3, 1,1,1);
+_DrawArrayLeftUp_AA   (WHITE, 0x383838, 0.0, LCD_X, 0, 5, 5,5,10,5,5);
 
 
 
