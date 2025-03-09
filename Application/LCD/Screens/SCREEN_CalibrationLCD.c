@@ -5,7 +5,7 @@
  *      Author: maraf
  */
 #include "SCREEN_CalibrationLCD.h"
-#include "LCD_BasicGaphics.h"
+#include "LCD_BasicGraphics.h"
 #include "LCD_fonts_images.h"
 #include <stdio.h>
 #include "touch.h"

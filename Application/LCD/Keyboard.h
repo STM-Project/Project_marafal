@@ -9,7 +9,7 @@
 #define LCD_KEYBOARD_H_
 
 #include "stm32f7xx_hal.h"
-#include "LCD_BasicGaphics.h"
+#include "LCD_BasicGraphics.h"
 #include "LCD_fonts_images.h"
 #include "LCD_Common.h"
 #include "common.h"

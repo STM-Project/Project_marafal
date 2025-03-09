@@ -9,7 +9,7 @@
 #define LCD_SCREENS_SCREEN_READPANEL_H_
 
 #include "LCD_fonts_images.h"
-#include "LCD_BasicGaphics.h"
+#include "LCD_BasicGraphics.h"
 
 #define ONEBIT(val)	     Int2Str(val,None,1,Sign_none)
 #define INT2STR(val)		  Int2Str(val,'0',3,Sign_none)

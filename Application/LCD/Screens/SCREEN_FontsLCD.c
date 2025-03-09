@@ -1,6 +1,6 @@
 
 #include "SCREEN_FontsLCD.h"
-#include "LCD_BasicGaphics.h"
+#include "LCD_BasicGraphics.h"
 #include "SCREEN_ReadPanel.h"
 #include "LCD_Common.h"
 #include "timer.h"

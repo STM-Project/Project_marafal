@@ -5,7 +5,7 @@
  *      Author: Elektronika RM
  */
 
-#include "LCD_BasicGaphics.h"
+#include <LCD_BasicGraphics.h>
 #include <stdarg.h>
 #include <math.h>
 #include "LCD_Hardware.h"
@@ -2059,14 +2059,18 @@ void AAAAAAAAAAAAAA(void){
 //_DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 1, 3, 30,20,100);  k-=2;
 //_DrawArrayLeftDown_AA (WHITE, 0x383838, 1.0, LCD_X, 1, 2, 20,30);
 ////
-_StartDrawLine(0,LCD_X,50,230); //corect
+_StartDrawLine(0,LCD_X,150,230); //corect
 _DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 5, 30,20,50,20,20);
 _DrawArrayRightUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 5, 30,20,50,20,20);
 _DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 3, 1,1,1);
 _DrawArrayRightDown_AA(WHITE, 0x383838, 1.0, LCD_X, 1, 5, 5,5,10,5,5);
 _DrawArrayLeftDown_AA (WHITE, 0x383838, 1.0, LCD_X, 1, 5, 5,5,10,5,5);
-_DrawArrayLeftDown_AA(WHITE, 0x383838, 1.0, LCD_X, 0, 3, 1,1,1);
-_DrawArrayLeftUp_AA  (WHITE, 0x383838, 1.0, LCD_X, 0, 5, 5,5,10,5,5);
+_DrawArrayLeftDown_AA (WHITE, 0x383838, 1.0, LCD_X, 0, 3, 1,1,1);
+_DrawArrayLeftUp_AA   (WHITE, 0x383838, 1.0, LCD_X, 0, 5, 5,5,10,5,5);
+_DrawArrayLeftDown_AA (WHITE, 0x383838, 1.0, LCD_X, 0, 3, 1,1,1);
+_DrawArrayLeftUp_AA   (WHITE, 0x383838, 1.0, LCD_X, 1, 5, 5,5,10,5,5);
+_DrawArrayLeftDown_AA (WHITE, 0x383838, 1.0, LCD_X, 1, 3, 10,19,3);
+_DrawArrayLeftDown_AA (WHITE, 0x383838, 1.0, LCD_X, 0, 8+6, 1,1,1,1,1,1,1,1,10,19,3,1,1,1);
 
 
 _StartDrawLine(0,LCD_X,20,240); //corect
@@ -2075,8 +2079,12 @@ _DrawArrayRightUp_AA  (WHITE, 0x383838, 0.0, LCD_X, 0, 5, 30,20,50,20,20);
 _DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 3, 1,1,1);
 _DrawArrayRightDown_AA(WHITE, 0x383838, 0.0, LCD_X, 1, 5, 5,5,10,5,5);
 _DrawArrayLeftDown_AA (WHITE, 0x383838, 0.0, LCD_X, 1, 5, 5,5,10,5,5);
-_DrawArrayLeftDown_AA(WHITE, 0x383838, 0.0, LCD_X, 0, 3, 1,1,1);
+_DrawArrayLeftDown_AA (WHITE, 0x383838, 0.0, LCD_X, 0, 3, 1,1,1);
 _DrawArrayLeftUp_AA   (WHITE, 0x383838, 0.0, LCD_X, 0, 5, 5,5,10,5,5);
+_DrawArrayLeftDown_AA (WHITE, 0x383838, 0.0, LCD_X, 0, 3, 1,1,1);
+_DrawArrayLeftUp_AA   (WHITE, 0x383838, 0.0, LCD_X, 1, 5, 5,5,10,5,5);
+_DrawArrayLeftDown_AA (WHITE, 0x383838, 0.0, LCD_X, 1, 3, 10,19,3);
+_DrawArrayLeftDown_AA (WHITE, 0x383838, 0.0, LCD_X, 0, 8+6, 1,1,1,1,1,1,1,1,10,19,3,1,1,1);
 
 
 
@@ -2100,7 +2108,7 @@ _DrawArrayLeftDown_AA(WHITE, 0x383838, 0.0, LCD_X, 1, 5, 30,20,50,20,20);
 
 
 
-	
+
 
 }
 

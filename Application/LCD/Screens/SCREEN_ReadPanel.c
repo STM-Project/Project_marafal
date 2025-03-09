@@ -8,7 +8,7 @@
 #include "SCREEN_ReadPanel.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "LCD_BasicGaphics.h"
+#include "LCD_BasicGraphics.h"
 #include "LCD_fonts_images.h"
 #include "string_oper.h"
 #include "LCD_Common.h"

@@ -1,5 +1,5 @@
 
-#include <LCD_BasicGaphics.h>
+#include <LCD_BasicGraphics.h>
 #include <LCD_Hardware.h>
 #include <string.h>
 #include <stdio.h>

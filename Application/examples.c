@@ -1,5 +1,5 @@
 
-#include "LCD_BasicGaphics.h"
+#include "LCD_BasicGraphics.h"
 #include "LCD_fonts_images.h"
 #include "string_oper.h"
 #include "LCD_Common.h"
@@ -118,6 +118,7 @@ void LCDEXAMPLE_LcdTxt(int FONT_ID_Fonts, int FONT_VAR_Fonts, u32 COLOR_FillMain
 	temp = LCD_Txt(DisplayViaStruct,&new,NO_TXT_ARGS);		/* 3 method */
 	temp = LCD_TxtVar(&new,NULL);									/* 4 method */
 	temp = LCD_TxtVar(&new,"new text");							/* 5 method */
+	temp = temp;
 	/* -------  END -------- */
 
 	/* 5 Methods for Indirect */
@@ -130,5 +131,6 @@ void LCDEXAMPLE_LcdTxt(int FONT_ID_Fonts, int FONT_VAR_Fonts, u32 COLOR_FillMain
 	temp2 = LCD_TxtVarInd(&new2, "new text");								/* 3 method */
 	temp2 = LCD_Txt(DisplayIndirect, &new2, 50,250, BK_SIZE_IS_TXT_SIZE, FONT_ID_Fonts, FONT_VAR_Fonts, 0,0, "abcde", WHITE, COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 6, RightDown);		/* 4 method */
 	temp2 = LCD_Txt(DisplayIndirect, NULL,  50,250, BK_SIZE_IS_TXT_SIZE, FONT_ID_Fonts, FONT_VAR_Fonts, 0,0, "abcde", WHITE, COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 6, RightDown);		/* 5 method */
+	temp2 = temp2;
 	/* -------  END -------- */
 }
