@@ -1331,8 +1331,8 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 		while(j--)
 		{
 			i_prev=i;
-			while(i--) pLcd[k++]=drawColor;
-
+			while(i--) pLcd[k++]=drawColor;   //if(outRatioStart<1.0){} !!!!!!!!!!!!!!!!!!!!!!!!!
+			//if(inRatioStart<1.0){} !!!!!!!!!!!!!!!!!!!!!!!!!
 			if(0==start){  start=1;
 				k-=BkpSizeX;
 				if(0==outColor) _outColor=pLcd[k-i_prev];
@@ -1357,6 +1357,7 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 			for(int a=0;a<buff_AA[0];++a){	 if(0==inColor){ if(pLcd[k-1-a]!=_inColor){ _inColor=pLcd[k-1-a]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} } else if(pLcd[k-1-a]==drawColor) break;
 				pLcd[k-1-a]=buff_AA[1+a];  }
 		}
+		k-=BkpSizeX;
 	}
 	else
 	{
@@ -1389,6 +1390,80 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 				pLcd[k-(a+1)*BkpSizeX]=buff_AA[1+a];
 			}
 		}
+		k--;
+	}
+}
+
+static void _DrawArrayBuffLeftDown2_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+{
+	int j=buf[0], i=buf[1], p=2, i_prev, start=0;
+	uint32_t _outColor=outColor;
+	uint32_t _inColor=inColor;
+
+	if(0==direction)
+	{
+		while(j--)
+		{
+			i_prev=i;
+			while(i--) pLcd[k--]=drawColor;
+
+			if(0==start){  start=1;
+				k-=BkpSizeX;
+				if(0==outColor) _outColor=pLcd[k+i_prev];
+				Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
+				for(int a=0;a<i_prev&&outRatioStart<1.0;++a){	 if(0==outColor){ if(pLcd[k+i_prev-a]!=_outColor){ _outColor=pLcd[k+i_prev-a]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} } else if(pLcd[k+i_prev-a]==drawColor) break;
+					pLcd[k+i_prev-a]=buff_AA[1+a]; }
+				k+=BkpSizeX;
+			}
+
+			if(j){
+				if(0==outColor) _outColor=pLcd[k];
+				i=buf[p++];
+				Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);
+				for(int a=0;a<buff_AA[0];++a){ 	if(0==outColor){ if(pLcd[k-a]!=_outColor){ _outColor=pLcd[k-a]; Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);} } else if(pLcd[k-a]==drawColor) break;
+					pLcd[k-a]=buff_AA[1+a];  }
+			}
+			k+=BkpSizeX;
+			if(0==inColor) _inColor=pLcd[k+1];
+			Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);
+			for(int a=0;a<buff_AA[0];++a){	if(0==inColor){ if(pLcd[k+1+a]!=_inColor){ _inColor=pLcd[k+1+a]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} } else if(pLcd[k+1+a]==drawColor) break;
+				pLcd[k+1+a]=buff_AA[1+a];
+			}
+		}
+		k-=BkpSizeX;
+	}
+	else
+	{
+		while(j--)
+		{
+			i_prev=i;
+			while(i--){  pLcd[k]=drawColor;  k+=BkpSizeX;  }
+
+			if(0==start){  start=1;
+				k++;
+				if(0==outColor) _outColor=pLcd[k-i_prev*BkpSizeX];
+				Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
+				for(int a=0;a<i_prev&&outRatioStart<1.0;++a){	 if(0==outColor){ if(pLcd[k-(i_prev-a)*BkpSizeX]!=_outColor){ _outColor=pLcd[k-(i_prev-a)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} } else if(pLcd[k-(i_prev-a)*BkpSizeX]==drawColor) break;
+					pLcd[k-(i_prev-a)*BkpSizeX]=buff_AA[1+a]; }
+				k--;
+			}
+
+			if(j){
+				if(0==outColor) _outColor=pLcd[k];
+				i=buf[p++];
+				Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);
+				for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k+a*BkpSizeX]!=_outColor){ _outColor=pLcd[k+a*BkpSizeX]; Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);} } else if(pLcd[k+a*BkpSizeX]==drawColor) break;
+					pLcd[k+a*BkpSizeX]=buff_AA[1+a];
+				}
+			}
+
+			k--;
+			if(0==inColor) _inColor=pLcd[k-BkpSizeX];
+			Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);
+			for(int a=0;a<buff_AA[0];++a){ 	 if(0==inColor){ if(pLcd[k-(a+1)*BkpSizeX]!=_inColor){ _inColor=pLcd[k-(a+1)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} } else if(pLcd[k-(a+1)*BkpSizeX]==drawColor) break;
+				pLcd[k-(a+1)*BkpSizeX]=buff_AA[1+a];  }
+		}
+		k++;
 	}
 }
 
@@ -2153,14 +2228,16 @@ void AAAAAAAAAAAAAA(void){
 //_DrawArrayLeftDown_AA(WHITE, 0x383838, 0.0, LCD_X, 1, 5, 30,20,50,20,20);
 
 
-	uint8_t bufXX[20]={13,20,30,50,10,20,12,100,1,1,1,1,1,50,0,0,0};
+	uint8_t bufXX[20]={13,20,30,50,10,20,12,50,1,1,1,1,1,30,0,0,0};
 
-	_StartDrawLine(0,LCD_X,20,170);
-	_DrawArrayBuffRightDown2_AA(WHITE, 0x383838,0x383838, 1.0,1.0, LCD_X, 1, bufXX);
+	_StartDrawLine(0,LCD_X,20,210);
+	_DrawArrayBuffRightDown2_AA(WHITE, 0x383838,0x383838, 1.0,1.0, LCD_X, 0, bufXX);
+	_DrawArrayBuffLeftDown2_AA(WHITE, 0x383838,0x383838, 1.0,1.0, LCD_X, 1, bufXX);
 
 
-	_StartDrawLine(0,LCD_X,600,170);
-	_DrawArrayBuffRightDown2_AA(WHITE, 0,0, 0.0,0.0, LCD_X, 1, bufXX);
+	_StartDrawLine(0,LCD_X,20,230);
+	_DrawArrayBuffRightDown2_AA(WHITE, 0,0, 0.0,0.0, LCD_X, 0, bufXX);
+	_DrawArrayBuffLeftDown2_AA(WHITE, 0,0, 0.0,0.0, LCD_X, 1, bufXX);
 
 
 
