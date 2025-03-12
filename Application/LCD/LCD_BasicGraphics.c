@@ -1976,6 +1976,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				else  buff[1+buff[0]++]=ABS(xxxx[i].rx);
 				if(functionType==100){ _StartDrawLine(offsK, LCD_X,xxxx[i].x,xxxx[i].y); }
 		 }
+		 bok=0;
 	 }
 
 	 void BBBBB_B(int t){
@@ -2000,7 +2001,6 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 if(IS_RightDownDir0	&& EQUAL2_OR(functionType,100,RightDownDir0)){
 			 AAAAA_A(1);
 			functionType = RightDownDir0;
-			bok=0;
 		 }
 		 else{
 			 if(functionType == RightDownDir0){
@@ -2021,7 +2021,6 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 if(IS_RightUpDir0 && EQUAL2_OR(functionType,100,RightUpDir0)){
 			 AAAAA_A(1);
 			functionType = RightUpDir0;
-			bok=0;
 		 }
 		 else{
 			 if(functionType == RightUpDir0){
@@ -2041,9 +2040,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 }
 //##################################################################################################################################################################################################################
 		 if(xxxx[i].y+ABS(xxxx[i].rx) == xxxx[i+1].y  &&  xxxx[i].x+1==xxxx[i+1].x	&& (functionType==100 || functionType==RightDownDir1)){
-			// if(functionType==100) buff[1+buff[0]++]=1;
-			 buff[1+buff[0]++]=ABS(xxxx[i].rx);
-			 if(functionType==100){ _StartDrawLine(offsK/*-LCD_X-1*/, LCD_X,xxxx[i].x,xxxx[i].y); }
+			 AAAAA_A(0);
 			 functionType = RightDownDir1;
 		 }
 		 else{
@@ -2057,8 +2054,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 }
 //##################################################################################################################################################################################################################
 		 if(xxxx[i].y-ABS(xxxx[i].rx) == xxxx[i+1].y  &&  xxxx[i].x+1==xxxx[i+1].x	&& (functionType==100 || functionType==RightUpDir1)){
-			 buff[1+buff[0]++]=ABS(xxxx[i].rx);
-			 if(functionType==100){ _StartDrawLine(offsK, LCD_X,xxxx[i].x,xxxx[i].y); }
+			 AAAAA_A(0);
 			 functionType = RightUpDir1;
 		 }
 		 else{
@@ -2072,8 +2068,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 }
 //##################################################################################################################################################################################################################
 		 if(xxxx[i].x-ABS(xxxx[i].ry) == xxxx[i+1].x  &&  xxxx[i].y+1==xxxx[i+1].y	&& (functionType==100 || functionType==LeftDownDir0)){
-			 buff[1+buff[0]++]=ABS(xxxx[i].ry);
-			 if(functionType==100){ _StartDrawLine(offsK, LCD_X,xxxx[i].x,xxxx[i].y); }
+			 AAAAA_A(1);
 			 functionType = LeftDownDir0;
 		 }
 		 else{
@@ -2087,8 +2082,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 }
 //##################################################################################################################################################################################################################
 		 if(xxxx[i].x-ABS(xxxx[i].ry) == xxxx[i+1].x  &&  xxxx[i].y-1==xxxx[i+1].y	&& (functionType==100 || functionType==LeftUpDir0)){
-			 buff[1+buff[0]++]=ABS(xxxx[i].ry);
-			 if(functionType==100){ _StartDrawLine(offsK, LCD_X,xxxx[i].x,xxxx[i].y); }
+			 AAAAA_A(1);
 			 functionType = LeftUpDir0;
 		 }
 		 else{
@@ -2103,8 +2097,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 }
 //##################################################################################################################################################################################################################
 		 if(xxxx[i].y+ABS(xxxx[i].rx) == xxxx[i+1].y  &&  xxxx[i].x-1==xxxx[i+1].x	&& (functionType==100 || functionType==LeftDownDir1)){
-			buff[1+buff[0]++]=ABS(xxxx[i].rx);
-			if(functionType==100){ _StartDrawLine(offsK, LCD_X,xxxx[i].x,xxxx[i].y); }
+			 AAAAA_A(0);
 			functionType = LeftDownDir1;
 		 }
 		 else{
@@ -2118,8 +2111,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 }
 //##################################################################################################################################################################################################################
 		 if(xxxx[i].y-ABS(xxxx[i].rx) == xxxx[i+1].y  &&  xxxx[i].x-1==xxxx[i+1].x	&& (functionType==100 || functionType==LeftUpDir1)){
-			 buff[1+buff[0]++]=ABS(xxxx[i].rx);
-			 if(functionType==100){ _StartDrawLine(offsK, LCD_X,xxxx[i].x,xxxx[i].y); }
+			 AAAAA_A(0);
 			 functionType = LeftUpDir1;
 		 }
 		 else{
