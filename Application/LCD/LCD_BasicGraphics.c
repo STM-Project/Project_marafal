@@ -1691,7 +1691,7 @@ typedef struct{
 void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 {
 	structPosition posXY[1000]={0};
-	point_struct xxxx[300]={0};
+	point_struct xxxx[500]={0};
 	int n=0;
 
 	void XY(int x, int y){
@@ -1755,14 +1755,35 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 //	XY(600,210);
 //	pY(69);_s(1);pX_(1);_s(1);pX_(1);     pX_(70);_s_(1);pX_(1);_s_(1);pX_(1);      pY_(20);   _s_(1);pX_(1);_s_(1);pX_(1); pX_(70);;
 
-	XY(500,260);
-	//pX(30);s_(6);   pX(30);s(6);   pX(30);s_(6);   pX(30);s(6);   pX(30);s_(6);   pX(30);s(6);  pX(30);s_(6);   pX(30);s(6);   pX(30);s_(6);   pX(30);s(6);
+//	XY(500,260);
+//	//pX(30);s_(6);   pX(30);s(6);   pX(30);s_(6);   pX(30);s(6);   pX(30);s_(6);   pX(30);s(6);  pX(30);s_(6);   pX(30);s(6);   pX(30);s_(6);   pX(30);s(6);
+//
+//#define SS  s_(1);s_(1);s_(1);s_(1);s_(1);s_(1);
+//#define CC  s(1);s(1);s(1);s(1);s(1);s(1);
+//
+//	pX(30);SS;pY_(30);SS;   pX(30);CC;pY(30);CC;      pX(30);SS;pY_(30);SS;    pX(30);CC;pY(30);CC;
 
-#define SS  s_(1);s_(1);s_(1);s_(1);s_(1);s_(1);
-#define CC  s(1);s(1);s(1);s(1);s(1);s(1);
+	double bbb;
 
-	pX(30);SS;pY_(30);SS;   pX(30);CC;pY(30);CC;      pX(30);SS;pY_(30);SS;    pX(30);CC;pY(30);CC;
+	posXY[n].x = 250;
+	posXY[n].y = 220;
+	n++;
 
+	LOOP_FOR(i,470){
+//		if(i==0){
+//			bbb = 25*cos(TANG_ARG(i))+25;
+//			posXY[n].x = 250;
+//			posXY[n].y = 190+(int)bbb;
+//			n++;
+//		}
+//		else{
+			bbb = 100*sin(TANG_ARG(i));
+			posXY[n].x = posXY[0].x + i;
+			posXY[n].y = posXY[0].y + (int)bbb;
+			n++;
+		//}
+
+	}
 
 
 
@@ -1941,7 +1962,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 //	 }
 
 
-	int startK = 0;//20*LCD_X - 50;
+	int startK = 20*LCD_X - 0;
 	 LOOP_FOR(a,j)
 	 {
 		 if(xxxx[a].ry!=0){
@@ -1995,10 +2016,10 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 
 
 
-	 u8 buff[50]={0}, bok=0;
+	 u8 buff[700]={0}, bok=0;
 	 u8 functionType = 100;
 
-	 int offsK= 50*LCD_X-0,  i;
+	 int offsK= 40*LCD_X-0,  i;
 
 
 #define IS_RightDownDir0		(xxxx[i].x+ABS(xxxx[i].ry) == xxxx[i+1].x  &&  xxxx[i].y+1==xxxx[i+1].y)
@@ -2080,7 +2101,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].ry);
 
-				_DrawArrayBuffRightDown2_AA(WHITE, 0x383838, 0x383838, 0.4,0.4, LCD_X, 0, buff);
+				_DrawArrayBuffRightDown2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 0, buff);
 				functionType=100;
 				buff[0]=0;
 				goto dfdfdfdfaAAAA;
@@ -2100,7 +2121,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].ry);
 
-				_DrawArrayBuffRightUp2_AA(WHITE, 0x383838, 0x383838, 0.4,0.4, LCD_X, 0, buff);
+				_DrawArrayBuffRightUp2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 0, buff);
 				functionType=100;
 				buff[0]=0;
 				goto dfdfdfdfaAAAA;
@@ -2121,7 +2142,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].rx);
 
-				_DrawArrayBuffRightDown2_AA(WHITE, 0x383838, 0x383838, 0.4,0.4, LCD_X, 1, buff);
+				_DrawArrayBuffRightDown2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 1, buff);
 				functionType=100;
 				buff[0]=0;
 				goto dfdfdfdfaAAAA;
@@ -2134,14 +2155,14 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 }
 		 else{
 			 if(functionType == RightUpDir1){
-				 if(IS_LeftUpDir1 || IS_RightDownDir0){
+				 if(IS_LeftUpDir1){
 					 bok=ABS(xxxx[i].rx);
 					 buff[1+buff[0]++]=bok/2;
 				 }
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].rx);
 
-				 _DrawArrayBuffRightUp2_AA(WHITE, 0x383838, 0x383838, 0.4,0.4, LCD_X, 1, buff);
+				 _DrawArrayBuffRightUp2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 1, buff);
 				 functionType=100;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
@@ -2161,7 +2182,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].ry);
 
-				 _DrawArrayBuffLeftDown2_AA(WHITE, 0x383838, 0x383838, 0.4,0.4, LCD_X, 0, buff);
+				 _DrawArrayBuffLeftDown2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 0, buff);
 				 functionType=100;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
@@ -2181,7 +2202,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].ry);
 
-				 _DrawArrayBuffLeftUp2_AA(WHITE, 0x383838, 0x383838, 0.4,0.4, LCD_X, 0, buff);
+				 _DrawArrayBuffLeftUp2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 0, buff);
 				 functionType=100;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
@@ -2202,7 +2223,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].rx);
 
-				 _DrawArrayBuffLeftDown2_AA(WHITE, 0x383838, 0x383838, 0.4,0.4, LCD_X, 1, buff);
+				 _DrawArrayBuffLeftDown2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 1, buff);
 				 functionType=100;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
@@ -2222,7 +2243,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].rx);
 
-				 _DrawArrayBuffLeftUp2_AA(WHITE, 0x383838, 0x383838, 0.4,0.4, LCD_X, 1, buff);
+				 _DrawArrayBuffLeftUp2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 1, buff);
 				 functionType=100;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
