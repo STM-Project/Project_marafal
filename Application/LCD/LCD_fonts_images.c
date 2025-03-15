@@ -4029,7 +4029,7 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 		_PosDirFunc();
 		bkShape=LCD_GetStrVar_bkRoundRect(idVar);
 		LCD_SetBkFontShape(idVar, BK_None);
-		temp= LCD_StrDependOnColorsWindow(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x,	 	_y,		 txt,OnlyDigits,space,bkColor,	shadeColor,maxVal,constWidth);
+		temp= LCD_StrDependOnColorsWindow(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x,	 	  _y,		  txt,OnlyDigits,space,bkColor,	 shadeColor,maxVal,constWidth);
 		for(i=1; i<deep; ++i)
 			LCD_StrDependOnColorsWindow	(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,shadeColor,shadeColor,maxVal,constWidth);
 		LCD_StrDependOnColorsWindow		(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,shadeColor,fontColor, maxVal,constWidth);

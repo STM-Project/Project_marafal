@@ -106,8 +106,8 @@ typedef uint8_t u8;
 
 #define TXT_CUTTOFF(txt,len)	if(strlen(txt)>len-1) *((txt)+(len-1))=0
 
-#define LOOP_FOR(cnt,max) 	for(int (cnt)=0;(cnt)<(max);++(cnt))
-#define LOOP_FOR2(cnt,itx,max) 	for(int (cnt)=0,(itx)=0;(cnt)<(max);++(cnt))
+#define LOOP_FOR(cnt,max) 		for(int (cnt)=0;(cnt)<(max);++(cnt))
+#define LOOP_FOR2(cnt,max,step) 	for(double (cnt)=0;(cnt)<(max);cnt+=step)
 
 #define PARAM32(a,b,c,d)	((a)<<24|(b)<<16|(c<<8)|(d))
 #define U32_TO_FLOAT(val)	(*((float*)(&(val))))

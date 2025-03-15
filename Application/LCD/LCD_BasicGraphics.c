@@ -1688,10 +1688,13 @@ typedef struct{
 	int rx,ry;
 }point_struct;
 
+static u8 buff[1200]={0};
+static structPosition posXY[1300]={0}, posXY_prev={0};
+static point_struct xxxx[700]={0};
+
 void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 {
-	structPosition posXY[1000]={0};
-	point_struct xxxx[500]={0};
+
 	int n=0;
 
 	void XY(int x, int y){
@@ -1763,25 +1766,107 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 //
 //	pX(30);SS;pY_(30);SS;   pX(30);CC;pY(30);CC;      pX(30);SS;pY_(30);SS;    pX(30);CC;pY(30);CC;
 
-	double bbb;
-
+	double bbb;  int temp_x, temp_y;
+	n=0;
 	posXY[n].x = 250;
-	posXY[n].y = 220;
+	posXY[n].y = 270;
+	posXY_prev.x = posXY[n].x;
+	posXY_prev.y = posXY[n].y;
 	n++;
 
-	LOOP_FOR(i,470){
-//		if(i==0){
-//			bbb = 25*cos(TANG_ARG(i))+25;
-//			posXY[n].x = 250;
-//			posXY[n].y = 190+(int)bbb;
-//			n++;
-//		}
-//		else{
-			bbb = 100*sin(TANG_ARG(i));
-			posXY[n].x = posXY[0].x + i;
-			posXY[n].y = posXY[0].y + (int)bbb;
-			n++;
-		//}
+	LOOP_FOR2(i,470,1.0){
+
+			bbb = 50*sin(TANG_ARG(i));
+			temp_x = posXY[0].x + (int)i;
+			temp_y = posXY[0].y + (int)bbb;
+
+
+
+			if(posXY_prev.x==temp_x)  //&& posXY_prev.y==posXY[n].y
+			{
+
+//				if(posXY_prev.y!=temp_y)
+//				{
+//					posXY[n].x = temp_x;
+//					posXY[n].y = temp_y;
+//					n++;
+//
+//					posXY_prev.x = temp_x;
+//					posXY_prev.y = temp_y;
+//				}
+//				if(posXY_p                                      rev.y < posXY[n].y){
+//					pY_(posXY[n].y-posXY_prev.y);
+//					posXY_prev.x = posXY[n].x;
+//					posXY_prev.y = posXY[n].y;
+//					n++;
+//				}
+//				else{
+//					pY(posXY_prev.y-posXY[n].y);
+//					posXY_prev.x = posXY[n].x;
+//					posXY_prev.y = posXY[n].y;
+//					n++;
+//				}
+			}
+			else
+			{
+
+
+				if(temp_y > posXY_prev.y +1)
+				{
+					int delta = temp_y - (posXY_prev.y +1);
+					int t=0;
+					while(1){
+						posXY[n].x = temp_x;
+						posXY[n].y = t + (posXY_prev.y +1);
+						n++;
+						delta--; t++;
+						if(delta==0) break;
+					}
+				}
+				else if(temp_y < posXY_prev.y -1)
+				{
+					int delta = (posXY_prev.y -1) - temp_y;
+					int t=0;
+					while(1){
+						posXY[n].x = temp_x;
+						posXY[n].y = (posXY_prev.y -1) - t;
+						n++;
+						delta--; t++;
+						if(delta==0) break;
+					}
+				}
+
+
+
+//				if(temp_y > posXY_prev.y +1)
+//				{
+//					posXY[n].x = temp_x;
+//					posXY[n].y = posXY_prev.y +1;
+//					n++;
+//				}
+//				else if(temp_y < posXY_prev.y -1)
+//				{
+//					posXY[n].x = temp_x;
+//					posXY[n].y = posXY_prev.y -1;
+//					n++;
+//				}
+
+
+
+				posXY[n].x = temp_x;
+				posXY[n].y = temp_y;
+				n++;
+
+				posXY_prev.x = temp_x;
+				posXY_prev.y = temp_y;
+			}
+
+
+//			if(posXY_prev.x<posXY[n].x || posXY_prev.y!=posXY[n].y){
+//				posXY_prev.x = posXY[n].x;
+//				posXY_prev.y = posXY[n].y;
+//				n++;
+//			}
 
 	}
 
@@ -2016,7 +2101,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 
 
 
-	 u8 buff[700]={0}, bok=0;
+	 u8 bok=0;
 	 u8 functionType = 100;
 
 	 int offsK= 40*LCD_X-0,  i;
@@ -2101,7 +2186,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].ry);
 
-				_DrawArrayBuffRightDown2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 0, buff);
+				_DrawArrayBuffRightDown2_AA(WHITE, 0,0, 1.00,1.00, LCD_X, 0, buff);
 				functionType=100;
 				buff[0]=0;
 				goto dfdfdfdfaAAAA;
@@ -2121,7 +2206,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].ry);
 
-				_DrawArrayBuffRightUp2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 0, buff);
+				_DrawArrayBuffRightUp2_AA(WHITE, 0,0, 1.00,1.00, LCD_X, 0, buff);
 				functionType=100;
 				buff[0]=0;
 				goto dfdfdfdfaAAAA;
@@ -2142,7 +2227,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].rx);
 
-				_DrawArrayBuffRightDown2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 1, buff);
+				_DrawArrayBuffRightDown2_AA(WHITE, 0,0, 1.00,1.00, LCD_X, 1, buff);
 				functionType=100;
 				buff[0]=0;
 				goto dfdfdfdfaAAAA;
@@ -2162,7 +2247,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].rx);
 
-				 _DrawArrayBuffRightUp2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 1, buff);
+				 _DrawArrayBuffRightUp2_AA(WHITE, 0,0, 1.00,1.00, LCD_X, 1, buff);
 				 functionType=100;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
@@ -2182,7 +2267,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].ry);
 
-				 _DrawArrayBuffLeftDown2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 0, buff);
+				 _DrawArrayBuffLeftDown2_AA(WHITE, 0,0, 1.00,1.00, LCD_X, 0, buff);
 				 functionType=100;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
@@ -2202,7 +2287,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].ry);
 
-				 _DrawArrayBuffLeftUp2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 0, buff);
+				 _DrawArrayBuffLeftUp2_AA(WHITE, 0,0, 1.00,1.00, LCD_X, 0, buff);
 				 functionType=100;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
@@ -2223,7 +2308,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].rx);
 
-				 _DrawArrayBuffLeftDown2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 1, buff);
+				 _DrawArrayBuffLeftDown2_AA(WHITE, 0,0, 1.00,1.00, LCD_X, 1, buff);
 				 functionType=100;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
@@ -2243,7 +2328,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				 else
 					 buff[1+buff[0]++]=ABS(xxxx[i].rx);
 
-				 _DrawArrayBuffLeftUp2_AA(WHITE, 0x383838, 0x383838, 1,1, LCD_X, 1, buff);
+				 _DrawArrayBuffLeftUp2_AA(WHITE, 0,0, 1.00,1.00, LCD_X, 1, buff);
 				 functionType=100;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
