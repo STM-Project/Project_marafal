@@ -1326,8 +1326,50 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 	uint32_t _outColor=outColor;
 	uint32_t _inColor=inColor;
 
+	void _StartSearch45degLines(void){
+		j=buf[0], i=buf[1], p=2;
+	}
+	void _IncrSearch45degLines(int incr){
+		p+=incr;  i=buf[p++];  //nazwac 'i' i 'p' jako lepiej !!!
+	}
+	int _Is45degLineWidthThisParam(int nmbrStartPxl, int nmbrDeg45Pxl, int nmbrStopPxl){
+		if(buf[p-1]==nmbrStartPxl && buf[p+nmbrStartPxl]==nmbrStopPxl){		for(int i=0;i<nmbrDeg45Pxl;i++){ if(buf[p+i]!=nmbrDeg45Pxl) return 0; }		}
+		else return 0;
+		return 1;
+	}
+	void _SetAAFor45degLineWidthThisParam(int nmbrStartPxl, int nmbrDeg45Pxl, int nmbrStopPxl, int onAA){
+		u32 bkColor = 0x383838;
+		u32 _C(int iV, int iH){
+			if((nmbrStartPxl==3&&iV==0&&iH==0) || (nmbrStopPxl==3&&iV==nmbrDeg45Pxl-1&&iH==1))  return buff_AA[1+4];
+			else return bkColor;
+		}
+		Set_AACoeff_Draw(nmbrDeg45Pxl+2,drawColor,bkColor,outRatioStart);
+		for(int i=0;i<nmbrDeg45Pxl;i++){  	k+=BkpSizeX;   if(onAA){ pLcd[k-2]=_C(i,0); pLcd[k-1]=buff_AA[1+i];	pLcd[k+1]=buff_AA[1+(nmbrDeg45Pxl-1)]; pLcd[k+2]=_C(i,1); }    pLcd[k++]=drawColor;	 }
+		k+=BkpSizeX;
+		_IncrSearch45degLines(nmbrDeg45Pxl);
+	}
+
+	int _Check45degLines(u8 linesBuff[], u16 size){
+		int i=0, nmbrStartPxl, nmbrDeg45Pxl, nmbrStopPxl;
+		while(i < size){
+			nmbrStartPxl = linesBuff[i++];	if(i >= size) return 0;
+			nmbrDeg45Pxl = linesBuff[i++];	if(i >= size) return 0;
+			nmbrStopPxl  = linesBuff[i++];
+			if(_Is45degLineWidthThisParam(nmbrStartPxl,nmbrDeg45Pxl,nmbrStopPxl))	_IncrSearch45degLines(nmbrDeg45Pxl);
+			else return 0;
+		}
+		return 1;
+	}
+
 	if(0==direction)
 	{
+		u8 Buff45deg[]={2,3,2,  2,4,2,  2,5,2,  2,5,3,  3,5,2};
+		_StartSearch45degLines();
+		if(_Check45degLines(Buff45deg,sizeof(Buff45deg))){
+			asm("nop");
+		}
+		_StartSearch45degLines();
+
 		while(j--)
 		{
 
@@ -1335,7 +1377,31 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 			i_prev=i;
 			while(i--) pLcd[k++]=drawColor;
 
+			int onAA_=0;
 
+
+			if(_Is45degLineWidthThisParam(2,3,2)){
+				_SetAAFor45degLineWidthThisParam(2,3,2,onAA_);
+				goto AAAAAAddd;
+			}
+			else if(_Is45degLineWidthThisParam(2,4,2)){
+				_SetAAFor45degLineWidthThisParam(2,4,2,onAA_);
+				goto AAAAAAddd;
+			}
+			else if(_Is45degLineWidthThisParam(2,5,2)){
+				_SetAAFor45degLineWidthThisParam(2,5,2,onAA_);
+				goto AAAAAAddd;
+			}
+			else if(_Is45degLineWidthThisParam(2,5,3)){
+				_SetAAFor45degLineWidthThisParam(2,5,3,onAA_);
+				goto AAAAAAddd;
+			}
+			else if(_Is45degLineWidthThisParam(3,5,2)){
+				_SetAAFor45degLineWidthThisParam(3,5,2,onAA_);
+				goto AAAAAAddd;
+			}
+
+/*
 //			if(i_prev==2&&buf[p+0]==1&&buf[p+1]==2)
 //			{
 //				Set_AACoeff_Draw(1+2,drawColor,0x383838,outRatioStart);
@@ -1429,7 +1495,7 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 				goto AAAAAAddd;
 			}
 
-
+*/
 
 
 
