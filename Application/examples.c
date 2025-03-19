@@ -134,3 +134,25 @@ void LCDEXAMPLE_LcdTxt(int FONT_ID_Fonts, int FONT_VAR_Fonts, u32 COLOR_FillMain
 	temp2 = temp2;
 	/* -------  END -------- */
 }
+
+void LCDEXAMPLE_DrawLine(u32 COLOR_Frame, u32 COLOR_BkScreen)
+{
+	/* 1 Show 'DrawLine()' for degree (45-11, 45) */
+	CorrectLineAA_off();
+	for(int i=0; i<15; i++)
+		DrawLine(0,130,220+i*17, 150, 45-i, COLOR_Frame,LCD_X, 1.0, 1.0 ,COLOR_BkScreen,COLOR_BkScreen);
+
+	CorrectLineAA_on();
+	for(int i=0; i<15; i++)
+		DrawLine(0,300,220+i*17, 150, 45-i, COLOR_Frame,LCD_X, 0.0, 0.0 ,COLOR_BkScreen,COLOR_BkScreen);		/* for i=12,13,14 we don`t have yet special correct (thicker line) */
+
+	/* 2 Show 'DrawLine()' for degree (45, 45+11) */
+	CorrectLineAA_off();
+	for(int i=0; i<15; i++)
+		DrawLine(0,430+i*10,350, 150, 45+i, COLOR_Frame,LCD_X, 1.0, 1.0 ,COLOR_BkScreen,COLOR_BkScreen);
+
+	CorrectLineAA_on();
+	for(int i=0; i<15; i++)
+		DrawLine(0,620+i*10,350, 150, 45+i, COLOR_Frame,LCD_X, 0.0, 0.0 ,COLOR_BkScreen,COLOR_BkScreen);		/* for i=12,13,14 we don`t have yet special correct (thicker line) */
+}
+
