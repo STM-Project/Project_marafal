@@ -1399,7 +1399,7 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 				Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);
 				for(int a=0;a<ggg;++a){  k+=BkpSizeX;   pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff_AA[1+(ggg-1)-a]; pLcd[k+2]=0x383838;    pLcd[k++]=drawColor;  }
 				k+=BkpSizeX;
-				p+=ggg;
+				p+=ggg;  j-=(ggg+1);
 				i=buf[p++];   flagss=1;
 				goto AAAAAAddd;
 			}
@@ -1413,7 +1413,7 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 					Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);
 					for(int a=0;a<ggg;++a){  k+=BkpSizeX;   pLcd[k-3]=0x383838; pLcd[k-2]=buff_AA[1+a]; 		pLcd[k-1]=drawColor;   pLcd[k+1]=buff_AA[1+(ggg-1)-a];  pLcd[k+2]=(a==(ggg-1)?buff_AA[1+ggg/2]:0x383838);     pLcd[k++]=drawColor;  }
 					k+=BkpSizeX;
-					p+=ggg;
+					p+=ggg;  j-=(ggg+1);
 					i=buf[p++];   flagss=1;
 					goto AAAAAAddd;
 				}
@@ -1427,7 +1427,7 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 						Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);
 						for(int a=0;a<ggg;++a){  k+=BkpSizeX;   pLcd[k-3]=(a==0?buff_AA[1+ggg/2]:0x383838); pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff_AA[1+(ggg-1)-a]; pLcd[k+2]=0x383838;    pLcd[k++]=drawColor; }
 						k+=BkpSizeX;
-						p+=ggg;
+						p+=ggg;  j-=(ggg+1);
 						i=buf[p++];   flagss=1;
 						goto AAAAAAddd;
 					}
@@ -1898,7 +1898,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 
 	LOOP_FOR2(i,470,1.0){
 
-			bbb = 65*sin(TANG_ARG(i));
+			bbb = 50*sin(TANG_ARG(i));
 			temp_x = posXY[0].x + (int)i;
 			temp_y = posXY[0].y + (int)bbb;
 
