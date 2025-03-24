@@ -1419,7 +1419,7 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 
 
 			int ggg = ___Check2();
-			if(IS_RANGE(ggg,3,150))
+			if(IS_RANGE(ggg,3,150))  //zrobic '2' jesli pomiedzy jest '3' !!!!!
 			{
 				___Corr();
 				_Correct2pxl();
