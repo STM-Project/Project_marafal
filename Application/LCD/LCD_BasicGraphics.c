@@ -1384,6 +1384,22 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 		}
 		return 0;
 	}
+
+
+	int ___Check2_ver2(void){
+		int b=___Check2(), c;
+		if(b){
+			p+=b;
+			c=___Check2();
+			if(c){ p-=b; return b; }
+			else { p-=b; return 0; }
+		}
+		return 0;
+	}
+
+
+
+
 	int ___Check3p(void){
 		if(i_prev==2){
 			for(int a=0;a<j;++a){
@@ -1992,7 +2008,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 
 	LOOP_FOR2(i,470,1.0){
 
-			bbb = 48*sin(TANG_ARG(i));
+			bbb = 70*sin(TANG_ARG(i));
 			temp_x = posXY[0].x + (int)i;
 			temp_y = posXY[0].y + (int)bbb;
 
