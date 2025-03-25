@@ -1321,7 +1321,7 @@ static uint8_t LCD_SearchRadiusPoints(int posBuff, int nrDeg, uint32_t BkpSizeX)
 
 static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
-	int j=buf[0], i=buf[1], p=2, i_prev, start=0;   int flagss=0;
+	int j=buf[0], i=buf[1], p=2, i_prev, start=0;   int flagss=0;   int fery=0;
 	uint32_t drawColor=_drawColor;
 	uint32_t _outColor=outColor;
 	uint32_t _inColor=inColor;
@@ -1375,7 +1375,7 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 		}
 	}
 	int ___Check2(void){
-		if(i_prev==2){
+		if(buf[p-1]/*i_prev*/==2){
 			for(int a=0;a<j;++a){
 				if(buf[p+a]!=1 && buf[p+a]!=2) return 0;
 				else if(buf[p+a]==2) return a;
@@ -1388,11 +1388,11 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 
 	int ___Check2_ver2(void){
 		int b=___Check2(), c;
-		if(b){
-			p+=b;
+		if(IS_RANGE(b,3,150)){
+			p+=b+1;
 			c=___Check2();
-			if(c){ p-=b; return b; }
-			else { p-=b; return 0; }
+			if(IS_RANGE(c,3,150)){ p-=b+1; return b; }
+			else 						{ p-=b+1; return 0; }
 		}
 		return 0;
 	}
@@ -1432,12 +1432,21 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 			while(i--) pLcd[k++]=drawColor;
 
 
+			fery=1;
 
-
-			int ggg = ___Check2();
+			int ggg = fery==0?___Check2_ver2():___Check2();
 			if(IS_RANGE(ggg,3,150))  //zrobic '2' jesli pomiedzy jest '3' !!!!!
 			{
-				___Corr();
+
+				p+=3+1;
+				int cvc=___Check2();
+				p-=3+1;
+				if(IS_RANGE(cvc,1,2)){
+					goto AAAAAAAAdddddddd;
+				}
+
+
+				___Corr();      if(fery) fery=0; else fery=1;
 				_Correct2pxl();
 				Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);
 				for(int a=0;a<ggg;++a){  k+=BkpSizeX;   pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff_AA[1+(ggg-1)-a]; pLcd[k+2]=0x383838;    pLcd[k++]=drawColor;  }
@@ -1493,8 +1502,8 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 
 
 
-
-
+			AAAAAAAAdddddddd:
+			fery=0;
 
 
 			i=buf[p++];
@@ -1541,12 +1550,22 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 
 
 
+			fery=1;
 
-
-			int ggg = ___Check2();  //zrobic czy nastepny ma ten IS_RANGE, jesli nie to nie rob tego i nastepnego !!!!!!!!!!!!!
+			int ggg = fery==0?___Check2_ver2():___Check2();	 //zrobic czy nastepny ma ten IS_RANGE, jesli nie to nie rob tego i nastepnego !!!!!!!!!!!!!
 			if(IS_RANGE(ggg,3,150))
 			{
-				___Corr();
+
+				p+=3+1;
+				int cvc=___Check2();
+				p-=3+1;
+				if(IS_RANGE(cvc,1,2)){
+					goto AAAAAAAAdddddddd____;
+				}
+
+
+
+				___Corr();      if(fery) fery=0; else fery=1;
 				_Correct2pxl();
 				Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);  k++;
 				for(int a=0;a<ggg;++a){    pLcd[k+2]=buff_AA[1+a]; pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(ggg-1)-a]; pLcd[k-2]=0x383838;    pLcd[k++]=drawColor;  k+=BkpSizeX; }
@@ -1596,8 +1615,8 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 			}
 
 
-
-
+			AAAAAAAAdddddddd____:
+			fery=0;
 
 
 			i=buf[p++];
@@ -2008,7 +2027,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 
 	LOOP_FOR2(i,470,1.0){
 
-			bbb = 70*sin(TANG_ARG(i));
+			bbb = 82*sin(TANG_ARG(i));
 			temp_x = posXY[0].x + (int)i;
 			temp_y = posXY[0].y + (int)bbb;
 
