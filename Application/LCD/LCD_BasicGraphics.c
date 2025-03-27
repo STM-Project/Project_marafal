@@ -1915,21 +1915,33 @@ typedef enum{
 }CHART_EEE;
 int j=0;
 
-
+#define POINTS_AMPL_STEP(p1,p2,p3)	p1,p2,p3
+#define FUNC_TYPE(func)	 func
 
 typedef struct{
 	u16 x,y;
 	int rx,ry;
-}point_struct;
+}structRepPos;
 
 #define MAX_SIZE_POSXY	1300
 
 static u8 buff[MAX_SIZE_POSXY]={0};
-static structPosition posXY[MAX_SIZE_POSXY]={0}, posXY_prev={0};
-static point_struct poXY_rep[MAX_SIZE_POSXY]={0};
+static structPosition posXY[MAX_SIZE_POSXY]={0};
+static structRepPos posXY_rep[MAX_SIZE_POSXY]={0};		/* Buffer for repetition redundancy of positions x,y */
 
-static int GetFuncPosXY(int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType)
+static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
+	switch(funcPatternType){
+		case 0:
+			return sin(TANG_ARG(posX));
+		case 1:
+			return cos(TANG_ARG(posX));
+		default:
+			return 0;
+}}
+
+static int GRAPH_GetFuncPosXY(structPosition posXY[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType)
 {
+	structPosition posXY_prev={0};
 	int temp_x, temp_y, diff_Y, delta, n=0;
 	double funcVal;
 
@@ -1941,7 +1953,7 @@ static int GetFuncPosXY(int startX, int startY, int nmbrPoints, int amplitude, d
 
 	LOOP_FOR2(i,nmbrPoints,precision)
 	{
-		funcVal = amplitude*sin(TANG_ARG(i));
+		funcVal = amplitude * GRAPH_GetFuncPosY(0,i);
 		temp_x = posXY[0].x + (int)i;
 		temp_y = posXY[0].y + (int)funcVal;
 
@@ -1955,9 +1967,9 @@ static int GetFuncPosXY(int startX, int startY, int nmbrPoints, int amplitude, d
 					posXY[n].x = temp_x;
 					posXY[n].y = diff_Y + (posXY_prev.y +1);
 					n++;
+					if(n > MAX_SIZE_POSXY-1) return n;
 					delta--; diff_Y++;
 					if(delta==0) break;
-					if(diff_Y > LCD_Y) break;
 				}
 			}
 			else if(temp_y < posXY_prev.y -1)
@@ -1968,172 +1980,171 @@ static int GetFuncPosXY(int startX, int startY, int nmbrPoints, int amplitude, d
 					posXY[n].x = temp_x;
 					posXY[n].y = (posXY_prev.y -1) - diff_Y;
 					n++;
+					if(n > MAX_SIZE_POSXY-1) return n;
 					delta--; diff_Y++;
 					if(delta==0) break;
-					if(diff_Y > LCD_Y) break;
 				}
 			}
 			posXY[n].x = temp_x;
 			posXY[n].y = temp_y;
-			n++;
 			posXY_prev.x = temp_x;
 			posXY_prev.y = temp_y;
+			n++;
+			if(n > MAX_SIZE_POSXY-1) return n;
 		}
 	}
 	return n;
 }
 
-void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
+static void GRAPH_DispPosXY(structPosition posXY[], int numberOfPoints, u32 color){
+	LOOP_FOR(i,numberOfPoints){
+		pLcd[0 + posXY[i].y * LCD_X + posXY[i].x] = color;
+}}
+
+static int GRAPH_RepetitionRedundancyOfPosXY(structPosition posXY[], structRepPos posXY_rep[], int nmbrPoints)
 {
-	int n = GetFuncPosXY(250,270, 470,82,1.0,0);
+	int j=0,i,prevState=0;
 
-	 LOOP_FOR(a,n){
-		 pLcd[0 +posXY[a].y*LCD_X + posXY[a].x]=WHITE; //wZOR !!!
-	 }
-
-
-
-	int j=0, prev=0;
-	for(int i=0; i<n; ++i)  //I segregacja, redukcja redundancji po x i po y
+	for(i=0; i<nmbrPoints-1; ++i)
 	{
-
-		if(prev==1)    //if(i<n-1) !!!!!!!!!!!!!!!!!!!!!!!!!
+		if(prevState==1)
 		{
 			if(posXY[i].x+1==posXY[i+1].x && posXY[i].y==posXY[i+1].y);
-			else
-			{
-				poXY_rep[j].rx=0;
-				poXY_rep[j].ry++;
-				prev=0;
-				j++;   goto dfdfdfdfa;
+			else{
+				posXY_rep[j].rx=0;
+				posXY_rep[j].ry++;
+				prevState=0;
+				j++;   goto TempEnd_RepetitionRedundancy;
 			}
 		}
-		else if(prev==2)
+		else if(prevState==2)
 		{
 			if(posXY[i].x-1==posXY[i+1].x && posXY[i].y==posXY[i+1].y);
-			else
-			{
-				poXY_rep[j].rx=0;
-				poXY_rep[j].ry--;
-				prev=0;
-				j++;   goto dfdfdfdfa;
+			else{
+				posXY_rep[j].rx=0;
+				posXY_rep[j].ry--;
+				prevState=0;
+				j++;   goto TempEnd_RepetitionRedundancy;
 			}
 		}
-		else if(prev==3)
+		else if(prevState==3)
 		{
 			if(posXY[i].y+1==posXY[i+1].y && posXY[i].x==posXY[i+1].x);
-			else
-			{
-				poXY_rep[j].rx++;
-				poXY_rep[j].ry=0;
-				prev=0;
-				j++;   goto dfdfdfdfa;
+			else{
+				posXY_rep[j].rx++;
+				posXY_rep[j].ry=0;
+				prevState=0;
+				j++;   goto TempEnd_RepetitionRedundancy;
 			}
 		}
-		else if(prev==4)
+		else if(prevState==4)
 		{
 			if(posXY[i].y-1==posXY[i+1].y && posXY[i].x==posXY[i+1].x);
-			else
-			{
-				poXY_rep[j].rx--;
-				poXY_rep[j].ry=0;
-				prev=0;
-				j++;   goto dfdfdfdfa;
+			else{
+				posXY_rep[j].rx--;
+				posXY_rep[j].ry=0;
+				prevState=0;
+				j++;   goto TempEnd_RepetitionRedundancy;
 			}
 		}
 
-
-		if(i<n-1)
+		if(posXY[i].x+1==posXY[i+1].x && posXY[i].y==posXY[i+1].y)
 		{
-			if(posXY[i].x+1==posXY[i+1].x && posXY[i].y==posXY[i+1].y)
-			{
-				if(prev==0){
-					prev=1;
-					poXY_rep[j].x = posXY[i].x;
-					poXY_rep[j].y = posXY[i].y;
-				}
-				poXY_rep[j].ry++;
+			if(prevState==0){
+				prevState=1;
+				posXY_rep[j].x = posXY[i].x;
+				posXY_rep[j].y = posXY[i].y;
 			}
-			else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y==posXY[i+1].y)
-			{
-				if(prev==0){
-					prev=2;
-					poXY_rep[j].x = posXY[i].x;
-					poXY_rep[j].y = posXY[i].y;
-				}
-				poXY_rep[j].ry--;
+			posXY_rep[j].ry++;
+		}
+		else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y==posXY[i+1].y)
+		{
+			if(prevState==0){
+				prevState=2;
+				posXY_rep[j].x = posXY[i].x;
+				posXY_rep[j].y = posXY[i].y;
 			}
-			else if(posXY[i].y+1==posXY[i+1].y && posXY[i].x==posXY[i+1].x)
-			{
-				if(prev==0){
-					prev=3;
-					poXY_rep[j].x = posXY[i].x;
-					poXY_rep[j].y = posXY[i].y;
-				}
-				poXY_rep[j].rx++;
+			posXY_rep[j].ry--;
+		}
+		else if(posXY[i].y+1==posXY[i+1].y && posXY[i].x==posXY[i+1].x)
+		{
+			if(prevState==0){
+				prevState=3;
+				posXY_rep[j].x = posXY[i].x;
+				posXY_rep[j].y = posXY[i].y;
 			}
-			else if(posXY[i].y-1==posXY[i+1].y && posXY[i].x==posXY[i+1].x)
-			{
-				if(prev==0){
-					prev=4;
-					poXY_rep[j].x = posXY[i].x;
-					poXY_rep[j].y = posXY[i].y;
-				}
-				poXY_rep[j].rx--;
-			}//#############################################################################
-			else if(posXY[i].x+1==posXY[i+1].x && posXY[i].y+1==posXY[i+1].y)
-			{
-				poXY_rep[j].x = posXY[i].x;
-				poXY_rep[j].y = posXY[i].y;
-				poXY_rep[j].rx = 1;
-				poXY_rep[j].ry = 1;
-				j++;
+			posXY_rep[j].rx++;
+		}
+		else if(posXY[i].y-1==posXY[i+1].y && posXY[i].x==posXY[i+1].x)
+		{
+			if(prevState==0){
+				prevState=4;
+				posXY_rep[j].x = posXY[i].x;
+				posXY_rep[j].y = posXY[i].y;
 			}
-			else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y+1==posXY[i+1].y)
-			{
-				poXY_rep[j].x = posXY[i].x;
-				poXY_rep[j].y = posXY[i].y;
-				poXY_rep[j].rx = 1;
-				poXY_rep[j].ry = -1;
-				j++;
-			}
-			else if(posXY[i].x+1==posXY[i+1].x && posXY[i].y-1==posXY[i+1].y)
-			{
-				poXY_rep[j].x = posXY[i].x;
-				poXY_rep[j].y = posXY[i].y;
-				poXY_rep[j].rx = -1;
-				poXY_rep[j].ry = 1;
-				j++;
-			}
-			else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y-1==posXY[i+1].y)
-			{
-				poXY_rep[j].x = posXY[i].x;
-				poXY_rep[j].y = posXY[i].y;
-				poXY_rep[j].rx = -1;
-				poXY_rep[j].ry = -1;
-				j++;
-			}	//#############################################################################
-			else
-			{
-				poXY_rep[j].x = posXY[i].x; //tu chyba nigdy sie nie zjawi - jak jest chyba nieciaglosc POPRAWIC TO !!!!!!
-				poXY_rep[j].y = posXY[i].y;
-				poXY_rep[j].rx = 0;
-				poXY_rep[j].ry = 0;
-				j++;
-			}
+			posXY_rep[j].rx--;
+		}
+		else if(posXY[i].x+1==posXY[i+1].x && posXY[i].y+1==posXY[i+1].y)
+		{
+			posXY_rep[j].x = posXY[i].x;
+			posXY_rep[j].y = posXY[i].y;
+			posXY_rep[j].rx = 1;
+			posXY_rep[j].ry = 1;
+			j++;
+		}
+		else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y+1==posXY[i+1].y)
+		{
+			posXY_rep[j].x = posXY[i].x;
+			posXY_rep[j].y = posXY[i].y;
+			posXY_rep[j].rx = 1;
+			posXY_rep[j].ry = -1;
+			j++;
+		}
+		else if(posXY[i].x+1==posXY[i+1].x && posXY[i].y-1==posXY[i+1].y)
+		{
+			posXY_rep[j].x = posXY[i].x;
+			posXY_rep[j].y = posXY[i].y;
+			posXY_rep[j].rx = -1;
+			posXY_rep[j].ry = 1;
+			j++;
+		}
+		else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y-1==posXY[i+1].y)
+		{
+			posXY_rep[j].x = posXY[i].x;
+			posXY_rep[j].y = posXY[i].y;
+			posXY_rep[j].rx = -1;
+			posXY_rep[j].ry = -1;
+			j++;
 		}
 		else
 		{
-			poXY_rep[j].x = posXY[i].x;
-			poXY_rep[j].y = posXY[i].y;
-			poXY_rep[j].rx = 1;
-			poXY_rep[j].ry = 1;
+			posXY_rep[j].x = posXY[i].x; 		/* here it is never ? */
+			posXY_rep[j].y = posXY[i].y;
+			posXY_rep[j].rx = 0;
+			posXY_rep[j].ry = 0;
 			j++;
 		}
 
-		dfdfdfdfa:
-		asm("nop");
+		TempEnd_RepetitionRedundancy:
+		__NOP();
 	}
+
+	posXY_rep[j].x = posXY[i].x;
+	posXY_rep[j].y = posXY[i].y;
+	posXY_rep[j].rx = 1;
+	posXY_rep[j].ry = 1;
+	j++;
+
+	return j;
+}
+
+void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
+{
+	int n = GRAPH_GetFuncPosXY(posXY, XY(250,270), POINTS_AMPL_STEP(470,50,1.0), FUNC_TYPE(0));
+
+	GRAPH_DispPosXY(posXY,n,WHITE);
+
+	int j = GRAPH_RepetitionRedundancyOfPosXY(posXY, posXY_rep, n);
 
 
 
@@ -2141,21 +2152,21 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 	int startK = 20*LCD_X - 0;
 	 LOOP_FOR(a,j)
 	 {
-		 if(poXY_rep[a].ry!=0){
-			 LOOP_FOR(b,ABS(poXY_rep[a].ry)){
-				 if(poXY_rep[a].ry > 0)	pLcd[startK + poXY_rep[a].y*LCD_X + poXY_rep[a].x  + b]=RED;
-				 else							pLcd[startK + poXY_rep[a].y*LCD_X + poXY_rep[a].x  - b]=RED;
+		 if(posXY_rep[a].ry!=0){
+			 LOOP_FOR(b,ABS(posXY_rep[a].ry)){
+				 if(posXY_rep[a].ry > 0)	pLcd[startK + posXY_rep[a].y*LCD_X + posXY_rep[a].x  + b]=RED;
+				 else							pLcd[startK + posXY_rep[a].y*LCD_X + posXY_rep[a].x  - b]=RED;
 			 }
 		 }
-		 else if(poXY_rep[a].rx!=0){
-			 LOOP_FOR(b,ABS(poXY_rep[a].rx)){
-				 if(poXY_rep[a].rx > 0)	pLcd[startK + (poXY_rep[a].y+b)*LCD_X + poXY_rep[a].x]=RED;
-				 else							pLcd[startK + (poXY_rep[a].y-b)*LCD_X + poXY_rep[a].x]=RED;
+		 else if(posXY_rep[a].rx!=0){
+			 LOOP_FOR(b,ABS(posXY_rep[a].rx)){
+				 if(posXY_rep[a].rx > 0)	pLcd[startK + (posXY_rep[a].y+b)*LCD_X + posXY_rep[a].x]=RED;
+				 else							pLcd[startK + (posXY_rep[a].y-b)*LCD_X + posXY_rep[a].x]=RED;
 			 }
 		 }
 		 else{
-			 if(poXY_rep[a].ry==0 && poXY_rep[a].rx==0){
-				 pLcd[startK + poXY_rep[a].y*LCD_X + poXY_rep[a].x]=RED;
+			 if(posXY_rep[a].ry==0 && posXY_rep[a].rx==0){
+				 pLcd[startK + posXY_rep[a].y*LCD_X + posXY_rep[a].x]=RED;
 			 }
 		 }
 	 }
@@ -2169,15 +2180,15 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 	 int offsK= 40*LCD_X-0,  i;
 
 
-#define IS_RightDownDir0		(poXY_rep[i].x+ABS(poXY_rep[i].ry) == poXY_rep[i+1].x  &&  poXY_rep[i].y+1==poXY_rep[i+1].y)
-#define IS_RightUpDir0			(poXY_rep[i].x+ABS(poXY_rep[i].ry) == poXY_rep[i+1].x  &&  poXY_rep[i].y-1==poXY_rep[i+1].y)
-#define IS_LeftDownDir0			(poXY_rep[i].x-ABS(poXY_rep[i].ry) == poXY_rep[i+1].x  &&  poXY_rep[i].y+1==poXY_rep[i+1].y)
-#define IS_LeftUpDir0			(poXY_rep[i].x-ABS(poXY_rep[i].ry) == poXY_rep[i+1].x  &&  poXY_rep[i].y-1==poXY_rep[i+1].y)
+#define IS_RightDownDir0		(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
+#define IS_RightUpDir0			(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
+#define IS_LeftDownDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
+#define IS_LeftUpDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
 
-#define IS_RightDownDir1		(poXY_rep[i].y+ABS(poXY_rep[i].rx) == poXY_rep[i+1].y  &&  poXY_rep[i].x+1==poXY_rep[i+1].x)
-#define IS_RightUpDir1			(poXY_rep[i].y-ABS(poXY_rep[i].rx) == poXY_rep[i+1].y  &&  poXY_rep[i].x+1==poXY_rep[i+1].x)
-#define IS_LeftDownDir1			(poXY_rep[i].y+ABS(poXY_rep[i].rx) == poXY_rep[i+1].y  &&  poXY_rep[i].x-1==poXY_rep[i+1].x)
-#define IS_LeftUpDir1			(poXY_rep[i].y-ABS(poXY_rep[i].rx) == poXY_rep[i+1].y  &&  poXY_rep[i].x-1==poXY_rep[i+1].x)
+#define IS_RightDownDir1		(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
+#define IS_RightUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
+#define IS_LeftDownDir1			(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
+#define IS_LeftUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
 
 
 
@@ -2185,17 +2196,17 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 if(bok){
 			 if(bok%2==0){
 				 buff[1+buff[0]++]=bok/2;
-				 if(functionType==100){ _StartDrawLine(offsK+sign*(bok/2), LCD_X, poXY_rep[i].x, poXY_rep[i].y); }
+				 if(functionType==100){ _StartDrawLine(offsK+sign*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
 			 }
 			 else{
 				 buff[1+buff[0]++]=bok/2+1;
-				 if(functionType==100){ _StartDrawLine(offsK+sign*(bok/2), LCD_X, poXY_rep[i].x, poXY_rep[i].y); }
+				 if(functionType==100){ _StartDrawLine(offsK+sign*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
 			 }
 		 }
 		 else{
-				if(t) buff[1+buff[0]++]=ABS(poXY_rep[i].ry);
-				else  buff[1+buff[0]++]=ABS(poXY_rep[i].rx);
-				if(functionType==100){ _StartDrawLine(offsK, LCD_X,poXY_rep[i].x,poXY_rep[i].y); }
+				if(t) buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
+				else  buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
+				if(functionType==100){ _StartDrawLine(offsK, LCD_X,posXY_rep[i].x,posXY_rep[i].y); }
 		 }
 		 bok=0;
 	 }
@@ -2204,17 +2215,17 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 if(bok){
 			 if(bok%2==0){
 				 buff[1+buff[0]++]=bok/2;
-				 if(functionType==100){ _StartDrawLine(offsK+sign*LCD_X*(bok/2), LCD_X, poXY_rep[i].x, poXY_rep[i].y); }
+				 if(functionType==100){ _StartDrawLine(offsK+sign*LCD_X*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
 			 }
 			 else{
 				 buff[1+buff[0]++]=bok/2+1;
-				 if(functionType==100){ _StartDrawLine(offsK+sign*LCD_X*(bok/2), LCD_X, poXY_rep[i].x, poXY_rep[i].y); }
+				 if(functionType==100){ _StartDrawLine(offsK+sign*LCD_X*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
 			 }
 		 }
 		 else{
-				if(t) buff[1+buff[0]++]=ABS(poXY_rep[i].ry);
-				else  buff[1+buff[0]++]=ABS(poXY_rep[i].rx);
-				if(functionType==100){ _StartDrawLine(offsK, LCD_X,poXY_rep[i].x,poXY_rep[i].y); }
+				if(t) buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
+				else  buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
+				if(functionType==100){ _StartDrawLine(offsK, LCD_X,posXY_rep[i].x,posXY_rep[i].y); }
 		 }
 		 bok=0;
 	 }
@@ -2228,7 +2239,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 //if(i<j-1);
 
 //		 if(i==j-1){
-//			 _StartDrawLine(offsK+bok/2, LCD_X, poXY_rep[i].x, poXY_rep[i].y);
+//			 _StartDrawLine(offsK+bok/2, LCD_X, posXY_rep[i].x, posXY_rep[i].y);
 //		 }
 
 			dfdfdfdfaAAAA:
@@ -2242,11 +2253,11 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 else{
 			 if(functionType == RightDownDir0){
 				 if(IS_RightUpDir0){
-					 bok=ABS(poXY_rep[i].ry);
+					 bok=ABS(posXY_rep[i].ry);
 					 buff[1+buff[0]++]=bok/2;
 				 }
 				 else
-					 buff[1+buff[0]++]=ABS(poXY_rep[i].ry);
+					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
 
 				_DrawArrayBuffRightDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
 				functionType=100;
@@ -2262,11 +2273,11 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 else{
 			 if(functionType == RightUpDir0){
 				 if(IS_RightDownDir0){
-					 bok=ABS(poXY_rep[i].ry);
+					 bok=ABS(posXY_rep[i].ry);
 					 buff[1+buff[0]++]=bok/2;
 				 }
 				 else
-					 buff[1+buff[0]++]=ABS(poXY_rep[i].ry);
+					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
 
 				_DrawArrayBuffRightUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
 				functionType=100;
@@ -2283,11 +2294,11 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 else{
 			 if(functionType == RightDownDir1){
 				 if(IS_LeftDownDir1){
-					 bok=ABS(poXY_rep[i].rx);
+					 bok=ABS(posXY_rep[i].rx);
 					 buff[1+buff[0]++]=bok/2;
 				 }
 				 else
-					 buff[1+buff[0]++]=ABS(poXY_rep[i].rx);
+					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
 
 				_DrawArrayBuffRightDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
 				functionType=100;
@@ -2303,11 +2314,11 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 else{
 			 if(functionType == RightUpDir1){
 				 if(IS_LeftUpDir1){
-					 bok=ABS(poXY_rep[i].rx);
+					 bok=ABS(posXY_rep[i].rx);
 					 buff[1+buff[0]++]=bok/2;
 				 }
 				 else
-					 buff[1+buff[0]++]=ABS(poXY_rep[i].rx);
+					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
 
 				 _DrawArrayBuffRightUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
 				 functionType=100;
@@ -2323,11 +2334,11 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 else{
 			 if(functionType == LeftDownDir0){
 				 if(IS_LeftUpDir0){
-					 bok=ABS(poXY_rep[i].ry);
+					 bok=ABS(posXY_rep[i].ry);
 					 buff[1+buff[0]++]=bok/2;
 				 }
 				 else
-					 buff[1+buff[0]++]=ABS(poXY_rep[i].ry);
+					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
 
 				 _DrawArrayBuffLeftDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
 				 functionType=100;
@@ -2343,11 +2354,11 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 else{
 			 if(functionType == LeftUpDir0){
 				 if(IS_LeftDownDir0){
-					 bok=ABS(poXY_rep[i].ry);
+					 bok=ABS(posXY_rep[i].ry);
 					 buff[1+buff[0]++]=bok/2;
 				 }
 				 else
-					 buff[1+buff[0]++]=ABS(poXY_rep[i].ry);
+					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
 
 				 _DrawArrayBuffLeftUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
 				 functionType=100;
@@ -2364,11 +2375,11 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 else{
 			 if(functionType == LeftDownDir1){
 				 if(IS_RightDownDir1){
-					 bok=ABS(poXY_rep[i].rx);
+					 bok=ABS(posXY_rep[i].rx);
 					 buff[1+buff[0]++]=bok/2;
 				 }
 				 else
-					 buff[1+buff[0]++]=ABS(poXY_rep[i].rx);
+					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
 
 				 _DrawArrayBuffLeftDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
 				 functionType=100;
@@ -2384,11 +2395,11 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 else{
 			 if(functionType == LeftUpDir1){
 				 if(IS_RightUpDir1){
-					 bok=ABS(poXY_rep[i].rx);
+					 bok=ABS(posXY_rep[i].rx);
 					 buff[1+buff[0]++]=bok/2;
 				 }
 				 else
-					 buff[1+buff[0]++]=ABS(poXY_rep[i].rx);
+					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
 
 				 _DrawArrayBuffLeftUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
 				 functionType=100;
