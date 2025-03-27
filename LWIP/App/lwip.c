@@ -82,11 +82,11 @@ void http_server_serve(struct netconn *conn)
 		  netbuf_data(inbuf, (void**)&buf, &buflen);
 
 		  /* Is this an HTTP GET command? (only check the first 5 chars, since
-      	there are other formats for GET, and we're keeping it very simple )*/
+      	there are other formats for GET, and we're keeping it very simple ) */
 		  if(0==strncmp(buf, "GET / ...", 6))
 		  {
 
-			  if(TakeMutex2(Semphr_sdram,Semphr_cardSD,1000))
+			  if(TakeMutex2(Semphr_sdram, Semphr_cardSD, 1000))
 			  {
 				  SDCardFileOpen(0,"aaa.htm",FA_READ);
 				  int len = SDCardFileRead(0, GETVAL_ptr(0), 180000);

@@ -2138,6 +2138,53 @@ static int GRAPH_RepetitionRedundancyOfPosXY(structPosition posXY[], structRepPo
 	return j;
 }
 
+static void GRAPH_DispPosXYrep(int offs_k, structRepPos posXY_rep[], int lenStruct, u32 color){
+	LOOP_FOR(a,lenStruct){
+		if(posXY_rep[a].ry!=0){
+			LOOP_FOR(b,ABS(posXY_rep[a].ry)){
+				if(posXY_rep[a].ry > 0)	 pLcd[offs_k + posXY_rep[a].y*LCD_X + posXY_rep[a].x + b]=color;
+				else							 pLcd[offs_k + posXY_rep[a].y*LCD_X + posXY_rep[a].x - b]=color;
+		}}
+		else if(posXY_rep[a].rx!=0){
+			LOOP_FOR(b,ABS(posXY_rep[a].rx)){
+				if(posXY_rep[a].rx > 0)	 pLcd[offs_k + (posXY_rep[a].y+b)*LCD_X + posXY_rep[a].x]=color;
+				else							 pLcd[offs_k + (posXY_rep[a].y-b)*LCD_X + posXY_rep[a].x]=color;
+		}}
+		else{
+			if(posXY_rep[a].ry==0 && posXY_rep[a].rx==0){
+				pLcd[offs_k + posXY_rep[a].y*LCD_X + posXY_rep[a].x]=color;
+		}}
+}}
+
+static void GRAPH_Display(int offs_k, structRepPos posXY_rep[], int lenStruct, u32 color, float outRatioStart, float inRatioStart)
+{
+	#define NONE_FUNC_TYPE	100
+
+	#define IS_RightDownDir0		(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
+	#define IS_RightUpDir0			(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
+	#define IS_LeftDownDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
+	#define IS_LeftUpDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
+
+	#define IS_RightDownDir1		(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
+	#define IS_RightUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
+	#define IS_LeftDownDir1			(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
+	#define IS_LeftUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
+
+
+
+	#undef NONE_FUNC_TYPE
+
+	#undef IS_RightDownDir0
+	#undef IS_RightUpDir0
+	#undef IS_LeftDownDir0
+	#undef IS_LeftUpDir0
+
+	#undef IS_RightDownDir1
+	#undef IS_RightUpDir1
+	#undef IS_LeftDownDir1
+	#undef IS_LeftUpDir1
+}
+
 void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 {
 	int n = GRAPH_GetFuncPosXY(posXY, XY(250,270), POINTS_AMPL_STEP(470,50,1.0), FUNC_TYPE(0));
@@ -2146,49 +2193,52 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 
 	int j = GRAPH_RepetitionRedundancyOfPosXY(posXY, posXY_rep, n);
 
+	GRAPH_DispPosXYrep(20*LCD_X-0, posXY_rep, j, RED);
 
 
-
-	int startK = 20*LCD_X - 0;
-	 LOOP_FOR(a,j)
-	 {
-		 if(posXY_rep[a].ry!=0){
-			 LOOP_FOR(b,ABS(posXY_rep[a].ry)){
-				 if(posXY_rep[a].ry > 0)	pLcd[startK + posXY_rep[a].y*LCD_X + posXY_rep[a].x  + b]=RED;
-				 else							pLcd[startK + posXY_rep[a].y*LCD_X + posXY_rep[a].x  - b]=RED;
-			 }
-		 }
-		 else if(posXY_rep[a].rx!=0){
-			 LOOP_FOR(b,ABS(posXY_rep[a].rx)){
-				 if(posXY_rep[a].rx > 0)	pLcd[startK + (posXY_rep[a].y+b)*LCD_X + posXY_rep[a].x]=RED;
-				 else							pLcd[startK + (posXY_rep[a].y-b)*LCD_X + posXY_rep[a].x]=RED;
-			 }
-		 }
-		 else{
-			 if(posXY_rep[a].ry==0 && posXY_rep[a].rx==0){
-				 pLcd[startK + posXY_rep[a].y*LCD_X + posXY_rep[a].x]=RED;
-			 }
-		 }
-	 }
-
+//	int startK = 20*LCD_X-0;
+//	 LOOP_FOR(a,j)
+//	 {
+//		 if(posXY_rep[a].ry!=0){
+//			 LOOP_FOR(b,ABS(posXY_rep[a].ry)){
+//				 if(posXY_rep[a].ry > 0)	pLcd[startK + posXY_rep[a].y*LCD_X + posXY_rep[a].x  + b]=RED;
+//				 else							pLcd[startK + posXY_rep[a].y*LCD_X + posXY_rep[a].x  - b]=RED;
+//			 }
+//		 }
+//		 else if(posXY_rep[a].rx!=0){
+//			 LOOP_FOR(b,ABS(posXY_rep[a].rx)){
+//				 if(posXY_rep[a].rx > 0)	pLcd[startK + (posXY_rep[a].y+b)*LCD_X + posXY_rep[a].x]=RED;
+//				 else							pLcd[startK + (posXY_rep[a].y-b)*LCD_X + posXY_rep[a].x]=RED;
+//			 }
+//		 }
+//		 else{
+//			 if(posXY_rep[a].ry==0 && posXY_rep[a].rx==0){
+//				 pLcd[startK + posXY_rep[a].y*LCD_X + posXY_rep[a].x]=RED;
+//			 }
+//		 }
+//	 }
 
 
+//!!!!!!!!!!!!!!!!!!!!!!WAZNE	// POKAZ w LCD_EXAMPLE jak kozystac z pamieci z font i innych  i jakie semaphory trzeba uzyc aby je uzywac w danym watku!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	#define NONE_FUNC_TYPE	100
 
 	 u8 bok=0;
-	 u8 functionType = 100;
+	 u8 functionType = NONE_FUNC_TYPE;
 
 	 int offsK= 40*LCD_X-0,  i;
 
 
-#define IS_RightDownDir0		(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
-#define IS_RightUpDir0			(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
-#define IS_LeftDownDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
-#define IS_LeftUpDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
 
-#define IS_RightDownDir1		(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
-#define IS_RightUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
-#define IS_LeftDownDir1			(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
-#define IS_LeftUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
+	#define IS_RightDownDir0		(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
+	#define IS_RightUpDir0			(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
+	#define IS_LeftDownDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
+	#define IS_LeftUpDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
+
+	#define IS_RightDownDir1		(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
+	#define IS_RightUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
+	#define IS_LeftDownDir1			(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
+	#define IS_LeftUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
 
 
 
@@ -2196,17 +2246,17 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 if(bok){
 			 if(bok%2==0){
 				 buff[1+buff[0]++]=bok/2;
-				 if(functionType==100){ _StartDrawLine(offsK+sign*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
+				 if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK+sign*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
 			 }
 			 else{
 				 buff[1+buff[0]++]=bok/2+1;
-				 if(functionType==100){ _StartDrawLine(offsK+sign*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
+				 if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK+sign*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
 			 }
 		 }
 		 else{
 				if(t) buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
 				else  buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
-				if(functionType==100){ _StartDrawLine(offsK, LCD_X,posXY_rep[i].x,posXY_rep[i].y); }
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK, LCD_X,posXY_rep[i].x,posXY_rep[i].y); }
 		 }
 		 bok=0;
 	 }
@@ -2215,17 +2265,17 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 		 if(bok){
 			 if(bok%2==0){
 				 buff[1+buff[0]++]=bok/2;
-				 if(functionType==100){ _StartDrawLine(offsK+sign*LCD_X*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
+				 if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK+sign*LCD_X*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
 			 }
 			 else{
 				 buff[1+buff[0]++]=bok/2+1;
-				 if(functionType==100){ _StartDrawLine(offsK+sign*LCD_X*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
+				 if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK+sign*LCD_X*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
 			 }
 		 }
 		 else{
 				if(t) buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
 				else  buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
-				if(functionType==100){ _StartDrawLine(offsK, LCD_X,posXY_rep[i].x,posXY_rep[i].y); }
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK, LCD_X,posXY_rep[i].x,posXY_rep[i].y); }
 		 }
 		 bok=0;
 	 }
@@ -2246,7 +2296,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 				asm("nop");
 
 //##################################################################################################################################################################################################################
-		 if(IS_RightDownDir0	&& EQUAL2_OR(functionType,100,RightDownDir0)){
+		 if(IS_RightDownDir0	&& EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightDownDir0)){
 			 AAAAA_A(1,1);
 			functionType = RightDownDir0;
 		 }
@@ -2260,13 +2310,13 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
 
 				_DrawArrayBuffRightDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
-				functionType=100;
+				functionType=NONE_FUNC_TYPE;
 				buff[0]=0;
 				goto dfdfdfdfaAAAA;
 			 }
 		 }
 //##################################################################################################################################################################################################################
-		 if(IS_RightUpDir0 && EQUAL2_OR(functionType,100,RightUpDir0)){
+		 if(IS_RightUpDir0 && EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightUpDir0)){
 			 AAAAA_A(1,1);
 			functionType = RightUpDir0;
 		 }
@@ -2280,14 +2330,14 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
 
 				_DrawArrayBuffRightUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
-				functionType=100;
+				functionType=NONE_FUNC_TYPE;
 				buff[0]=0;
 				goto dfdfdfdfaAAAA;
 
 			 }
 		 }
 //##################################################################################################################################################################################################################
-		 if(IS_RightDownDir1	&& (functionType==100 || functionType==RightDownDir1)){
+		 if(IS_RightDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownDir1)){
 			 DDDDD_D(0,1);
 			 functionType = RightDownDir1;
 		 }
@@ -2301,13 +2351,13 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
 
 				_DrawArrayBuffRightDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
-				functionType=100;
+				functionType=NONE_FUNC_TYPE;
 				buff[0]=0;
 				goto dfdfdfdfaAAAA;
 			 }
 		 }
 //##################################################################################################################################################################################################################
-		 if(IS_RightUpDir1	&& (functionType==100 || functionType==RightUpDir1)){
+		 if(IS_RightUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDir1)){
 			 DDDDD_D(0,-1);
 			 functionType = RightUpDir1;
 		 }
@@ -2321,13 +2371,13 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
 
 				 _DrawArrayBuffRightUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
-				 functionType=100;
+				 functionType=NONE_FUNC_TYPE;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
 			 }
 		 }
 //##################################################################################################################################################################################################################
-		 if(IS_LeftDownDir0	&& (functionType==100 || functionType==LeftDownDir0)){
+		 if(IS_LeftDownDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir0)){
 			 AAAAA_A(1,-1);
 			 functionType = LeftDownDir0;
 		 }
@@ -2341,13 +2391,13 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
 
 				 _DrawArrayBuffLeftDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
-				 functionType=100;
+				 functionType=NONE_FUNC_TYPE;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
 			 }
 		 }
 //##################################################################################################################################################################################################################
-		 if(IS_LeftUpDir0	&& (functionType==100 || functionType==LeftUpDir0)){
+		 if(IS_LeftUpDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir0)){
 			 AAAAA_A(1,-1);
 			 functionType = LeftUpDir0;
 		 }
@@ -2361,14 +2411,14 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
 
 				 _DrawArrayBuffLeftUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
-				 functionType=100;
+				 functionType=NONE_FUNC_TYPE;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
 
 			 }
 		 }
 //##################################################################################################################################################################################################################
-		 if(IS_LeftDownDir1	&& (functionType==100 || functionType==LeftDownDir1)){
+		 if(IS_LeftDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir1)){
 			 DDDDD_D(0,1);
 			functionType = LeftDownDir1;
 		 }
@@ -2382,13 +2432,13 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
 
 				 _DrawArrayBuffLeftDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
-				 functionType=100;
+				 functionType=NONE_FUNC_TYPE;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
 			 }
 		 }
 //##################################################################################################################################################################################################################
-		 if(IS_LeftUpDir1	&& (functionType==100 || functionType==LeftUpDir1)){
+		 if(IS_LeftUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir1)){
 			 DDDDD_D(0,-1);
 			 functionType = LeftUpDir1;
 		 }
@@ -2402,7 +2452,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
 
 				 _DrawArrayBuffLeftUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
-				 functionType=100;
+				 functionType=NONE_FUNC_TYPE;
 				 buff[0]=0;
 				 goto dfdfdfdfaAAAA;
 			 }
@@ -2413,8 +2463,17 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 	 }
 
 
+	#undef NONE_FUNC_TYPE
 
+	#undef IS_RightDownDir0
+	#undef IS_RightUpDir0
+	#undef IS_LeftDownDir0
+	#undef IS_LeftUpDir0
 
+	#undef IS_RightDownDir1
+	#undef IS_RightUpDir1
+	#undef IS_LeftDownDir1
+	#undef IS_LeftUpDir1
 
 }
 

@@ -218,7 +218,7 @@ static void SSL_Server(void *arg)
 
 		if(0==strncmp(buffRecv, "GET / ...", 6))		/* strstr(buffRecv, "GET / ") */
 		{
-			if(TakeMutex2(Semphr_sdram,Semphr_cardSD,1000))
+			if(TakeMutex2(Semphr_sdram, Semphr_cardSD, 1000))
 			{
 				int count=0, len;
 				SDCardFileOpen(0,"aaa.htm",FA_READ);
