@@ -9,6 +9,7 @@
 #include "common.h"
 
 #define _BUFF_VAL_SIZE		10
+#define _FV_MEMORY_SIZE		30
 
 SHAPE_PARAMS SHAPE_PARAMS_Zero={0};
 structPosition structPos_Zero = {0};
@@ -47,7 +48,7 @@ uint32_t CharBuffToInt32(char* buff){
 }
 
 int FV(VARIABLE_ACTIONS type, int nrMem, int val){
-	static int mem[30];
+	static int mem[_FV_MEMORY_SIZE];
 	switch((int)type){
 		case SetVal:
 			mem[nrMem]=val;
@@ -58,7 +59,7 @@ int FV(VARIABLE_ACTIONS type, int nrMem, int val){
 			return 0;
 }}
 int FV2(char* descr, VARIABLE_ACTIONS type, int nrMem, int val){
-	static int mem[30];
+	static int mem[_FV_MEMORY_SIZE];
 	switch((int)type){
 		case SetVal:
 			mem[nrMem]=val;
