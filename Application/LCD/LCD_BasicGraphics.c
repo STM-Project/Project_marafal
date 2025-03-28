@@ -2156,21 +2156,227 @@ static void GRAPH_DispPosXYrep(int offs_k, structRepPos posXY_rep[], int lenStru
 		}}
 }}
 
-static void GRAPH_Display(int offs_k, structRepPos posXY_rep[], int lenStruct, u32 color, float outRatioStart, float inRatioStart)
+static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart)
 {
 	#define NONE_FUNC_TYPE	100
 
-	#define IS_RightDownDir0		(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
-	#define IS_RightUpDir0			(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
-	#define IS_LeftDownDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
-	#define IS_LeftUpDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
+	#define IS_RightDownDir0		(pos[i].x+ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y+1==pos[i+1].y)
+	#define IS_RightUpDir0			(pos[i].x+ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y-1==pos[i+1].y)
+	#define IS_LeftDownDir0			(pos[i].x-ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y+1==pos[i+1].y)
+	#define IS_LeftUpDir0			(pos[i].x-ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y-1==pos[i+1].y)
 
-	#define IS_RightDownDir1		(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
-	#define IS_RightUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
-	#define IS_LeftDownDir1			(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
-	#define IS_LeftUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
+	#define IS_RightDownDir1		(pos[i].y+ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
+	#define IS_RightUpDir1			(pos[i].y-ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
+	#define IS_LeftDownDir1			(pos[i].y+ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
+	#define IS_LeftUpDir1			(pos[i].y-ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
 
+	u8 functionType = NONE_FUNC_TYPE;
+	u8 lastSample = 0;
+	int i;
 
+	void _GetSamplesDir0(int t, int sign){
+		if(lastSample){
+			if(lastSample%2==0){
+				buff[1+buff[0]++]=lastSample/2;
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
+			}
+			else{
+				buff[1+buff[0]++]=lastSample/2+1;
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
+			}
+		}
+		else{
+			if(t) buff[1+buff[0]++]=ABS(pos[i].ry);
+			else  buff[1+buff[0]++]=ABS(pos[i].rx);
+			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y); }
+		}
+		lastSample=0;
+	}
+
+	void _GetSamplesDir1(int t, int sign){
+		if(lastSample){
+			if(lastSample%2==0){
+				buff[1+buff[0]++]=lastSample/2;
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*LCD_X*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
+			}
+			else{
+				buff[1+buff[0]++]=lastSample/2+1;
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*LCD_X*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
+			}
+		}
+		else{
+			if(t) buff[1+buff[0]++]=ABS(pos[i].ry);
+			else  buff[1+buff[0]++]=ABS(pos[i].rx);
+			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y); }
+		}
+		lastSample=0;
+	}
+
+	buff[0]=0;
+	for(i=0; i<lenStruct; ++i)
+	{
+		TempEnd_Display:
+
+		if(IS_RightDownDir0	&& EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightDownDir0)){
+			_GetSamplesDir0(1,1);
+			functionType = RightDownDir0;
+		}
+		else{
+			if(functionType == RightDownDir0){
+				if(IS_RightUpDir0){
+					lastSample=ABS(pos[i].ry);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].ry);
+
+				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_RightUpDir0 && EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightUpDir0)){
+			_GetSamplesDir0(1,1);
+			functionType = RightUpDir0;
+		}
+		else{
+			if(functionType == RightUpDir0){
+				if(IS_RightDownDir0){
+					lastSample=ABS(pos[i].ry);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].ry);
+
+				_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_RightDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownDir1)){
+			_GetSamplesDir1(0,1);
+			functionType = RightDownDir1;
+		}
+		else{
+			if(functionType == RightDownDir1){
+				if(IS_LeftDownDir1){
+					lastSample=ABS(pos[i].rx);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].rx);
+
+				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_RightUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDir1)){
+			_GetSamplesDir1(0,-1);
+			functionType = RightUpDir1;
+		}
+		else{
+			if(functionType == RightUpDir1){
+				if(IS_LeftUpDir1){
+					lastSample=ABS(pos[i].rx);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].rx);
+
+				_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_LeftDownDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir0)){
+			_GetSamplesDir0(1,-1);
+			functionType = LeftDownDir0;
+		}
+		else{
+			if(functionType == LeftDownDir0){
+				if(IS_LeftUpDir0){
+					lastSample=ABS(pos[i].ry);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].ry);
+
+				_DrawArrayBuffLeftDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_LeftUpDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir0)){
+			_GetSamplesDir0(1,-1);
+			functionType = LeftUpDir0;
+		}
+		else{
+			if(functionType == LeftUpDir0){
+				if(IS_LeftDownDir0){
+					lastSample=ABS(pos[i].ry);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].ry);
+
+				_DrawArrayBuffLeftUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_LeftDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir1)){
+			_GetSamplesDir1(0,1);
+			functionType = LeftDownDir1;
+		}
+		else{
+			if(functionType == LeftDownDir1){
+				if(IS_RightDownDir1){
+					lastSample=ABS(pos[i].rx);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].rx);
+
+				_DrawArrayBuffLeftDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_LeftUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir1)){
+			_GetSamplesDir1(0,-1);
+			functionType = LeftUpDir1;
+		}
+		else{
+			if(functionType == LeftUpDir1){
+				if(IS_RightUpDir1){
+					lastSample=ABS(pos[i].rx);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].rx);
+
+				_DrawArrayBuffLeftUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+	}
 
 	#undef NONE_FUNC_TYPE
 
@@ -2187,13 +2393,15 @@ static void GRAPH_Display(int offs_k, structRepPos posXY_rep[], int lenStruct, u
 
 void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 {
-	int n = GRAPH_GetFuncPosXY(posXY, XY(250,270), POINTS_AMPL_STEP(470,50,1.0), FUNC_TYPE(0));
+	int len_posXY = GRAPH_GetFuncPosXY(posXY, XY(250,270), POINTS_AMPL_STEP(470,50,1.0), FUNC_TYPE(0));
 
-	GRAPH_DispPosXY(posXY,n,WHITE);
+	GRAPH_DispPosXY(posXY,len_posXY,WHITE);
 
-	int j = GRAPH_RepetitionRedundancyOfPosXY(posXY, posXY_rep, n);
+	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY, posXY_rep, len_posXY);
 
-	GRAPH_DispPosXYrep(20*LCD_X-0, posXY_rep, j, RED);
+	GRAPH_DispPosXYrep(20*LCD_X-0, posXY_rep, len_posXYrep, RED);
+
+	GRAPH_Display(40*LCD_X-0, posXY_rep, len_posXYrep, WHITE, 0,0, 0.0, 0.0);
 
 
 //	int startK = 20*LCD_X-0;
@@ -2218,266 +2426,263 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 //		 }
 //	 }
 
-
-//!!!!!!!!!!!!!!!!!!!!!!WAZNE	// POKAZ w LCD_EXAMPLE jak kozystac z pamieci z font i innych  i jakie semaphory trzeba uzyc aby je uzywac w danym watku!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	#define NONE_FUNC_TYPE	100
-
-	 u8 bok=0;
-	 u8 functionType = NONE_FUNC_TYPE;
-
-	 int offsK= 40*LCD_X-0,  i;
-
-
-
-	#define IS_RightDownDir0		(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
-	#define IS_RightUpDir0			(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
-	#define IS_LeftDownDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
-	#define IS_LeftUpDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
-
-	#define IS_RightDownDir1		(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
-	#define IS_RightUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
-	#define IS_LeftDownDir1			(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
-	#define IS_LeftUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
-
-
-
-	 void AAAAA_A(int t, int sign){
-		 if(bok){
-			 if(bok%2==0){
-				 buff[1+buff[0]++]=bok/2;
-				 if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK+sign*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
-			 }
-			 else{
-				 buff[1+buff[0]++]=bok/2+1;
-				 if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK+sign*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
-			 }
-		 }
-		 else{
-				if(t) buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
-				else  buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK, LCD_X,posXY_rep[i].x,posXY_rep[i].y); }
-		 }
-		 bok=0;
-	 }
-
-	 void DDDDD_D(int t, int sign){  //for ...Dir1
-		 if(bok){
-			 if(bok%2==0){
-				 buff[1+buff[0]++]=bok/2;
-				 if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK+sign*LCD_X*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
-			 }
-			 else{
-				 buff[1+buff[0]++]=bok/2+1;
-				 if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK+sign*LCD_X*(bok/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
-			 }
-		 }
-		 else{
-				if(t) buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
-				else  buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK, LCD_X,posXY_rep[i].x,posXY_rep[i].y); }
-		 }
-		 bok=0;
-	 }
-
-
-	 buff[0]=0;
-	// _StartDrawLine(0,LCD_X,100,210);
-
-	 for(i=0; i<j; ++i)  //II segregacja, zamiana na funcType:  RightDown .... itd
-	 {
-		 //if(i<j-1);
-
-//		 if(i==j-1){
-//			 _StartDrawLine(offsK+bok/2, LCD_X, posXY_rep[i].x, posXY_rep[i].y);
+//
+//	#define NONE_FUNC_TYPE	100
+//
+//	 u8 lastSample = 0;
+//	 u8 functionType = NONE_FUNC_TYPE;
+//
+//	 int offsK= 40*LCD_X-0,  i;
+//
+//
+//
+//	#define IS_RightDownDir0		(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
+//	#define IS_RightUpDir0			(posXY_rep[i].x+ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
+//	#define IS_LeftDownDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y+1==posXY_rep[i+1].y)
+//	#define IS_LeftUpDir0			(posXY_rep[i].x-ABS(posXY_rep[i].ry) == posXY_rep[i+1].x  &&  posXY_rep[i].y-1==posXY_rep[i+1].y)
+//
+//	#define IS_RightDownDir1		(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
+//	#define IS_RightUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x+1==posXY_rep[i+1].x)
+//	#define IS_LeftDownDir1			(posXY_rep[i].y+ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
+//	#define IS_LeftUpDir1			(posXY_rep[i].y-ABS(posXY_rep[i].rx) == posXY_rep[i+1].y  &&  posXY_rep[i].x-1==posXY_rep[i+1].x)
+//
+//
+//
+//	 void _GetSamplesDir0(int t, int sign){
+//		 if(lastSample){
+//			 if(lastSample%2==0){
+//				 buff[1+buff[0]++]=lastSample/2;
+//				 if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK+sign*(lastSample/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
+//			 }
+//			 else{
+//				 buff[1+buff[0]++]=lastSample/2+1;
+//				 if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK+sign*(lastSample/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
+//			 }
 //		 }
-
-			dfdfdfdfaAAAA:
-				asm("nop");
-
-//##################################################################################################################################################################################################################
-		 if(IS_RightDownDir0	&& EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightDownDir0)){
-			 AAAAA_A(1,1);
-			functionType = RightDownDir0;
-		 }
-		 else{
-			 if(functionType == RightDownDir0){
-				 if(IS_RightUpDir0){
-					 bok=ABS(posXY_rep[i].ry);
-					 buff[1+buff[0]++]=bok/2;
-				 }
-				 else
-					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
-
-				_DrawArrayBuffRightDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto dfdfdfdfaAAAA;
-			 }
-		 }
-//##################################################################################################################################################################################################################
-		 if(IS_RightUpDir0 && EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightUpDir0)){
-			 AAAAA_A(1,1);
-			functionType = RightUpDir0;
-		 }
-		 else{
-			 if(functionType == RightUpDir0){
-				 if(IS_RightDownDir0){
-					 bok=ABS(posXY_rep[i].ry);
-					 buff[1+buff[0]++]=bok/2;
-				 }
-				 else
-					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
-
-				_DrawArrayBuffRightUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto dfdfdfdfaAAAA;
-
-			 }
-		 }
-//##################################################################################################################################################################################################################
-		 if(IS_RightDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownDir1)){
-			 DDDDD_D(0,1);
-			 functionType = RightDownDir1;
-		 }
-		 else{
-			 if(functionType == RightDownDir1){
-				 if(IS_LeftDownDir1){
-					 bok=ABS(posXY_rep[i].rx);
-					 buff[1+buff[0]++]=bok/2;
-				 }
-				 else
-					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
-
-				_DrawArrayBuffRightDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto dfdfdfdfaAAAA;
-			 }
-		 }
-//##################################################################################################################################################################################################################
-		 if(IS_RightUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDir1)){
-			 DDDDD_D(0,-1);
-			 functionType = RightUpDir1;
-		 }
-		 else{
-			 if(functionType == RightUpDir1){
-				 if(IS_LeftUpDir1){
-					 bok=ABS(posXY_rep[i].rx);
-					 buff[1+buff[0]++]=bok/2;
-				 }
-				 else
-					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
-
-				 _DrawArrayBuffRightUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
-				 functionType=NONE_FUNC_TYPE;
-				 buff[0]=0;
-				 goto dfdfdfdfaAAAA;
-			 }
-		 }
-//##################################################################################################################################################################################################################
-		 if(IS_LeftDownDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir0)){
-			 AAAAA_A(1,-1);
-			 functionType = LeftDownDir0;
-		 }
-		 else{
-			 if(functionType == LeftDownDir0){
-				 if(IS_LeftUpDir0){
-					 bok=ABS(posXY_rep[i].ry);
-					 buff[1+buff[0]++]=bok/2;
-				 }
-				 else
-					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
-
-				 _DrawArrayBuffLeftDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
-				 functionType=NONE_FUNC_TYPE;
-				 buff[0]=0;
-				 goto dfdfdfdfaAAAA;
-			 }
-		 }
-//##################################################################################################################################################################################################################
-		 if(IS_LeftUpDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir0)){
-			 AAAAA_A(1,-1);
-			 functionType = LeftUpDir0;
-		 }
-		 else{
-			 if(functionType == LeftUpDir0){
-				 if(IS_LeftDownDir0){
-					 bok=ABS(posXY_rep[i].ry);
-					 buff[1+buff[0]++]=bok/2;
-				 }
-				 else
-					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
-
-				 _DrawArrayBuffLeftUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
-				 functionType=NONE_FUNC_TYPE;
-				 buff[0]=0;
-				 goto dfdfdfdfaAAAA;
-
-			 }
-		 }
-//##################################################################################################################################################################################################################
-		 if(IS_LeftDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir1)){
-			 DDDDD_D(0,1);
-			functionType = LeftDownDir1;
-		 }
-		 else{
-			 if(functionType == LeftDownDir1){
-				 if(IS_RightDownDir1){
-					 bok=ABS(posXY_rep[i].rx);
-					 buff[1+buff[0]++]=bok/2;
-				 }
-				 else
-					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
-
-				 _DrawArrayBuffLeftDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
-				 functionType=NONE_FUNC_TYPE;
-				 buff[0]=0;
-				 goto dfdfdfdfaAAAA;
-			 }
-		 }
-//##################################################################################################################################################################################################################
-		 if(IS_LeftUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir1)){
-			 DDDDD_D(0,-1);
-			 functionType = LeftUpDir1;
-		 }
-		 else{
-			 if(functionType == LeftUpDir1){
-				 if(IS_RightUpDir1){
-					 bok=ABS(posXY_rep[i].rx);
-					 buff[1+buff[0]++]=bok/2;
-				 }
-				 else
-					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
-
-				 _DrawArrayBuffLeftUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
-				 functionType=NONE_FUNC_TYPE;
-				 buff[0]=0;
-				 goto dfdfdfdfaAAAA;
-			 }
-		 }
-
-
-
-	 }
-
-
-	#undef NONE_FUNC_TYPE
-
-	#undef IS_RightDownDir0
-	#undef IS_RightUpDir0
-	#undef IS_LeftDownDir0
-	#undef IS_LeftUpDir0
-
-	#undef IS_RightDownDir1
-	#undef IS_RightUpDir1
-	#undef IS_LeftDownDir1
-	#undef IS_LeftUpDir1
+//		 else{
+//				if(t) buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
+//				else  buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
+//				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK, LCD_X,posXY_rep[i].x,posXY_rep[i].y); }
+//		 }
+//		 lastSample=0;
+//	 }
+//
+//	 void _GetSamplesDir1(int t, int sign){
+//		 if(lastSample){
+//			 if(lastSample%2==0){
+//				 buff[1+buff[0]++]=lastSample/2;
+//				 if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK+sign*LCD_X*(lastSample/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
+//			 }
+//			 else{
+//				 buff[1+buff[0]++]=lastSample/2+1;
+//				 if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK+sign*LCD_X*(lastSample/2), LCD_X, posXY_rep[i].x, posXY_rep[i].y); }
+//			 }
+//		 }
+//		 else{
+//				if(t) buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
+//				else  buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
+//				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offsK, LCD_X,posXY_rep[i].x,posXY_rep[i].y); }
+//		 }
+//		 lastSample=0;
+//	 }
+//
+//
+//	 buff[0]=0;
+//	// _StartDrawLine(0,LCD_X,100,210);
+//
+//	 for(int i=0; i<j; ++i)  //II segregacja, zamiana na funcType:  RightDown .... itd
+//	 {
+//		 //if(i<j-1);
+//
+////		 if(i==j-1){
+////			 _StartDrawLine(offsK+lastSample/2, LCD_X, posXY_rep[i].x, posXY_rep[i].y);
+////		 }
+//
+//			dfdfdfdfaAAAA:
+//				asm("nop");
+//
+////##################################################################################################################################################################################################################
+//		 if(IS_RightDownDir0	&& EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightDownDir0)){
+//			 _GetSamplesDir0(1,1);
+//			functionType = RightDownDir0;
+//		 }
+//		 else{
+//			 if(functionType == RightDownDir0){
+//				 if(IS_RightUpDir0){
+//					 lastSample=ABS(posXY_rep[i].ry);
+//					 buff[1+buff[0]++]=lastSample/2;
+//				 }
+//				 else
+//					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
+//
+//				_DrawArrayBuffRightDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
+//				functionType=NONE_FUNC_TYPE;
+//				buff[0]=0;
+//				goto dfdfdfdfaAAAA;
+//			 }
+//		 }
+////##################################################################################################################################################################################################################
+//		 if(IS_RightUpDir0 && EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightUpDir0)){
+//			 _GetSamplesDir0(1,1);
+//			functionType = RightUpDir0;
+//		 }
+//		 else{
+//			 if(functionType == RightUpDir0){
+//				 if(IS_RightDownDir0){
+//					 lastSample=ABS(posXY_rep[i].ry);
+//					 buff[1+buff[0]++]=lastSample/2;
+//				 }
+//				 else
+//					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
+//
+//				_DrawArrayBuffRightUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
+//				functionType=NONE_FUNC_TYPE;
+//				buff[0]=0;
+//				goto dfdfdfdfaAAAA;
+//
+//			 }
+//		 }
+////##################################################################################################################################################################################################################
+//		 if(IS_RightDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownDir1)){
+//			 _GetSamplesDir1(0,1);
+//			 functionType = RightDownDir1;
+//		 }
+//		 else{
+//			 if(functionType == RightDownDir1){
+//				 if(IS_LeftDownDir1){
+//					 lastSample=ABS(posXY_rep[i].rx);
+//					 buff[1+buff[0]++]=lastSample/2;
+//				 }
+//				 else
+//					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
+//
+//				_DrawArrayBuffRightDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
+//				functionType=NONE_FUNC_TYPE;
+//				buff[0]=0;
+//				goto dfdfdfdfaAAAA;
+//			 }
+//		 }
+////##################################################################################################################################################################################################################
+//		 if(IS_RightUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDir1)){
+//			 _GetSamplesDir1(0,-1);
+//			 functionType = RightUpDir1;
+//		 }
+//		 else{
+//			 if(functionType == RightUpDir1){
+//				 if(IS_LeftUpDir1){
+//					 lastSample=ABS(posXY_rep[i].rx);
+//					 buff[1+buff[0]++]=lastSample/2;
+//				 }
+//				 else
+//					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
+//
+//				 _DrawArrayBuffRightUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
+//				 functionType=NONE_FUNC_TYPE;
+//				 buff[0]=0;
+//				 goto dfdfdfdfaAAAA;
+//			 }
+//		 }
+////##################################################################################################################################################################################################################
+//		 if(IS_LeftDownDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir0)){
+//			 _GetSamplesDir0(1,-1);
+//			 functionType = LeftDownDir0;
+//		 }
+//		 else{
+//			 if(functionType == LeftDownDir0){
+//				 if(IS_LeftUpDir0){
+//					 lastSample=ABS(posXY_rep[i].ry);
+//					 buff[1+buff[0]++]=lastSample/2;
+//				 }
+//				 else
+//					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
+//
+//				 _DrawArrayBuffLeftDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
+//				 functionType=NONE_FUNC_TYPE;
+//				 buff[0]=0;
+//				 goto dfdfdfdfaAAAA;
+//			 }
+//		 }
+////##################################################################################################################################################################################################################
+//		 if(IS_LeftUpDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir0)){
+//			 _GetSamplesDir0(1,-1);
+//			 functionType = LeftUpDir0;
+//		 }
+//		 else{
+//			 if(functionType == LeftUpDir0){
+//				 if(IS_LeftDownDir0){
+//					 lastSample=ABS(posXY_rep[i].ry);
+//					 buff[1+buff[0]++]=lastSample/2;
+//				 }
+//				 else
+//					 buff[1+buff[0]++]=ABS(posXY_rep[i].ry);
+//
+//				 _DrawArrayBuffLeftUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 0, buff);
+//				 functionType=NONE_FUNC_TYPE;
+//				 buff[0]=0;
+//				 goto dfdfdfdfaAAAA;
+//
+//			 }
+//		 }
+////##################################################################################################################################################################################################################
+//		 if(IS_LeftDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir1)){
+//			 _GetSamplesDir1(0,1);
+//			functionType = LeftDownDir1;
+//		 }
+//		 else{
+//			 if(functionType == LeftDownDir1){
+//				 if(IS_RightDownDir1){
+//					 lastSample=ABS(posXY_rep[i].rx);
+//					 buff[1+buff[0]++]=lastSample/2;
+//				 }
+//				 else
+//					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
+//
+//				 _DrawArrayBuffLeftDown2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
+//				 functionType=NONE_FUNC_TYPE;
+//				 buff[0]=0;
+//				 goto dfdfdfdfaAAAA;
+//			 }
+//		 }
+////##################################################################################################################################################################################################################
+//		 if(IS_LeftUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir1)){
+//			 _GetSamplesDir1(0,-1);
+//			 functionType = LeftUpDir1;
+//		 }
+//		 else{
+//			 if(functionType == LeftUpDir1){
+//				 if(IS_RightUpDir1){
+//					 lastSample=ABS(posXY_rep[i].rx);
+//					 buff[1+buff[0]++]=lastSample/2;
+//				 }
+//				 else
+//					 buff[1+buff[0]++]=ABS(posXY_rep[i].rx);
+//
+//				 _DrawArrayBuffLeftUp2_AA(WHITE, 0,0, 0.00,0.00, LCD_X, 1, buff);
+//				 functionType=NONE_FUNC_TYPE;
+//				 buff[0]=0;
+//				 goto dfdfdfdfaAAAA;
+//			 }
+//		 }
+//
+//
+//
+//	 }
+//
+//
+//	#undef NONE_FUNC_TYPE
+//
+//	#undef IS_RightDownDir0
+//	#undef IS_RightUpDir0
+//	#undef IS_LeftDownDir0
+//	#undef IS_LeftUpDir0
+//
+//	#undef IS_RightDownDir1
+//	#undef IS_RightUpDir1
+//	#undef IS_LeftDownDir1
+//	#undef IS_LeftUpDir1
 
 }
 
-u16 posY_prev,posY_prevEqual;
 void AAAAAAAAAAAAAA(void){
 
 
