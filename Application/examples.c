@@ -215,3 +215,8 @@ void MEMEXAMPLE_DrawLine(void)
 	vChar = vChar;
 }
 
+void LCDEXAMPLE_Graph(void)
+{
+
+}
+

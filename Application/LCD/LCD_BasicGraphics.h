@@ -27,6 +27,14 @@
 #define POS_SIZE_CIRCLEBUTTONSLIDER(p,offsX,offsY)					p.pos[0].x+(offsX), p.pos[0].y+(offsY), p.size[0].w, p.size[0].h
 #define POS_SIZE_CIRCLEBUTTONSLIDER_indirect(p,offsX,offsY)		p.pos[0].x+(offsX), p.pos[0].y+(offsY), p.size[0].w+2, p.size[0].h+2			/*	'+2' because in LCD_GradientCircleButton_Indirect() and LCD_GradientCircleSlider_Indirect() we have '+2' for 'bkSizeX' and 'bkSizeY' */
 
+#define POINTS_AMPL_STEP(p1,p2,p3)	p1,p2,p3
+#define FUNC_TYPE(func)	 func
+#define GET_BKCOLOR	 0,0
+#define OUT_IN_COLOR(out,in)	 out,in
+#define AA_ON	 0.0,0.0
+#define AA_OFF	 1.0,1.0
+#define AA_VAL(outRatio,inRatio)	 outRatio,inRatio
+
 enum CircleParam{
 	Half_Circle_0,
 	Half_Circle_90,
