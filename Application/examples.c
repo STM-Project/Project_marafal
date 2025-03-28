@@ -156,3 +156,62 @@ void LCDEXAMPLE_DrawLine(u32 COLOR_Frame, u32 COLOR_BkScreen)
 		DrawLine(0,620+i*10,350, 150, 45+i, COLOR_Frame,LCD_X, 0.0, 0.0 ,COLOR_BkScreen,COLOR_BkScreen);		/* for i=12,13,14 we don`t have yet special correct (thicker line) */
 }
 
+void MEMEXAMPLE_DrawLine(void)
+{
+	/* Common variables for all number of functions */
+	int valueToMemory = 0x55;
+	int retValue = 0;
+	int retFlag = 0;
+	int *pRetValue = NULL;
+	char *pChar = NULL;
+	char vChar = 0;
+	char strBuff[] = "example";
+	uint16_t buff16[] = {1,2,3};
+	uint32_t buff32[] = {1,2,3};
+	uint32_t lenBuff = 3;
+
+	/* 1. Functions of volatile memory */
+	retValue = FV(SetVal,0,valueToMemory);		/* retValue == valeToMemory */
+	retValue = FV(SetVal,1,valueToMemory);		/* memory number 0,1,2,..  not exceed value _FV_MEMORY_SIZE */
+	retValue = FV(SetVal,2,valueToMemory);
+
+	retValue = FV(GetVal,0,NoUse);
+	retValue = FV(GetVal,1,NoUse);
+	retValue = FV(GetVal,2,NoUse);
+	retValue = retValue;
+
+	/* 2. Functions of volatile memory */
+	pRetValue = _Int(valueToMemory);				/* address memory is auto-scroll when exceed value _BUFF_VAL_SIZE */
+	pRetValue = (int*)_Uint8((uint8_t)valueToMemory);
+	pRetValue = (int*)_Uint16((uint16_t)valueToMemory);
+	pRetValue = (int*)_Uint32((uint32_t)valueToMemory);
+	pRetValue = (int*)_Int16((int16_t)valueToMemory);
+	pRetValue = (int*)_Int32((int32_t)valueToMemory);
+	pRetValue = (int*)_Float((float)valueToMemory);
+	pRetValue = pRetValue;
+
+	/* 3. Functions of volatile memory */
+	pChar = GETVAL_ptr(0);		/* for this memory type use Semphr_sdram */
+	pChar = GETVAL_ptr(1);
+	pChar = GETVAL_ptr(2);
+	vChar = GETVAL_char(0);
+	retFlag = GETVAL_str(0, strBuff, strlen(strBuff));		/* When address memory 0,1,2,... exceeds return 1 and no-write otherwise return 0 and ok-write */
+	valueToMemory = (int)GETVAL_int16(0);
+	valueToMemory = (int)GETVAL_int32(0);
+	retFlag = GETVAL_array16(0, buff16, lenBuff);
+	retFlag = GETVAL_array32(0, buff32, lenBuff);
+
+	retFlag = SETVAL_char(0, (char)valueToMemory);
+	retFlag = SETVAL_char(1, (char)valueToMemory);
+	retFlag = SETVAL_char(2, (char)valueToMemory);
+	retFlag = SETVAL_str(0, strBuff, strlen(strBuff));
+	retFlag = SETVAL_int16(0, (uint16_t)valueToMemory);
+	retFlag = SETVAL_int32(0, (uint32_t)valueToMemory);
+	retFlag = SETVAL_array16(0, buff16, lenBuff);
+	retFlag = SETVAL_array32(0, buff32, lenBuff);
+
+	retFlag = retFlag;
+	pChar = pChar;
+	vChar = vChar;
+}
+
