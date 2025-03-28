@@ -13,4 +13,6 @@ void LCDEXAMPLE_GradientCircleButtonAndSlider(int FONT_ID_Title, int FONT_VAR_Ti
 void LCDEXAMPLE_LcdTxt(int FONT_ID_Fonts, int FONT_VAR_Fonts, u32 COLOR_FillMainFrame, u32 COLOR_Frame, u32 COLOR_BkScreen);
 void LCDEXAMPLE_DrawLine(u32 COLOR_Frame, u32 COLOR_BkScreen);
 
+void MEMEXAMPLE_DrawLine(void);
+
 #endif /* LCD_SCREENS_EXAMPLES_H_ */
