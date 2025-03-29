@@ -2393,16 +2393,31 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 }
 
 typedef enum{
-	Disp_AAon,
-	Disp_posXY,
-	Disp_posXYrep,
-}AAA;
+	Disp_no,
+	Disp_AA,
+	Disp_posXY,				 /* display posXY */
+	Disp_posXYrep = 4,	 /* display repetition redundancy of posXY */
+	Disp_all	=	Disp_AA | Disp_posXY | Disp_posXYrep
+}DISP_OPTION;
 
-int GRAPH_GetSamples(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType){
-	return GRAPH_RepetitionRedundancyOfPosXY(posXY,posXY_rep, GRAPH_GetFuncPosXY(posXY,startX,startY,nmbrPoints,amplitude,precision,funcPatternType) );
+#define DISP_OPT(flag,color1,color2,offs1,offs2)		flag,color1,color2,offs1,offs2
+#define DISP_AA	Disp_AA,0,0,0,0
+
+int GRAPH_GetSamples(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, int *pLenPosXY){
+	int len_posXY = GRAPH_GetFuncPosXY(posXY,startX,startY,nmbrPoints,amplitude,precision,funcPatternType);
+	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY,posXY_rep,len_posXY);
+	if(pLenPosXY!=NULL) *pLenPosXY=len_posXY;
+	return len_posXYrep;
 }
-void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart){
-	GRAPH_Display(0,posXY_rep, GRAPH_GetSamples(posXY_rep,startX,startY,nmbrPoints,amplitude,precision,funcPatternType), color,colorOut,colorIn, outRatioStart,inRatioStart);
+void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2)
+{
+	int len_posXY = 0;
+	int len_posXYrep = GRAPH_GetSamples(posXY_rep,startX,startY,nmbrPoints,amplitude,precision,funcPatternType,&len_posXY);
+
+	if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY(offsK1,posXY,len_posXY,color1);
+	if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_rep, len_posXYrep, color2);
+	if((int)dispOption&Disp_AA)		 GRAPH_Display(0,posXY_rep, len_posXYrep, color,colorOut,colorIn, outRatioStart,inRatioStart);
 }
 
 void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
@@ -2421,10 +2436,10 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 	 //DbgVar(1,50,"\r\nXXXXXXXX:: %d   %d ",len_posXY,len_posXYrep);
 
 
-	 GRAPH_GetSamplesAndDraw(posXY_rep, XY(250,270), POINTS_AMPL_STEP(470,80,1.0), FUNC_TYPE(0), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0));
+	 GRAPH_GetSamplesAndDraw(posXY_rep, XY(250,270), POINTS_AMPL_STEP(470,80,1.0), FUNC_TYPE(0), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DISP_OPT(Disp_all, RED,WHITE, 20*LCD_X+0, 40*LCD_X+0) );
 
-	 GRAPH_DispPosXY	 (20*LCD_X-0, posXY, 	 len_posXY,		WHITE);
-	 GRAPH_DispPosXYrep(40*LCD_X-0, posXY_rep, len_posXYrep, RED);
+//	 GRAPH_DispPosXY	 (20*LCD_X-0, posXY, 	 len_posXY,		WHITE);
+//	 GRAPH_DispPosXYrep(40*LCD_X-0, posXY_rep, len_posXYrep, RED);
 
 
 }
