@@ -1913,7 +1913,6 @@ typedef enum{
 	LeftDownDir1,
 	Equal
 }CHART_EEE;
-int j=0;
 
 
 
@@ -1926,6 +1925,13 @@ typedef struct{
 
 static structPosition posXY[MAX_SIZE_POSXY]={0};
 static structRepPos posXY_rep[MAX_SIZE_POSXY]={0};		/* Buffer for repetition redundancy of positions x,y */
+
+static void GRAPH_ClearPosXY(structPosition posXY[]){
+	for(int i=0;i<MAX_SIZE_POSXY;i++){ posXY[i].x=0; posXY[i].y=0; }
+}
+static void GRAPH_ClearPosXYrep(structRepPos posXY_rep[]){
+	for(int i=0;i<MAX_SIZE_POSXY;i++){ posXY_rep[i].x=0; posXY_rep[i].y=0; 	posXY_rep[i].rx=0; posXY_rep[i].ry=0; }
+}
 
 static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 	switch(funcPatternType){
@@ -2403,7 +2409,10 @@ typedef enum{
 #define DISP_OPT(flag,color1,color2,offs1,offs2)		flag,color1,color2,offs1,offs2
 #define DISP_AA	Disp_AA,0,0,0,0
 
-int GRAPH_GetSamples(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, int *pLenPosXY){
+int GRAPH_GetSamples(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, int *pLenPosXY)
+{
+	GRAPH_ClearPosXY(posXY);
+	GRAPH_ClearPosXYrep(posXY_rep);
 	int len_posXY = GRAPH_GetFuncPosXY(posXY,startX,startY,nmbrPoints,amplitude,precision,funcPatternType);
 	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY,posXY_rep,len_posXY);
 	if(pLenPosXY!=NULL) *pLenPosXY=len_posXY;
@@ -2436,7 +2445,7 @@ void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 	 //DbgVar(1,50,"\r\nXXXXXXXX:: %d   %d ",len_posXY,len_posXYrep);
 
 
-	 GRAPH_GetSamplesAndDraw(posXY_rep, XY(250,270), POINTS_AMPL_STEP(470,80,1.0), FUNC_TYPE(0), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DISP_OPT(Disp_all, RED,WHITE, 20*LCD_X+0, 40*LCD_X+0) );
+	 GRAPH_GetSamplesAndDraw(posXY_rep, XY(50,270), POINTS_AMPL_STEP(670,50,1.0), FUNC_TYPE(0), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DISP_OPT(Disp_all, RED,WHITE, 20*LCD_X+0, 40*LCD_X+0) );
 
 //	 GRAPH_DispPosXY	 (20*LCD_X-0, posXY, 	 len_posXY,		WHITE);
 //	 GRAPH_DispPosXYrep(40*LCD_X-0, posXY_rep, len_posXYrep, RED);
