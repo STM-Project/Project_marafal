@@ -156,7 +156,7 @@ void LCDEXAMPLE_DrawLine(u32 COLOR_Frame, u32 COLOR_BkScreen)
 		DrawLine(0,620+i*10,350, 150, 45+i, COLOR_Frame,LCD_X, 0.0, 0.0 ,COLOR_BkScreen,COLOR_BkScreen);		/* for i=12,13,14 we don`t have yet special correct (thicker line) */
 }
 
-void MEMEXAMPLE_DrawLine(void)
+void MEMEXAMPLE_MemoryFunc(void)
 {
 	/* Common variables for all number of functions */
 	int valueToMemory = 0x55;

@@ -29,6 +29,7 @@
 
 #define POINTS_AMPL_STEP(p1,p2,p3)	p1,p2,p3
 #define FUNC_TYPE(func)	 func
+#define SET_COLOR(line,outBk,inBk)	 line,outBk,inBk
 #define GET_BKCOLOR	 0,0
 #define OUT_IN_COLOR(out,in)	 out,in
 #define AA_ON	 0.0,0.0

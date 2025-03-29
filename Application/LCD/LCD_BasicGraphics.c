@@ -1994,9 +1994,9 @@ static int GRAPH_GetFuncPosXY(structPosition posXY[], int startX, int startY, in
 	return n;
 }
 
-static void GRAPH_DispPosXY(structPosition posXY[], int numberOfPoints, u32 color){
+static void GRAPH_DispPosXY(int offs_k, structPosition posXY[], int numberOfPoints, u32 color){
 	LOOP_FOR(i,numberOfPoints){
-		pLcd[0 + posXY[i].y * LCD_X + posXY[i].x] = color;
+		pLcd[offs_k + posXY[i].y * LCD_X + posXY[i].x] = color;
 }}
 
 static int GRAPH_RepetitionRedundancyOfPosXY(structPosition posXY[], structRepPos posXY_rep[], int nmbrPoints)
@@ -2392,25 +2392,39 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 	#undef IS_LeftUpDir1
 }
 
-void GRAPH_GetSamples(void){
+typedef enum{
+	Disp_AAon,
+	Disp_posXY,
+	Disp_posXYrep,
+}AAA;
 
+int GRAPH_GetSamples(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType){
+	return GRAPH_RepetitionRedundancyOfPosXY(posXY,posXY_rep, GRAPH_GetFuncPosXY(posXY,startX,startY,nmbrPoints,amplitude,precision,funcPatternType) );
+}
+void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart){
+	GRAPH_Display(0,posXY_rep, GRAPH_GetSamples(posXY_rep,startX,startY,nmbrPoints,amplitude,precision,funcPatternType), color,colorOut,colorIn, outRatioStart,inRatioStart);
 }
 
 void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
 {
-	int len_posXY = GRAPH_GetFuncPosXY(posXY, XY(250,270), POINTS_AMPL_STEP(470,80,1.0), FUNC_TYPE(0));
+//	int len_posXY = GRAPH_GetFuncPosXY(posXY, XY(250,270), POINTS_AMPL_STEP(470,80,1.0), FUNC_TYPE(0));
+//
+//	GRAPH_DispPosXY(posXY,len_posXY,WHITE);
+//
+//	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY, posXY_rep, len_posXY);
+//
+//	GRAPH_DispPosXYrep(20*LCD_X-0, posXY_rep, len_posXYrep, RED);
+//
+//	GRAPH_Display(40*LCD_X-0, posXY_rep, len_posXYrep, WHITE, GET_BKCOLOR, AA_ON);
 
-	GRAPH_DispPosXY(posXY,len_posXY,WHITE);
 
-	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY, posXY_rep, len_posXY);
-
-	GRAPH_DispPosXYrep(20*LCD_X-0, posXY_rep, len_posXYrep, RED);
-
-	GRAPH_Display(40*LCD_X-0, posXY_rep, len_posXYrep, WHITE, GET_BKCOLOR, AA_ON);
+	 //DbgVar(1,50,"\r\nXXXXXXXX:: %d   %d ",len_posXY,len_posXYrep);
 
 
-	 DbgVar(1,50,"\r\nXXXXXXXX:: %d   %d ",len_posXY,len_posXYrep);
+	 GRAPH_GetSamplesAndDraw(posXY_rep, XY(250,270), POINTS_AMPL_STEP(470,80,1.0), FUNC_TYPE(0), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0));
 
+	 GRAPH_DispPosXY	 (20*LCD_X-0, posXY, 	 len_posXY,		WHITE);
+	 GRAPH_DispPosXYrep(40*LCD_X-0, posXY_rep, len_posXYrep, RED);
 
 
 }
