@@ -25,6 +25,20 @@
 #define _IS_NOT_PXL(i,color1,color2,color3,color4)		(pLcd[i]!=color1 && pLcd[i]!=color2 && pLcd[i]!=color3 && pLcd[i]!=color4)
 #define _IS_NEXT_PXL(bkX,i,color)	(pLcd[(i)+1]==color || pLcd[(i)-1]==color || pLcd[(i)+bkX]==color || pLcd[(i)-bkX]==color || pLcd[(i)+bkX+1]==color || pLcd[(i)+bkX-1]==color || pLcd[(i)-bkX+1]==color || pLcd[(i)-bkX-1]==color)
 
+#define GRAPH_MAX_SIZE_POSXY	10000
+
+typedef enum{
+	RightUpDir1,
+	RightUpDir0,
+	RightDownDir0,
+	RightDownDir1,
+	LeftUpDir1,
+	LeftUpDir0,
+	LeftDownDir0,
+	LeftDownDir1,
+	Equal
+}CHART_EEE;
+
 ALIGN_32BYTES(uint32_t pLcd[LCD_BUFF_XSIZE*LCD_BUFF_YSIZE] __attribute__ ((section(".sdram"))));
 
 static uint32_t k, kCopy;
@@ -36,9 +50,6 @@ typedef struct
 {	float c1;
 	float c2;
 }AACoeff_RoundFrameRectangle;
-static AACoeff_RoundFrameRectangle AA;
-
-static uint8_t correctLine_AA=0;
 
 typedef struct
 {	uint8_t lineBuff[MAX_LINE_BUFF_CIRCLE_SIZE];
@@ -59,7 +70,13 @@ typedef struct
 	uint16_t correctPercDeg[2];
 	float errorDecision[2];
 }Circle_Param;
+
+static AACoeff_RoundFrameRectangle AA;
+static uint8_t correctLine_AA=0;
 static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .errorDecision= {0.1, 0.4}};
+
+static structPosition posXY[GRAPH_MAX_SIZE_POSXY]={0};
+structRepPos posXY_rep[GRAPH_MAX_SIZE_POSXY]={0};		/* Buffer for repetition redundancy of positions x,y */
 
 uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
 uint16_t* GET_CIRCLE_correctPercDeg(int nr){	return &Circle.correctPercDeg[nr]; }
@@ -1897,574 +1914,6 @@ static void _DrawArrayBuffLeftUp2_AA(uint32_t drawColor, uint32_t outColor, uint
 	}
 }
 
-
-
-
-
-
-typedef enum{
-	RightUpDir1,
-	RightUpDir0,
-	RightDownDir0,
-	RightDownDir1,
-	LeftUpDir1,
-	LeftUpDir0,
-	LeftDownDir0,
-	LeftDownDir1,
-	Equal
-}CHART_EEE;
-
-
-
-typedef struct{
-	u16 x,y;
-	int rx,ry;
-}structRepPos;
-
-#define MAX_SIZE_POSXY	1300
-
-static structPosition posXY[MAX_SIZE_POSXY]={0};
-static structRepPos posXY_rep[MAX_SIZE_POSXY]={0};		/* Buffer for repetition redundancy of positions x,y */
-
-static void GRAPH_ClearPosXY(structPosition posXY[]){
-	for(int i=0;i<MAX_SIZE_POSXY;i++){ posXY[i].x=0; posXY[i].y=0; }
-}
-static void GRAPH_ClearPosXYrep(structRepPos posXY_rep[]){
-	for(int i=0;i<MAX_SIZE_POSXY;i++){ posXY_rep[i].x=0; posXY_rep[i].y=0; 	posXY_rep[i].rx=0; posXY_rep[i].ry=0; }
-}
-
-static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
-	switch(funcPatternType){
-		case 0:
-			return sin(TANG_ARG(posX));
-		case 1:
-			return cos(TANG_ARG(posX));
-		default:
-			return 0;
-}}
-
-static int GRAPH_GetFuncPosXY(structPosition posXY[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType)
-{
-	structPosition posXY_prev={0};
-	int temp_x, temp_y, diff_Y, delta, n=0;
-	double funcVal;
-
-	posXY[n].x = startX;
-	posXY[n].y = startY;
-	posXY_prev.x = posXY[n].x;
-	posXY_prev.y = posXY[n].y;
-	n++;
-
-	LOOP_FOR2(i,nmbrPoints,precision)
-	{
-		funcVal = amplitude * GRAPH_GetFuncPosY(0,i);
-		temp_x = posXY[0].x + (int)i;
-		temp_y = posXY[0].y + (int)funcVal;
-
-		if(posXY_prev.x != temp_x)
-		{
-			if(temp_y > posXY_prev.y +1)
-			{
-				delta = temp_y - (posXY_prev.y +1);
-				diff_Y=0;
-				while(1){
-					posXY[n].x = temp_x;
-					posXY[n].y = diff_Y + (posXY_prev.y +1);
-					n++;
-					if(n > MAX_SIZE_POSXY-1) return n;
-					delta--; diff_Y++;
-					if(delta==0) break;
-				}
-			}
-			else if(temp_y < posXY_prev.y -1)
-			{
-				delta = (posXY_prev.y -1) - temp_y;
-				diff_Y=0;
-				while(1){
-					posXY[n].x = temp_x;
-					posXY[n].y = (posXY_prev.y -1) - diff_Y;
-					n++;
-					if(n > MAX_SIZE_POSXY-1) return n;
-					delta--; diff_Y++;
-					if(delta==0) break;
-				}
-			}
-			posXY[n].x = temp_x;
-			posXY[n].y = temp_y;
-			posXY_prev.x = temp_x;
-			posXY_prev.y = temp_y;
-			n++;
-			if(n > MAX_SIZE_POSXY-1) return n;
-		}
-	}
-	return n;
-}
-
-static void GRAPH_DispPosXY(int offs_k, structPosition posXY[], int numberOfPoints, u32 color){
-	LOOP_FOR(i,numberOfPoints){
-		pLcd[offs_k + posXY[i].y * LCD_X + posXY[i].x] = color;
-}}
-
-static int GRAPH_RepetitionRedundancyOfPosXY(structPosition posXY[], structRepPos posXY_rep[], int nmbrPoints)
-{
-	int j=0,i,prevState=0;
-
-	for(i=0; i<nmbrPoints-1; ++i)
-	{
-		if(prevState==1)
-		{
-			if(posXY[i].x+1==posXY[i+1].x && posXY[i].y==posXY[i+1].y);
-			else{
-				posXY_rep[j].rx=0;
-				posXY_rep[j].ry++;
-				prevState=0;
-				j++;   goto TempEnd_RepetitionRedundancy;
-			}
-		}
-		else if(prevState==2)
-		{
-			if(posXY[i].x-1==posXY[i+1].x && posXY[i].y==posXY[i+1].y);
-			else{
-				posXY_rep[j].rx=0;
-				posXY_rep[j].ry--;
-				prevState=0;
-				j++;   goto TempEnd_RepetitionRedundancy;
-			}
-		}
-		else if(prevState==3)
-		{
-			if(posXY[i].y+1==posXY[i+1].y && posXY[i].x==posXY[i+1].x);
-			else{
-				posXY_rep[j].rx++;
-				posXY_rep[j].ry=0;
-				prevState=0;
-				j++;   goto TempEnd_RepetitionRedundancy;
-			}
-		}
-		else if(prevState==4)
-		{
-			if(posXY[i].y-1==posXY[i+1].y && posXY[i].x==posXY[i+1].x);
-			else{
-				posXY_rep[j].rx--;
-				posXY_rep[j].ry=0;
-				prevState=0;
-				j++;   goto TempEnd_RepetitionRedundancy;
-			}
-		}
-
-		if(posXY[i].x+1==posXY[i+1].x && posXY[i].y==posXY[i+1].y)
-		{
-			if(prevState==0){
-				prevState=1;
-				posXY_rep[j].x = posXY[i].x;
-				posXY_rep[j].y = posXY[i].y;
-			}
-			posXY_rep[j].ry++;
-		}
-		else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y==posXY[i+1].y)
-		{
-			if(prevState==0){
-				prevState=2;
-				posXY_rep[j].x = posXY[i].x;
-				posXY_rep[j].y = posXY[i].y;
-			}
-			posXY_rep[j].ry--;
-		}
-		else if(posXY[i].y+1==posXY[i+1].y && posXY[i].x==posXY[i+1].x)
-		{
-			if(prevState==0){
-				prevState=3;
-				posXY_rep[j].x = posXY[i].x;
-				posXY_rep[j].y = posXY[i].y;
-			}
-			posXY_rep[j].rx++;
-		}
-		else if(posXY[i].y-1==posXY[i+1].y && posXY[i].x==posXY[i+1].x)
-		{
-			if(prevState==0){
-				prevState=4;
-				posXY_rep[j].x = posXY[i].x;
-				posXY_rep[j].y = posXY[i].y;
-			}
-			posXY_rep[j].rx--;
-		}
-		else if(posXY[i].x+1==posXY[i+1].x && posXY[i].y+1==posXY[i+1].y)
-		{
-			posXY_rep[j].x = posXY[i].x;
-			posXY_rep[j].y = posXY[i].y;
-			posXY_rep[j].rx = 1;
-			posXY_rep[j].ry = 1;
-			j++;
-		}
-		else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y+1==posXY[i+1].y)
-		{
-			posXY_rep[j].x = posXY[i].x;
-			posXY_rep[j].y = posXY[i].y;
-			posXY_rep[j].rx = 1;
-			posXY_rep[j].ry = -1;
-			j++;
-		}
-		else if(posXY[i].x+1==posXY[i+1].x && posXY[i].y-1==posXY[i+1].y)
-		{
-			posXY_rep[j].x = posXY[i].x;
-			posXY_rep[j].y = posXY[i].y;
-			posXY_rep[j].rx = -1;
-			posXY_rep[j].ry = 1;
-			j++;
-		}
-		else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y-1==posXY[i+1].y)
-		{
-			posXY_rep[j].x = posXY[i].x;
-			posXY_rep[j].y = posXY[i].y;
-			posXY_rep[j].rx = -1;
-			posXY_rep[j].ry = -1;
-			j++;
-		}
-		else
-		{
-			posXY_rep[j].x = posXY[i].x; 		/* here it is never ? */
-			posXY_rep[j].y = posXY[i].y;
-			posXY_rep[j].rx = 0;
-			posXY_rep[j].ry = 0;
-			j++;
-		}
-
-		TempEnd_RepetitionRedundancy:
-		__NOP();
-	}
-
-	posXY_rep[j].x = posXY[i].x;
-	posXY_rep[j].y = posXY[i].y;
-	posXY_rep[j].rx = 1;
-	posXY_rep[j].ry = 1;
-	j++;
-
-	return j;
-}
-
-static void GRAPH_DispPosXYrep(int offs_k, structRepPos posXY_rep[], int lenStruct, u32 color){
-	LOOP_FOR(a,lenStruct){
-		if(posXY_rep[a].ry!=0){
-			LOOP_FOR(b,ABS(posXY_rep[a].ry)){
-				if(posXY_rep[a].ry > 0)	 pLcd[offs_k + posXY_rep[a].y*LCD_X + posXY_rep[a].x + b]=color;
-				else							 pLcd[offs_k + posXY_rep[a].y*LCD_X + posXY_rep[a].x - b]=color;
-		}}
-		else if(posXY_rep[a].rx!=0){
-			LOOP_FOR(b,ABS(posXY_rep[a].rx)){
-				if(posXY_rep[a].rx > 0)	 pLcd[offs_k + (posXY_rep[a].y+b)*LCD_X + posXY_rep[a].x]=color;
-				else							 pLcd[offs_k + (posXY_rep[a].y-b)*LCD_X + posXY_rep[a].x]=color;
-		}}
-		else{
-			if(posXY_rep[a].ry==0 && posXY_rep[a].rx==0){
-				pLcd[offs_k + posXY_rep[a].y*LCD_X + posXY_rep[a].x]=color;
-		}}
-}}
-
-static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart)
-{
-	#define NONE_FUNC_TYPE	100
-	#define MAX_SIZE_BUFF	300
-
-	#define IS_RightDownDir0		(pos[i].x+ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y+1==pos[i+1].y)
-	#define IS_RightUpDir0			(pos[i].x+ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y-1==pos[i+1].y)
-	#define IS_LeftDownDir0			(pos[i].x-ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y+1==pos[i+1].y)
-	#define IS_LeftUpDir0			(pos[i].x-ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y-1==pos[i+1].y)
-
-	#define IS_RightDownDir1		(pos[i].y+ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
-	#define IS_RightUpDir1			(pos[i].y-ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
-	#define IS_LeftDownDir1			(pos[i].y+ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
-	#define IS_LeftUpDir1			(pos[i].y-ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
-
-	u8 buff[MAX_SIZE_BUFF]={0};
-	u8 functionType = NONE_FUNC_TYPE;
-	u8 lastSample = 0;
-	int i;
-
-	void _GetSamplesDir0(int dir, int sign){
-		if(lastSample){
-			if(lastSample%2==0){
-				buff[1+buff[0]++]=lastSample/2;
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
-			}
-			else{
-				buff[1+buff[0]++]=lastSample/2+1;
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
-			}
-		}
-		else{
-			if(dir) buff[1+buff[0]++]=ABS(pos[i].ry);
-			else    buff[1+buff[0]++]=ABS(pos[i].rx);
-			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y); }
-		}
-		lastSample=0;
-	}
-
-	void _GetSamplesDir1(int dir, int sign){
-		if(lastSample){
-			if(lastSample%2==0){
-				buff[1+buff[0]++]=lastSample/2;
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*LCD_X*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
-			}
-			else{
-				buff[1+buff[0]++]=lastSample/2+1;
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*LCD_X*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
-			}
-		}
-		else{
-			if(dir) buff[1+buff[0]++]=ABS(pos[i].ry);
-			else    buff[1+buff[0]++]=ABS(pos[i].rx);
-			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y); }
-		}
-		lastSample=0;
-	}
-
-	buff[0]=0;
-	for(i=0; i<lenStruct; ++i)
-	{
-		TempEnd_Display:
-
-		if(IS_RightDownDir0	&& EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightDownDir0)){
-			_GetSamplesDir0(1,1);
-			functionType = RightDownDir0;
-		}
-		else{
-			if(functionType == RightDownDir0){
-				if(IS_RightUpDir0){
-					lastSample=ABS(pos[i].ry);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].ry);
-
-				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_RightUpDir0 && EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightUpDir0)){
-			_GetSamplesDir0(1,1);
-			functionType = RightUpDir0;
-		}
-		else{
-			if(functionType == RightUpDir0){
-				if(IS_RightDownDir0){
-					lastSample=ABS(pos[i].ry);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].ry);
-
-				_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_RightDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownDir1)){
-			_GetSamplesDir1(0,1);
-			functionType = RightDownDir1;
-		}
-		else{
-			if(functionType == RightDownDir1){
-				if(IS_LeftDownDir1){
-					lastSample=ABS(pos[i].rx);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].rx);
-
-				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_RightUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDir1)){
-			_GetSamplesDir1(0,-1);
-			functionType = RightUpDir1;
-		}
-		else{
-			if(functionType == RightUpDir1){
-				if(IS_LeftUpDir1){
-					lastSample=ABS(pos[i].rx);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].rx);
-
-				_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_LeftDownDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir0)){
-			_GetSamplesDir0(1,-1);
-			functionType = LeftDownDir0;
-		}
-		else{
-			if(functionType == LeftDownDir0){
-				if(IS_LeftUpDir0){
-					lastSample=ABS(pos[i].ry);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].ry);
-
-				_DrawArrayBuffLeftDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_LeftUpDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir0)){
-			_GetSamplesDir0(1,-1);
-			functionType = LeftUpDir0;
-		}
-		else{
-			if(functionType == LeftUpDir0){
-				if(IS_LeftDownDir0){
-					lastSample=ABS(pos[i].ry);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].ry);
-
-				_DrawArrayBuffLeftUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_LeftDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir1)){
-			_GetSamplesDir1(0,1);
-			functionType = LeftDownDir1;
-		}
-		else{
-			if(functionType == LeftDownDir1){
-				if(IS_RightDownDir1){
-					lastSample=ABS(pos[i].rx);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].rx);
-
-				_DrawArrayBuffLeftDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_LeftUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir1)){
-			_GetSamplesDir1(0,-1);
-			functionType = LeftUpDir1;
-		}
-		else{
-			if(functionType == LeftUpDir1){
-				if(IS_RightUpDir1){
-					lastSample=ABS(pos[i].rx);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].rx);
-
-				_DrawArrayBuffLeftUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-		if(buff[0]>=MAX_SIZE_BUFF-1) return;
-	}
-
-	#undef NONE_FUNC_TYPE
-
-	#undef IS_RightDownDir0
-	#undef IS_RightUpDir0
-	#undef IS_LeftDownDir0
-	#undef IS_LeftUpDir0
-
-	#undef IS_RightDownDir1
-	#undef IS_RightUpDir1
-	#undef IS_LeftDownDir1
-	#undef IS_LeftUpDir1
-}
-
-typedef enum{
-	Disp_no,
-	Disp_AA,
-	Disp_posXY,				 /* display posXY */
-	Disp_posXYrep = 4,	 /* display repetition redundancy of posXY */
-	Disp_all	=	Disp_AA | Disp_posXY | Disp_posXYrep
-}DISP_OPTION;
-
-#define DISP_OPT(flag,color1,color2,offs1,offs2)		flag,color1,color2,offs1,offs2
-#define DISP_AA	Disp_AA,0,0,0,0
-
-int GRAPH_GetSamples(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, int *pLenPosXY)
-{
-	GRAPH_ClearPosXY(posXY);
-	GRAPH_ClearPosXYrep(posXY_rep);
-	int len_posXY = GRAPH_GetFuncPosXY(posXY,startX,startY,nmbrPoints,amplitude,precision,funcPatternType);
-	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY,posXY_rep,len_posXY);
-	if(pLenPosXY!=NULL) *pLenPosXY=len_posXY;
-	return len_posXYrep;
-}
-void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
-										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2)
-{
-	int len_posXY = 0;
-	int len_posXYrep = GRAPH_GetSamples(posXY_rep,startX,startY,nmbrPoints,amplitude,precision,funcPatternType,&len_posXY);
-
-	if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY(offsK1,posXY,len_posXY,color1);
-	if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_rep, len_posXYrep, color2);
-	if((int)dispOption&Disp_AA)		 GRAPH_Display(0,posXY_rep, len_posXYrep, color,colorOut,colorIn, outRatioStart,inRatioStart);
-}
-
-void BBBBBBBBBBBBBBBBBBBBBBBBB(void)
-{
-//	int len_posXY = GRAPH_GetFuncPosXY(posXY, XY(250,270), POINTS_AMPL_STEP(470,80,1.0), FUNC_TYPE(0));
-//
-//	GRAPH_DispPosXY(posXY,len_posXY,WHITE);
-//
-//	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY, posXY_rep, len_posXY);
-//
-//	GRAPH_DispPosXYrep(20*LCD_X-0, posXY_rep, len_posXYrep, RED);
-//
-//	GRAPH_Display(40*LCD_X-0, posXY_rep, len_posXYrep, WHITE, GET_BKCOLOR, AA_ON);
-
-
-	 //DbgVar(1,50,"\r\nXXXXXXXX:: %d   %d ",len_posXY,len_posXYrep);
-
-
-	 GRAPH_GetSamplesAndDraw(posXY_rep, XY(50,270), POINTS_AMPL_STEP(670,50,1.0), FUNC_TYPE(0), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DISP_OPT(Disp_all, RED,WHITE, 20*LCD_X+0, 40*LCD_X+0) );
-
-//	 GRAPH_DispPosXY	 (20*LCD_X-0, posXY, 	 len_posXY,		WHITE);
-//	 GRAPH_DispPosXYrep(40*LCD_X-0, posXY_rep, len_posXYrep, RED);
-
-
-}
-
-void AAAAAAAAAAAAAA(void){
-
-
-
-	BBBBBBBBBBBBBBBBBBBBBBBBB();
-
-
-
-
-
-}
-
 static void _DrawArrayBuffRightDown_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2, i_prev;
@@ -3461,6 +2910,495 @@ static int LCD_CIRCLE_GetDegFromPosXY(int x,int y, int x0,int y0)
 
 static int LCD_CIRCLE_GetRadiusFromPosXY(int x,int y, int x0,int y0){
 	return sqrt(ABS((x-x0)*(x-x0)) + ABS((y-y0)*(y-y0)));
+}
+
+
+static void GRAPH_ClearPosXY(structPosition posXY[]){
+	for(int i=0;i<GRAPH_MAX_SIZE_POSXY;i++){ posXY[i].x=0; posXY[i].y=0; }
+}
+static void GRAPH_ClearPosXYrep(structRepPos posXY_rep[]){
+	for(int i=0;i<GRAPH_MAX_SIZE_POSXY;i++){ posXY_rep[i].x=0; posXY_rep[i].y=0; 	posXY_rep[i].rx=0; posXY_rep[i].ry=0; }
+}
+
+static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
+	switch(funcPatternType){
+		case 0:
+			return sin(TANG_ARG(posX));
+		case 1:
+			return cos(TANG_ARG(posX));
+		case 2:
+			return (posX/15);
+		case 3:
+			return (sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX)));
+		case 4:
+			return (sin(TANG_ARG(posX))+0.3*sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX))+0.2*cos(20*TANG_ARG(posX)));
+		case 5:
+			return log((sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX))));
+		default:
+			return 0;
+}}
+
+static int GRAPH_GetFuncPosXY(structPosition posXY[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType)
+{
+	structPosition posXY_prev={0};
+	int temp_x, temp_y, diff_Y, delta, n=0;
+	double funcVal;
+
+	posXY[n].x = startX;
+	posXY[n].y = startY;
+	posXY_prev.x = posXY[n].x;
+	posXY_prev.y = posXY[n].y;
+	n++;
+
+	LOOP_FOR2(i,nmbrPoints,precision)
+	{
+		funcVal = amplitude * GRAPH_GetFuncPosY(funcPatternType,i);
+		funcVal *=-1;
+
+		 //define dla zakresu automatycznego !!!!!!!
+		if(funcVal > 150) funcVal=150; else if(funcVal < -150) funcVal=-150;
+
+
+
+		temp_x = posXY[0].x + (int)i;
+		temp_y = posXY[0].y + (int)funcVal;
+
+		if(posXY_prev.x != temp_x)
+		{
+			if(temp_y > posXY_prev.y +1)
+			{
+				delta = temp_y - (posXY_prev.y +1);
+				diff_Y=0;
+				while(1){
+					posXY[n].x = temp_x;
+					posXY[n].y = diff_Y + (posXY_prev.y +1);
+					n++;
+					if(n >= GRAPH_MAX_SIZE_POSXY-1) return n;
+					delta--; diff_Y++;
+					if(delta==0) break;
+				}
+			}
+			else if(temp_y < posXY_prev.y -1)
+			{
+				delta = (posXY_prev.y -1) - temp_y;
+				diff_Y=0;
+				while(1){
+					posXY[n].x = temp_x;
+					posXY[n].y = (posXY_prev.y -1) - diff_Y;
+					n++;
+					if(n >= GRAPH_MAX_SIZE_POSXY-1) return n;
+					delta--; diff_Y++;
+					if(delta==0) break;
+				}
+			}
+			posXY[n].x = temp_x;
+			posXY[n].y = temp_y;
+			posXY_prev.x = temp_x;
+			posXY_prev.y = temp_y;
+			n++;
+			if(n >= GRAPH_MAX_SIZE_POSXY-1) return n;
+		}
+	}
+	return n;
+}
+
+static void GRAPH_DispPosXY(int offs_k, structPosition posXY[], int numberOfPoints, u32 color){
+	LOOP_FOR(i,numberOfPoints){
+		pLcd[offs_k + posXY[i].y * LCD_X + posXY[i].x] = color;
+}}
+
+static int GRAPH_RepetitionRedundancyOfPosXY(structPosition posXY[], structRepPos posXY_rep[], int nmbrPoints)
+{
+	int j=0,i,prevState=0;
+
+	for(i=0; i<nmbrPoints-1; ++i)
+	{
+		if(prevState==1)
+		{
+			if(posXY[i].x+1==posXY[i+1].x && posXY[i].y==posXY[i+1].y);
+			else{
+				posXY_rep[j].rx=0;
+				posXY_rep[j].ry++;
+				prevState=0;
+				j++;   goto TempEnd_RepetitionRedundancy;
+			}
+		}
+		else if(prevState==2)
+		{
+			if(posXY[i].x-1==posXY[i+1].x && posXY[i].y==posXY[i+1].y);
+			else{
+				posXY_rep[j].rx=0;
+				posXY_rep[j].ry--;
+				prevState=0;
+				j++;   goto TempEnd_RepetitionRedundancy;
+			}
+		}
+		else if(prevState==3)
+		{
+			if(posXY[i].y+1==posXY[i+1].y && posXY[i].x==posXY[i+1].x);
+			else{
+				posXY_rep[j].rx++;
+				posXY_rep[j].ry=0;
+				prevState=0;
+				j++;   goto TempEnd_RepetitionRedundancy;
+			}
+		}
+		else if(prevState==4)
+		{
+			if(posXY[i].y-1==posXY[i+1].y && posXY[i].x==posXY[i+1].x);
+			else{
+				posXY_rep[j].rx--;
+				posXY_rep[j].ry=0;
+				prevState=0;
+				j++;   goto TempEnd_RepetitionRedundancy;
+			}
+		}
+
+		if(posXY[i].x+1==posXY[i+1].x && posXY[i].y==posXY[i+1].y)
+		{
+			if(prevState==0){
+				prevState=1;
+				posXY_rep[j].x = posXY[i].x;
+				posXY_rep[j].y = posXY[i].y;
+			}
+			posXY_rep[j].ry++;
+		}
+		else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y==posXY[i+1].y)
+		{
+			if(prevState==0){
+				prevState=2;
+				posXY_rep[j].x = posXY[i].x;
+				posXY_rep[j].y = posXY[i].y;
+			}
+			posXY_rep[j].ry--;
+		}
+		else if(posXY[i].y+1==posXY[i+1].y && posXY[i].x==posXY[i+1].x)
+		{
+			if(prevState==0){
+				prevState=3;
+				posXY_rep[j].x = posXY[i].x;
+				posXY_rep[j].y = posXY[i].y;
+			}
+			posXY_rep[j].rx++;
+		}
+		else if(posXY[i].y-1==posXY[i+1].y && posXY[i].x==posXY[i+1].x)
+		{
+			if(prevState==0){
+				prevState=4;
+				posXY_rep[j].x = posXY[i].x;
+				posXY_rep[j].y = posXY[i].y;
+			}
+			posXY_rep[j].rx--;
+		}
+		else if(posXY[i].x+1==posXY[i+1].x && posXY[i].y+1==posXY[i+1].y)
+		{
+			posXY_rep[j].x = posXY[i].x;
+			posXY_rep[j].y = posXY[i].y;
+			posXY_rep[j].rx = 1;
+			posXY_rep[j].ry = 1;
+			j++;
+		}
+		else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y+1==posXY[i+1].y)
+		{
+			posXY_rep[j].x = posXY[i].x;
+			posXY_rep[j].y = posXY[i].y;
+			posXY_rep[j].rx = 1;
+			posXY_rep[j].ry = -1;
+			j++;
+		}
+		else if(posXY[i].x+1==posXY[i+1].x && posXY[i].y-1==posXY[i+1].y)
+		{
+			posXY_rep[j].x = posXY[i].x;
+			posXY_rep[j].y = posXY[i].y;
+			posXY_rep[j].rx = -1;
+			posXY_rep[j].ry = 1;
+			j++;
+		}
+		else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y-1==posXY[i+1].y)
+		{
+			posXY_rep[j].x = posXY[i].x;
+			posXY_rep[j].y = posXY[i].y;
+			posXY_rep[j].rx = -1;
+			posXY_rep[j].ry = -1;
+			j++;
+		}
+		else
+		{
+			posXY_rep[j].x = posXY[i].x; 		/* here it is never ? */
+			posXY_rep[j].y = posXY[i].y;
+			posXY_rep[j].rx = 0;
+			posXY_rep[j].ry = 0;
+			j++;
+		}
+
+		TempEnd_RepetitionRedundancy:
+		if(j>=GRAPH_MAX_SIZE_POSXY-1) return j;
+	}
+
+	posXY_rep[j].x = posXY[i].x;
+	posXY_rep[j].y = posXY[i].y;
+	posXY_rep[j].rx = 1;
+	posXY_rep[j].ry = 1;
+	j++;
+
+	return j;
+}
+
+static void GRAPH_DispPosXYrep(int offs_k, structRepPos posXY_rep[], int lenStruct, u32 color){
+	LOOP_FOR(a,lenStruct){
+		if(posXY_rep[a].ry!=0){
+			LOOP_FOR(b,ABS(posXY_rep[a].ry)){
+				if(posXY_rep[a].ry > 0)	 pLcd[offs_k + posXY_rep[a].y*LCD_X + posXY_rep[a].x + b]=color;
+				else							 pLcd[offs_k + posXY_rep[a].y*LCD_X + posXY_rep[a].x - b]=color;
+		}}
+		else if(posXY_rep[a].rx!=0){
+			LOOP_FOR(b,ABS(posXY_rep[a].rx)){
+				if(posXY_rep[a].rx > 0)	 pLcd[offs_k + (posXY_rep[a].y+b)*LCD_X + posXY_rep[a].x]=color;
+				else							 pLcd[offs_k + (posXY_rep[a].y-b)*LCD_X + posXY_rep[a].x]=color;
+		}}
+		else{
+			if(posXY_rep[a].ry==0 && posXY_rep[a].rx==0){
+				pLcd[offs_k + posXY_rep[a].y*LCD_X + posXY_rep[a].x]=color;
+		}}
+}}
+
+static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart)
+{
+	#define NONE_FUNC_TYPE	100
+	#define MAX_SIZE_BUFF	300
+
+	#define IS_RightDownDir0		(pos[i].x+ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y+1==pos[i+1].y)
+	#define IS_RightUpDir0			(pos[i].x+ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y-1==pos[i+1].y)
+	#define IS_LeftDownDir0			(pos[i].x-ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y+1==pos[i+1].y)
+	#define IS_LeftUpDir0			(pos[i].x-ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y-1==pos[i+1].y)
+
+	#define IS_RightDownDir1		(pos[i].y+ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
+	#define IS_RightUpDir1			(pos[i].y-ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
+	#define IS_LeftDownDir1			(pos[i].y+ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
+	#define IS_LeftUpDir1			(pos[i].y-ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
+
+	u8 buff[MAX_SIZE_BUFF]={0};
+	u8 functionType = NONE_FUNC_TYPE;
+	u8 lastSample = 0;
+	int i;
+
+	void _GetSamplesDir0(int dir, int sign){
+		if(lastSample){
+			if(lastSample%2==0){
+				buff[1+buff[0]++]=lastSample/2;
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
+			}
+			else{
+				buff[1+buff[0]++]=lastSample/2+1;
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
+			}
+		}
+		else{
+			if(dir) buff[1+buff[0]++]=ABS(pos[i].ry);
+			else    buff[1+buff[0]++]=ABS(pos[i].rx);
+			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y); }
+		}
+		lastSample=0;
+	}
+
+	void _GetSamplesDir1(int dir, int sign){
+		if(lastSample){
+			if(lastSample%2==0){
+				buff[1+buff[0]++]=lastSample/2;
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*LCD_X*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
+			}
+			else{
+				buff[1+buff[0]++]=lastSample/2+1;
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*LCD_X*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
+			}
+		}
+		else{
+			if(dir) buff[1+buff[0]++]=ABS(pos[i].ry);
+			else    buff[1+buff[0]++]=ABS(pos[i].rx);
+			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y); }
+		}
+		lastSample=0;
+	}
+
+	buff[0]=0;
+	for(i=0; i<lenStruct; ++i)
+	{
+		TempEnd_Display:
+		if(buff[0]>=MAX_SIZE_BUFF-1) return;
+
+		if(IS_RightDownDir0	&& EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightDownDir0)){
+			_GetSamplesDir0(1,1);
+			functionType = RightDownDir0;
+		}
+		else{
+			if(functionType == RightDownDir0){
+				if(IS_RightUpDir0){
+					lastSample=ABS(pos[i].ry);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].ry);
+
+				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_RightUpDir0 && EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightUpDir0)){
+			_GetSamplesDir0(1,1);
+			functionType = RightUpDir0;
+		}
+		else{
+			if(functionType == RightUpDir0){
+				if(IS_RightDownDir0){
+					lastSample=ABS(pos[i].ry);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].ry);
+
+				_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_RightDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownDir1)){
+			_GetSamplesDir1(0,1);
+			functionType = RightDownDir1;
+		}
+		else{
+			if(functionType == RightDownDir1){
+				if(IS_LeftDownDir1){
+					lastSample=ABS(pos[i].rx);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].rx);
+
+				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_RightUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDir1)){
+			_GetSamplesDir1(0,-1);
+			functionType = RightUpDir1;
+		}
+		else{
+			if(functionType == RightUpDir1){
+				if(IS_LeftUpDir1){
+					lastSample=ABS(pos[i].rx);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].rx);
+
+				_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_LeftDownDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir0)){
+			_GetSamplesDir0(1,-1);
+			functionType = LeftDownDir0;
+		}
+		else{
+			if(functionType == LeftDownDir0){
+				if(IS_LeftUpDir0){
+					lastSample=ABS(pos[i].ry);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].ry);
+
+				_DrawArrayBuffLeftDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_LeftUpDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir0)){
+			_GetSamplesDir0(1,-1);
+			functionType = LeftUpDir0;
+		}
+		else{
+			if(functionType == LeftUpDir0){
+				if(IS_LeftDownDir0){
+					lastSample=ABS(pos[i].ry);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].ry);
+
+				_DrawArrayBuffLeftUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_LeftDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir1)){
+			_GetSamplesDir1(0,1);
+			functionType = LeftDownDir1;
+		}
+		else{
+			if(functionType == LeftDownDir1){
+				if(IS_RightDownDir1){
+					lastSample=ABS(pos[i].rx);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].rx);
+
+				_DrawArrayBuffLeftDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_LeftUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir1)){
+			_GetSamplesDir1(0,-1);
+			functionType = LeftUpDir1;
+		}
+		else{
+			if(functionType == LeftUpDir1){
+				if(IS_RightUpDir1){
+					lastSample=ABS(pos[i].rx);
+					buff[1+buff[0]++]=lastSample/2;
+				}
+				else
+					buff[1+buff[0]++]=ABS(pos[i].rx);
+
+				_DrawArrayBuffLeftUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				functionType=NONE_FUNC_TYPE;
+				buff[0]=0;
+				goto TempEnd_Display;
+			}
+		}
+	}
+
+	#undef NONE_FUNC_TYPE
+	#undef MAX_SIZE_BUFF
+
+	#undef IS_RightDownDir0
+	#undef IS_RightUpDir0
+	#undef IS_LeftDownDir0
+	#undef IS_LeftUpDir0
+
+	#undef IS_RightDownDir1
+	#undef IS_RightUpDir1
+	#undef IS_LeftDownDir1
+	#undef IS_LeftUpDir1
 }
 
 /*################################## -- Global Declarations -- #########################################################*/
@@ -5416,8 +5354,27 @@ SHAPE_PARAMS LCDSHAPE_GradientCircleSlider(uint32_t posBuff, SHAPE_PARAMS param)
 void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
 	LCD_GradientCircleSlider_Indirect(param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].bk, param.color[0].fill, param.color[1].fill, param.color[2].fill, param.color[1].frame, param.param[0], param.param[1], param.color[0].bk, param.color[2].frame, param.color[2].bk, param.param[2]);
 }
-/* ---------------------------------------------------------*/
 
+/* ---------------------------- GRAPH ------------------------- */
+int GRAPH_GetSamples(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, int *pLenPosXY)
+{
+	GRAPH_ClearPosXY(posXY);
+	GRAPH_ClearPosXYrep(posXY_rep);
+	int len_posXY = GRAPH_GetFuncPosXY(posXY,startX,startY,nmbrPoints,amplitude,precision,funcPatternType);
+	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY,posXY_rep,len_posXY);
+	if(pLenPosXY!=NULL) *pLenPosXY=len_posXY;
+	return len_posXYrep;
+}
+void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2)
+{
+	int len_posXY = 0;
+	int len_posXYrep = GRAPH_GetSamples(posXY_rep,startX,startY,nmbrPoints,amplitude,precision,funcPatternType,&len_posXY);
+
+	if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY(offsK1,posXY,len_posXY,color1);
+	if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_rep, len_posXYrep, color2);
+	if((int)dispOption&Disp_AA)		 GRAPH_Display(0,posXY_rep, len_posXYrep, color,colorOut,colorIn, outRatioStart,inRatioStart);
+}
 
 
 /*------------------- Example Shape Outline -------------------------------------

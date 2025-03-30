@@ -217,6 +217,7 @@ void MEMEXAMPLE_MemoryFunc(void)
 
 void LCDEXAMPLE_Graph(void)
 {
-
+	GRAPH_GetSamplesAndDraw(posXY_rep, XY(10,320), POINTS_AMPL_STEP(780,57,1.0), FUNC_TYPE(5), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA, RED,WHITE, 20*LCD_X+0, 40*LCD_X+0) );		/* it is the same */
+	GRAPH_GetSamplesAndDraw(posXY_rep, XY(10,320), POINTS_AMPL_STEP(780,57,1.0), FUNC_TYPE(5), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_AA );																	/* it is the same */
 }
 

@@ -35,6 +35,17 @@
 #define AA_ON	 0.0,0.0
 #define AA_OFF	 1.0,1.0
 #define AA_VAL(outRatio,inRatio)	 outRatio,inRatio
+#define DRAW_OPT(flag,color1,color2,offs1,offs2)		flag,color1,color2,offs1,offs2
+#define DRAW_NO	 0,0,0,0,0
+#define DRAW_AA	 Disp_AA,0,0,0,0
+
+typedef enum{
+	Disp_no,
+	Disp_AA,
+	Disp_posXY,				 /* display posXY */
+	Disp_posXYrep = 4,	 /* display repetition redundancy of posXY */
+	Disp_all	=	Disp_AA | Disp_posXY | Disp_posXYrep
+}DISP_OPTION;
 
 enum CircleParam{
 	Half_Circle_0,
@@ -85,6 +96,13 @@ typedef struct{
 	u32 middSlidColor;
 	u64 gradButtColor;
 }SlidButtCircParam;
+
+typedef struct{
+	u16 x,y;
+	int rx,ry;
+}structRepPos;
+
+extern structRepPos posXY_rep[];
 
 extern uint32_t LCD_GetXSize(void);
 extern uint32_t LCD_GetYSize(void);
@@ -208,6 +226,10 @@ void LCDSHAPE_RoundRectangle_Indirect		 (SHAPE_PARAMS param);
 void LCDSHAPE_GradientCircleButton_Indirect(SHAPE_PARAMS param);
 void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param);
 /* ------- End Selected Figures ------------------*/
-void AAAAAAAAAAAAAA(void);
+
+int GRAPH_GetSamples(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, int *pLenPosXY);
+void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2);
+
 
 #endif /* LCD_LCD_BASICGAPHICS_H_ */
