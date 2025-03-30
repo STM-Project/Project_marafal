@@ -1336,7 +1336,7 @@ static uint8_t LCD_SearchRadiusPoints(int posBuff, int nrDeg, uint32_t BkpSizeX)
 			return 3;
 }
 
-static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2, i_prev, start=0;   int flagss=0;   int fery=0;
 	uint32_t drawColor=_drawColor;
@@ -1669,7 +1669,7 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 	}
 }
 
-static void _DrawArrayBuffLeftDown2_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+static void _DrawArrayBuffLeftDown2_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2, i_prev, start=0;
 	uint32_t _outColor=outColor;
@@ -1750,7 +1750,7 @@ static void _DrawArrayBuffLeftDown2_AA(uint32_t drawColor, uint32_t outColor, ui
 	}
 }
 
-static void _DrawArrayBuffRightUp2_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+static void _DrawArrayBuffRightUp2_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2, i_prev, start=0;
 	uint32_t _outColor=outColor;
@@ -1832,7 +1832,7 @@ static void _DrawArrayBuffRightUp2_AA(uint32_t drawColor, uint32_t outColor, uin
 	}
 }
 
-static void _DrawArrayBuffLeftUp2_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+static void _DrawArrayBuffLeftUp2_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2, i_prev, start=0;
 	uint32_t _outColor=outColor;
@@ -2934,6 +2934,10 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 			return (sin(TANG_ARG(posX))+0.3*sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX))+0.2*cos(20*TANG_ARG(posX)));
 		case 5:
 			return log((sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX))));
+		case 6:
+			return tan(TANG_ARG(posX));
+		case 7:
+			return posX <150 ? posX : 150;
 		default:
 			return 0;
 }}
@@ -3135,10 +3139,12 @@ static int GRAPH_RepetitionRedundancyOfPosXY(structPosition posXY[], structRepPo
 		if(j>=GRAPH_MAX_SIZE_POSXY-1) return j;
 	}
 
-	posXY_rep[j].x = posXY[i].x;
-	posXY_rep[j].y = posXY[i].y;
-	posXY_rep[j].rx = 1;
-	posXY_rep[j].ry = 1;
+	if(prevState==0){
+		posXY_rep[j].x = posXY[i].x;
+		posXY_rep[j].y = posXY[i].y;
+		posXY_rep[j].rx = 1;
+		posXY_rep[j].ry = 1;
+	}
 	j++;
 
 	return j;
@@ -3165,7 +3171,7 @@ static void GRAPH_DispPosXYrep(int offs_k, structRepPos posXY_rep[], int lenStru
 static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart)
 {
 	#define NONE_FUNC_TYPE	100
-	#define MAX_SIZE_BUFF	300
+	#define MAX_SIZE_BUFF	LCD_X
 
 	#define IS_RightDownDir0		(pos[i].x+ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y+1==pos[i+1].y)
 	#define IS_RightUpDir0			(pos[i].x+ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y-1==pos[i+1].y)
@@ -3177,9 +3183,9 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 	#define IS_LeftDownDir1			(pos[i].y+ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
 	#define IS_LeftUpDir1			(pos[i].y-ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
 
-	u8 buff[MAX_SIZE_BUFF]={0};
+	u16 buff[MAX_SIZE_BUFF];
 	u8 functionType = NONE_FUNC_TYPE;
-	u8 lastSample = 0;
+	u16 lastSample = 0;
 	int i;
 
 	void _GetSamplesDir0(int dir, int sign){
@@ -3220,11 +3226,12 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 		lastSample=0;
 	}
 
-	buff[0]=0;
+	for(i=0; i<MAX_SIZE_BUFF; ++i) buff[i]=0;
 	for(i=0; i<lenStruct; ++i)
 	{
 		TempEnd_Display:
-		if(buff[0]>=MAX_SIZE_BUFF-1) return;
+		if(buff[0]>=MAX_SIZE_BUFF-1)
+			return;
 
 		if(IS_RightDownDir0	&& EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightDownDir0)){
 			_GetSamplesDir0(1,1);
