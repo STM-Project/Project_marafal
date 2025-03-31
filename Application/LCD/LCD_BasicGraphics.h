@@ -30,7 +30,7 @@
 #define POINTS_AMPL_STEP(p1,p2,p3)	p1,p2,p3
 #define FUNC_TYPE(func)	 func
 #define SET_COLOR(line,outBk,inBk)	 line,outBk,inBk
-#define GET_BKCOLOR	 0,0
+#define READ_BK	 0,0
 #define OUT_IN_COLOR(out,in)	 out,in
 #define AA_ON	 0.0,0.0
 #define AA_OFF	 1.0,1.0
@@ -38,6 +38,7 @@
 #define DRAW_OPT(flag,color1,color2,offs1,offs2)		flag,color1,color2,offs1,offs2
 #define DRAW_NO	 0,0,0,0,0
 #define DRAW_AA	 Disp_AA,0,0,0,0
+#define XYPOS_YMIN_YMAX(x,y,yMIn,yMax) 	x,y,yMIn,yMax
 
 typedef enum{
 	Disp_no,
@@ -227,8 +228,8 @@ void LCDSHAPE_GradientCircleButton_Indirect(SHAPE_PARAMS param);
 void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param);
 /* ------- End Selected Figures ------------------*/
 
-int GRAPH_GetSamples(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, int *pLenPosXY);
-void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+int GRAPH_GetSamples(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints, int amplitude, double precision, int funcPatternType, int *pLenPosXY);
+void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints, int amplitude, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
 										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2);
 
 
