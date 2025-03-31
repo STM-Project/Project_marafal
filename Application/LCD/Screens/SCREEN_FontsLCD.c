@@ -2278,10 +2278,11 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	 else  						lenStr= LCD_StrVar			  (v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, argNmb==0 ? v.COLOR_BkScreen : LCD_GetStrVar_bkColor(v.FONT_VAR_Fonts), Test.coeff, Test.constWidth, v.COLOR_BkScreen);
 	Test.speed=StopMeasureTime_us("");
 
-
-//LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen, v.FONT_ID_Descr);
-//	LCDEXAMPLE_GradientCircleButtonAndSlider(v.FONT_ID_Title,v.FONT_VAR_Title,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
-//	LCDEXAMPLE_LcdTxt(v.FONT_ID_Fonts,v.FONT_VAR_Fonts,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
+/*
+	LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen, v.FONT_ID_Descr);
+	LCDEXAMPLE_GradientCircleButtonAndSlider(v.FONT_ID_Title,v.FONT_VAR_Title,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
+	LCDEXAMPLE_LcdTxt(v.FONT_ID_Fonts,v.FONT_VAR_Fonts,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
+*/
 
 	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320,-150,150), POINTS_AMPL_STEP(300,50,1.0), FUNC_TYPE(5), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_all, RED,GREEN, 20*LCD_X+30, 40*LCD_X+60) );
 
