@@ -2942,7 +2942,7 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 			return 0;
 }}
 
-static int GRAPH_GetFuncPosXY(structPosition posXY[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType)
+static int GRAPH_GetFuncPosXY(structPosition posXY[], int startX,int startY, int yMin,int yMax, int nmbrPoints, int amplitude, double precision, int funcPatternType)
 {
 	structPosition posXY_prev={0};
 	int temp_x, temp_y, diff_Y, delta, n=0;
@@ -2958,11 +2958,7 @@ static int GRAPH_GetFuncPosXY(structPosition posXY[], int startX, int startY, in
 	{
 		funcVal = amplitude * GRAPH_GetFuncPosY(funcPatternType,i);
 		funcVal *=-1;
-
-		 //define dla zakresu automatycznego !!!!!!!
-		if(funcVal > 150) funcVal=150; else if(funcVal < -150) funcVal=-150;
-
-
+		funcVal = SET_IN_RANGE(funcVal,yMin,yMax);
 
 		temp_x = posXY[0].x + (int)i;
 		temp_y = posXY[0].y + (int)funcVal;
@@ -5363,20 +5359,20 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
 }
 
 /* ---------------------------- GRAPH ------------------------- */
-int GRAPH_GetSamples(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, int *pLenPosXY)
+int GRAPH_GetSamples(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints, int amplitude, double precision, int funcPatternType, int *pLenPosXY)
 {
 	GRAPH_ClearPosXY(posXY);
 	GRAPH_ClearPosXYrep(posXY_rep);
-	int len_posXY = GRAPH_GetFuncPosXY(posXY,startX,startY,nmbrPoints,amplitude,precision,funcPatternType);
+	int len_posXY = GRAPH_GetFuncPosXY(posXY,startX,startY,yMin,yMax,nmbrPoints,amplitude,precision,funcPatternType);
 	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY,posXY_rep,len_posXY);
 	if(pLenPosXY!=NULL) *pLenPosXY=len_posXY;
 	return len_posXYrep;
 }
-void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX, int startY, int nmbrPoints, int amplitude, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints, int amplitude, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
 										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2)
 {
 	int len_posXY = 0;
-	int len_posXYrep = GRAPH_GetSamples(posXY_rep,startX,startY,nmbrPoints,amplitude,precision,funcPatternType,&len_posXY);
+	int len_posXYrep = GRAPH_GetSamples(posXY_rep,startX,startY,yMin,yMax,nmbrPoints,amplitude,precision,funcPatternType,&len_posXY);
 
 	if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY(offsK1,posXY,len_posXY,color1);
 	if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_rep, len_posXYrep, color2);
