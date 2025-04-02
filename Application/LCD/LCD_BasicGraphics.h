@@ -27,7 +27,7 @@
 #define POS_SIZE_CIRCLEBUTTONSLIDER(p,offsX,offsY)					p.pos[0].x+(offsX), p.pos[0].y+(offsY), p.size[0].w, p.size[0].h
 #define POS_SIZE_CIRCLEBUTTONSLIDER_indirect(p,offsX,offsY)		p.pos[0].x+(offsX), p.pos[0].y+(offsY), p.size[0].w+2, p.size[0].h+2			/*	'+2' because in LCD_GradientCircleButton_Indirect() and LCD_GradientCircleSlider_Indirect() we have '+2' for 'bkSizeX' and 'bkSizeY' */
 
-#define POINTS_AMPL_STEP(p1,p2,p3)	p1,p2,p3
+#define POINTS_STEP_XYSCALE(p1,p2,p3,p4)	p1,p2,p3,p4
 #define FUNC_TYPE(func)	 func
 #define SET_COLOR(line,outBk,inBk)	 line,outBk,inBk
 #define READ_BK	 0,0
@@ -102,6 +102,27 @@ typedef struct{
 	u16 x,y;
 	int rx,ry;
 }structRepPos;
+
+typedef struct{
+	structPosition staPos;
+	u16 minY;
+	u16 maxY;
+	u16 nmbrPoints;
+	double scaleX;
+	double scaleY;
+	double step;
+	u8 funcType;
+	u32 lineColor;
+	u32 AAoutColor;
+	u32 AAinColor;
+	double AAoutCoeff;
+	double AAinCoeff;
+	DISP_OPTION dispOpt;
+	u32 colorLinePosXY;
+	u32 colorLinePosXYrep;
+	int KoffsPosXY;
+	int KoffsPosXYrep;
+}USER_GRAPH_PARAM;
 
 extern structRepPos posXY_rep[];
 
@@ -228,8 +249,8 @@ void LCDSHAPE_GradientCircleButton_Indirect(SHAPE_PARAMS param);
 void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param);
 /* ------- End Selected Figures ------------------*/
 
-int GRAPH_GetSamples(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints, int amplitude, double precision, int funcPatternType, int *pLenPosXY);
-void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints, int amplitude, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+int GRAPH_GetSamples(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints, double scaleX,double scaleY, double precision, int funcPatternType, int *pLenPosXY);
+void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints, double scaleX,double scaleY, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
 										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2);
 
 
