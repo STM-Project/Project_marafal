@@ -1767,20 +1767,37 @@ void FILE_NAME(setTouch)(void)
 /*	LCDTOUCH_testFunc(); */
 }
 
+
+static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=50.0};  // tymczasowe zmienne
+
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
+
+	void* __localFunc(void *p1,void *p2){
+		FILE_NAME(main)(LoadUserScreen,(char**)ppMain);
+		return NULL;
+	}
 
 	if(DEBUG_RcvStr("abc"))
 		FILE_NAME(printInfo)();
 
-/* ----- Debug Test For Touch Resolution ----- */
+
+	/* ----- Debug Test For Touch Resolution ----- */
 	else if(DEBUG_RcvStr("resolution"))
 		TOUCH_SetDefaultResolution();
 
 	_DEBUG_RCV_CHAR("r1",TOUCH_GetPtr2Resolution(),_uint8,_Incr,_Uint8(1),_Uint8(15),"Touch Resolution: ",NULL)
 	_DEBUG_RCV_CHAR("r2",TOUCH_GetPtr2Resolution(),_uint8,_Decr,_Uint8(1),_Uint8(1), "Touch Resolution: ",NULL)
-/* ----- Debug Test For Touch Resolution ----- */
+	/* ----- END Debug Test For Touch Resolution ----- */
 
+
+	/* ----- Debug Test GRAPH ----- */
+	_DEBUG_RCV_CHAR("a",&testGraph.scaleX,_double,_Incr,_Double(1.0),_Double(20.0),"Test Graph scaleX: ",__localFunc)
+	_DEBUG_RCV_CHAR("z",&testGraph.scaleX,_double,_Decr,_Double(1.0),_Double( 1.0),"Test Graph scaleX: ",__localFunc)
+
+	_DEBUG_RCV_CHAR("s",&testGraph.scaleY,_double,_Incr,_Double(1.0),_Double(100.0),"Test Graph: scaleY ",__localFunc)
+	_DEBUG_RCV_CHAR("x",&testGraph.scaleY,_double,_Decr,_Double(1.0),_Double(  1.0),"Test Graph: scaleY ",__localFunc)
+	/* ----- END Test GRAPH ------- */
 
 
 	else if(DEBUG_RcvStr("p"))
@@ -2283,14 +2300,12 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	LCDEXAMPLE_GradientCircleButtonAndSlider(v.FONT_ID_Title,v.FONT_VAR_Title,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 	LCDEXAMPLE_LcdTxt(v.FONT_ID_Fonts,v.FONT_VAR_Fonts,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 */
-
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320,-150,150), POINTS_AMPL_STEP(300,50,1.0), FUNC_TYPE(5), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_all, RED,GREEN, 20*LCD_X+30, 40*LCD_X+60) );
+	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(0), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_all, RED,GREEN, 20*LCD_X+30, 40*LCD_X+60) );
 
 	//ZROBIC CIRCLE zmienna grubosc DRAWLINE !!!!!!!!!!!! z AA z 0.0 na 0.5 np!!!!
 	//ZROBIC cieniowanie pol i text 3d na nim jak w biletcie automatu na muzeum naradowe
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
 	if(LoadNoDispScreen != argNmb) LCD_Show();
-
 
 
 }
