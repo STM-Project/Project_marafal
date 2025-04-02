@@ -273,6 +273,7 @@ uint32_t* 	_Uint32	(uint32_t val);
 int16_t* 	_Int16	(int16_t val);
 int32_t* 	_Int32	(int32_t val);
 float* 		_Float	(float val);
+double* 		_Double	(double val);
 
 int _ReturnVal(int val, int in);
 int _ReturnVal2(int val, int in1,int in2);
