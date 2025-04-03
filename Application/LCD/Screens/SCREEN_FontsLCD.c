@@ -1773,6 +1773,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 }
 
 static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=56.0};  // tymczasowe zmienne
+extern int testFuncGraph;
 
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
@@ -1798,6 +1799,8 @@ void FILE_NAME(debugRcvStr)(void)
 
 	_DEBUG_RCV_CHAR("s",&testGraph.scaleY,_double,_Incr,_Double(1.0),_Double(100.0),"Test Graph: scaleY ",MainFuncRefresh)
 	_DEBUG_RCV_CHAR("x",&testGraph.scaleY,_double,_Decr,_Double(1.0),_Double(  1.0),"Test Graph: scaleY ",MainFuncRefresh)
+
+	else if(DEBUG_RcvStr("y")){ INCR_WRAP(testFuncGraph,1,0,1);  if(testFuncGraph) Dbg(1,"\r\ntestFunc 1 "); else Dbg(1,"\r\ntestFunc 0 ");   MainFuncRefresh(NULL,NULL); }
 	/* ----- END Test GRAPH ------- */
 
 
@@ -2301,7 +2304,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	LCDEXAMPLE_GradientCircleButtonAndSlider(v.FONT_ID_Title,v.FONT_VAR_Title,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 	LCDEXAMPLE_LcdTxt(v.FONT_ID_Fonts,v.FONT_VAR_Fonts,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 */
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(50,320, -150,150), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(0), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_all, RED,GREEN, 20*LCD_X+15, 40*LCD_X+30) );
+	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(50,320, -150,150), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(0), SET_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA|Disp_posXY, GREEN,0, 60*LCD_X+0, 0) );
 
 	//ZROBIC CIRCLE zmienna grubosc DRAWLINE !!!!!!!!!!!! z AA z 0.0 na 0.5 np!!!!
 	//ZROBIC cieniowanie pol i text 3d na nim jak w biletcie automatu na muzeum naradowe
