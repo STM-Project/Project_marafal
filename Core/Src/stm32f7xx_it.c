@@ -33,9 +33,9 @@ typedef struct
 	uint32_t r1;
 	uint32_t r2;
 	uint32_t r3;
-	uint32_t r12; 		/* fault that causes thread */
-	uint32_t lr;      /* last jump address before jump to thread */
-	uint32_t pc;  		/* code line address that caused thread */
+	uint32_t r12; 		/* fault that causes exception thread */
+	uint32_t lr;      /* last jump address before jump to exception thread */
+	uint32_t pc;  		/* code line address that caused exception thread */
 	uint32_t psr;
 }ExceptionStackFrame;
 /* USER CODE END TD */
