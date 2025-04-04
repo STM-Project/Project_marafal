@@ -228,7 +228,7 @@ void LCDEXAMPLE_Graph(u32 COLOR_BkScreen)
 
 	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,   colorLine45degCorrectOFF, colorLineAAoff,   offsK_45degCorrectOFF, offsK_AAoff) );
 
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_all,  colorPosXY, colorPosXYrep,   offsK_PosXY, offsK_PosXYrep) );
+	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_all,  colorPosXY, colorPosXYrep,   					 offsK_PosXY, offsK_PosXYrep) );
 	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_VAL(0.0,0.0), DRAW_AA );					/* it is the same */
 	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_ON, 			   DRAW_AA );					/* it is the same */
 
