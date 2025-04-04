@@ -11,7 +11,8 @@
 #include "stm32f7xx_hal.h"
 #include "common.h"
 
-#define _DEBUG_RCV_CHAR(sign,ptrData,typeData,dataAct,step,minMax,descr,func)		else if(DEBUG_RcvStr(sign)){ DEBUG_TestFunction(ptrData,typeData,dataAct,step,minMax,descr,func); }
+#define _DBG_PARAM_NOWRAP(dbgStr,ptrData,typeData,dataAct,step,minMax,descr,func)	else if(DEBUG_RcvStr(dbgStr)){ DEBUG_TestFunction(ptrData,typeData,dataAct,step,NULL,minMax,descr,func); }
+#define _DBG_PARAM_WRAP(dbgStr,ptrData,typeData,dataAct,step,min,max,descr,func)		else if(DEBUG_RcvStr(dbgStr)){ DEBUG_TestFunction(ptrData,typeData,dataAct,step,min,max,descr,func); }
 
 typedef enum{
 	font,
@@ -63,7 +64,7 @@ void DbgVar2(int on, unsigned int buffLen, const char *fmt, ...);
 void DEBUG_RxFullBuffService(void);
 int DEBUG_RcvStr(char *txt);
 
-void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, void *step, void *minMax, char *descr, VOID_FUNCTION_TEST xfunc);
+void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, void *step, void *min, void *max, char *descr, VOID_FUNCTION_TEST xfunc);
 
 
 #endif /* GENERAL_UTILITIES_DEBUG_H_ */
