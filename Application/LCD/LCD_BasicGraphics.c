@@ -1337,7 +1337,7 @@ static uint8_t LCD_SearchRadiusPoints(int posBuff, int nrDeg, uint32_t BkpSizeX)
 }
 
 int testFuncGraph=0;
-static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
+static void _DrawArrayBuffRightDown2_AA____(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2, i_prev, start=0;   int flagss=0;   int fery=0;
 	uint32_t drawColor=_drawColor;
@@ -1672,7 +1672,7 @@ if(testFuncGraph)
 	}
 }
 
-static void _DrawArrayBuffRightDown2_AA_____(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
+static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2, i_prev, start=0;   int flagss=0;
 	uint32_t drawColor=_drawColor;
@@ -1750,10 +1750,11 @@ static void _DrawArrayBuffRightDown2_AA_____(uint32_t _drawColor, uint32_t outCo
 		}
 		return 0;
 	}
-	int __ArePoints45degInRange(int minNmbr,int maxNmbr, int staPxl,int stoPxl, int offs){
-		int ggg = __SearchHVpxlsInLine45deg(staPxl,stoPxl,offs);
-		if(IS_RANGE(ggg,minNmbr,maxNmbr)) return 1;
-		else										 return 0;
+	int __ArePoints45degInRange(int minNmbr,int maxNmbr, int staPxl,int stoPxl, int offs, int* nmbr45degPoints){
+		int temp = __SearchHVpxlsInLine45deg(staPxl,stoPxl,offs);
+		if(nmbr45degPoints!=NULL) *nmbr45degPoints=temp;
+		if(IS_RANGE(temp,minNmbr,maxNmbr)) return 1;
+		else										  return 0;
 	}
 
 //	int ___Check2(void){				/* */
@@ -1805,8 +1806,8 @@ static void _DrawArrayBuffRightDown2_AA_____(uint32_t _drawColor, uint32_t outCo
 
 
 	int __IsPoints45degInScheme(int staPxl,  int minNr1,int maxNr1,int midPxl,int minNr2,int maxNr2,  int stoPxl, int offs){
-		int scheme1 = __ArePoints45degInRange(minNr1,maxNr1, staPxl,midPxl, offs);
-		int scheme2 = __ArePoints45degInRange(minNr2,maxNr2, midPxl,stoPxl, offs+minNr1+1);
+		int scheme1 = __ArePoints45degInRange(minNr1,maxNr1, staPxl,midPxl, offs, NULL);
+		int scheme2 = __ArePoints45degInRange(minNr2,maxNr2, midPxl,stoPxl, offs+minNr1+1, NULL);
 		if		 (scheme1==1 && scheme2==0) return 1;
 		else if(scheme1==0 && scheme2==1) return 2;
 		else if(scheme1==1 && scheme2==1) return 3;
@@ -1823,13 +1824,14 @@ static void _DrawArrayBuffRightDown2_AA_____(uint32_t _drawColor, uint32_t outCo
 			i_prev=i;
 			while(i--) pLcd[k++]=drawColor;
 
+if(testFuncGraph)
+{
 
-
-			int ggg=__ArePoints45degInRange(3,150, 2,2, 0);
-			if(ggg)  //zrobic '2' jesli pomiedzy jest '3' !!!!!
+			int ggg;
+			if(__ArePoints45degInRange(3,150, 2,2, 0,&ggg))  //zrobic '2' jesli pomiedzy jest '3' !!!!!
 			{
 
-				if(__ArePoints45degInRange(1,2, 2,2, 3+1))
+				if(__ArePoints45degInRange(1,2, 2,2, 3+1,NULL))
 					goto AAAAAAAAdddddddd;
 
 
@@ -1844,8 +1846,8 @@ static void _DrawArrayBuffRightDown2_AA_____(uint32_t _drawColor, uint32_t outCo
 			}
 			else
 			{
-				int ggg = __ArePoints45degInRange(3,150, 2,3, 0);	//___Check3p();
-				if(ggg)   //if(IS_RANGE(ggg,3,150))
+				int ggg;	//___Check3p();
+				if(__ArePoints45degInRange(3,150, 2,3, 0,&ggg))   //if(IS_RANGE(ggg,3,150))
 				{
 					___Corr();
 					_Correct2pxl();
@@ -1858,8 +1860,8 @@ static void _DrawArrayBuffRightDown2_AA_____(uint32_t _drawColor, uint32_t outCo
 				}
 				else
 				{
-					ggg = __ArePoints45degInRange(3,150, 3,2, 0);	//___Check3l();
-					if(ggg)   //if(IS_RANGE(ggg,3,150))
+						//___Check3l();
+					if(__ArePoints45degInRange(3,150, 3,2, 0,&ggg))   //if(IS_RANGE(ggg,3,150))
 					{
 						___Corr();
 						_Correct2pxl();
@@ -1890,7 +1892,8 @@ static void _DrawArrayBuffRightDown2_AA_____(uint32_t _drawColor, uint32_t outCo
 
 
 			AAAAAAAAdddddddd:
-
+			asm("nop");
+}
 
 			i=buf[p++];
 
@@ -1934,13 +1937,14 @@ static void _DrawArrayBuffRightDown2_AA_____(uint32_t _drawColor, uint32_t outCo
 			i_prev=i;
 			while(i--){  pLcd[k]=drawColor;  k+=BkpSizeX;  }
 
+if(testFuncGraph)
+{
 
-
-			int ggg=__ArePoints45degInRange(3,150, 2,2, 0);    //zrobic czy nastepny ma ten IS_RANGE, jesli nie to nie rob tego i nastepnego !!!!!!!!!!!!!
-			if(ggg)  //zrobic '2' jesli pomiedzy jest '3' !!!!!
+			int ggg;    //zrobic czy nastepny ma ten IS_RANGE, jesli nie to nie rob tego i nastepnego !!!!!!!!!!!!!
+			if(__ArePoints45degInRange(3,150, 2,2, 0,&ggg))  //zrobic '2' jesli pomiedzy jest '3' !!!!!
 			{
 
-				if(__ArePoints45degInRange(1,2, 2,2, 3+1))
+				if(__ArePoints45degInRange(1,2, 2,2, 3+1,NULL))
 					goto AAAAAAAAdddddddd____;
 
 
@@ -1954,8 +1958,8 @@ static void _DrawArrayBuffRightDown2_AA_____(uint32_t _drawColor, uint32_t outCo
 			}
 			else
 			{
-				int ggg = __ArePoints45degInRange(3,150, 2,3, 0);	//___Check3p();
-				if(ggg)   //if(IS_RANGE(ggg,3,150))
+				int ggg;	//___Check3p();
+				if(__ArePoints45degInRange(3,150, 2,3, 0,&ggg))   //if(IS_RANGE(ggg,3,150))
 				{
 					___Corr();
 					_Correct2pxl();
@@ -1967,8 +1971,8 @@ static void _DrawArrayBuffRightDown2_AA_____(uint32_t _drawColor, uint32_t outCo
 				}
 				else
 				{
-					ggg = __ArePoints45degInRange(3,150, 3,2, 0);	//___Check3l();
-					if(ggg)   //if(IS_RANGE(ggg,3,150))
+						//___Check3l();
+					if(__ArePoints45degInRange(3,150, 3,2, 0,&ggg))   //if(IS_RANGE(ggg,3,150))
 					{
 						___Corr();
 						_Correct2pxl();
@@ -1995,7 +1999,8 @@ static void _DrawArrayBuffRightDown2_AA_____(uint32_t _drawColor, uint32_t outCo
 
 
 			AAAAAAAAdddddddd____:
-
+			asm("nop");
+}
 
 			i=buf[p++];
 
