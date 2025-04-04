@@ -1788,19 +1788,20 @@ void FILE_NAME(debugRcvStr)(void)
 	else if(DEBUG_RcvStr("resolution"))
 		TOUCH_SetDefaultResolution();
 
-	_DEBUG_RCV_CHAR("r1",TOUCH_GetPtr2Resolution(),_uint8,_Incr,_Uint8(1),_Uint8(15),"Touch Resolution: ",NULL)
-	_DEBUG_RCV_CHAR("r2",TOUCH_GetPtr2Resolution(),_uint8,_Decr,_Uint8(1),_Uint8(1), "Touch Resolution: ",NULL)
+	_DBG_PARAM_NOWRAP("r1",TOUCH_GetPtr2Resolution(),_uint8,_Incr,_Uint8(1),_Uint8(15),"Touch Resolution: ",NULL)
+	_DBG_PARAM_NOWRAP("r2",TOUCH_GetPtr2Resolution(),_uint8,_Decr,_Uint8(1),_Uint8(1), "Touch Resolution: ",NULL)
 	/* ----- END Debug Test For Touch Resolution ----- */
 
 
 	/* ----- Debug Test GRAPH ----- */
-	_DEBUG_RCV_CHAR("a",&testGraph.scaleX,_double,_Incr,_Double(0.1),_Double(20.0),"Test Graph scaleX: ",MainFuncRefresh)
-	_DEBUG_RCV_CHAR("z",&testGraph.scaleX,_double,_Decr,_Double(0.1),_Double( 1.0),"Test Graph scaleX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("a",&testGraph.scaleX,_double,_Incr,_Double(0.1),_Double(20.0),"Test Graph scaleX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("z",&testGraph.scaleX,_double,_Decr,_Double(0.1),_Double( 1.0),"Test Graph scaleX: ",MainFuncRefresh)
 
-	_DEBUG_RCV_CHAR("s",&testGraph.scaleY,_double,_Incr,_Double(1.0),_Double(100.0),"Test Graph: scaleY ",MainFuncRefresh)
-	_DEBUG_RCV_CHAR("x",&testGraph.scaleY,_double,_Decr,_Double(1.0),_Double(  1.0),"Test Graph: scaleY ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("s",&testGraph.scaleY,_double,_Incr,_Double(1.0),_Double(100.0),"Test Graph scaleY: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("x",&testGraph.scaleY,_double,_Decr,_Double(1.0),_Double(  1.0),"Test Graph scaleY: ",MainFuncRefresh)
 
-	else if(DEBUG_RcvStr("y")){ INCR_WRAP(testFuncGraph,1,0,1);  if(testFuncGraph) Dbg(1,"\r\ntestFunc 1 "); else Dbg(1,"\r\ntestFunc 0 ");   MainFuncRefresh(NULL,NULL); }
+	_DBG_PARAM_WRAP("y",&testFuncGraph,_int,_Wrap,_Int(1), _Int(0),_Int(1), "Test Graph AA type: ",MainFuncRefresh)
+
 	/* ----- END Test GRAPH ------- */
 
 
