@@ -29,7 +29,7 @@
 
 #define POINTS_STEP_XYSCALE(p1,p2,p3,p4)	p1,p2,p3,p4
 #define FUNC_TYPE(func)	 func
-#define SET_COLOR(line,outBk,inBk)	 line,outBk,inBk
+#define LINE_COLOR(line,outBk,inBk)	 line,outBk,inBk
 #define READ_BK	 0,0
 #define OUT_IN_COLOR(out,in)	 out,in
 #define AA_ON	 0.0,0.0
@@ -250,7 +250,7 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param);
 /* ------- End Selected Figures ------------------*/
 
 int GRAPH_GetSamples(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints, double scaleX,double scaleY, double precision, int funcPatternType, int *pLenPosXY);
-void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints, double scaleX,double scaleY, double precision, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
 										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2);
 
 

@@ -1336,7 +1336,7 @@ static uint8_t LCD_SearchRadiusPoints(int posBuff, int nrDeg, uint32_t BkpSizeX)
 			return 3;
 }
 
-int testFuncGraph=0;
+int testFuncGraph=1;
 static void _DrawArrayBuffRightDown2_AA____(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2, i_prev, start=0;   int flagss=0;   int fery=0;
@@ -1824,7 +1824,7 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 			i_prev=i;
 			while(i--) pLcd[k++]=drawColor;
 
-if(testFuncGraph)
+if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
 {
 
 			int ggg;
@@ -1937,7 +1937,7 @@ if(testFuncGraph)
 			i_prev=i;
 			while(i--){  pLcd[k]=drawColor;  k+=BkpSizeX;  }
 
-if(testFuncGraph)
+if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
 {
 
 			int ggg;    //zrobic czy nastepny ma ten IS_RANGE, jesli nie to nie rob tego i nastepnego !!!!!!!!!!!!!
@@ -5734,15 +5734,24 @@ int GRAPH_GetSamples(structRepPos posXY_rep[], int startX,int startY, int yMin,i
 	if(pLenPosXY!=NULL) *pLenPosXY=len_posXY;
 	return len_posXYrep;
 }
-void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
 										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2)
 {
 	int len_posXY = 0;
 	int len_posXYrep = GRAPH_GetSamples(posXY_rep,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType,&len_posXY);
 
-	if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY(offsK1,posXY,len_posXY,color1);
-	if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_rep, len_posXYrep, color2);
-	if((int)dispOption&Disp_AA)		 GRAPH_Display(0,posXY_rep, len_posXYrep, color,colorOut,colorIn, outRatioStart,inRatioStart);
+	int testAAAAA = testFuncGraph;
+
+	if((int)dispOption==Disp_AA){
+					   GRAPH_Display(0,	   posXY_rep, len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0; //opisz to w example !!!!!!!!!!!!!
+		if(offsK1){ GRAPH_Display(offsK1,posXY_rep, len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart); }	testFuncGraph = testAAAAA;
+		if(offsK2){ GRAPH_Display(offsK2,posXY_rep, len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0); }
+	}
+	else{
+		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, posXY,		len_posXY,	  color1);
+		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_rep, len_posXYrep, color2);
+		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 posXY_rep, len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart);
+	}
 }
 
 
