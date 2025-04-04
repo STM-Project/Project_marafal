@@ -167,7 +167,7 @@ typedef enum{
 	_double,
 }DATA_TYPE;
 
-typedef enum{ _Incr,  _Decr }DATA_ACTION;
+typedef enum{ _Incr,  _Decr,  _Wrap }DATA_ACTION;
 typedef enum{ _ON,    _OFF  }ON_OFF;
 typedef enum{ _START, _STOP, _RESET, _RESTART }START_STOP;
 typedef enum{ _MIN,   _MID,  _MAX }MAX_MIN;
