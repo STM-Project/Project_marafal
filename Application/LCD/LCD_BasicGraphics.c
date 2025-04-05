@@ -1337,340 +1337,6 @@ static uint8_t LCD_SearchRadiusPoints(int posBuff, int nrDeg, uint32_t BkpSizeX)
 }
 
 int testFuncGraph=1;
-static void _DrawArrayBuffRightDown2_AA____(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
-{
-	int j=buf[0], i=buf[1], p=2, i_prev, start=0;   int flagss=0;   int fery=0;
-	uint32_t drawColor=_drawColor;
-	uint32_t _outColor=outColor;
-	uint32_t _inColor=inColor;
-
-	void _Correct2pxl(void){   // korekta dwoch pikseli
-//		Set_AACoeff_Draw(1,drawColor,0x383838,outRatioStart);
-//		for(int a=0;a<buff_AA[0];++a){
-//			pLcd[k+a]=buff_AA[1+a];
-//		}
-		if(0==direction){
-			if(p-2>0){
-				Set_AACoeff_Draw(buf[p-2]+0,drawColor,0x383838,outRatioStart);
-				for(int a=0;a<buff_AA[0];++a){
-					pLcd[k-i_prev-1-a]=buff_AA[1+a];
-				}
-			}
-		}
-		else{
-			Set_AACoeff_Draw(2,drawColor,0x383838,outRatioStart);
-			 k-=2*BkpSizeX;
-			//pLcd[k-1]=buff_AA[1+0];   pLcd[k+1]=buff_AA[1+0];
-			pLcd[k-1]=buff_AA[1+0];      pLcd[k+1]=buff_AA[1+0];
-			 k+=BkpSizeX;
-			//pLcd[k-1]=buff_AA[1+0];   pLcd[k+1]=buff_AA[1+0];
-			 	 	 	 	 	 	 	 	 	 pLcd[k+1]=buff_AA[1+0];	pLcd[k+2]=buff_AA[1+0];
-			 k+=BkpSizeX;
-		}
-	}
-	void ___Corr(void){   // korekta na poczatku
-		if(0==direction){
-			if(0==flagss){
-				k-=(i_prev-1); k-=2;
-				Set_AACoeff_Draw(3+0,drawColor,0x383838,outRatioStart);
-				pLcd[k+0]=buff_AA[1+0];
-				k+=2;  k+=(i_prev-1);
-
-				k-=BkpSizeX;	k-=(i_prev-1);
-				pLcd[k+0]=0x383838;
-				k+=(i_prev-1); k+=BkpSizeX;
-
-			}
-		}
-		else{
-			if(0==flagss){
-				k-=3*BkpSizeX;	k-=(i_prev-1);  k+=1;
-				Set_AACoeff_Draw(3+0,drawColor,0x383838,outRatioStart);
-				pLcd[k+0]=buff_AA[1+0];//RED;
-				k-=1; k+=(i_prev-1);  k+=3*BkpSizeX;
-			}
-
-		}
-	}
-	int ___Check2(void){
-		if(buf[p-1]/*i_prev*/==2){
-			for(int a=0;a<j;++a){
-				if(buf[p+a]!=1 && buf[p+a]!=2) return 0;
-				else if(buf[p+a]==2) return a;
-			}
-			return 0;
-		}
-		return 0;
-	}
-
-
-	int ___Check2_ver2(void){
-		int b=___Check2(), c;
-		if(IS_RANGE(b,3,150)){
-			p+=b+1;
-			c=___Check2();
-			if(IS_RANGE(c,3,150)){ p-=b+1; return b; }
-			else 						{ p-=b+1; return 0; }
-		}
-		return 0;
-	}
-
-
-
-
-	int ___Check3p(void){
-		if(i_prev==2){
-			for(int a=0;a<j;++a){
-				if(buf[p+a]!=1 && buf[p+a]!=3) return 0;
-				else if(buf[p+a]==3) return a;
-			}
-			return 0;
-		}
-		return 0;
-	}
-	int ___Check3l(void){
-		if(i_prev==3){
-			for(int a=0;a<j;++a){
-				if(buf[p+a]!=1 && buf[p+a]!=2) return 0;
-				else if(buf[p+a]==2) return a;
-			}
-			return 0;
-		}
-		return 0;
-	}
-
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-
-			AAAAAAddd:
-			i_prev=i;
-			while(i--) pLcd[k++]=drawColor;
-
-if(testFuncGraph)
-{
-			fery=1;
-
-			int ggg = fery==0?___Check2_ver2():___Check2();
-			if(IS_RANGE(ggg,3,150))  //zrobic '2' jesli pomiedzy jest '3' !!!!!
-			{
-
-				p+=3+1;
-				int cvc=___Check2();
-				p-=3+1;
-				if(IS_RANGE(cvc,1,2)){
-					goto AAAAAAAAdddddddd;
-				}
-
-
-				___Corr();      if(fery) fery=0; else fery=1;
-				_Correct2pxl();
-				Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);
-				for(int a=0;a<ggg;++a){  k+=BkpSizeX;   pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff_AA[1+(ggg-1)-a]; pLcd[k+2]=0x383838;    pLcd[k++]=drawColor;  }
-				k+=BkpSizeX;
-				p+=ggg;  j-=(ggg+1);
-				i=buf[p++];   flagss=1;
-				goto AAAAAAddd;
-			}
-			else
-			{
-				int ggg = ___Check3p();
-				if(IS_RANGE(ggg,3,150))
-				{
-					___Corr();
-					_Correct2pxl();
-					Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);
-					for(int a=0;a<ggg;++a){  k+=BkpSizeX;   pLcd[k-3]=0x383838; pLcd[k-2]=buff_AA[1+a]; 		pLcd[k-1]=drawColor;   pLcd[k+1]=buff_AA[1+(ggg-1)-a];  pLcd[k+2]=(a==(ggg-1)?buff_AA[1+ggg/2]:0x383838);     pLcd[k++]=drawColor;  }
-					k+=BkpSizeX;
-					p+=ggg;  j-=(ggg+1);
-					i=buf[p++];   flagss=1;
-					goto AAAAAAddd;
-				}
-				else
-				{
-					ggg = ___Check3l();
-					if(IS_RANGE(ggg,3,150))
-					{
-						___Corr();
-						_Correct2pxl();
-						Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);
-						for(int a=0;a<ggg;++a){  k+=BkpSizeX;   pLcd[k-3]=(a==0?buff_AA[1+ggg/2]:0x383838); pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff_AA[1+(ggg-1)-a]; pLcd[k+2]=0x383838;    pLcd[k++]=drawColor; }
-						k+=BkpSizeX;
-						p+=ggg;  j-=(ggg+1);
-						i=buf[p++];   flagss=1;
-						goto AAAAAAddd;
-					}
-					else
-					{
-						if(flagss){
-							flagss=0;
-							Set_AACoeff_Draw(3+0,drawColor,0x383838,outRatioStart);
-							pLcd[k-i_prev-1]=buff_AA[1+0];
-
-							k-=BkpSizeX;	k-=(i_prev-0);
-							pLcd[k+0]=buff_AA[1+0];
-							pLcd[k+1]=buff_AA[1+1];
-							k+=(i_prev-0); k+=BkpSizeX;
-
-						}
-					}
-				}
-			}
-
-
-
-			AAAAAAAAdddddddd:
-			fery=0;
-
-}
-			i=buf[p++];
-
-			if(outRatioStart<1.0){
-				if(0==start){  start=1;
-					k-=BkpSizeX;
-					if(0==outColor) _outColor=pLcd[k-i_prev];
-					Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-					for(int a=0;a<i_prev;++a){	 	if(0==outColor){ if(pLcd[k-i_prev+a]!=_outColor){ _outColor=pLcd[k-i_prev+a]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} } //else if(pLcd[k-i_prev+a]==drawColor) break;
-						pLcd[k-i_prev+a]=buff_AA[1+a]; }
-					k+=BkpSizeX;
-				}
-
-				if(j){
-					if(0==outColor) _outColor=pLcd[k];
-					Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);
-					for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k+a]!=_outColor){ _outColor=pLcd[k+a]; Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);} }// else if(pLcd[k+a]==drawColor) break;
-						pLcd[k+a]=buff_AA[1+a];
-				}}
-			}
-			k+=BkpSizeX;
-
-			if(inRatioStart<1.0){
-				if(0==inColor) _inColor=pLcd[k-1];
-				Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);
-				for(int a=0;a<buff_AA[0];++a){	 if(0==inColor){ if(pLcd[k-1-a]!=_inColor){ _inColor=pLcd[k-1-a]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} } //else if(pLcd[k-1-a]==drawColor) break;
-					pLcd[k-1-a]=buff_AA[1+a];  }
-			}
-		}
-		k-=BkpSizeX;
-	}
-	else
-	{
-		while(j--)
-		{
-
-
-			AAAAAAddd___:
-
-
-			i_prev=i;
-			while(i--){  pLcd[k]=drawColor;  k+=BkpSizeX;  }
-
-
-if(testFuncGraph)
-{
-			fery=1;
-
-			int ggg = fery==0?___Check2_ver2():___Check2();	 //zrobic czy nastepny ma ten IS_RANGE, jesli nie to nie rob tego i nastepnego !!!!!!!!!!!!!
-			if(IS_RANGE(ggg,3,150))
-			{
-
-				p+=3+1;
-				int cvc=___Check2();
-				p-=3+1;
-				if(IS_RANGE(cvc,1,2)){
-					goto AAAAAAAAdddddddd____;
-				}
-
-
-
-				___Corr();      if(fery) fery=0; else fery=1;
-				_Correct2pxl();
-				Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);  k++;
-				for(int a=0;a<ggg;++a){    pLcd[k+2]=buff_AA[1+a]; pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(ggg-1)-a]; pLcd[k-2]=0x383838;    pLcd[k++]=drawColor;  k+=BkpSizeX; }
-				p+=ggg;  j-=(ggg+1);
-				i=buf[p++];   flagss=1;
-				goto AAAAAAddd___;
-			}
-			else
-			{
-				int ggg = ___Check3p();
-				if(IS_RANGE(ggg,3,150))
-				{
-					___Corr();
-					_Correct2pxl();
-					Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);  k++;
-					for(int a=0;a<ggg;++a){     pLcd[k+3]=0x383838; pLcd[k+2]=buff_AA[1+a]; 		pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(ggg-1)-a];  pLcd[k-2]=(a==(ggg-1)?buff_AA[1+ggg/2]:0x383838);     pLcd[k++]=drawColor;   k+=BkpSizeX; }
-					p+=ggg;  j-=(ggg+1);
-					i=buf[p++];   flagss=1;
-					goto AAAAAAddd___;
-				}
-				else
-				{
-					ggg = ___Check3l();
-					if(IS_RANGE(ggg,3,150))
-					{
-						___Corr();
-						_Correct2pxl();
-						Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);  k++;
-						for(int a=0;a<ggg;++a){     pLcd[k+3]=(a==0?buff_AA[1+ggg/2]:0x383838); pLcd[k+2]=buff_AA[1+a]; pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(ggg-1)-a]; pLcd[k-2]=0x383838;     pLcd[k++]=drawColor;   k+=BkpSizeX; }
-						p+=ggg;  j-=(ggg+1);
-						i=buf[p++];   flagss=1;
-						goto AAAAAAddd___;
-					}
-					else
-					{
-						if(flagss){
-							flagss=0;
-							Set_AACoeff_Draw(3+0,drawColor,0x383838,outRatioStart);
-							k-=2*BkpSizeX;	k-=(i_prev-0);
-							pLcd[k+1]=buff_AA[1+0];
-							pLcd[k+1+BkpSizeX]=buff_AA[1+0];
-							k+=(i_prev-0); k+=2*BkpSizeX;
-
-						}
-					}
-				}
-			}
-
-
-			AAAAAAAAdddddddd____:
-			fery=0;
-}
-
-			i=buf[p++];
-
-			if(inRatioStart<1.0){
-				if(0==start){  start=1;
-					k--;
-					if(0==inColor) _inColor=pLcd[k-i_prev*BkpSizeX];
-					Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);
-					for(int a=0;a<i_prev;++a){	 if(0==inColor){ if(pLcd[k-(i_prev-a)*BkpSizeX]!=_inColor){ _inColor=pLcd[k-(i_prev-a)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} } //else if(pLcd[k-(i_prev-a)*BkpSizeX]==drawColor) break;
-						pLcd[k-(i_prev-a)*BkpSizeX]=buff_AA[1+a]; }
-					k++;
-				}
-
-				if(j){
-					if(0==inColor) _inColor=pLcd[k];
-					Set_AACoeff_Draw(i,drawColor,_inColor,inRatioStart);
-					for(int a=0;a<buff_AA[0];++a){ 	if(0==inColor){ if(pLcd[k+a*BkpSizeX]!=_inColor){ _inColor=pLcd[k+a*BkpSizeX]; Set_AACoeff_Draw(i,drawColor,_inColor,inRatioStart);} } //else if(pLcd[k+a*BkpSizeX]==drawColor) break;
-						pLcd[k+a*BkpSizeX]=buff_AA[1+a]; }
-				}
-			}
-			k++;
-
-			if(outRatioStart<1.0){
-				if(0==outColor) _outColor=pLcd[k-BkpSizeX];
-				Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-				for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k-(a+1)*BkpSizeX]!=_outColor){ _outColor=pLcd[k-(a+1)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} } //else if(pLcd[k-(a+1)*BkpSizeX]==drawColor) break;
-					pLcd[k-(a+1)*BkpSizeX]=buff_AA[1+a];
-				}
-			}
-		}
-		k--;
-	}
-}
 
 static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
 {
@@ -1679,31 +1345,23 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 	uint32_t _outColor=outColor;
 	uint32_t _inColor=inColor;
 
-	void _Correct2pxl(void){   // korekta dwoch pikseli
-//		Set_AACoeff_Draw(1,drawColor,0x383838,outRatioStart);
-//		for(int a=0;a<buff_AA[0];++a){
-//			pLcd[k+a]=buff_AA[1+a];
-//		}
+	void _DrawAAfor2pxl(void){
 		if(0==direction){
 			if(p-2>0){
 				Set_AACoeff_Draw(buf[p-2]+0,drawColor,0x383838,outRatioStart);
 				for(int a=0;a<buff_AA[0];++a){
 					pLcd[k-i_prev-1-a]=buff_AA[1+a];
-				}
-			}
-		}
+		}}}
 		else{
 			Set_AACoeff_Draw(2,drawColor,0x383838,outRatioStart);
-			 k-=2*BkpSizeX;
-			//pLcd[k-1]=buff_AA[1+0];   pLcd[k+1]=buff_AA[1+0];
-			pLcd[k-1]=buff_AA[1+0];      pLcd[k+1]=buff_AA[1+0];
-			 k+=BkpSizeX;
-			//pLcd[k-1]=buff_AA[1+0];   pLcd[k+1]=buff_AA[1+0];
-			 	 	 	 	 	 	 	 	 	 pLcd[k+1]=buff_AA[1+0];	pLcd[k+2]=buff_AA[1+0];
-			 k+=BkpSizeX;
-		}
-	}
-	void ___Corr(void){   // korekta na poczatku
+			k-=2*BkpSizeX;
+			pLcd[k-1]=buff_AA[1+0];    pLcd[k+1]=buff_AA[1+0];
+			k+=BkpSizeX;
+			 	 	 	 	 	 	 	 	 	pLcd[k+1]=buff_AA[1+0];	pLcd[k+2]=buff_AA[1+0];
+			k+=BkpSizeX;
+	}}
+
+	void _StartPxlsCorrect(void){
 		if(0==direction){
 			if(0==flagss){
 				k-=(i_prev-1); k-=2;
@@ -1723,10 +1381,7 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 				Set_AACoeff_Draw(3+0,drawColor,0x383838,outRatioStart);
 				pLcd[k+0]=buff_AA[1+0];//RED;
 				k-=1; k+=(i_prev-1);  k+=3*BkpSizeX;
-			}
-
-		}
-	}
+	}}}
 
 	/*	------.
 				 .
@@ -1756,62 +1411,13 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 		if(IS_RANGE(temp,minNmbr,maxNmbr)) return 1;
 		else										  return 0;
 	}
-
-//	int ___Check2(void){				/* */
-//		if(buf[p-1]/*i_prev*/==2){
-//			for(int a=0;a<j;++a){		/* how many left to check indicates via 'j' */
-//				if(buf[p+a]!=1 && buf[p+a]!=2) return 0;
-//				else if(buf[p+a]==2) return a;
-//			}
-//			return 0;
-//		}
-//		return 0;
-//	}
-
-
-//	int ___Check2_ver2(void){
-//		int b=__SearchHVpxlsInLine45deg(), c;
-//		if(IS_RANGE(b,3,150)){
-//			p+=b+1;
-//			c=__SearchHVpxlsInLine45deg();
-//			if(IS_RANGE(c,3,150)){ p-=b+1; return b; }
-//			else 						{ p-=b+1; return 0; }
-//		}
-//		return 0;
-//	}
-
-
-
-
-//	int ___Check3p(void){
-//		if(i_prev==2){
-//			for(int a=0;a<j;++a){
-//				if(buf[p+a]!=1 && buf[p+a]!=3) return 0;
-//				else if(buf[p+a]==3) return a;
-//			}
-//			return 0;
-//		}
-//		return 0;
-//	}
-//	int ___Check3l(void){
-//		if(i_prev==3){
-//			for(int a=0;a<j;++a){
-//				if(buf[p+a]!=1 && buf[p+a]!=2) return 0;
-//				else if(buf[p+a]==2) return a;
-//			}
-//			return 0;
-//		}
-//		return 0;
-//	}
-
-
-	int __IsPoints45degInScheme(int staPxl,  int minNr1,int maxNr1,int midPxl,int minNr2,int maxNr2,  int stoPxl, int offs){
-		int scheme1 = __ArePoints45degInRange(minNr1,maxNr1, staPxl,midPxl, offs, NULL);
-		int scheme2 = __ArePoints45degInRange(minNr2,maxNr2, midPxl,stoPxl, offs+minNr1+1, NULL);
-		if		 (scheme1==1 && scheme2==0) return 1;
-		else if(scheme1==0 && scheme2==1) return 2;
-		else if(scheme1==1 && scheme2==1) return 3;
-		else										 return 0;
+	int __ArePoints45degInScheme(int staPxl,		int minNr1,int maxNr1, int midPxl, int minNr2,int maxNr2,	  int stoPxl,     int offs, int* nmbr45degPoints1, int* nmbr45degPoints2){
+		int scheme1 = __ArePoints45degInRange(minNr1,maxNr1, staPxl,midPxl, offs, 			  nmbr45degPoints1==NULL?NULL:nmbr45degPoints1);
+		int scheme2 = __ArePoints45degInRange(minNr2,maxNr2, midPxl,stoPxl, offs+minNr1+1, nmbr45degPoints2==NULL?NULL:nmbr45degPoints2);
+		if		 (scheme1==0) 					 return 0;
+		else if(scheme1==1 && scheme2==0) return 1;
+		else if(scheme1==1 && scheme2==1) return 2;
+		return -1;
 	}
 
 
@@ -1826,17 +1432,16 @@ static void _DrawArrayBuffRightDown2_AA(uint32_t _drawColor, uint32_t outColor, 
 
 if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
 {
-
 			int ggg;
-			if(__ArePoints45degInRange(3,150, 2,2, 0,&ggg))  //zrobic '2' jesli pomiedzy jest '3' !!!!!
+	      int mm = __ArePoints45degInRange(3,150, 2,2, 0,&ggg);   //__ArePoints45degInScheme(2,  3,150, 2, 1,2,    2,  0,&ggg,NULL);
+			if(mm)  //zrobic '2' jesli pomiedzy jest '3' !!!!!
 			{
 
-				if(__ArePoints45degInRange(1,2, 2,2, 3+1,NULL))
-					goto AAAAAAAAdddddddd;
+				//if(mm==2) goto AAAAAAAAdddddddd;
 
 
-				___Corr();
-				_Correct2pxl();
+				_StartPxlsCorrect();
+				_DrawAAfor2pxl();
 				Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);
 				for(int a=0;a<ggg;++a){  k+=BkpSizeX;   pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff_AA[1+(ggg-1)-a]; pLcd[k+2]=0x383838;    pLcd[k++]=drawColor;  }
 				k+=BkpSizeX;
@@ -1846,11 +1451,11 @@ if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
 			}
 			else
 			{
-				int ggg;	//___Check3p();
-				if(__ArePoints45degInRange(3,150, 2,3, 0,&ggg))   //if(IS_RANGE(ggg,3,150))
+				int ggg;
+				if(__ArePoints45degInRange(3,150, 2,3, 0,&ggg))
 				{
-					___Corr();
-					_Correct2pxl();
+					_StartPxlsCorrect();
+					_DrawAAfor2pxl();
 					Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);
 					for(int a=0;a<ggg;++a){  k+=BkpSizeX;   pLcd[k-3]=0x383838; pLcd[k-2]=buff_AA[1+a]; 		pLcd[k-1]=drawColor;   pLcd[k+1]=buff_AA[1+(ggg-1)-a];  pLcd[k+2]=(a==(ggg-1)?buff_AA[1+ggg/2]:0x383838);     pLcd[k++]=drawColor;  }
 					k+=BkpSizeX;
@@ -1860,11 +1465,11 @@ if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
 				}
 				else
 				{
-						//___Check3l();
-					if(__ArePoints45degInRange(3,150, 3,2, 0,&ggg))   //if(IS_RANGE(ggg,3,150))
+
+					if(__ArePoints45degInRange(3,150, 3,2, 0,&ggg))
 					{
-						___Corr();
-						_Correct2pxl();
+						_StartPxlsCorrect();
+						_DrawAAfor2pxl();
 						Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);
 						for(int a=0;a<ggg;++a){  k+=BkpSizeX;   pLcd[k-3]=(a==0?buff_AA[1+ggg/2]:0x383838); pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff_AA[1+(ggg-1)-a]; pLcd[k+2]=0x383838;    pLcd[k++]=drawColor; }
 						k+=BkpSizeX;
@@ -1940,16 +1545,18 @@ if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
 if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
 {
 
+
 			int ggg;    //zrobic czy nastepny ma ten IS_RANGE, jesli nie to nie rob tego i nastepnego !!!!!!!!!!!!!
-			if(__ArePoints45degInRange(3,150, 2,2, 0,&ggg))  //zrobic '2' jesli pomiedzy jest '3' !!!!!
+			int mm =  __ArePoints45degInScheme(2,  3,150, 2, 1,2,    2,  0,&ggg,NULL);  //__ArePoints45degInRange(3,150, 2,2, 0,&ggg);
+			///int mm2 = __ArePoints45degInScheme(2,  1,2,   2, 3,150,  2,  0,&ggg,NULL);
+			if(mm)   //zrobic '2' jesli pomiedzy jest '3' !!!!!
 			{
 
-				if(__ArePoints45degInRange(1,2, 2,2, 3+1,NULL))
-					goto AAAAAAAAdddddddd____;
+				if(mm==2) goto AAAAAAAAdddddddd____;
 
 
-				___Corr();
-				_Correct2pxl();
+				_StartPxlsCorrect();
+				_DrawAAfor2pxl();
 				Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);  k++;
 				for(int a=0;a<ggg;++a){    pLcd[k+2]=buff_AA[1+a]; pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(ggg-1)-a]; pLcd[k-2]=0x383838;    pLcd[k++]=drawColor;  k+=BkpSizeX; }
 				p+=ggg;  j-=(ggg+1);
@@ -1958,11 +1565,11 @@ if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
 			}
 			else
 			{
-				int ggg;	//___Check3p();
-				if(__ArePoints45degInRange(3,150, 2,3, 0,&ggg))   //if(IS_RANGE(ggg,3,150))
+				int ggg;
+				if(__ArePoints45degInRange(3,150, 2,3, 0,&ggg))
 				{
-					___Corr();
-					_Correct2pxl();
+					_StartPxlsCorrect();
+					_DrawAAfor2pxl();
 					Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);  k++;
 					for(int a=0;a<ggg;++a){     pLcd[k+3]=0x383838; pLcd[k+2]=buff_AA[1+a]; 		pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(ggg-1)-a];  pLcd[k-2]=(a==(ggg-1)?buff_AA[1+ggg/2]:0x383838);     pLcd[k++]=drawColor;   k+=BkpSizeX; }
 					p+=ggg;  j-=(ggg+1);
@@ -1971,11 +1578,10 @@ if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
 				}
 				else
 				{
-						//___Check3l();
-					if(__ArePoints45degInRange(3,150, 3,2, 0,&ggg))   //if(IS_RANGE(ggg,3,150))
+					if(__ArePoints45degInRange(3,150, 3,2, 0,&ggg))
 					{
-						___Corr();
-						_Correct2pxl();
+						_StartPxlsCorrect();
+						_DrawAAfor2pxl();
 						Set_AACoeff_Draw(ggg+0,drawColor,0x383838,outRatioStart);  k++;
 						for(int a=0;a<ggg;++a){     pLcd[k+3]=(a==0?buff_AA[1+ggg/2]:0x383838); pLcd[k+2]=buff_AA[1+a]; pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(ggg-1)-a]; pLcd[k-2]=0x383838;     pLcd[k++]=drawColor;   k+=BkpSizeX; }
 						p+=ggg;  j-=(ggg+1);
