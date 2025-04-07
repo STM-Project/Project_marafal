@@ -131,7 +131,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HARDWARE_Init();
 
-	srand(_INIT_SRAND(3));		/* Call this before osKernelStart() */
+  srand(_INIT_SRAND(3));		/* Call this before osKernelStart() */
 
 
 
