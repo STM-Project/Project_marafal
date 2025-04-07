@@ -122,6 +122,7 @@ typedef struct{
 	u32 colorLinePosXYrep;
 	int KoffsPosXY;
 	int KoffsPosXYrep;
+	u8 corrAA45deg;
 }USER_GRAPH_PARAM;
 
 extern structRepPos posXY_rep[];
