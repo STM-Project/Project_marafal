@@ -8,9 +8,10 @@
 #include <LCD_BasicGraphics.h>
 #include <stdarg.h>
 #include <math.h>
+#include <stdbool.h>
 #include "LCD_Hardware.h"
 #include "LCD_Common.h"
-#include <stdbool.h>
+#include "rng.h"
 
 #define MAX_SIZE_TAB_AA		365
 #define MAX_LINE_BUFF_CIRCLE_SIZE  100
@@ -2910,7 +2911,13 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 		case 6:
 			return tan(TANG_ARG(posX));
 		case 7:
-			return posX <150 ? posX : 150;
+			return posX <450 ? posX<350?0:5 : 10;
+		case 8:
+			return ABS(sin(TANG_ARG(posX)));
+		case 9:
+			uint32_t aRandom32bit;
+		   HAL_RNG_GenerateRandomNumber(&hrng,&aRandom32bit);
+		   return CONDITION(posX<140,4.3,25.2);
 		default:
 			return 0;
 }}

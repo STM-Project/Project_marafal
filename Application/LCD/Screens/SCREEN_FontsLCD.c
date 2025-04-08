@@ -19,7 +19,7 @@
 #include "task.h"
 #include "Keyboard.h"
 #include "examples.h"
-#include "rng.h"
+
 
 /*----------------- Main Settings ------------------*/
 #define FILE_NAME(extend) SCREEN_Fonts_##extend
@@ -1773,7 +1773,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 	return NULL;
 }
 
-static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=56.0};  // tymczasowe zmienne
+static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=1.0};  // tymczasowe zmienne
 extern int testFuncGraph;
 
 void FILE_NAME(debugRcvStr)(void)
@@ -2306,17 +2306,8 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	LCDEXAMPLE_GradientCircleButtonAndSlider(v.FONT_ID_Title,v.FONT_VAR_Title,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 	LCDEXAMPLE_LcdTxt(v.FONT_ID_Fonts,v.FONT_VAR_Fonts,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 */
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(50,320, -150,150), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(0), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA, WHITE,WHITE, 30*LCD_X+0, 60*LCD_X+0) );
+	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(50,320, -150,150), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(7), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_all, WHITE,WHITE, 30*LCD_X+0, 60*LCD_X+0) );
 
-	uint32_t aRandom32bit[8];
-   for (int counter = 0; counter < 8; counter++)
-   {
-     if (HAL_RNG_GenerateRandomNumber(&hrng, &aRandom32bit[counter]) != HAL_OK)
-     {
-       /* Random number generation error */
-       Error_Handler();
-     }
-   }
 
 
 	//ZROBIC CIRCLE zmienna grubosc DRAWLINE !!!!!!!!!!!! z AA z 0.0 na 0.5 np!!!!
