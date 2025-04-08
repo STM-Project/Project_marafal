@@ -2911,7 +2911,29 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 		case 6:
 			return tan(TANG_ARG(posX));
 		case 7:
-			return posX <450 ? posX<350?0:5 : 10;
+			static int ydy=0;
+			if(posX <350){
+				return 0;
+			}
+			else if(posX == 350){
+				return 50;
+			}
+			else if(posX > 350 && posX < 450 ){
+				return 51;
+			}
+			else if(posX == 450){
+				return 101;
+			}
+			else if(posX > 450 && posX < 500 ){
+				return 102;
+			}
+			else{
+				return 103;
+			}
+
+
+
+			//return posX <450 ? posX<350?0:2 : 2;
 		case 8:
 			return ABS(sin(TANG_ARG(posX)));
 		case 9:
@@ -3370,19 +3392,19 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 		}
 	}
 
-	i--;
-	if(pos[i].ry==0 && pos[i].rx>0){
-		buff[0]=1;
-		buff[1]=ABS(pos[i].rx);
-		_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
-		_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
-	}
-	else if(pos[i].rx==0 && pos[i].ry>0){
-		buff[0]=1;
-		buff[1]=ABS(pos[i].ry);
-		_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
-		_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
-	}
+//	i--;
+//	if(pos[i].ry==0 && pos[i].rx>0){
+//		buff[0]=1;
+//		buff[1]=ABS(pos[i].rx);
+//		_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
+//		_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+//	}
+//	else if(pos[i].rx==0 && pos[i].ry>0){  //to chyba nie potrzebne
+//		buff[0]=1;
+//		buff[1]=ABS(pos[i].ry);
+//		_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
+//		_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+//	}
 
 	#undef NONE_FUNC_TYPE
 	#undef MAX_SIZE_BUFF
