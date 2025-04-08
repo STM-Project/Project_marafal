@@ -3370,6 +3370,20 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 		}
 	}
 
+	i--;
+	if(pos[i].ry==0 && pos[i].rx>0){
+		buff[0]=1;
+		buff[1]=ABS(pos[i].rx);
+		_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
+		_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+	}
+	else if(pos[i].rx==0 && pos[i].ry>0){
+		buff[0]=1;
+		buff[1]=ABS(pos[i].ry);
+		_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
+		_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+	}
+
 	#undef NONE_FUNC_TYPE
 	#undef MAX_SIZE_BUFF
 
