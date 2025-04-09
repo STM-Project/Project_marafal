@@ -2916,7 +2916,7 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 				return 0;
 			}
 			else if(posX == 350){
-				return 50;
+				return 51;
 			}
 			else if(posX > 350 && posX < 450 ){
 				return 51;
@@ -3223,6 +3223,13 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 		}
 		lastSample=0;
 	}
+
+	for(i=0; i<lenStruct-1; ++i){
+		if(pos[i].x+1==pos[i+1].x &&    pos[i].y+1+pos[i].rx == pos[i+1].y    ){
+			pos[i].rx++;
+		}
+	}
+
 
 	for(i=0; i<MAX_SIZE_BUFF; ++i) buff[i]=0;
 	for(i=0; i<lenStruct; ++i)
