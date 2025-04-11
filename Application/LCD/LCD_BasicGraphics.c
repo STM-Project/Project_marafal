@@ -2916,19 +2916,24 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 				return 0;
 			}
 			else if(posX == 350){
-				return 51;
+				return -51;
 			}
 			else if(posX > 350 && posX < 450 ){
-				return 51;
+				return -51;
 			}
 			else if(posX == 450){
-				return 101;
+				return -101;
 			}
 			else if(posX > 450 && posX < 500 ){
-				return 102;
+				return -101;
+			}
+
+
+			else if(posX == 500 ){
+				return -103;
 			}
 			else{
-				return 103;
+				return -106;
 			}
 
 
@@ -2937,9 +2942,51 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 		case 8:
 			return ABS(sin(TANG_ARG(posX)));
 		case 9:
-			uint32_t aRandom32bit;
-		   HAL_RNG_GenerateRandomNumber(&hrng,&aRandom32bit);
-		   return CONDITION(posX<140,4.3,25.2);
+//			if(IS_RANGE(posX,0,10)) return 50;
+//			else if(IS_RANGE(posX,0,10)) return 50;
+//
+//			else return 2;
+			static uint32_t aRandom32bit=0;
+			static int zmien=0;
+			static int zmien2=0;
+			static int licz=0;
+
+			if(zmien2){
+				licz++;
+				if(licz%5==0) aRandom32bit = 300 - (licz/5);
+			}
+			else{
+				if(ydy%2==0) HAL_RNG_GenerateRandomNumber(&hrng,&aRandom32bit);
+			}
+
+
+
+			if(ydy%50==0)
+				zmien = 0x2F;
+			else if(ydy%51==0)
+				zmien = 0x0F;
+			else if(ydy%52==0)
+				zmien = 0x1F;
+
+			if(ydy%32==0){
+				zmien2=1-zmien2;
+				licz=0;
+			}
+
+			ydy++;
+
+
+
+			return aRandom32bit & zmien;
+
+
+
+
+
+//		case 11:
+//			uint32_t aRandom32bit;
+//		   HAL_RNG_GenerateRandomNumber(&hrng,&aRandom32bit);
+//		   return CONDITION(posX<140,4.3,25.2);
 		default:
 			return 0;
 }}
@@ -3224,11 +3271,28 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 		lastSample=0;
 	}
 
+
+  // corecta
+	/*     			  _____           ____
+	   z takiego  ___|       na  ___|
+
+
+	  */
 	for(i=0; i<lenStruct-1; ++i){
-		if(pos[i].x+1==pos[i+1].x &&    pos[i].y+1+pos[i].rx == pos[i+1].y    ){
+		if(pos[i].x+1==pos[i+1].x &&    pos[i].y+1+pos[i].rx == pos[i+1].y    ){   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
 			pos[i].rx++;
 		}
+		else if(pos[i].x+1==pos[i+1].x &&    pos[i].y-1+pos[i].rx == pos[i+1].y    ){
+			pos[i].rx--;
+		}
 	}
+
+
+	i=lenStruct++;    //jesli w ostatniej czesci wykresu nie wykryje zmian to Nie NARYSUJE OSTATNIEJ CZESCI WYKRESU
+	pos[i].x =pos[i-1].x + pos[i-1].ry;
+	pos[i].y =pos[i-1].y+1;
+	pos[i].rx=1;
+	pos[i].ry=1;
 
 
 	for(i=0; i<MAX_SIZE_BUFF; ++i) buff[i]=0;
@@ -5400,14 +5464,14 @@ void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, in
 	int testAAAAA = testFuncGraph;
 
 	if((int)dispOption==Disp_AA){
-					   GRAPH_Display(0,	   posXY_rep, len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0; //opisz to w example !!!!!!!!!!!!!
+					   GRAPH_Display(0,	   posXY_rep, len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;
 		if(offsK1){ GRAPH_Display(offsK1,posXY_rep, len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart); }	testFuncGraph = testAAAAA;
 		if(offsK2){ GRAPH_Display(offsK2,posXY_rep, len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0); }
 	}
 	else{
-		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, posXY,		len_posXY,	  color1);
-		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_rep, len_posXYrep, color2);
 		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 posXY_rep, len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart);
+		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_rep, len_posXYrep, color2);
+		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, posXY,		len_posXY,	  color1);
 	}
 }
 
