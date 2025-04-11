@@ -77,7 +77,8 @@ static uint8_t correctLine_AA=0;
 static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .errorDecision= {0.1, 0.4}};
 
 static structPosition posXY[GRAPH_MAX_SIZE_POSXY]={0};
-static u8 correctAA45degLine = 0;
+static u8 correctAA45degLineH = 0;
+static u8 correctAA45degLineV = 0;
 structRepPos posXY_rep[GRAPH_MAX_SIZE_POSXY]={0};		/* Buffer for repetition redundancy of positions x,y */
 
 uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
@@ -2946,7 +2947,7 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 //			else if(IS_RANGE(posX,0,10)) return 50;
 //
 //			else return 2;
-			static uint32_t aRandom32bit=0;
+			static uint32_t aRandom32bit=0;		//DAC TO JAKO FuncExampleNoise() !!!!!!!!!!!!!!!!
 			static int zmien=0;
 			static int zmien2=0;
 			static int licz=0;
@@ -5462,6 +5463,18 @@ void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, in
 	int len_posXYrep = GRAPH_GetSamples(posXY_rep,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType,&len_posXY);
 
 	int testAAAAA = testFuncGraph;
+
+//#define POSPLCD(x,y)	 	LCD_Y*x+y !!!!
+
+
+
+	for(int i=0; i<len_posXY; ++i){
+		if(pLcd[LCD_X*(posXY[i].y+1)+posXY[i].x] != colorLineAA){
+			for(int j=posXY[i].y+1; j<LCD_Y-5; ++j){
+				pLcd[LCD_X*j+posXY[i].x] = GetTransitionColor(0xCCCCCC/*colorLineAA*/, 0x383838, (1.2*((float)j))/(float)(LCD_Y) + 0.1 );  //tablocowanie zrobic bo zawolno !!!! zeby nie obliczac za kazdym razem i szybciej przez to !!!
+			}
+		}  //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5   //rowne gradienty od lini
+	}
 
 	if((int)dispOption==Disp_AA){
 					   GRAPH_Display(0,	   posXY_rep, len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;
