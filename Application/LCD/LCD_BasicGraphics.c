@@ -26,6 +26,9 @@
 #define _IS_NOT_PXL(i,color1,color2,color3,color4)		(pLcd[i]!=color1 && pLcd[i]!=color2 && pLcd[i]!=color3 && pLcd[i]!=color4)
 #define _IS_NEXT_PXL(bkX,i,color)	(pLcd[(i)+1]==color || pLcd[(i)-1]==color || pLcd[(i)+bkX]==color || pLcd[(i)-bkX]==color || pLcd[(i)+bkX+1]==color || pLcd[(i)+bkX-1]==color || pLcd[(i)-bkX+1]==color || pLcd[(i)-bkX-1]==color)
 
+#define _PLCD(x,y)	 pLcd[LCD_X*(y)+(x)]
+#define _K(x,y)	 			LCD_X*(y)+(x)
+
 #define GRAPH_MAX_SIZE_POSXY	10000
 
 typedef enum{
@@ -5464,14 +5467,15 @@ void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, in
 
 	int testAAAAA = testFuncGraph;
 
-//#define POSPLCD(x,y)	 	LCD_Y*x+y !!!!
 
+//funkcja znajdujaca max wykresu do ograniczenia !!!!!!!!!!!!!!!!!
 
-
-	for(int i=0; i<len_posXY; ++i){
-		if(pLcd[LCD_X*(posXY[i].y+1)+posXY[i].x] != colorLineAA){
-			for(int j=posXY[i].y+1; j<LCD_Y-5; ++j){
-				pLcd[LCD_X*j+posXY[i].x] = GetTransitionColor(0xCCCCCC/*colorLineAA*/, 0x383838, (1.2*((float)j))/(float)(LCD_Y) + 0.1 );  //tablocowanie zrobic bo zawolno !!!! zeby nie obliczac za kazdym razem i szybciej przez to !!!
+	LOOP_FOR(i,len_posXY){
+		//if(pLcd[LCD_X*(posXY[i].y+1)+posXY[i].x] != colorLineAA){
+		if(_PLCD(posXY[i].x, posXY[i].y) != colorLineAA){
+			for(int j=posXY[i].y; j<startY+yMax; ++j){   //LOOP_INIT(j,posXY[i].y+1,startY+yMax)
+				//pLcd[LCD_X*j+posXY[i].x] = GetTransitionColor(0xCCCCCC/*colorLineAA*/, 0x383838, (1.2*((float)j))/(float)(LCD_Y) + 0.1 );  //tablocowanie zrobic bo zawolno !!!! zeby nie obliczac za kazdym razem i szybciej przez to !!!
+				_PLCD(posXY[i].x, j) = GetTransitionColor(YELLOW, 0x383838, (1.00*((float)(j-(startY+yMin))))/(float)(LCD_Y-(startY+yMin)) + 0.30 );
 			}
 		}  //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5   //rowne gradienty od lini
 	}
