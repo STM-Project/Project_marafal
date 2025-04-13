@@ -2306,9 +2306,9 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	LCDEXAMPLE_GradientCircleButtonAndSlider(v.FONT_ID_Title,v.FONT_VAR_Title,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 	LCDEXAMPLE_LcdTxt(v.FONT_ID_Fonts,v.FONT_VAR_Fonts,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 */
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(50,260, -170,170), POINTS_STEP_XYSCALE(480,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(0), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0) );
+	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(50,260, -170,170), POINTS_STEP_XYSCALE(480,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(9), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0) );
 
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(250,330, -170,170), POINTS_STEP_XYSCALE(451,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(0), LINE_COLOR(LIGHTBLUE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0) );
+	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(250,330, -170,170), POINTS_STEP_XYSCALE(451,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(9), LINE_COLOR(LIGHTBLUE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA|Disp_posXYrep, WHITE,WHITE, 0*LCD_X-0, 40*LCD_X-0) );
 
 	//ZROBIC CIRCLE zmienna grubosc DRAWLINE !!!!!!!!!!!! z AA z 0.0 na 0.5 np!!!!
 	//ZROBIC cieniowanie pol i text 3d na nim jak w biletcie automatu na muzeum naradowe

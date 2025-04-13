@@ -5470,25 +5470,25 @@ void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, in
 	u32 ccccol=0;
 	u32 bkColor=0;
 	float transCoeff=0.0;
-	u32 xxxx=0;
+	u32 xxxx=0;  //prev_PosX
 
 	if(startX < 100) ccccol = LIGHTYELLOW;
 	if(startX > 100) ccccol = RED;
 //funkcja znajdujaca max wykresu do ograniczenia !!!!!!!!!!!!!!!!!
 
 	LOOP_FOR(i,len_posXY){
-		//if(pLcd[LCD_X*(posXY[i].y+1)+posXY[i].x] != colorLineAA){
-		if(_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+1) != LIGHTBLUE){
-			if(posXY[i].x != xxxx){
+		if(posXY[i].x != xxxx){
+			if( (_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+1) != LIGHTBLUE)
+				|| (_PLCD(posXY[i].x, posXY[i].y+2) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+2) != LIGHTBLUE) ){
 				for(int j=posXY[i].y+1; j<startY+yMax; ++j){   //LOOP_INIT(j,posXY[i].y+1,startY+yMax)
-					//pLcd[LCD_X*j+posXY[i].x] = GetTransitionColor(0xCCCCCC/*colorLineAA*/, 0x383838, (1.2*((float)j))/(float)(LCD_Y) + 0.1 );  //tablocowanie zrobic bo zawolno !!!! zeby nie obliczac za kazdym razem i szybciej przez to !!!
+					  //tablocowanie zrobic bo zawolno !!!! zeby nie obliczac za kazdym razem i szybciej przez to !!!
 					transCoeff = (1.00*((float)(j-(startY+yMin))))/(float)(LCD_Y-(startY+yMin)) + 0.15;
 					bkColor = _PLCD(posXY[i].x, j);
 					_PLCD(posXY[i].x, j) = GetTransitionColor(ccccol,bkColor, transCoeff/*(1.00*((float)(j)))/(float)(LCD_Y) + 0.15*/ );
 				}
 			}
-			xxxx=posXY[i].x;
 		}  //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5   //rowne gradienty od lini
+		xxxx=posXY[i].x;
 	}
 
 	if((int)dispOption==Disp_AA){
@@ -5497,9 +5497,9 @@ void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, in
 		if(offsK2){ GRAPH_Display(offsK2,posXY_rep, len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0); }
 	}
 	else{
-		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 posXY_rep, len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart);
-		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_rep, len_posXYrep, color2);
 		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, posXY,		len_posXY,	  color1);
+		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_rep, len_posXYrep, color2);
+		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 posXY_rep, len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart);
 	}
 }
 
