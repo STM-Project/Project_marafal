@@ -2987,10 +2987,26 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 
 
 
-//		case 11:
-//			uint32_t aRandom32bit;
-//		   HAL_RNG_GenerateRandomNumber(&hrng,&aRandom32bit);
-//		   return CONDITION(posX<140,4.3,25.2);
+
+		case 10:
+			if(posX <350){
+				return 0;
+			}
+			else if(posX == 350){
+				return 51;
+			}
+//			else if(posX == 351){
+//				return 51;
+//			}
+			else if(posX == 351){
+				return 10;
+			}
+			else if(posX > 351 ){
+				return 9;
+			}
+
+
+
 		default:
 			return 0;
 }}
@@ -3297,6 +3313,8 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 	pos[i].y =pos[i-1].y+1;
 	pos[i].rx=1;
 	pos[i].ry=1;
+
+
 
 
 	for(i=0; i<MAX_SIZE_BUFF; ++i) buff[i]=0;
@@ -5476,20 +5494,20 @@ void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, in
 	if(startX > 100) ccccol = RED;
 //funkcja znajdujaca max wykresu do ograniczenia !!!!!!!!!!!!!!!!!
 
-	LOOP_FOR(i,len_posXY){
-		if(posXY[i].x != xxxx){
-			if( (_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+1) != LIGHTBLUE)
-				|| (_PLCD(posXY[i].x, posXY[i].y+2) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+2) != LIGHTBLUE) ){
-				for(int j=posXY[i].y+1; j<startY+yMax; ++j){   //LOOP_INIT(j,posXY[i].y+1,startY+yMax)
-					  //tablocowanie zrobic bo zawolno !!!! zeby nie obliczac za kazdym razem i szybciej przez to !!!
-					transCoeff = (1.00*((float)(j-(startY+yMin))))/(float)(LCD_Y-(startY+yMin)) + 0.15;
-					bkColor = _PLCD(posXY[i].x, j);
-					_PLCD(posXY[i].x, j) = GetTransitionColor(ccccol,bkColor, transCoeff/*(1.00*((float)(j)))/(float)(LCD_Y) + 0.15*/ );
-				}
-			}
-		}  //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5   //rowne gradienty od lini
-		xxxx=posXY[i].x;
-	}
+//	LOOP_FOR(i,len_posXY){
+//		if(posXY[i].x != xxxx){
+//			if( (_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+1) != LIGHTBLUE)
+//				|| (_PLCD(posXY[i].x, posXY[i].y+2) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+2) != LIGHTBLUE) ){
+//				for(int j=posXY[i].y+1; j<startY+yMax; ++j){   //LOOP_INIT(j,posXY[i].y+1,startY+yMax)
+//					  //tablocowanie zrobic bo zawolno !!!! zeby nie obliczac za kazdym razem i szybciej przez to !!!
+//					transCoeff = (1.00*((float)(j-(startY+yMin))))/(float)(LCD_Y-(startY+yMin)) + 0.15;
+//					bkColor = _PLCD(posXY[i].x, j);
+//					_PLCD(posXY[i].x, j) = GetTransitionColor(ccccol,bkColor, transCoeff/*(1.00*((float)(j)))/(float)(LCD_Y) + 0.15*/ );
+//				}
+//			}
+//		}  //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5   //rowne gradienty od lini
+//		xxxx=posXY[i].x;
+//	}
 
 	if((int)dispOption==Disp_AA){
 					   GRAPH_Display(0,	   posXY_rep, len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;
