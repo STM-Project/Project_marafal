@@ -40,7 +40,9 @@ typedef enum{
 	LeftUpDir0,
 	LeftDownDir0,
 	LeftDownDir1,
-	Equal
+	Equal,
+	RightUpDownDir1,
+	RightDownUpDir1
 }CHART_EEE;
 
 ALIGN_32BYTES(uint32_t pLcd[LCD_BUFF_XSIZE*LCD_BUFF_YSIZE] __attribute__ ((section(".sdram"))));
@@ -2989,21 +2991,77 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 
 
 		case 10:
-			if(posX <350){
+//			if(posX <350){			// Up-Down-Up
+//				return 0;
+//			}
+//			else if(posX == 350){
+//				return 51;
+//			}
+//			else if(posX == 351){
+//				return 10;
+//			}
+//			else if(posX == 352){
+//				return 51;
+//			}
+//			else if(posX > 352 ){
+//				return 51;
+//			}
+
+
+			if(posX <350){			// Down-Up-Down
 				return 0;
 			}
 			else if(posX == 350){
-				return 51;
+				return -51;
 			}
+			else if(posX == 351){
+				return -10;
+			}
+			else if(posX == 352){
+				return -51;
+			}
+			else if(posX > 352 ){
+				return -49;
+			}
+//			else if(posX == 354 ){
+//				return 113;
+//			}
+//			else if(posX == 355 ){
+//				return -113;
+//			}
+//			else if(posX > 355 ){
+//				return 0;
+//			}
+
+
+
+
+//			if(posX <350){			// Down-Up-Down
+//				return 0;
+//			}
+//			else if(posX == 350){
+//				return -51;
+//			}
 //			else if(posX == 351){
+//				return -10;
+//			}
+//			else if(posX > 351 ){
+//				return -10;
+//			}
+
+
+//			if(posX <350){
+//				return 0;
+//			}
+//			else if(posX == 350){
 //				return 51;
 //			}
-			else if(posX == 351){
-				return 10;
-			}
-			else if(posX > 351 ){
-				return 9;
-			}
+//			else if(posX == 351){
+//				return 10;
+//			}
+//			else if(posX > 351 ){
+//				return 9;
+//			}
 
 
 
@@ -3248,6 +3306,9 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 	#define IS_LeftDownDir1			(pos[i].y+ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
 	#define IS_LeftUpDir1			(pos[i].y-ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
 
+	#define IS_RightUpDownDir1			((pos[i].y+1)-(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
+	#define IS_RightDownUpDir1			((pos[i].y-1)+(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
+
 	u16 buff[MAX_SIZE_BUFF];
 	u8 functionType = NONE_FUNC_TYPE;
 	u16 lastSample = 0;
@@ -3272,7 +3333,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 		lastSample=0;
 	}
 
-	void _GetSamplesDir1(int dir, int sign){
+	void _GetSamplesDir1(int dir, int sign){  /// Chyba int dir nie ma sensu bo jest w nazwie  ...Dir1 !!!!!!!!!!
 		if(lastSample){
 			if(lastSample%2==0){
 				buff[1+buff[0]++]=lastSample/2;
@@ -3403,6 +3464,54 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 				goto TempEnd_Display;
 			}
 		}
+//888888888888888888888888888888888888
+		if(IS_RightUpDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1)){
+			_GetSamplesDir1(0,-1);
+			functionType = RightUpDownDir1;
+		}
+		else{
+			if(functionType == RightUpDownDir1){
+
+				_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				buff[0]=0;
+
+				buff[1+buff[0]++]=ABS(pos[i].rx);
+				 _StartDrawLine(offs_k, LCD_X, pos[i].x, pos[i].y);
+				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				buff[0]=0;
+
+				functionType=NONE_FUNC_TYPE;
+				goto TempEnd_Display;
+			}
+		}
+
+
+		if(IS_RightDownUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1)){
+			_GetSamplesDir1(0,-1);
+			functionType = RightDownUpDir1;
+		}
+		else{
+			if(functionType == RightDownUpDir1){
+
+				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				buff[0]=0;
+
+				buff[1+buff[0]++]=ABS(pos[i].rx);
+				 _StartDrawLine(offs_k, LCD_X, pos[i].x, pos[i].y);
+				 _DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				buff[0]=0;
+
+				functionType=NONE_FUNC_TYPE;
+				goto TempEnd_Display;
+			}
+		}
+
+		//888888888888888888888888888888888888
+
+
+
+
+
 
 		if(IS_LeftDownDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir0)){
 			_GetSamplesDir0(1,-1);
