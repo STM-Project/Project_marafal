@@ -2308,7 +2308,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 */
 	//GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(50,260, -170,170), POINTS_STEP_XYSCALE(480,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(9), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0) );
 
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(250,250, -170,170), POINTS_STEP_XYSCALE(451,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(10), LINE_COLOR(LIGHTBLUE,0,0), AA_VAL(1.0,1.0), DRAW_OPT(Disp_AA|Disp_posXYrep, WHITE,WHITE, 0*LCD_X-0, 120*LCD_X-0) );
+	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(250,250, -170,170), POINTS_STEP_XYSCALE(451,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(9), LINE_COLOR(WHITE,0,0), AA_VAL(1.0,1.0), DRAW_OPT(Disp_AA|Disp_posXYrep, WHITE,WHITE, 0*LCD_X-0, 120*LCD_X-0) );
 
 	//ZROBIC CIRCLE zmienna grubosc DRAWLINE !!!!!!!!!!!! z AA z 0.0 na 0.5 np!!!!
 	//ZROBIC cieniowanie pol i text 3d na nim jak w biletcie automatu na muzeum naradowe
