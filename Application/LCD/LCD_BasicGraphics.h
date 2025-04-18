@@ -22,6 +22,9 @@
 #define CIRCLE_POS_XY(width,offsX,offsY)		LCD_GetXSize()-LCD_CalculateCircleWidth(width)-(offsX), LCD_GetYSize()-LCD_CalculateCircleWidth(width)-(offsY)
 #define SetBold2Color(frameColor,thickness)		(((frameColor)&0xFFFFFF) | (((((uint32_t)(thickness))<<24)&0xFF000000)))
 
+#define NORMAL_SLIDER_PARAM	2,8,2,2
+#define NORMAL_SLIDER_PARAM2	2,6,2,1
+
 #define BK_COLOR_CIRCLESLIDER(p)					GetTransitionColor(p.param[0], p.param[1],0.5)					/* this is yet NOT imported !!!  we read bkColor for LCD_StrChangeColor() */
 #define BK_COLOR_CIRCLEBUTTON(p)					GetTransitionColor(p.color[0].fill, p.color[1].fill,0.5)		/* this is yet NOT imported !!!  we read bkColor for LCD_StrChangeColor() */
 #define POS_SIZE_CIRCLEBUTTONSLIDER(p,offsX,offsY)					p.pos[0].x+(offsX), p.pos[0].y+(offsY), p.size[0].w, p.size[0].h
@@ -61,8 +64,22 @@ enum COPY_TO_SHAPE_STRUCT{
 	ToStructAndDisplay = 0x80000000
 };
 
-#define NORMAL_SLIDER_PARAM	2,8,2,2
-#define NORMAL_SLIDER_PARAM2	2,6,2,1
+typedef enum{
+	Func_sin,
+	Func_sin1,
+	Func_sin2,
+	Func_sin3,
+	Func_cos,
+	Func_log,
+	Func_tan,
+	Func_noise,
+	Func_lines1,
+	Func_lines2,
+	Func_lines3,
+	Func_lines4,
+	Func_lines5,
+}GRAPH_FUNC;
+
 typedef enum{
 	DelTriang = -1,
 	NoSel,
