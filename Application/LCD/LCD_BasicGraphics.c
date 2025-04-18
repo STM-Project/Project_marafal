@@ -2892,12 +2892,70 @@ static int LCD_CIRCLE_GetRadiusFromPosXY(int x,int y, int x0,int y0){
 	return sqrt(ABS((x-x0)*(x-x0)) + ABS((y-y0)*(y-y0)));
 }
 
-
 static void GRAPH_ClearPosXY(structPosition posXY[]){
 	for(int i=0;i<GRAPH_MAX_SIZE_POSXY;i++){ posXY[i].x=0; posXY[i].y=0; }
 }
 static void GRAPH_ClearPosXYrep(structRepPos posXY_rep[]){
 	for(int i=0;i<GRAPH_MAX_SIZE_POSXY;i++){ posXY_rep[i].x=0; posXY_rep[i].y=0; 	posXY_rep[i].rx=0; posXY_rep[i].ry=0; }
+}
+
+static double GRAPHFUNC_UpDownUp(double posX){
+	if(posX <350) 		 return 0;
+	else if(posX==350) return 51;
+	else if(posX==351) return 10;
+	else if(posX==352) return 49;
+	else if(posX>352)  return 46;
+	return 0;
+}
+static double GRAPHFUNC_DownUpDown(double posX){
+	if(posX <350) 		 return 0;
+	else if(posX==350) return -51;
+	else if(posX==351) return -10;
+	else if(posX==352) return -57;
+	else if(posX>352)  return -54;
+	else if(posX==354) return 113;
+	else if(posX==355) return -113;
+	else if(posX>355)  return 0;
+	return 0;
+}
+static double GRAPHFUNC_DownUpDown2(double posX){
+	if(posX <350) 		 return 0;
+	else if(posX==350) return -51;
+	else if(posX==351) return -10;
+	else if(posX>351)  return -10;
+	return 0;
+}
+static double GRAPHFUNC_Example1(double posX){
+	if(posX<350) 		 return 0;
+	else if(posX==350) return 51;
+	else if(posX==351) return 10;
+	else if(posX>351 ) return 9;
+	return 0;
+}
+static double GRAPHFUNC_Example2(double posX){
+	if(posX <350) 						return 0;
+	else if(posX==350) 				return -51;
+	else if(posX>350 && posX<450) return -51;
+	else if(posX==450)				return -101;
+	else if(posX>450 && posX<500) return -101;
+	else if(posX==500)				return -103;
+	else									return -106;
+	return 0;
+}
+static double GRAPHFUNC_Noise(void){
+	static uint32_t aRandom32bit=0;
+	static int cnt=0, cnt2=0, flag=0, randMask=0;
+
+	if(flag){	cnt2++;	if(cnt2%5==0) aRandom32bit=300-(cnt2/5);								  }
+	else	  {  				if(cnt%2==0)  HAL_RNG_GenerateRandomNumber(&hrng,&aRandom32bit); }
+
+		  if(cnt%50==0) randMask = 0x2F;
+	else if(cnt%51==0) randMask = 0x0F;
+	else if(cnt%52==0) randMask = 0x1F;
+
+	if(cnt%32==0){	 flag=1-flag;	cnt2=0;  }
+	cnt++;
+	return aRandom32bit & randMask;
 }
 
 static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
@@ -2909,76 +2967,13 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 		case Func_sin3:	return ABS(sin(TANG_ARG(posX)));
 		case Func_log:		return log((sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX))));
 		case Func_tan:		return tan(TANG_ARG(posX));
+		case Func_noise:  return GRAPHFUNC_Noise();
 
-		case Func_noise:
-			static int ydy=0;
-			static uint32_t aRandom32bit=0;		//DAC TO JAKO FuncExampleNoise() !!!!!!!!!!!!!!!!
-			static int zmien=0;
-			static int zmien2=0;
-			static int licz=0;
-
-			if(zmien2){
-				licz++;
-				if(licz%5==0) aRandom32bit = 300 - (licz/5);
-			}
-			else{
-				if(ydy%2==0) HAL_RNG_GenerateRandomNumber(&hrng,&aRandom32bit);
-			}
-
-			if(ydy%50==0)
-				zmien = 0x2F;
-			else if(ydy%51==0)
-				zmien = 0x0F;
-			else if(ydy%52==0)
-				zmien = 0x1F;
-
-			if(ydy%32==0){
-				zmien2=1-zmien2;
-				licz=0;
-			}
-			ydy++;
-			return aRandom32bit & zmien;
-
-
-
-		case Func_lines1:
-			if(posX <350) 		 return 0;		// Up-Down-Up  dac jako example func !!!
-			else if(posX==350) return 51;
-			else if(posX==351) return 10;
-			else if(posX==352) return 49;
-			else if(posX>352)  return 46;
-
-
-		case Func_lines2:
-			if(posX <350) 		 return 0;	// Down-Up-Down
-			else if(posX==350) return -51;
-			else if(posX==351) return -10;
-			else if(posX==352) return -57;
-			else if(posX>352)  return -54;
-			else if(posX==354) return 113;
-			else if(posX==355) return -113;
-			else if(posX>355)  return 0;
-
-		case Func_lines3:
-			if(posX <350) 		 return 0;			// Down-Up-Down
-			else if(posX==350) return -51;
-			else if(posX==351) return -10;
-			else if(posX>351)  return -10;
-
-		case Func_lines4:
-			if(posX<350) 		 return 0;
-			else if(posX==350) return 51;
-			else if(posX==351) return 10;
-			else if(posX>351 ) return 9;
-
-		case Func_lines5:
-			if(posX <350) 						return 0;
-			else if(posX==350) 				return -51;
-			else if(posX>350 && posX<450) return -51;
-			else if(posX==450)				return -101;
-			else if(posX>450 && posX<500) return -101;
-			else if(posX==500)				return -103;
-			else									return -106;
+		case Func_lines1:  return GRAPHFUNC_UpDownUp(posX);
+		case Func_lines2:  return GRAPHFUNC_DownUpDown(posX);
+		case Func_lines3:  return GRAPHFUNC_DownUpDown2(posX);
+		case Func_lines4:  return GRAPHFUNC_Example1(posX);
+		case Func_lines5:  return GRAPHFUNC_Example2(posX);
 
 		default:
 			return 0;
@@ -5518,20 +5513,20 @@ void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, in
 	if(startX > 100) ccccol = RED;
 //funkcja znajdujaca max wykresu do ograniczenia !!!!!!!!!!!!!!!!!
 
-	LOOP_FOR(i,len_posXY){
-		if(posXY[i].x != xxxx){
-			if( (_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+1) != LIGHTBLUE)
-				|| (_PLCD(posXY[i].x, posXY[i].y+2) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+2) != LIGHTBLUE) ){
-				for(int j=posXY[i].y+1; j<startY+yMax; ++j){   //LOOP_INIT(j,posXY[i].y+1,startY+yMax)
-					  //tablocowanie zrobic bo zawolno !!!! zeby nie obliczac za kazdym razem i szybciej przez to !!!
-					transCoeff = (1.00*((float)(j-(startY+yMin))))/(float)(LCD_Y-(startY+yMin)) + 0.15;
-					bkColor = _PLCD(posXY[i].x, j);
-					_PLCD(posXY[i].x, j) = GetTransitionColor(ccccol,bkColor, transCoeff/*(1.00*((float)(j)))/(float)(LCD_Y) + 0.15*/ );
-				}
-			}
-		}  //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5   //rowne gradienty od lini
-		xxxx=posXY[i].x;
-	}
+//	LOOP_FOR(i,len_posXY){
+//		if(posXY[i].x != xxxx){
+//			if( (_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+1) != LIGHTBLUE)
+//				|| (_PLCD(posXY[i].x, posXY[i].y+2) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+2) != LIGHTBLUE) ){
+//				for(int j=posXY[i].y+1; j<startY+yMax; ++j){   //LOOP_INIT(j,posXY[i].y+1,startY+yMax)
+//					  //tablocowanie zrobic bo zawolno !!!! zeby nie obliczac za kazdym razem i szybciej przez to !!!
+//					transCoeff = (1.00*((float)(j-(startY+yMin))))/(float)(LCD_Y-(startY+yMin)) + 0.15;
+//					bkColor = _PLCD(posXY[i].x, j);
+//					_PLCD(posXY[i].x, j) = GetTransitionColor(ccccol,bkColor, transCoeff/*(1.00*((float)(j)))/(float)(LCD_Y) + 0.15*/ );
+//				}
+//			}
+//		}  //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5   //rowne gradienty od lini
+//		xxxx=posXY[i].x;
+//	}
 
 	if((int)dispOption==Disp_AA){
 					   GRAPH_Display(0,	   posXY_rep, len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;
