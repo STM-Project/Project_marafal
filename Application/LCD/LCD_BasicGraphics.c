@@ -2902,56 +2902,16 @@ static void GRAPH_ClearPosXYrep(structRepPos posXY_rep[]){
 
 static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 	switch(funcPatternType){
-		case 0:
-			return sin(TANG_ARG(posX));
-		case 1:
-			return cos(TANG_ARG(posX));
-		case 2:
-			return (posX/15);
-		case 3:
-			return (sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX)));
-		case 4:
-			return (sin(TANG_ARG(posX))+0.3*sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX))+0.2*cos(20*TANG_ARG(posX)));
-		case 5:
-			return log((sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX))));
-		case 6:
-			return tan(TANG_ARG(posX));
-		case 7:
+		case Func_sin:		return sin(TANG_ARG(posX));
+		case Func_cos:		return cos(TANG_ARG(posX));
+		case Func_sin1:	return (sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX)));
+		case Func_sin2:	return (sin(TANG_ARG(posX))+0.3*sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX))+0.2*cos(20*TANG_ARG(posX)));
+		case Func_sin3:	return ABS(sin(TANG_ARG(posX)));
+		case Func_log:		return log((sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX))));
+		case Func_tan:		return tan(TANG_ARG(posX));
+
+		case Func_noise:
 			static int ydy=0;
-			if(posX <350){
-				return 0;
-			}
-			else if(posX == 350){
-				return -51;
-			}
-			else if(posX > 350 && posX < 450 ){
-				return -51;
-			}
-			else if(posX == 450){
-				return -101;
-			}
-			else if(posX > 450 && posX < 500 ){
-				return -101;
-			}
-
-
-			else if(posX == 500 ){
-				return -103;
-			}
-			else{
-				return -106;
-			}
-
-
-
-			//return posX <450 ? posX<350?0:2 : 2;
-		case 8:
-			return ABS(sin(TANG_ARG(posX)));
-		case 9:
-//			if(IS_RANGE(posX,0,10)) return 50;
-//			else if(IS_RANGE(posX,0,10)) return 50;
-//
-//			else return 2;
 			static uint32_t aRandom32bit=0;		//DAC TO JAKO FuncExampleNoise() !!!!!!!!!!!!!!!!
 			static int zmien=0;
 			static int zmien2=0;
@@ -2965,8 +2925,6 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 				if(ydy%2==0) HAL_RNG_GenerateRandomNumber(&hrng,&aRandom32bit);
 			}
 
-
-
 			if(ydy%50==0)
 				zmien = 0x2F;
 			else if(ydy%51==0)
@@ -2978,92 +2936,49 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 				zmien2=1-zmien2;
 				licz=0;
 			}
-
 			ydy++;
-
-
-
 			return aRandom32bit & zmien;
 
 
 
+		case Func_lines1:
+			if(posX <350) 		 return 0;		// Up-Down-Up  dac jako example func !!!
+			else if(posX==350) return 51;
+			else if(posX==351) return 10;
+			else if(posX==352) return 49;
+			else if(posX>352)  return 46;
 
 
+		case Func_lines2:
+			if(posX <350) 		 return 0;	// Down-Up-Down
+			else if(posX==350) return -51;
+			else if(posX==351) return -10;
+			else if(posX==352) return -57;
+			else if(posX>352)  return -54;
+			else if(posX==354) return 113;
+			else if(posX==355) return -113;
+			else if(posX>355)  return 0;
 
-		case 10:
-			if(posX <350){			// Up-Down-Up  dac jako example func !!!
-				return 0;
-			}
-			else if(posX == 350){
-				return 51;
-			}
-			else if(posX == 351){
-				return 10;
-			}
-			else if(posX == 352){
-				return 49;
-			}
-			else if(posX > 352 ){
-				return 46;
-			}
+		case Func_lines3:
+			if(posX <350) 		 return 0;			// Down-Up-Down
+			else if(posX==350) return -51;
+			else if(posX==351) return -10;
+			else if(posX>351)  return -10;
 
+		case Func_lines4:
+			if(posX<350) 		 return 0;
+			else if(posX==350) return 51;
+			else if(posX==351) return 10;
+			else if(posX>351 ) return 9;
 
-//			if(posX <350){			// Down-Up-Down
-//				return 0;
-//			}
-//			else if(posX == 350){
-//				return -51;
-//			}
-//			else if(posX == 351){
-//				return -10;
-//			}
-//			else if(posX == 352){
-//				return -57;
-//			}
-//			else if(posX > 352 ){
-//				return -54;
-//			}
-//			else if(posX == 354 ){
-//				return 113;
-//			}
-//			else if(posX == 355 ){
-//				return -113;
-//			}
-//			else if(posX > 355 ){
-//				return 0;
-//			}
-
-
-
-
-//			if(posX <350){			// Down-Up-Down
-//				return 0;
-//			}
-//			else if(posX == 350){
-//				return -51;
-//			}
-//			else if(posX == 351){
-//				return -10;
-//			}
-//			else if(posX > 351 ){
-//				return -10;
-//			}
-
-
-//			if(posX <350){
-//				return 0;
-//			}
-//			else if(posX == 350){
-//				return 51;
-//			}
-//			else if(posX == 351){
-//				return 10;
-//			}
-//			else if(posX > 351 ){
-//				return 9;
-//			}
-
-
+		case Func_lines5:
+			if(posX <350) 						return 0;
+			else if(posX==350) 				return -51;
+			else if(posX>350 && posX<450) return -51;
+			else if(posX==450)				return -101;
+			else if(posX>450 && posX<500) return -101;
+			else if(posX==500)				return -103;
+			else									return -106;
 
 		default:
 			return 0;
