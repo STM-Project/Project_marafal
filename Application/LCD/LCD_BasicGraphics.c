@@ -3260,11 +3260,10 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 	#define IS_LeftDownDir1			(pos[i].y+ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
 	#define IS_LeftUpDir1			(pos[i].y-ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
 
-	#define IS_RightUpDownDir1_		((pos[i].y+1)-(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x  && pos[i].y!=pos[i+1].y)
-   #define IS_RightDownUpDir1_		((pos[i].y-1)+(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x  && pos[i].y!=pos[i+1].y)
-
-	#define IS_RightUpDownDir1		(pos[i].rx < 0  &&  pos[i+1].rx > 0)
-	#define IS_RightDownUpDir1		(pos[i].rx > 0  &&  pos[i+1].rx < 0)
+	#define IS_RightUpDownDir1		((pos[i].y+1)-(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
+   #define IS_RightDownUpDir1		((pos[i].y-1)+(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
+	#define IS_RightUpDownDir1_ver2		(pos[i].rx < 0  &&  pos[i+1].rx > 0)
+	#define IS_RightDownUpDir1_ver2		(pos[i].rx > 0  &&  pos[i+1].rx < 0)
 
 
 //	pos[i].y+2-ABS(pos[i].rx) == pos[i+1].y;
@@ -3500,11 +3499,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			}
 		}
 
-
-
-
-
-		if(IS_RightUpDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1))
+		if(IS_RightUpDownDir1_ver2 && (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1))
 		{
 			buff[0]=0;    buff[1+buff[0]++]=ABS(pos[i].rx);
 			_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
@@ -3512,10 +3507,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			functionType = NONE_FUNC_TYPE;
 			buff[0]=0;
 		}
-
-
-
-		if(IS_RightDownUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1))
+		if(IS_RightDownUpDir1_ver2 && (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1))
 		{
 			buff[0]=0;    buff[1+buff[0]++]=ABS(pos[i].rx);
 			_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
@@ -3524,47 +3516,34 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			buff[0]=0;
 		}
 
-
-
-
-
-
-		if(IS_RightUpDownDir1_	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1) && ABS(pos[i].rx)>1){
+		if(IS_RightUpDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1) && ABS(pos[i].rx)>2){
 			_GetSamplesDir1(0,-1);
 			functionType = RightUpDownDir1;
 		}
-		else{
-			if(functionType == RightUpDownDir1){
-				_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
-				buff[0]=0;
-
-				buff[1+buff[0]++]=ABS(pos[i].rx);
-				 _StartDrawLine(offs_k, LCD_X, pos[i].x, pos[i].y);
-				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
-				buff[0]=0;
-
-				functionType=NONE_FUNC_TYPE;
-				goto TempEnd_Display;
-			}
+		else if(functionType == RightUpDownDir1)
+		{
+			_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+			buff[0]=0;  buff[1+buff[0]++]=ABS(pos[i].rx);
+			_StartDrawLine(offs_k, LCD_X, pos[i].x, pos[i].y);
+			_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+			functionType=NONE_FUNC_TYPE;
+			buff[0]=0;
+			goto TempEnd_Display;
 		}
 
-		if(IS_RightDownUpDir1_	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1) && ABS(pos[i].rx)>1){
+		if(IS_RightDownUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1) && ABS(pos[i].rx)>2){
 			_GetSamplesDir1(0,-1);
 			functionType = RightDownUpDir1;
 		}
-		else{
-			if(functionType == RightDownUpDir1){
-				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
-				buff[0]=0;
-
-				buff[1+buff[0]++]=ABS(pos[i].rx);
-				 _StartDrawLine(offs_k, LCD_X, pos[i].x, pos[i].y);
-				 _DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
-				buff[0]=0;
-
-				functionType=NONE_FUNC_TYPE;
-				goto TempEnd_Display;
-			}
+		else if(functionType == RightDownUpDir1)
+		{
+			_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+			buff[0]=0;  buff[1+buff[0]++]=ABS(pos[i].rx);
+			_StartDrawLine(offs_k, LCD_X, pos[i].x, pos[i].y);
+			_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+			functionType=NONE_FUNC_TYPE;
+			buff[0]=0;
+			goto TempEnd_Display;
 		}
 	}
 
@@ -3583,6 +3562,8 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 
 	#undef IS_RightUpDownDir1
 	#undef IS_RightDownUpDir1
+	#undef IS_RightUpDownDir1_ver2
+	#undef IS_RightDownUpDir1_ver2
 }
 
 /* ################################## -- Global Declarations -- ######################################################### */
