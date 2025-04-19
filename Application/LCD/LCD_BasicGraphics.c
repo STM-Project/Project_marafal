@@ -3499,6 +3499,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			}
 		}
 
+
 		if(IS_RightUpDownDir1_ver2 && (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1))
 		{
 			buff[0]=0;    buff[1+buff[0]++]=ABS(pos[i].rx);
@@ -3507,6 +3508,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			functionType = NONE_FUNC_TYPE;
 			buff[0]=0;
 		}
+
 		if(IS_RightDownUpDir1_ver2 && (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1))
 		{
 			buff[0]=0;    buff[1+buff[0]++]=ABS(pos[i].rx);
@@ -3515,6 +3517,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			functionType = NONE_FUNC_TYPE;
 			buff[0]=0;
 		}
+
 
 		if(IS_RightUpDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1) && ABS(pos[i].rx)>2){
 			_GetSamplesDir1(0,-1);
@@ -3530,6 +3533,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			buff[0]=0;
 			goto TempEnd_Display;
 		}
+
 
 		if(IS_RightDownUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1) && ABS(pos[i].rx)>2){
 			_GetSamplesDir1(0,-1);
