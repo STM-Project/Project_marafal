@@ -2942,6 +2942,42 @@ static double GRAPHFUNC_Example2(double posX){
 	else									return -106;
 	return 0;
 }
+static double GRAPHFUNC_Example3(double posX){
+//	if(posX <350) 		 return 0;
+//	else if(posX==350) return 10;
+//	else if(posX==351) return 0;
+//	else if(posX==352) return 8;
+//	else if(posX==353) return 1;
+//	else if(posX==354) return 7;
+//	else if(posX==355) return 2;
+//	else if(posX==356) return 6;
+//	else if(posX==357) return 3;
+//	else if(posX==358) return 44;
+//	else if(posX>358)  return 41;
+//	return 0;
+
+
+//	if(posX <350) 		 return 0;
+//	else if(posX==350) return 10;
+//	else if(posX==351) return 0;
+//	else if(posX==352) return 4;
+//	else if(posX==353) return 2;
+//	else if(posX>353)  return 41;
+//	return 0;
+
+	if(posX <350) 		 return 0;
+	else if(posX==350) return 4;
+	else if(posX==351) return 2;
+	else if(posX==352) return 4;
+	else if(posX==353) return 2;
+	else if(posX>353)  return 41;
+	return 0;
+}
+
+
+
+
+
 static double GRAPHFUNC_Noise(void){
 	static uint32_t aRandom32bit=0;
 	static int cnt=0, cnt2=0, flag=0, randMask=0;
@@ -2957,6 +2993,11 @@ static double GRAPHFUNC_Noise(void){
 	cnt++;
 	return aRandom32bit & randMask;
 }
+static double GRAPHFUNC_Noise2(void){
+	static uint32_t aRandom32bit=0;
+	HAL_RNG_GenerateRandomNumber(&hrng,&aRandom32bit);
+	return aRandom32bit & 0x2F;
+}
 
 static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 	switch(funcPatternType){
@@ -2967,13 +3008,16 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 		case Func_sin3:	return ABS(sin(TANG_ARG(posX)));
 		case Func_log:		return log((sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX))));
 		case Func_tan:		return tan(TANG_ARG(posX));
+
 		case Func_noise:  return GRAPHFUNC_Noise();
+		case Func_noise2:  return GRAPHFUNC_Noise2();
 
 		case Func_lines1:  return GRAPHFUNC_UpDownUp(posX);
 		case Func_lines2:  return GRAPHFUNC_DownUpDown(posX);
 		case Func_lines3:  return GRAPHFUNC_DownUpDown2(posX);
 		case Func_lines4:  return GRAPHFUNC_Example1(posX);
 		case Func_lines5:  return GRAPHFUNC_Example2(posX);
+		case Func_lines6:  return GRAPHFUNC_Example3(posX);
 
 		default:
 			return 0;
@@ -3216,8 +3260,18 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 	#define IS_LeftDownDir1			(pos[i].y+ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
 	#define IS_LeftUpDir1			(pos[i].y-ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
 
-	#define IS_RightUpDownDir1			((pos[i].y+1)-(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
-	#define IS_RightDownUpDir1			((pos[i].y-1)+(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
+	#define IS_RightUpDownDir1_		((pos[i].y+1)-(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x  && pos[i].y!=pos[i+1].y)
+   #define IS_RightDownUpDir1_		((pos[i].y-1)+(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x  && pos[i].y!=pos[i+1].y)
+
+	#define IS_RightUpDownDir1		(pos[i].rx < 0  &&  pos[i+1].rx > 0)
+	#define IS_RightDownUpDir1		(pos[i].rx > 0  &&  pos[i+1].rx < 0)
+
+
+//	pos[i].y+2-ABS(pos[i].rx) == pos[i+1].y;
+//
+//	pos[i].y-(ABS(pos[i].rx)-2) == pos[i+1].y;
+//
+//	pos[i].y - pos[i+1].y == (ABS(pos[i].rx)-2);
 
 	u16 buff[MAX_SIZE_BUFF];
 	u8 functionType = NONE_FUNC_TYPE;
@@ -3262,32 +3316,23 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 		lastSample=0;
 	}
 
-
-  // corecta
-	/*     			  _____           ____
-	   z takiego  ___|       na  ___|
-
-
-	  */
+	/*     		 					 _____            ____
+	   Pixels correct from:  ___|       to:  ___|			for 'Up' (on this example) and the same for 'Down'
+	*/
 	for(i=0; i<lenStruct-1; ++i){
-		if(pos[i].x+1==pos[i+1].x &&    pos[i].y+1+pos[i].rx == pos[i+1].y    ){   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
-			pos[i].rx++;
-		}
-		else if(pos[i].x+1==pos[i+1].x &&    pos[i].y-1+pos[i].rx == pos[i+1].y    ){
-			pos[i].rx--;
-		}
+			  if((pos[i].x+1==pos[i+1].x) && (pos[i].y+1+pos[i].rx==pos[i+1].y))	 pos[i].rx++;
+		else if((pos[i].x+1==pos[i+1].x) && (pos[i].y-1+pos[i].rx==pos[i+1].y))	 pos[i].rx--;
 	}
 
-
-	i=lenStruct++;    //jesli w ostatniej czesci wykresu nie wykryje zmian to Nie NARYSUJE OSTATNIEJ CZESCI WYKRESU
+	 /* We have to add one pixel at the end to draw correct last part of graph. Algorithm must detect changes on the last part of graph. */
+	i=lenStruct++;
 	pos[i].x =pos[i-1].x + pos[i-1].ry;
 	pos[i].y =pos[i-1].y+1;
 	pos[i].rx=1;
 	pos[i].ry=1;
 
 
-
-
+	/* Main operation */
 	for(i=0; i<MAX_SIZE_BUFF; ++i) buff[i]=0;
 	for(i=0; i<lenStruct; ++i)
 	{
@@ -3295,7 +3340,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 		if(buff[0]>=MAX_SIZE_BUFF-1)
 			return;
 
-		if(IS_RightDownDir0	&& EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightDownDir0)){
+		if(IS_RightDownDir0	&& EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightDownDir0) && ABS(pos[i].ry)>0){
 			_GetSamplesDir0(1,1);
 			functionType = RightDownDir0;
 		}
@@ -3315,7 +3360,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			}
 		}
 
-		if(IS_RightUpDir0 && EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightUpDir0)){
+		if(IS_RightUpDir0 && EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightUpDir0) && ABS(pos[i].ry)>0){
 			_GetSamplesDir0(1,1);
 			functionType = RightUpDir0;
 		}
@@ -3335,7 +3380,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			}
 		}
 
-		if(IS_RightDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownDir1)){
+		if(IS_RightDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownDir1) && ABS(pos[i].rx)>0){
 			_GetSamplesDir1(0,1);
 			functionType = RightDownDir1;
 		}
@@ -3355,7 +3400,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			}
 		}
 
-		if(IS_RightUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDir1)){
+		if(IS_RightUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDir1) && ABS(pos[i].rx)>0){
 			_GetSamplesDir1(0,-1);
 			functionType = RightUpDir1;
 		}
@@ -3374,56 +3419,8 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 				goto TempEnd_Display;
 			}
 		}
-//888888888888888888888888888888888888
-		if(IS_RightUpDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1) && ABS(pos[i].rx)>1){
-			_GetSamplesDir1(0,-1);
-			functionType = RightUpDownDir1;
-		}
-		else{
-			if(functionType == RightUpDownDir1){
 
-				_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
-				buff[0]=0;
-
-				buff[1+buff[0]++]=ABS(pos[i].rx);
-				 _StartDrawLine(offs_k, LCD_X, pos[i].x, pos[i].y);
-				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
-				buff[0]=0;
-
-				functionType=NONE_FUNC_TYPE;
-				goto TempEnd_Display;
-			}
-		}
-
-
-		if(IS_RightDownUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1) && ABS(pos[i].rx)>1){
-			_GetSamplesDir1(0,-1);
-			functionType = RightDownUpDir1;
-		}
-		else{
-			if(functionType == RightDownUpDir1){
-
-				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
-				buff[0]=0;
-
-				buff[1+buff[0]++]=ABS(pos[i].rx);
-				 _StartDrawLine(offs_k, LCD_X, pos[i].x, pos[i].y);
-				 _DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
-				buff[0]=0;
-
-				functionType=NONE_FUNC_TYPE;
-				goto TempEnd_Display;
-			}
-		}
-
-		//888888888888888888888888888888888888
-
-
-
-
-
-
-		if(IS_LeftDownDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir0)){
+		if(IS_LeftDownDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir0) && ABS(pos[i].ry)>0){
 			_GetSamplesDir0(1,-1);
 			functionType = LeftDownDir0;
 		}
@@ -3443,7 +3440,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			}
 		}
 
-		if(IS_LeftUpDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir0)){
+		if(IS_LeftUpDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir0) && ABS(pos[i].ry)>0){
 			_GetSamplesDir0(1,-1);
 			functionType = LeftUpDir0;
 		}
@@ -3463,7 +3460,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			}
 		}
 
-		if(IS_LeftDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir1)){
+		if(IS_LeftDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir1) && ABS(pos[i].rx)>0){
 			_GetSamplesDir1(0,1);
 			functionType = LeftDownDir1;
 		}
@@ -3483,7 +3480,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 			}
 		}
 
-		if(IS_LeftUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir1)){
+		if(IS_LeftUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir1) && ABS(pos[i].rx)>0){
 			_GetSamplesDir1(0,-1);
 			functionType = LeftUpDir1;
 		}
@@ -3502,21 +3499,74 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 				goto TempEnd_Display;
 			}
 		}
-	}
 
-//	i--;
-//	if(pos[i].ry==0 && pos[i].rx>0){
-//		buff[0]=1;
-//		buff[1]=ABS(pos[i].rx);
-//		_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
-//		_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
-//	}
-//	else if(pos[i].rx==0 && pos[i].ry>0){  //to chyba nie potrzebne
-//		buff[0]=1;
-//		buff[1]=ABS(pos[i].ry);
-//		_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
-//		_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
-//	}
+
+
+
+
+		if(IS_RightUpDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1))
+		{
+			buff[0]=0;    buff[1+buff[0]++]=ABS(pos[i].rx);
+			_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
+			_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+			functionType = NONE_FUNC_TYPE;
+			buff[0]=0;
+		}
+
+
+
+		if(IS_RightDownUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1))
+		{
+			buff[0]=0;    buff[1+buff[0]++]=ABS(pos[i].rx);
+			_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
+			_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+			functionType = NONE_FUNC_TYPE;
+			buff[0]=0;
+		}
+
+
+
+
+
+
+		if(IS_RightUpDownDir1_	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1) && ABS(pos[i].rx)>1){
+			_GetSamplesDir1(0,-1);
+			functionType = RightUpDownDir1;
+		}
+		else{
+			if(functionType == RightUpDownDir1){
+				_DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				buff[0]=0;
+
+				buff[1+buff[0]++]=ABS(pos[i].rx);
+				 _StartDrawLine(offs_k, LCD_X, pos[i].x, pos[i].y);
+				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				buff[0]=0;
+
+				functionType=NONE_FUNC_TYPE;
+				goto TempEnd_Display;
+			}
+		}
+
+		if(IS_RightDownUpDir1_	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1) && ABS(pos[i].rx)>1){
+			_GetSamplesDir1(0,-1);
+			functionType = RightDownUpDir1;
+		}
+		else{
+			if(functionType == RightDownUpDir1){
+				_DrawArrayBuffRightDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				buff[0]=0;
+
+				buff[1+buff[0]++]=ABS(pos[i].rx);
+				 _StartDrawLine(offs_k, LCD_X, pos[i].x, pos[i].y);
+				 _DrawArrayBuffRightUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 1, buff);
+				buff[0]=0;
+
+				functionType=NONE_FUNC_TYPE;
+				goto TempEnd_Display;
+			}
+		}
+	}
 
 	#undef NONE_FUNC_TYPE
 	#undef MAX_SIZE_BUFF
@@ -3530,9 +3580,12 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 	#undef IS_RightUpDir1
 	#undef IS_LeftDownDir1
 	#undef IS_LeftUpDir1
+
+	#undef IS_RightUpDownDir1
+	#undef IS_RightDownUpDir1
 }
 
-/*################################## -- Global Declarations -- #########################################################*/
+/* ################################## -- Global Declarations -- ######################################################### */
 void CorrectLineAA_on(void){
 	correctLine_AA=1;
 }
@@ -5529,14 +5582,14 @@ void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, in
 //	}
 
 	if((int)dispOption==Disp_AA){
-					   GRAPH_Display(0,	   posXY_rep, len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;
+					   GRAPH_Display(0,	   posXY_rep, len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
 		if(offsK1){ GRAPH_Display(offsK1,posXY_rep, len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart); }	testFuncGraph = testAAAAA;
 		if(offsK2){ GRAPH_Display(offsK2,posXY_rep, len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0); }
 	}
 	else{
 		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, posXY,		len_posXY,	  color1);
 		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_rep, len_posXYrep, color2);
-		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 posXY_rep, len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart);
+		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 posXY_rep, len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart);   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
 	}
 }
 

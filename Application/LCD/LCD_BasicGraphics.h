@@ -73,11 +73,13 @@ typedef enum{
 	Func_log,
 	Func_tan,
 	Func_noise,
+	Func_noise2,
 	Func_lines1,
 	Func_lines2,
 	Func_lines3,
 	Func_lines4,
 	Func_lines5,
+	Func_lines6,
 }GRAPH_FUNC;
 
 typedef enum{

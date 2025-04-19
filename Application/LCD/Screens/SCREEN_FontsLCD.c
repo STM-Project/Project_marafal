@@ -1773,7 +1773,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 	return NULL;
 }
 
-static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=1.0, .funcType=Func_sin};  // tymczasowe zmienne
+static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=1.0, .funcType=Func_lines6};  // tymczasowe zmienne
 extern int testFuncGraph;
 
 void FILE_NAME(debugRcvStr)(void)
@@ -1801,7 +1801,7 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("s",&testGraph.scaleY,_double,_Incr,_Double(1.0),_Double(100.0),"Test Graph scaleY: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("x",&testGraph.scaleY,_double,_Decr,_Double(1.0),_Double(  1.0),"Test Graph scaleY: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("d",&testGraph.funcType,_uint8,_Incr,_Uint8(1),_Uint8(Func_lines5),"Test Graph funcType: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("d",&testGraph.funcType,_uint8,_Incr,_Uint8(1),_Uint8(Func_lines6),"Test Graph funcType: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("c",&testGraph.funcType,_uint8,_Decr,_Uint8(1),_Uint8(Func_sin),	 "Test Graph funcType: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("f",&testGraph.AAoutCoeff,_double,_Incr,_Double(0.1),_Double(1.0),"Test Graph AA out: ",MainFuncRefresh)
@@ -2317,7 +2317,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 */
 	//GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(50,260, -170,170), POINTS_STEP_XYSCALE(480,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(9), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0) );
 
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXYrep, WHITE,WHITE, 0*LCD_X-0, 120*LCD_X-0) );
+	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(1.0,1.0/*testGraph.AAoutCoeff,testGraph.AAinCoeff*/), DRAW_OPT(Disp_AA|Disp_posXYrep|Disp_posXY, WHITE,WHITE, 160*LCD_X-0, 80*LCD_X-0) );
 
 	//ZROBIC CIRCLE zmienna grubosc DRAWLINE !!!!!!!!!!!! z AA z 0.0 na 0.5 np!!!!
 	//ZROBIC cieniowanie pol i text 3d na nim jak w biletcie automatu na muzeum naradowe
