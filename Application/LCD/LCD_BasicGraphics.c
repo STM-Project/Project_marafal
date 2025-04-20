@@ -81,10 +81,12 @@ static AACoeff_RoundFrameRectangle AA;
 static uint8_t correctLine_AA=0;
 static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .errorDecision= {0.1, 0.4}};
 
-static structPosition posXY[GRAPH_MAX_SIZE_POSXY]={0};
+//static structPosition posXY[GRAPH_MAX_SIZE_POSXY]={0};
+structPosition posXY[GRAPH_MAX_SIZE_POSXY] SDRAM;
 static u8 correctAA45degLineH = 0;
 static u8 correctAA45degLineV = 0;
-structRepPos posXY_rep[GRAPH_MAX_SIZE_POSXY]={0};		/* Buffer for repetition redundancy of positions x,y */
+//structRepPos posXY_rep[GRAPH_MAX_SIZE_POSXY]={0};		/* Buffer for repetition redundancy of positions x,y */
+structRepPos posXY_rep[GRAPH_MAX_SIZE_POSXY] SDRAM;		/* Buffer for repetition redundancy of positions x,y */
 
 uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
 uint16_t* GET_CIRCLE_correctPercDeg(int nr){	return &Circle.correctPercDeg[nr]; }
@@ -5551,10 +5553,11 @@ void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, in
 		TransParam[i].coeff		 = (1.00 * ((float)i))/(float)transParamSize + 0.15;
 		TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
 
-	StartMeasureTime_us();
+
+	//StartMeasureTime_us();
 	LOOP_FOR(i,len_posXY){
 		if(posXY[i].x != posX_prev){
-			if( (_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA) || (_PLCD(posXY[i].x, posXY[i].y+2) != colorLineAA) ){
+			if(_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA){
 				for(int j=posXY[i].y+1; j<startY+yMax; ++j){   //LOOP_INIT(j,posXY[i].y+1,startY+yMax)
 
 
@@ -5574,19 +5577,12 @@ void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, in
 						TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
 						_PLCD(posXY[i].x, j) = TransParam[n].transColor;
 					}
-
-//					float transCoeff = (1.00 * ((float)n))/(float)transParamSize + 0.15;    //(1.00*((float)(j-(startY+yMin))))/(float)(LCD_Y-(startY+yMin)) + 0.15;
-//
-//				_PLCD(posXY[i].x, j) = GetTransitionColor(colorLineAA,bkColor, transCoeff/*(1.00*((float)(j)))/(float)(LCD_Y) + 0.15*/ );
-
-
-
 				}
 			}
 		}  //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5   //rowne gradienty od lini
 		posX_prev = posXY[i].x;
 	}
-	StopMeasureTime_us("Time GRAPH:");
+	//StopMeasureTime_us("Time GRAPH:");  DbgVar(1,50,"   ttt: %d   %d  ",ttt1,ttt2);
 	if((int)dispOption==Disp_AA){
 					   GRAPH_Display(0,	   posXY_rep, len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
 		if(offsK1){ GRAPH_Display(offsK1,posXY_rep, len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart); }	testFuncGraph = testAAAAA;
