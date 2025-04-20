@@ -2943,28 +2943,28 @@ static double GRAPHFUNC_Example2(double posX){
 	return 0;
 }
 static double GRAPHFUNC_Example3(double posX){
-//	if(posX <350) 		 return 0;
-//	else if(posX==350) return 10;
-//	else if(posX==351) return 0;
-//	else if(posX==352) return 8;
-//	else if(posX==353) return 1;
-//	else if(posX==354) return 7;
-//	else if(posX==355) return 2;
-//	else if(posX==356) return 6;
-//	else if(posX==357) return 3;
-//	else if(posX==358) return 44;
-//	else if(posX>358)  return 41;
-//	return 0;
-
-
-//	if(posX <350) 		 return 0;
-//	else if(posX==350) return 10;
-//	else if(posX==351) return 0;
-//	else if(posX==352) return 4;
-//	else if(posX==353) return 2;
-//	else if(posX>353)  return 41;
-//	return 0;
-
+/*	if(posX <350) 		 return 0;
+	else if(posX==350) return 10;
+	else if(posX==351) return 0;
+	else if(posX==352) return 8;
+	else if(posX==353) return 1;
+	else if(posX==354) return 7;
+	else if(posX==355) return 2;
+	else if(posX==356) return 6;
+	else if(posX==357) return 3;
+	else if(posX==358) return 44;
+	else if(posX>358)  return 41;
+	return 0;
+*/
+/*
+	if(posX <350) 		 return 0;
+	else if(posX==350) return 10;
+	else if(posX==351) return 0;
+	else if(posX==352) return 4;
+	else if(posX==353) return 2;
+	else if(posX>353)  return 41;
+	return 0;
+*/
 	if(posX <350) 		 return 0;
 	else if(posX==350) return 4;
 	else if(posX==351) return 2;
@@ -2973,10 +2973,6 @@ static double GRAPHFUNC_Example3(double posX){
 	else if(posX>353)  return 41;
 	return 0;
 }
-
-
-
-
 
 static double GRAPHFUNC_Noise(void){
 	static uint32_t aRandom32bit=0;
@@ -2993,6 +2989,7 @@ static double GRAPHFUNC_Noise(void){
 	cnt++;
 	return aRandom32bit & randMask;
 }
+
 static double GRAPHFUNC_Noise2(void){
 	static uint32_t aRandom32bit=0;
 	HAL_RNG_GenerateRandomNumber(&hrng,&aRandom32bit);
@@ -3264,13 +3261,6 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
    #define IS_RightDownUpDir1		((pos[i].y-1)+(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
 	#define IS_RightUpDownDir1_ver2		(pos[i].rx < 0  &&  pos[i+1].rx > 0)
 	#define IS_RightDownUpDir1_ver2		(pos[i].rx > 0  &&  pos[i+1].rx < 0)
-
-
-//	pos[i].y+2-ABS(pos[i].rx) == pos[i+1].y;
-//
-//	pos[i].y-(ABS(pos[i].rx)-2) == pos[i+1].y;
-//
-//	pos[i].y - pos[i+1].y == (ABS(pos[i].rx)-2);
 
 	u16 buff[MAX_SIZE_BUFF];
 	u8 functionType = NONE_FUNC_TYPE;
@@ -5542,30 +5532,61 @@ void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, in
 
 	int testAAAAA = testFuncGraph;
 
-	u32 ccccol=0;
-	u32 bkColor=0;
-	float transCoeff=0.0;
-	u32 xxxx=0;  //prev_PosX
+	u32 bkColor = 0;
+	int posX_prev = 0;
+	int transParamSize = 1 + (yMax-yMin);
+	int n;
 
-	if(startX < 100) ccccol = LIGHTYELLOW;
-	if(startX > 100) ccccol = RED;
-//funkcja znajdujaca max wykresu do ograniczenia !!!!!!!!!!!!!!!!!
+	struct COLOR_TRANS_PARAM{
+		u32 lineColor;
+		u32 bkColor;
+		float coeff;
+		u32 transColor;
+	}TransParam[transParamSize];
 
-//	LOOP_FOR(i,len_posXY){
-//		if(posXY[i].x != xxxx){
-//			if( (_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+1) != LIGHTBLUE)
-//				|| (_PLCD(posXY[i].x, posXY[i].y+2) != colorLineAA  &&  _PLCD(posXY[i].x, posXY[i].y+2) != LIGHTBLUE) ){
-//				for(int j=posXY[i].y+1; j<startY+yMax; ++j){   //LOOP_INIT(j,posXY[i].y+1,startY+yMax)
-//					  //tablocowanie zrobic bo zawolno !!!! zeby nie obliczac za kazdym razem i szybciej przez to !!!
-//					transCoeff = (1.00*((float)(j-(startY+yMin))))/(float)(LCD_Y-(startY+yMin)) + 0.15;
-//					bkColor = _PLCD(posXY[i].x, j);
-//					_PLCD(posXY[i].x, j) = GetTransitionColor(ccccol,bkColor, transCoeff/*(1.00*((float)(j)))/(float)(LCD_Y) + 0.15*/ );
-//				}
-//			}
-//		}  //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5   //rowne gradienty od lini
-//		xxxx=posXY[i].x;
-//	}
 
+	LOOP_FOR(i,transParamSize){
+		TransParam[i].lineColor	 = colorLineAA;
+		TransParam[i].bkColor	 = 0;
+		TransParam[i].coeff		 = (1.00 * ((float)i))/(float)transParamSize + 0.15;
+		TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
+
+	StartMeasureTime_us();
+	LOOP_FOR(i,len_posXY){
+		if(posXY[i].x != posX_prev){
+			if( (_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA) || (_PLCD(posXY[i].x, posXY[i].y+2) != colorLineAA) ){
+				for(int j=posXY[i].y+1; j<startY+yMax; ++j){   //LOOP_INIT(j,posXY[i].y+1,startY+yMax)
+
+
+					bkColor = _PLCD(posXY[i].x, j);      //Dac jescli  'colorOut' i 'colorIn' !=0 to daj na sztywno bkColor i ne czytaj !!!
+
+
+					n = j-(startY+yMin);
+
+					if(TransParam[n].lineColor == colorLineAA &&
+						TransParam[n].bkColor == bkColor)
+					{
+						_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+					}
+					else{
+						TransParam[n].lineColor = colorLineAA;
+						TransParam[n].bkColor = bkColor;
+						TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
+						_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+					}
+
+//					float transCoeff = (1.00 * ((float)n))/(float)transParamSize + 0.15;    //(1.00*((float)(j-(startY+yMin))))/(float)(LCD_Y-(startY+yMin)) + 0.15;
+//
+//				_PLCD(posXY[i].x, j) = GetTransitionColor(colorLineAA,bkColor, transCoeff/*(1.00*((float)(j)))/(float)(LCD_Y) + 0.15*/ );
+
+
+
+				}
+			}
+		}  //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5   //rowne gradienty od lini
+		posX_prev = posXY[i].x;
+	}
+	StopMeasureTime_us("Time GRAPH:");
 	if((int)dispOption==Disp_AA){
 					   GRAPH_Display(0,	   posXY_rep, len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
 		if(offsK1){ GRAPH_Display(offsK1,posXY_rep, len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart); }	testFuncGraph = testAAAAA;
