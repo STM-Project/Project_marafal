@@ -2319,6 +2319,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 	//DAJ ZE DODAJE KOLEJNE wYKRESY Z KLAWIATURY !!!!!!!!
 
+	posXY_rep = (structRepPos*)GETVAL_ptr(8*10000/*GRAPH_MAX_SIZE_POSXY*/);
 	StartMeasureTime_us();
 	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(ORANGE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 60*LCD_X-0, 120*LCD_X-0) );
 	StopMeasureTime_us("Time GRAPH:");

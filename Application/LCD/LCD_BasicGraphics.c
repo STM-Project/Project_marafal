@@ -82,11 +82,14 @@ static uint8_t correctLine_AA=0;
 static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .errorDecision= {0.1, 0.4}};
 
 //static structPosition posXY[GRAPH_MAX_SIZE_POSXY]={0};
-structPosition posXY[GRAPH_MAX_SIZE_POSXY] SDRAM;
+//structPosition posXY[GRAPH_MAX_SIZE_POSXY] SDRAM;  //(structPosition)GETVAL_ptr(0)
+structPosition* posXY = NULL;
+
 static u8 correctAA45degLineH = 0;
 static u8 correctAA45degLineV = 0;
 //structRepPos posXY_rep[GRAPH_MAX_SIZE_POSXY]={0};		/* Buffer for repetition redundancy of positions x,y */
-structRepPos posXY_rep[GRAPH_MAX_SIZE_POSXY] SDRAM;		/* Buffer for repetition redundancy of positions x,y */
+//structRepPos posXY_rep[GRAPH_MAX_SIZE_POSXY] SDRAM;		/* Buffer for repetition redundancy of positions x,y */
+structRepPos* posXY_rep = NULL;
 
 uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
 uint16_t* GET_CIRCLE_correctPercDeg(int nr){	return &Circle.correctPercDeg[nr]; }
@@ -5517,8 +5520,11 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
 }
 
 /* ---------------------------- GRAPH ------------------------- */
+
+extern char* GETVAL_ptr(uint32_t nrVal);
 int GRAPH_GetSamples(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, int *pLenPosXY)
 {
+	posXY = (structPosition*)GETVAL_ptr(0);
 	GRAPH_ClearPosXY(posXY);
 	GRAPH_ClearPosXYrep(posXY_rep);
 	int len_posXY = GRAPH_GetFuncPosXY(posXY,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType);
