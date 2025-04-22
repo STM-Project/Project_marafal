@@ -134,6 +134,7 @@ typedef uint8_t u8;
 #define TABU_2SPACE 		"	  "
 
 #define _DESCR(txt,var)		var
+#define _USED(var)	var=var
 
 __STATIC_FORCEINLINE uint32_t __get_LR(void){	register uint32_t result;		__ASM volatile ("MOV %0, lr\n" : "=r" (result) );		return(result);	}
 __STATIC_FORCEINLINE uint32_t __get_R0(void){	register uint32_t result;		__ASM volatile ("MOV %0, r0\n" : "=r" (result) );		return(result);	}
