@@ -1520,6 +1520,9 @@ int SETVAL_array32(uint32_t nrVal, uint32_t* val, uint32_t len){
 char* GETVAL_ptr(uint32_t nrVal){
 	return &fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal];
 }
+uint32_t GETVAL_freeMemSize(uint32_t offs){
+	return MAX_FONTS_AND_IMAGES_MEMORY_SIZE - (CounterBusyBytesForFontsImages+1 + offs);
+}
 char GETVAL_char(uint32_t nrVal){
 	return fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal];
 }
