@@ -16,6 +16,12 @@
 #define MAX_SIZE_TAB_AA		365
 #define MAX_LINE_BUFF_CIRCLE_SIZE  100
 #define MAX_DEGREE_CIRCLE  10
+#define GRAPH_MAX_SIZE_POSXY	10000
+
+/* Select one memory type for graphic of chart */
+/* #define GRAPH_MEMORY_RAM */
+/* #define GRAPH_MEMORY_SDRAM */
+#define GRAPH_MEMORY_SDRAM2
 
 #define AA_OUT_OFF  	 1<<24
 #define READ_BKCOLOR  1<<25
@@ -28,8 +34,6 @@
 
 #define _PLCD(x,y)	 pLcd[LCD_X*(y)+(x)]
 #define _K(x,y)	 			LCD_X*(y)+(x)
-
-#define GRAPH_MAX_SIZE_POSXY	10000
 
 typedef enum{
 	RightUpDir1,
@@ -81,15 +85,26 @@ static AACoeff_RoundFrameRectangle AA;
 static uint8_t correctLine_AA=0;
 static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .errorDecision= {0.1, 0.4}};
 
-//static structPosition posXY[GRAPH_MAX_SIZE_POSXY]={0};
-//structPosition posXY[GRAPH_MAX_SIZE_POSXY] SDRAM;  //(structPosition)GETVAL_ptr(0)
-structPosition* posXY = NULL;
+
+#if defined(GRAPH_MEMORY_RAM)
+
+	static structPosition posXY	  [GRAPH_MAX_SIZE_POSXY] = {0};
+	static structRepPos 	 posXY_rep [GRAPH_MAX_SIZE_POSXY] = {0};
+
+#elif defined(GRAPH_MEMORY_SDRAM)
+
+	SDRAM static structPosition posXY	  [GRAPH_MAX_SIZE_POSXY];
+	SDRAM static structRepPos 	 posXY_rep [GRAPH_MAX_SIZE_POSXY];
+
+#elif defined(GRAPH_MEMORY_SDRAM2)
+
+	static structPosition* posXY 	   = NULL;
+	static structRepPos*   posXY_rep = NULL;
+#endif
+
 
 static u8 correctAA45degLineH = 0;
 static u8 correctAA45degLineV = 0;
-//structRepPos posXY_rep[GRAPH_MAX_SIZE_POSXY]={0};		/* Buffer for repetition redundancy of positions x,y */
-//structRepPos posXY_rep[GRAPH_MAX_SIZE_POSXY] SDRAM;		/* Buffer for repetition redundancy of positions x,y */
-structRepPos* posXY_rep = NULL;
 
 uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
 uint16_t* GET_CIRCLE_correctPercDeg(int nr){	return &Circle.correctPercDeg[nr]; }
@@ -2897,10 +2912,10 @@ static int LCD_CIRCLE_GetRadiusFromPosXY(int x,int y, int x0,int y0){
 	return sqrt(ABS((x-x0)*(x-x0)) + ABS((y-y0)*(y-y0)));
 }
 
-static void GRAPH_ClearPosXY(structPosition posXY[]){
+static void GRAPH_ClearPosXY(void){
 	for(int i=0;i<GRAPH_MAX_SIZE_POSXY;i++){ posXY[i].x=0; posXY[i].y=0; }
 }
-static void GRAPH_ClearPosXYrep(structRepPos posXY_rep[]){
+static void GRAPH_ClearPosXYrep(void){
 	for(int i=0;i<GRAPH_MAX_SIZE_POSXY;i++){ posXY_rep[i].x=0; posXY_rep[i].y=0; 	posXY_rep[i].rx=0; posXY_rep[i].ry=0; }
 }
 
@@ -3025,7 +3040,7 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 			return 0;
 }}
 
-static int GRAPH_GetFuncPosXY(structPosition posXY[], int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType)
+static int GRAPH_GetFuncPosXY(int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType)
 {
 	structPosition posXY_prev={0};
 	int temp_x, temp_y, diff_Y, delta, n=0;
@@ -3085,12 +3100,12 @@ static int GRAPH_GetFuncPosXY(structPosition posXY[], int startX,int startY, int
 	return n;
 }
 
-static void GRAPH_DispPosXY(int offs_k, structPosition posXY[], int numberOfPoints, u32 color){
+static void GRAPH_DispPosXY(int offs_k, int numberOfPoints, u32 color){
 	LOOP_FOR(i,numberOfPoints){
 		pLcd[offs_k + posXY[i].y * LCD_X + posXY[i].x] = color;
 }}
 
-static int GRAPH_RepetitionRedundancyOfPosXY(structPosition posXY[], structRepPos posXY_rep[], int nmbrPoints)
+static int GRAPH_RepetitionRedundancyOfPosXY(int nmbrPoints)
 {
 	int j=0,i,prevState=0;
 
@@ -3229,7 +3244,7 @@ static int GRAPH_RepetitionRedundancyOfPosXY(structPosition posXY[], structRepPo
 	return j;
 }
 
-static void GRAPH_DispPosXYrep(int offs_k, structRepPos posXY_rep[], int lenStruct, u32 color){
+static void GRAPH_DispPosXYrep(int offs_k, int lenStruct, u32 color){
 	LOOP_FOR(a,lenStruct){
 		if(posXY_rep[a].ry!=0){
 			LOOP_FOR(b,ABS(posXY_rep[a].ry)){
@@ -3247,7 +3262,7 @@ static void GRAPH_DispPosXYrep(int offs_k, structRepPos posXY_rep[], int lenStru
 		}}
 }}
 
-static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart)
+static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart)
 {
 	#define NONE_FUNC_TYPE	100
 	#define MAX_SIZE_BUFF	LCD_X
@@ -3267,6 +3282,7 @@ static void GRAPH_Display(int offs_k, structRepPos pos[], int lenStruct, u32 col
 	#define IS_RightUpDownDir1_ver2		(pos[i].rx < 0  &&  pos[i+1].rx > 0)
 	#define IS_RightDownUpDir1_ver2		(pos[i].rx > 0  &&  pos[i+1].rx < 0)
 
+	structRepPos* pos = posXY_rep;
 	u16 buff[MAX_SIZE_BUFF];
 	u8 functionType = NONE_FUNC_TYPE;
 	u16 lastSample = 0;
@@ -5521,22 +5537,32 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
 
 /* ---------------------------- GRAPH ------------------------- */
 
-extern char* GETVAL_ptr(uint32_t nrVal);
-int GRAPH_GetSamples(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, int *pLenPosXY)
+int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, int *pLenPosXY)
 {
-	posXY = (structPosition*)GETVAL_ptr(0);
-	GRAPH_ClearPosXY(posXY);
-	GRAPH_ClearPosXYrep(posXY_rep);
-	int len_posXY = GRAPH_GetFuncPosXY(posXY,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType);
-	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY,posXY_rep,len_posXY);
+	#if defined(GRAPH_MEMORY_SDRAM2)
+		extern char* GETVAL_ptr(uint32_t nrVal);
+		extern uint32_t GETVAL_freeMemSize(uint32_t offs);
+		if(GETVAL_freeMemSize(nrMem) > GRAPH_MAX_SIZE_POSXY*(sizeof(structRepPos)+sizeof(structPosition))){
+			posXY 	 = (structPosition*)GETVAL_ptr(nrMem);
+			posXY_rep = (structRepPos*)  GETVAL_ptr(nrMem);  }
+		else return 0;
+	#endif
+
+	GRAPH_ClearPosXY();
+	GRAPH_ClearPosXYrep();
+	int len_posXY = GRAPH_GetFuncPosXY(startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType);
+	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(len_posXY);
 	if(pLenPosXY!=NULL) *pLenPosXY=len_posXY;
 	return len_posXYrep;
 }
-void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
-										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2)
+
+									  /* 'nrMem' is used only for GRAPH_MEMORY_SDRAM2 */
+void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+									DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2)
 {
 	int len_posXY = 0;
-	int len_posXYrep = GRAPH_GetSamples(posXY_rep,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType,&len_posXY);
+	int len_posXYrep = GRAPH_GetSamples(nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType,&len_posXY);
+	if(0==len_posXYrep) return;
 
 	int testAAAAA = testFuncGraph;
 
@@ -5590,14 +5616,14 @@ void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, in
 	}
 	//StopMeasureTime_us("Time GRAPH:");  DbgVar(1,50,"   ttt: %d   %d  ",ttt1,ttt2);
 	if((int)dispOption==Disp_AA){
-					   GRAPH_Display(0,	   posXY_rep, len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
-		if(offsK1){ GRAPH_Display(offsK1,posXY_rep, len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart); }	testFuncGraph = testAAAAA;
-		if(offsK2){ GRAPH_Display(offsK2,posXY_rep, len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0); }
+					   GRAPH_Display(0,	    len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
+		if(offsK1){ GRAPH_Display(offsK1, len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart); }	testFuncGraph = testAAAAA;
+		if(offsK2){ GRAPH_Display(offsK2, len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0); }
 	}
 	else{
-		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, posXY,		len_posXY,	  color1);
-		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_rep, len_posXYrep, color2);
-		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 posXY_rep, len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart);   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
+		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, len_posXY,	   color1);
+		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, len_posXYrep, color2);
+		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart);   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
 	}
 }
 
