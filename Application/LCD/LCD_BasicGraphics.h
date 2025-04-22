@@ -144,9 +144,6 @@ typedef struct{
 	u8 corrAA45deg;
 }USER_GRAPH_PARAM;
 
-//extern structRepPos posXY_rep[];
-extern structRepPos* posXY_rep;
-
 extern uint32_t LCD_GetXSize(void);
 extern uint32_t LCD_GetYSize(void);
 
@@ -270,8 +267,8 @@ void LCDSHAPE_GradientCircleButton_Indirect(SHAPE_PARAMS param);
 void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param);
 /* ------- End Selected Figures ------------------*/
 
-int GRAPH_GetSamples(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints, double scaleX,double scaleY, double precision, int funcPatternType, int *pLenPosXY);
-void GRAPH_GetSamplesAndDraw(structRepPos posXY_rep[], int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints, double scaleX,double scaleY, double precision, int funcPatternType, int *pLenPosXY);
+void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
 										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2);
 
 
