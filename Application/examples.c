@@ -169,6 +169,7 @@ void MEMEXAMPLE_MemoryFunc(void)
 	uint16_t buff16[] = {1,2,3};
 	uint32_t buff32[] = {1,2,3};
 	uint32_t lenBuff = 3;
+	uint32_t freeMemorySize = 0;
 
 	/* 1. Functions of volatile memory */
 	retValue = FV(SetVal,0,valueToMemory);		/* retValue == valeToMemory */
@@ -191,6 +192,7 @@ void MEMEXAMPLE_MemoryFunc(void)
 	pRetValue = pRetValue;
 
 	/* 3. Functions of volatile memory */
+	freeMemorySize = GETVAL_freeMemSize(0);
 	pChar = GETVAL_ptr(0);		/* for this memory type use Semphr_sdram */
 	pChar = GETVAL_ptr(1);
 	pChar = GETVAL_ptr(2);
@@ -210,14 +212,16 @@ void MEMEXAMPLE_MemoryFunc(void)
 	retFlag = SETVAL_array16(0, buff16, lenBuff);
 	retFlag = SETVAL_array32(0, buff32, lenBuff);
 
-	retFlag = retFlag;
-	pChar = pChar;
-	vChar = vChar;
+	_USED(freeMemorySize);
+	_USED(retFlag);
+	_USED(pChar);
+	_USED(vChar);
 }
 
 void LCDEXAMPLE_Graph(u32 COLOR_BkScreen)
 {
 	/* GRAPH - various options */
+	int nrMem = 0;
 	u32 colorLine 		= WHITE;
 
 	u32 colorPosXY 	= RED;			int offsK_PosXY 	 = 20*LCD_X+0;
@@ -226,16 +230,17 @@ void LCDEXAMPLE_Graph(u32 COLOR_BkScreen)
 	u32 colorLine45degCorrectOFF = RED;			 int offsK_45degCorrectOFF = 20*LCD_X+0;
 	u32 colorLineAAoff 			  = DARKGREEN;	 int offsK_AAoff 			   = 40*LCD_X+0;
 
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,   colorLine45degCorrectOFF, colorLineAAoff,   offsK_45degCorrectOFF, offsK_AAoff) );
+	GRAPH_GetSamplesAndDraw(nrMem, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,   colorLine45degCorrectOFF, colorLineAAoff,   offsK_45degCorrectOFF, offsK_AAoff) );
 
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_all,  colorPosXY, colorPosXYrep,   					 offsK_PosXY, offsK_PosXYrep) );
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_VAL(0.0,0.0), DRAW_AA );					/* it is the same */
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_ON, 			   DRAW_AA );					/* it is the same */
+	GRAPH_GetSamplesAndDraw(nrMem, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_all,  colorPosXY, colorPosXYrep,   					 offsK_PosXY, offsK_PosXYrep) );
+	GRAPH_GetSamplesAndDraw(nrMem, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_VAL(0.0,0.0), DRAW_AA );					/* it is the same */
+	GRAPH_GetSamplesAndDraw(nrMem, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_ON, 			   DRAW_AA );					/* it is the same */
 
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_OFF, 			 DRAW_AA );		 /* draw graph without AA */
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), 0,0, 			 	 DRAW_NO );		 /* only get samples without draw graph */
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), colorLine, READ_BK, 		 AA_ON, 			 	 DRAW_AA );		 /* draw line (colorLine) but OutColor and InColor (needed for AA) is read from bkColor */
+	GRAPH_GetSamplesAndDraw(nrMem, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_OFF, 			 DRAW_AA );		 /* draw graph without AA */
+	GRAPH_GetSamplesAndDraw(nrMem, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), 0,0, 			 	 DRAW_NO );		 /* only get samples without draw graph */
+	GRAPH_GetSamplesAndDraw(nrMem, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), colorLine, READ_BK, 		 AA_ON, 			 	 DRAW_AA );		 /* draw line (colorLine) but OutColor and InColor (needed for AA) is read from bkColor */
 
-	GRAPH_GetSamplesAndDraw(posXY_rep, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(WHITE,COLOR_BkScreen,COLOR_BkScreen), AA_ON, DRAW_AA );		/* draw white line graph and bkColor is COLOR_BkScreen */
+	GRAPH_GetSamplesAndDraw(nrMem, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(WHITE,COLOR_BkScreen,COLOR_BkScreen), AA_ON, DRAW_AA );		/* draw white line graph and bkColor is COLOR_BkScreen */
+
 }
 
