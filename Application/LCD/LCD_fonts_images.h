@@ -259,6 +259,7 @@ int SETVAL_int32(uint32_t nrVal, uint32_t val);
 int SETVAL_array16(uint32_t nrVal, uint16_t* val, uint32_t len);
 int SETVAL_array32(uint32_t nrVal, uint32_t* val, uint32_t len);
 
+uint32_t GETVAL_freeMemSize(uint32_t offs);
 char* GETVAL_ptr(uint32_t nrVal);
 char GETVAL_char(uint32_t nrVal);
 int GETVAL_str(uint32_t nrVal, char* val, uint32_t len);
