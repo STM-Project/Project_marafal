@@ -5539,12 +5539,16 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
 
 int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, int *pLenPosXY)
 {
+
+	int aaaa = sizeof(structPosition);
+	int bbbb = sizeof(structRepPos);
+
 	#if defined(GRAPH_MEMORY_SDRAM2)
 		extern char* GETVAL_ptr(uint32_t nrVal);
 		extern uint32_t GETVAL_freeMemSize(uint32_t offs);
 		if(GETVAL_freeMemSize(nrMem) > GRAPH_MAX_SIZE_POSXY*(sizeof(structRepPos)+sizeof(structPosition))){
 			posXY 	 = (structPosition*)GETVAL_ptr(nrMem);
-			posXY_rep = (structRepPos*)  GETVAL_ptr(nrMem);  }
+			posXY_rep = (structRepPos*)  GETVAL_ptr(nrMem + GRAPH_MAX_SIZE_POSXY*sizeof(structPosition));  }
 		else return 0;
 	#endif
 
