@@ -2323,7 +2323,9 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	//posXY_rep = (structRepPos*)GETVAL_ptr(8*10000/*GRAPH_MAX_SIZE_POSXY*/);
 	StartMeasureTime_us();
 
-	GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0) );
+
+	// UWAGA !! lineColor musi byc inny niz w tle np dac 0xFFFFFFFE zamista WHITE !!!!!!!!!!!!!
+	GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(0xFFFFFFFE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0) );
 
 	StopMeasureTime_us("Time GRAPH:");
 

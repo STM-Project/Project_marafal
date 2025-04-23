@@ -5584,11 +5584,18 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 
 int ttt1=0, ttt2=0;
 
-	LOOP_FOR(i,transParamSize){
-		TransParam[i].lineColor	 = ORANGE;//colorLineAA;
-		TransParam[i].bkColor	 = 0;
-		TransParam[i].coeff		 = (1.00 * ((float)i)) / (float)transParamSize + 0.15;
-		TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
+//	LOOP_FOR(i,transParamSize){
+//		TransParam[i].lineColor	 = ORANGE;//colorLineAA;
+//		TransParam[i].bkColor	 = 0;
+//		TransParam[i].coeff		 = (1.00 * ((float)i)) / (float)transParamSize + 0.15;
+//		TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
+
+LOOP_FOR(i,transParamSize){
+	TransParam[i].coeff		 = (1.00 * ((float)i)) / (float)transParamSize + 0.00;
+	TransParam[i].lineColor	 = GetTransitionColor(RED, BLUE, TransParam[i].coeff);
+	TransParam[i].bkColor	 = 0;
+	TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff);
+	  }
 
 	LOOP_FOR(i,len_posXY)
 	{
