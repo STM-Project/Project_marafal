@@ -1773,8 +1773,8 @@ static void* MainFuncRefresh(void *p1,void *p2){
 	return NULL;
 }
 
-static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=1.0, .funcType=Func_lines6};  // tymczasowe zmienne
-extern int testFuncGraph;
+static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=75.0, .funcType=Func_sin};
+extern int testFuncGraph;   // tymczasowe zmienne
 
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
@@ -1808,7 +1808,7 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("v",&testGraph.AAoutCoeff,_double,_Decr,_Double(0.1),_Double(0.0),"Test Graph AA out: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("g",&testGraph.AAinCoeff,_double,_Incr,_Double(0.1),_Double(1.0),"Test Graph AA in: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("b",&testGraph.AAinCoeff,_double,_Decr,_Double(0.1),_Double(0.0),"Test Graph AA in: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("b",&testGraph.AAinCoeff,_double,_Decr,_Double(0.1),_Double(0.0),"Test Graph AA in: ",MainFuncRefresh)  // daj opcje ze przytrzymanie na 5 sund przyspiesza o kilka !!!!
 
 	_DBG_PARAM_WRAP("y",&testFuncGraph,_int,_Wrap,_Int(1), _Int(0),_Int(1), "Test Graph AA type: ",MainFuncRefresh)
 
@@ -2323,7 +2323,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	//posXY_rep = (structRepPos*)GETVAL_ptr(8*10000/*GRAPH_MAX_SIZE_POSXY*/);
 	StartMeasureTime_us();
 
-	GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(ORANGE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 60*LCD_X-0, 120*LCD_X-0) );
+	GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(ORANGE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0) );
 
 	StopMeasureTime_us("Time GRAPH:");
 
