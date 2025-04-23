@@ -5571,7 +5571,7 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 	int testAAAAA = testFuncGraph;
 
 	u32 bkColor = 0;
-	int posX_prev = 0;
+	int posX_prev = 0, posY_prev = 0;
 	int transParamSize = 1 + (yMax-yMin);
 	int n;
 
@@ -5583,42 +5583,84 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 	}TransParam[transParamSize];
 
 
-	LOOP_FOR(i,transParamSize){
-		TransParam[i].lineColor	 = colorLineAA;
-		TransParam[i].bkColor	 = 0;
-		TransParam[i].coeff		 = (1.00 * ((float)i))/(float)transParamSize + 0.15;
-		TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
+//	LOOP_FOR(i,transParamSize){
+//		TransParam[i].lineColor	 = colorLineAA;
+//		TransParam[i].bkColor	 = 0;
+//		TransParam[i].coeff		 = (1.00 * ((float)i)) / (float)transParamSize + 0.15;
+//		TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
 
-
-	//StartMeasureTime_us();
-	LOOP_FOR(i,len_posXY){
+	LOOP_FOR(i,len_posXY)
+	{
 		if(posXY[i].x != posX_prev){
-			if(_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA){
-				for(int j=posXY[i].y+1; j<startY+yMax; ++j){   //LOOP_INIT(j,posXY[i].y+1,startY+yMax)
+			if(_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA)
+			{
 
 
-					bkColor = _PLCD(posXY[i].x, j);      //Dac jescli  'colorOut' i 'colorIn' !=0 to daj na sztywno bkColor i ne czytaj !!!
+				//--------------------------------------------
+				int distance = 50;//(startY+yMax)-(posXY[i].y+1);
+				LOOP_FOR(m, distance){
+					TransParam[m].lineColor	 = colorLineAA;
+					TransParam[m].bkColor	 = 0;
+					TransParam[m].coeff		 = (1.00 * ((float)m)) / ((float)distance) + 0.15;   //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5;   //rowne gradienty od lini
+					TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff);
+				}
+				//--------------------------------------------
 
 
-					n = j-(startY+yMin);
 
-					if(TransParam[n].lineColor == colorLineAA &&
-						TransParam[n].bkColor == bkColor)
+
+				LOOP_INIT(j, posXY[i].y+1, startY+yMax)
+				{
+					if(0==colorIn)	bkColor = _PLCD(posXY[i].x, j);
+					else				bkColor = colorIn;
+
+//					n = j-(startY+yMin);
+//
+//					if(TransParam[n].lineColor == colorLineAA &&
+//						TransParam[n].bkColor == bkColor)
+//					{
+//						_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+//					}
+//					else{
+//						TransParam[n].lineColor  = colorLineAA;
+//						TransParam[n].bkColor 	 = bkColor;
+//						TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
+//						_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+//					}
+
+
+
+
+
+
+					//--------------------------------------------
+					int u = j - (posXY[i].y+1); if(u>=distance) u=distance-1;
+					if(TransParam[u].lineColor == colorLineAA &&
+						TransParam[u].bkColor == bkColor && posY_prev == posXY[i].y)
 					{
-						_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+						_PLCD(posXY[i].x, j) = TransParam[u].transColor;
 					}
 					else{
-						TransParam[n].lineColor = colorLineAA;
-						TransParam[n].bkColor = bkColor;
-						TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
-						_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+						TransParam[u].lineColor  = colorLineAA;
+						TransParam[u].bkColor 	 = bkColor;
+						TransParam[u].transColor = GetTransitionColor(TransParam[u].lineColor, TransParam[u].bkColor, TransParam[u].coeff);
+						_PLCD(posXY[i].x, j) = TransParam[u].transColor;
 					}
+					//--------------------------------------------
+
+
+
+
+
+
+
 				}
+				posY_prev = posXY[i].y;
 			}
-		}  //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5   //rowne gradienty od lini
+		}
 		posX_prev = posXY[i].x;
 	}
-	//StopMeasureTime_us("Time GRAPH:");  DbgVar(1,50,"   ttt: %d   %d  ",ttt1,ttt2);
+
 	if((int)dispOption==Disp_AA){
 					   GRAPH_Display(0,	    len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
 		if(offsK1){ GRAPH_Display(offsK1, len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart); }	testFuncGraph = testAAAAA;
