@@ -5582,12 +5582,13 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 		u32 transColor;
 	}TransParam[transParamSize];
 
+int ttt1=0, ttt2=0;
 
-//	LOOP_FOR(i,transParamSize){
-//		TransParam[i].lineColor	 = colorLineAA;
-//		TransParam[i].bkColor	 = 0;
-//		TransParam[i].coeff		 = (1.00 * ((float)i)) / (float)transParamSize + 0.15;
-//		TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
+	LOOP_FOR(i,transParamSize){
+		TransParam[i].lineColor	 = ORANGE;//colorLineAA;
+		TransParam[i].bkColor	 = 0;
+		TransParam[i].coeff		 = (1.00 * ((float)i)) / (float)transParamSize + 0.15;
+		TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
 
 	LOOP_FOR(i,len_posXY)
 	{
@@ -5597,14 +5598,24 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 
 
 				//--------------------------------------------
-				int distance = 50;//(startY+yMax)-(posXY[i].y+1);
-				LOOP_FOR(m, distance){
-					TransParam[m].lineColor	 = colorLineAA;
-					TransParam[m].bkColor	 = 0;
-					TransParam[m].coeff		 = (1.00 * ((float)m)) / ((float)distance) + 0.15;   //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5;   //rowne gradienty od lini
-					TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff);
-				}
+//				int distance = 50;//(startY+yMax)-(posXY[i].y+1);  //type 111111111111111
+//				LOOP_FOR(m, distance){
+//					//TransParam[m].lineColor	 = ORANGE;//colorLineAA;
+//					TransParam[m].bkColor	 = 0;
+//					TransParam[m].coeff		 = (1.00 * ((float)m)) / ((float)distance) + 0.15;   //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5;   //rowne gradienty od lini
+//					TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff);
+//				}
 				//--------------------------------------------
+//				int distance = (startY+yMax)-(posXY[i].y+1);
+//				LOOP_FOR(m, distance){
+//					TransParam[m].lineColor	 = colorLineAA;
+//					TransParam[m].bkColor	 = 0;
+//					TransParam[m].coeff		 = (1.00 * ((float)m)) / ((float)distance) + 0.15;   //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5;   //rowne gradienty od lini
+//					TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff);
+//				}
+
+
+
 
 
 
@@ -5614,19 +5625,23 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 					if(0==colorIn)	bkColor = _PLCD(posXY[i].x, j);
 					else				bkColor = colorIn;
 
-//					n = j-(startY+yMin);
-//
-//					if(TransParam[n].lineColor == colorLineAA &&
-//						TransParam[n].bkColor == bkColor)
-//					{
-//						_PLCD(posXY[i].x, j) = TransParam[n].transColor;
-//					}
-//					else{
-//						TransParam[n].lineColor  = colorLineAA;
-//						TransParam[n].bkColor 	 = bkColor;
-//						TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
-//						_PLCD(posXY[i].x, j) = TransParam[n].transColor;
-//					}
+
+
+
+
+					n = j-(startY+yMin);
+
+					if(/*TransParam[n].lineColor == colorLineAA &&*/
+						TransParam[n].bkColor == bkColor)
+					{
+						_PLCD(posXY[i].x, j) = TransParam[n].transColor;  ttt1++;
+					}
+					else{
+						//TransParam[n].lineColor  = colorLineAA;
+						TransParam[n].bkColor 	 = bkColor;
+						TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
+						_PLCD(posXY[i].x, j) = TransParam[n].transColor;     ttt2++;
+					}
 
 
 
@@ -5634,18 +5649,19 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 
 
 					//--------------------------------------------
-					int u = j - (posXY[i].y+1); if(u>=distance) u=distance-1;
-					if(TransParam[u].lineColor == colorLineAA &&
-						TransParam[u].bkColor == bkColor && posY_prev == posXY[i].y)
-					{
-						_PLCD(posXY[i].x, j) = TransParam[u].transColor;
-					}
-					else{
-						TransParam[u].lineColor  = colorLineAA;
-						TransParam[u].bkColor 	 = bkColor;
-						TransParam[u].transColor = GetTransitionColor(TransParam[u].lineColor, TransParam[u].bkColor, TransParam[u].coeff);
-						_PLCD(posXY[i].x, j) = TransParam[u].transColor;
-					}
+//					int u = j - (posXY[i].y+1);
+//					//if(u>=distance) u=distance-1;     //type 111111111111111
+//					if(/*TransParam[u].lineColor == colorLineAA &&*/
+//						TransParam[u].bkColor == bkColor && posY_prev == posXY[i].y)
+//					{
+//						_PLCD(posXY[i].x, j) = TransParam[u].transColor;
+//					}
+//					else{
+//						//TransParam[u].lineColor  = colorLineAA;
+//						TransParam[u].bkColor 	 = bkColor;
+//						TransParam[u].transColor = GetTransitionColor(TransParam[u].lineColor, TransParam[u].bkColor, TransParam[u].coeff);
+//						_PLCD(posXY[i].x, j) = TransParam[u].transColor;
+//					}
 					//--------------------------------------------
 
 
@@ -5660,6 +5676,8 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 		}
 		posX_prev = posXY[i].x;
 	}
+
+	DbgVar(1,50,"   ttt: %d   %d  ",ttt1,ttt2);
 
 	if((int)dispOption==Disp_AA){
 					   GRAPH_Display(0,	    len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
