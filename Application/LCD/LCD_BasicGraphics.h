@@ -39,6 +39,7 @@
 #define AA_OFF	 1.0,1.0
 #define AA_VAL(outRatio,inRatio)	 outRatio,inRatio
 #define DRAW_OPT(flag,color1,color2,offs1,offs2)		flag,color1,color2,offs1,offs2
+#define DRAW_GRAD(bkGradType,fromGradColor,toGradColor,gradStripY)		bkGradType,fromGradColor,toGradColor,gradStripY
 #define DRAW_NO	 0,0,0,0,0
 #define DRAW_AA	 Disp_AA,0,0,0,0
 #define XYPOS_YMIN_YMAX(x,y,yMIn,yMax) 	x,y,yMIn,yMax
@@ -104,6 +105,12 @@ typedef enum{
 typedef enum{
 	ReadOutColor = 0x1,
 }SHAPE_FLAGS;
+
+typedef enum{
+	Grad_YmaxYmin,
+	Grad_Ystrip,
+	Grad_Ycolor,
+}GRADIENT_GRAPH_TYPE;
 
 #define K_TAB_SIZE 	4
 typedef struct{
@@ -269,7 +276,7 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param);
 
 int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints, double scaleX,double scaleY, double precision, int funcPatternType, int *pLenPosXY);
 void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
-										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2);
+										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY);
 
 
 #endif /* LCD_LCD_BASICGAPHICS_H_ */

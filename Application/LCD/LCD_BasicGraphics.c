@@ -5562,7 +5562,7 @@ int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nm
 
 									  /* 'nrMem' is used only for GRAPH_MEMORY_SDRAM2 */
 void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
-									DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2)
+									DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY)
 {
 	int len_posXY = 0;
 	int len_posXYrep = GRAPH_GetSamples(nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType,&len_posXY);
@@ -5584,18 +5584,33 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 
 int ttt1=0, ttt2=0;
 
-//	LOOP_FOR(i,transParamSize){
-//		TransParam[i].lineColor	 = ORANGE;//colorLineAA;
-//		TransParam[i].bkColor	 = 0;
-//		TransParam[i].coeff		 = (1.00 * ((float)i)) / (float)transParamSize + 0.15;
-//		TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
+int distance;   int u;
 
-LOOP_FOR(i,transParamSize){
-	TransParam[i].coeff		 = (1.00 * ((float)i)) / (float)transParamSize + 0.00;
-	TransParam[i].lineColor	 = GetTransitionColor(RED, BLUE, TransParam[i].coeff);
-	TransParam[i].bkColor	 = 0;
-	TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff);
-	  }
+	switch((int)bkGradType)
+	{
+		case Grad_YmaxYmin:
+			LOOP_FOR(i,transParamSize){
+				TransParam[i].lineColor	 = gradColor1;
+				TransParam[i].bkColor	 = 0;
+				TransParam[i].coeff		 = (1.00 * ((float)i)) / (float)transParamSize + 0.15;
+				TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
+			break;
+
+		case Grad_Ystrip:
+			break;
+
+		case Grad_Ycolor:
+			LOOP_FOR(i,transParamSize){
+				TransParam[i].coeff		 = (1.00 * ((float)i)) / (float)transParamSize + 0.00;
+				TransParam[i].lineColor	 = GetTransitionColor(gradColor1, gradColor2, TransParam[i].coeff);
+				TransParam[i].bkColor	 = 0;
+				TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
+			break;
+	}
+
+
+
+
 
 	LOOP_FOR(i,len_posXY)
 	{
@@ -5604,23 +5619,26 @@ LOOP_FOR(i,transParamSize){
 			{
 
 
-				//--------------------------------------------
-//				int distance = 50;//(startY+yMax)-(posXY[i].y+1);  //type 111111111111111
-//				LOOP_FOR(m, distance){
-//					//TransParam[m].lineColor	 = ORANGE;//colorLineAA;
-//					TransParam[m].bkColor	 = 0;
-//					TransParam[m].coeff		 = (1.00 * ((float)m)) / ((float)distance) + 0.15;   //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5;   //rowne gradienty od lini
-//					TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff);
-//				}
-				//--------------------------------------------
-//				int distance = (startY+yMax)-(posXY[i].y+1);
-//				LOOP_FOR(m, distance){
-//					TransParam[m].lineColor	 = colorLineAA;
-//					TransParam[m].bkColor	 = 0;
-//					TransParam[m].coeff		 = (1.00 * ((float)m)) / ((float)distance) + 0.15;   //(0.5*((float)j-(posXY[i].y+1)))/(float)(LCD_Y-5-(posXY[i].y+1)) + 0.5;   //rowne gradienty od lini
-//					TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff);
-//				}
 
+				switch((int)bkGradType)
+				{
+					case Grad_YmaxYmin:
+						break;
+
+					case Grad_Ystrip:
+						if(gradStripY) distance = gradStripY;
+						else				distance = (startY+yMax)-(posXY[i].y+1);
+						LOOP_FOR(m, distance){
+							TransParam[m].lineColor	 = gradColor1;
+							TransParam[m].bkColor	 = 0;
+							TransParam[m].coeff		 = (1.00 * ((float)m)) / ((float)distance) + 0.15;
+							TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff);
+						}
+						break;
+
+					case Grad_Ycolor:
+						break;
+				}
 
 
 
@@ -5634,42 +5652,56 @@ LOOP_FOR(i,transParamSize){
 
 
 
-
-
-					n = j-(startY+yMin);
-
-					if(/*TransParam[n].lineColor == colorLineAA &&*/
-						TransParam[n].bkColor == bkColor)
+					switch((int)bkGradType)
 					{
-						_PLCD(posXY[i].x, j) = TransParam[n].transColor;  ttt1++;
+						case Grad_YmaxYmin:
+							u = j - (posXY[i].y+1);
+							if(TransParam[u].bkColor == bkColor && posY_prev == posXY[i].y)
+							{
+								_PLCD(posXY[i].x, j) = TransParam[u].transColor;  ttt1++;
+							}
+							else{
+								TransParam[u].bkColor 	 = bkColor;
+								TransParam[u].transColor = GetTransitionColor(TransParam[u].lineColor, TransParam[u].bkColor, TransParam[u].coeff);
+								_PLCD(posXY[i].x, j) = TransParam[u].transColor;   ttt2++;
+							}
+							break;
+
+
+
+
+						case Grad_Ystrip:
+							u = j - (posXY[i].y+1);
+							if(u>=distance) u=distance-1;
+							if(TransParam[u].bkColor == bkColor && posY_prev == posXY[i].y)
+							{
+								_PLCD(posXY[i].x, j) = TransParam[u].transColor;  ttt1++;
+							}
+							else{
+								TransParam[u].bkColor 	 = bkColor;
+								TransParam[u].transColor = GetTransitionColor(TransParam[u].lineColor, TransParam[u].bkColor, TransParam[u].coeff);
+								_PLCD(posXY[i].x, j) = TransParam[u].transColor;   ttt2++;
+							}
+							break;
+
+
+
+
+						case Grad_Ycolor:
+							n = j-(startY+yMin);
+							if(TransParam[n].bkColor == bkColor)
+							{
+								_PLCD(posXY[i].x, j) = TransParam[n].transColor;  ttt1++;
+							}
+							else{
+								TransParam[n].bkColor 	 = bkColor;
+								TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
+								_PLCD(posXY[i].x, j) = TransParam[n].transColor;     ttt2++;
+							}
+							break;
 					}
-					else{
-						//TransParam[n].lineColor  = colorLineAA;
-						TransParam[n].bkColor 	 = bkColor;
-						TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
-						_PLCD(posXY[i].x, j) = TransParam[n].transColor;     ttt2++;
-					}
 
 
-
-
-
-
-					//--------------------------------------------
-//					int u = j - (posXY[i].y+1);
-//					//if(u>=distance) u=distance-1;     //type 111111111111111
-//					if(/*TransParam[u].lineColor == colorLineAA &&*/
-//						TransParam[u].bkColor == bkColor && posY_prev == posXY[i].y)
-//					{
-//						_PLCD(posXY[i].x, j) = TransParam[u].transColor;
-//					}
-//					else{
-//						//TransParam[u].lineColor  = colorLineAA;
-//						TransParam[u].bkColor 	 = bkColor;
-//						TransParam[u].transColor = GetTransitionColor(TransParam[u].lineColor, TransParam[u].bkColor, TransParam[u].coeff);
-//						_PLCD(posXY[i].x, j) = TransParam[u].transColor;
-//					}
-					//--------------------------------------------
 
 
 

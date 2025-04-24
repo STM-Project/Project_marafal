@@ -2325,7 +2325,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 	// UWAGA !! lineColor musi byc inny niz w tle np dac 0xFFFFFFFE zamista WHITE !!!!!!!!!!!!!
-	GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(0xFFFFFFFE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0) );
+	GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(0xFFFFFFFE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), DRAW_GRAD(Grad_YmaxYmin,ORANGE,0,50) );
 
 	StopMeasureTime_us("Time GRAPH:");
 
@@ -2337,7 +2337,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	if(LoadNoDispScreen != argNmb) LCD_Show();
 
 
-
+//ROBIMY :  1. LISTVIEW  tabelko z lista   2. klawiature i koniec !!!
 
 }
 
