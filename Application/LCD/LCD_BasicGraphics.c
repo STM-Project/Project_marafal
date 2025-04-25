@@ -5562,7 +5562,7 @@ int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nm
 
 									  /* 'nrMem' is used only for GRAPH_MEMORY_SDRAM2 */
 void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
-									DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY)
+									DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans)
 {
 	int len_posXY = 0;
 	int len_posXYrep = GRAPH_GetSamples(nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType,&len_posXY);
@@ -5592,7 +5592,7 @@ int distance;   int u;
 			LOOP_FOR(i,transParamSize){
 				TransParam[i].lineColor	 = gradColor1;
 				TransParam[i].bkColor	 = 0;
-				TransParam[i].coeff		 = (1.00 * ((float)i)) / (float)transParamSize + 0.15;
+				TransParam[i].coeff		 = (amplTrans * ((float)i)) / (float)transParamSize + offsTrans;
 				TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
 			break;
 
@@ -5601,7 +5601,7 @@ int distance;   int u;
 
 		case Grad_Ycolor:
 			LOOP_FOR(i,transParamSize){
-				TransParam[i].coeff		 = (1.00 * ((float)i)) / (float)transParamSize + 0.00;
+				TransParam[i].coeff		 = (amplTrans * ((float)i)) / (float)transParamSize + offsTrans;
 				TransParam[i].lineColor	 = GetTransitionColor(gradColor1, gradColor2, TransParam[i].coeff);
 				TransParam[i].bkColor	 = 0;
 				TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
@@ -5631,7 +5631,7 @@ int distance;   int u;
 						LOOP_FOR(m, distance){
 							TransParam[m].lineColor	 = gradColor1;
 							TransParam[m].bkColor	 = 0;
-							TransParam[m].coeff		 = (1.00 * ((float)m)) / ((float)distance) + 0.15;
+							TransParam[m].coeff		 = (amplTrans * ((float)m)) / ((float)distance) + offsTrans;
 							TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff);
 						}
 						break;
