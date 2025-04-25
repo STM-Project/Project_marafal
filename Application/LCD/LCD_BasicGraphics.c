@@ -5627,7 +5627,7 @@ int distance;   int u;
 
 					case Grad_Ystrip:
 						if(gradStripY) distance = gradStripY;
-						else				distance = (startY+yMax)-(posXY[i].y+1);
+						else				distance = (startY+yMax)-(posXY[i].y+1);  //zastanow sie tu!!!!
 						LOOP_FOR(m, distance){
 							TransParam[m].lineColor	 = gradColor1;
 							TransParam[m].bkColor	 = 0;
@@ -5655,8 +5655,8 @@ int distance;   int u;
 					switch((int)bkGradType)
 					{
 						case Grad_YmaxYmin:
-							u = j - (posXY[i].y+1);
-							if(TransParam[u].bkColor == bkColor && posY_prev == posXY[i].y)
+							u = j - (startY+yMin);
+							if(TransParam[u].bkColor == bkColor)
 							{
 								_PLCD(posXY[i].x, j) = TransParam[u].transColor;  ttt1++;
 							}
