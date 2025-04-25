@@ -1773,7 +1773,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 	return NULL;
 }
 
-static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=75.0, .funcType=Func_sin};
+static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=75.0, .funcType=Func_sin, .grad.bkType=Grad_YmaxYmin};
 extern int testFuncGraph;   // tymczasowe zmienne
 
 void FILE_NAME(debugRcvStr)(void)
@@ -1811,6 +1811,8 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("b",&testGraph.AAinCoeff,_double,_Decr,_Double(0.1),_Double(0.0),"Test Graph AA in: ",MainFuncRefresh)  // daj opcje ze przytrzymanie na 5 sund przyspiesza o kilka !!!!
 
 	_DBG_PARAM_WRAP("y",&testFuncGraph,_int,_Wrap,_Int(1), _Int(0),_Int(1), "Test Graph AA type: ",MainFuncRefresh)
+
+	_DBG_PARAM_WRAP("q",&testFuncGraph,_int,_Wrap,_Int(1), _Int(Grad_YmaxYmin),_Int(Grad_Ycolor), "Test Graph grad type: ",MainFuncRefresh)
 
 	/* ----- END Test GRAPH ------- */
 
@@ -2325,7 +2327,21 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 	// UWAGA !! lineColor musi byc inny niz w tle np dac 0xFFFFFFFE zamista WHITE !!!!!!!!!!!!!
-	GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(0xFFFFFFFE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), DRAW_GRAD(Grad_YmaxYmin,ORANGE,0,50) );
+
+	if(testGraph.grad.bkType == 0)
+		GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(0xFFFFFFFE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0) );
+	else if(testGraph.grad.bkType == 1)
+		GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(0xFFFFFFFE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), GRAD_Ystrip(ORANGE,50),GRAD_COEFF(1.0,0.0) );
+	else if(testGraph.grad.bkType == 2)
+		GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(0xFFFFFFFE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.0) );
+
+
+
+
+
+	//DRAW_GRAD(Grad_YmaxYmin,ORANGE,unUsed,unUsed)
+	//DRAW_GRAD(Grad_Ystrip,ORANGE,unUsed,50)
+	//DRAW_GRAD(Grad_Ycolor,RED,BLUE,unUsed)
 
 	StopMeasureTime_us("Time GRAPH:");
 
