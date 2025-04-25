@@ -5548,7 +5548,7 @@ int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nm
 		extern uint32_t GETVAL_freeMemSize(uint32_t offs);
 		if(GETVAL_freeMemSize(nrMem) > GRAPH_MAX_SIZE_POSXY*(sizeof(structRepPos)+sizeof(structPosition))){
 			posXY 	 = (structPosition*)GETVAL_ptr(nrMem);
-			posXY_rep = (structRepPos*)  GETVAL_ptr(nrMem + GRAPH_MAX_SIZE_POSXY*sizeof(structPosition));  }
+			posXY_rep = (structRepPos*)  GETVAL_ptr(nrMem + GRAPH_MAX_SIZE_POSXY*sizeof(structPosition)); }
 		else return 0;
 	#endif
 
@@ -5571,9 +5571,7 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 	int testAAAAA = testFuncGraph;
 
 	u32 bkColor = 0;
-	int posX_prev = 0, posY_prev = 0;
-	int transParamSize = 1 + (yMax-yMin);
-	int n;
+	int transParamSize = 1+(yMax-yMin),  posX_prev=0,  distanceY, n;
 
 	struct COLOR_TRANS_PARAM{
 		u32 lineColor;
@@ -5582,9 +5580,6 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 		u32 transColor;
 	}TransParam[transParamSize];
 
-int ttt1=0, ttt2=0;
-
-int distance;   int u;
 
 	switch((int)bkGradType)
 	{
@@ -5609,114 +5604,55 @@ int distance;   int u;
 	}
 
 
-
-
-
 	LOOP_FOR(i,len_posXY)
 	{
 		if(posXY[i].x != posX_prev){
 			if(_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA)
 			{
 
-
-
-				switch((int)bkGradType)
-				{
-					case Grad_YmaxYmin:
-						break;
-
-					case Grad_Ystrip:
-						if(gradStripY) distance = gradStripY;
-						else				distance = (startY+yMax)-(posXY[i].y+1);  //zastanow sie tu!!!!
-						LOOP_FOR(m, distance){
+					if(Grad_Ystrip == bkGradType){
+						if(gradStripY) distanceY = gradStripY;
+						else				distanceY = (startY+yMax)-(posXY[i].y+1);
+						LOOP_FOR(m, distanceY){
 							TransParam[m].lineColor	 = gradColor1;
-							TransParam[m].bkColor	 = 0;
-							TransParam[m].coeff		 = (amplTrans * ((float)m)) / ((float)distance) + offsTrans;
-							TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff);
-						}
-						break;
-
-					case Grad_Ycolor:
-						break;
-				}
-
-
-
-
-
+							TransParam[m].bkColor	 = CONDITION(0==colorIn, _PLCD(posXY[i].x,posXY[i].y+1+m), colorIn);
+							TransParam[m].coeff		 = (amplTrans * ((float)m)) / ((float)distanceY) + offsTrans;
+							TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff); }
+					}
 
 				LOOP_INIT(j, posXY[i].y+1, startY+yMax)
 				{
 					if(0==colorIn)	bkColor = _PLCD(posXY[i].x, j);
 					else				bkColor = colorIn;
 
-
-
 					switch((int)bkGradType)
 					{
 						case Grad_YmaxYmin:
-							u = j - (startY+yMin);
-							if(TransParam[u].bkColor == bkColor)
-							{
-								_PLCD(posXY[i].x, j) = TransParam[u].transColor;  ttt1++;
-							}
-							else{
-								TransParam[u].bkColor 	 = bkColor;
-								TransParam[u].transColor = GetTransitionColor(TransParam[u].lineColor, TransParam[u].bkColor, TransParam[u].coeff);
-								_PLCD(posXY[i].x, j) = TransParam[u].transColor;   ttt2++;
-							}
-							break;
-
-
-
-
-						case Grad_Ystrip:
-							u = j - (posXY[i].y+1);
-							if(u>=distance) u=distance-1;
-							if(TransParam[u].bkColor == bkColor && posY_prev == posXY[i].y)
-							{
-								_PLCD(posXY[i].x, j) = TransParam[u].transColor;  ttt1++;
-							}
-							else{
-								TransParam[u].bkColor 	 = bkColor;
-								TransParam[u].transColor = GetTransitionColor(TransParam[u].lineColor, TransParam[u].bkColor, TransParam[u].coeff);
-								_PLCD(posXY[i].x, j) = TransParam[u].transColor;   ttt2++;
-							}
-							break;
-
-
-
-
 						case Grad_Ycolor:
 							n = j-(startY+yMin);
 							if(TransParam[n].bkColor == bkColor)
 							{
-								_PLCD(posXY[i].x, j) = TransParam[n].transColor;  ttt1++;
+								_PLCD(posXY[i].x, j) = TransParam[n].transColor;
 							}
 							else{
 								TransParam[n].bkColor 	 = bkColor;
 								TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
-								_PLCD(posXY[i].x, j) = TransParam[n].transColor;     ttt2++;
+								_PLCD(posXY[i].x, j) = TransParam[n].transColor;
 							}
 							break;
+
+						case Grad_Ystrip:
+							n = j - (posXY[i].y+1);
+							if(n < distanceY)
+								_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+							break;
 					}
-
-
-
-
-
-
-
-
-
 				}
-				posY_prev = posXY[i].y;
 			}
 		}
 		posX_prev = posXY[i].x;
 	}
 
-	DbgVar(1,50,"   ttt: %d   %d  ",ttt1,ttt2);
 
 	if((int)dispOption==Disp_AA){
 					   GRAPH_Display(0,	    len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
