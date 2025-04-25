@@ -39,7 +39,13 @@
 #define AA_OFF	 1.0,1.0
 #define AA_VAL(outRatio,inRatio)	 outRatio,inRatio
 #define DRAW_OPT(flag,color1,color2,offs1,offs2)		flag,color1,color2,offs1,offs2
-#define DRAW_GRAD(bkGradType,fromGradColor,toGradColor,gradStripY)		bkGradType,fromGradColor,toGradColor,gradStripY
+
+#define GRAD_PARAM(bkGradType,fromGradColor,toGradColor,gradStripY,amplTrans,offsTrans)		bkGradType,fromGradColor,toGradColor,gradStripY,amplTrans,offsTrans
+#define GRAD_YmaxYmin(gradColor)							Grad_YmaxYmin,gradColor,unUsed,unUsed
+#define GRAD_Ystrip(gradColor,stripLen)				Grad_Ystrip,gradColor,unUsed,stripLen
+#define GRAD_Ycolor(fromGradColor,toGradColor)		Grad_Ycolor,fromGradColor,toGradColor,unUsed
+#define GRAD_COEFF(amplTrans,offsTrans)				amplTrans,offsTrans
+
 #define DRAW_NO	 0,0,0,0,0
 #define DRAW_AA	 Disp_AA,0,0,0,0
 #define XYPOS_YMIN_YMAX(x,y,yMIn,yMax) 	x,y,yMIn,yMax
@@ -130,6 +136,15 @@ typedef struct{
 }structRepPos;
 
 typedef struct{
+	GRADIENT_GRAPH_TYPE bkType;
+	u32 fromColor;
+	u32 toColor;
+	u8 stripY;
+	float amplTrans;
+	float offsTrans;
+}structGradParam;
+
+typedef struct{
 	structPosition staPos;
 	u16 minY;
 	u16 maxY;
@@ -149,6 +164,7 @@ typedef struct{
 	int KoffsPosXY;
 	int KoffsPosXYrep;
 	u8 corrAA45deg;
+	structGradParam grad;
 }USER_GRAPH_PARAM;
 
 extern uint32_t LCD_GetXSize(void);
@@ -276,7 +292,7 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param);
 
 int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints, double scaleX,double scaleY, double precision, int funcPatternType, int *pLenPosXY);
 void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
-										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY);
+										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans);
 
 
 #endif /* LCD_LCD_BASICGAPHICS_H_ */
