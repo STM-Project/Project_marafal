@@ -5536,10 +5536,8 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
 }
 
 /* ---------------------------- GRAPH ------------------------- */
-
 int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, int *pLenPosXY)
 {
-
 	int aaaa = sizeof(structPosition);
 	int bbbb = sizeof(structRepPos);
 
@@ -5622,18 +5620,15 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 
 				LOOP_INIT(j, posXY[i].y+1, startY+yMax)
 				{
-					if(0==colorIn)	bkColor = _PLCD(posXY[i].x, j);
-					else				bkColor = colorIn;
-
 					switch((int)bkGradType)
 					{
 						case Grad_YmaxYmin:
 						case Grad_Ycolor:
+							if(0==colorIn)	bkColor = _PLCD(posXY[i].x, j);
+							else				bkColor = colorIn;
 							n = j-(startY+yMin);
 							if(TransParam[n].bkColor == bkColor)
-							{
 								_PLCD(posXY[i].x, j) = TransParam[n].transColor;
-							}
 							else{
 								TransParam[n].bkColor 	 = bkColor;
 								TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
@@ -5646,8 +5641,7 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 							if(n < distanceY)
 								_PLCD(posXY[i].x, j) = TransParam[n].transColor;
 							break;
-					}
-				}
+				}}
 			}
 		}
 		posX_prev = posXY[i].x;
