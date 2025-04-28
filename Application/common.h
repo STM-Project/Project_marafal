@@ -216,15 +216,9 @@ typedef struct{
 
 typedef struct{ void *min,*max,*div,*mid,*sum,*itr,*avr; }struct_MATH;
 
-typedef struct{
-	int x;
-	int y;
-}structPosition;
-
-typedef struct{
-	int w;
-	int h;
-}structSize;
+typedef struct{ int x; int y; }structPosition;
+typedef struct{ u16 x; u16 y; }structPosU16;
+typedef struct{ int w; int h; }structSize;
 
 typedef struct{
 	int frame;
