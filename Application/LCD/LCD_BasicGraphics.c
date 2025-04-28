@@ -98,8 +98,8 @@ static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .
 
 #elif defined(GRAPH_MEMORY_SDRAM2)
 
-	static structPosition* posXY 	   = NULL;
-	static structRepPos*   posXY_rep = NULL;
+	static structPosU16* posXY 	 = NULL;
+	static structRepPos* posXY_rep = NULL;
 #endif
 
 
@@ -3042,7 +3042,7 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 
 static int GRAPH_GetFuncPosXY(int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType)
 {
-	structPosition posXY_prev={0};
+	structPosU16 posXY_prev={0};
 	int temp_x, temp_y, diff_Y, delta, n=0;
 	double funcVal;
 
@@ -5538,15 +5538,12 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
 /* ---------------------------- GRAPH ------------------------- */
 int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, int *pLenPosXY)
 {
-	int aaaa = sizeof(structPosition);
-	int bbbb = sizeof(structRepPos);
-
 	#if defined(GRAPH_MEMORY_SDRAM2)
 		extern char* GETVAL_ptr(uint32_t nrVal);
 		extern uint32_t GETVAL_freeMemSize(uint32_t offs);
-		if(GETVAL_freeMemSize(nrMem) > GRAPH_MAX_SIZE_POSXY*(sizeof(structRepPos)+sizeof(structPosition))){
-			posXY 	 = (structPosition*)GETVAL_ptr(nrMem);
-			posXY_rep = (structRepPos*)  GETVAL_ptr(nrMem + GRAPH_MAX_SIZE_POSXY*sizeof(structPosition)); }
+		if(GETVAL_freeMemSize(nrMem) > GRAPH_MAX_SIZE_POSXY*(sizeof(structRepPos)+sizeof(structPosU16))){  //tu dac u16 a nie int dla ograniczenia pamieci !~!!!!
+			posXY 	 = (structPosU16*)GETVAL_ptr(nrMem);
+			posXY_rep = (structRepPos*)  GETVAL_ptr(nrMem + GRAPH_MAX_SIZE_POSXY*sizeof(structPosU16)); }
 		else return 0;
 	#endif
 
@@ -5554,7 +5551,7 @@ int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nm
 	GRAPH_ClearPosXYrep();
 	int len_posXY = GRAPH_GetFuncPosXY(startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType);
 	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(len_posXY);
-	if(pLenPosXY!=NULL) *pLenPosXY=len_posXY;
+	if(pLenPosXY!=NULL) *pLenPosXY=len_posXY;     //spawdz w debug ile ma   len_posXY  i   len_posXYrep  !!!????
 	return len_posXYrep;
 }
 
@@ -5658,8 +5655,48 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, len_posXYrep, color2);
 		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart);   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
 	}
+
+
+
+//	LOOP_FOR(i,len_posXY)
+//	{
+//		u32 bkColor = _PLCD(posXY[i+4].x, posXY[i+4].y);
+//
+//		if(_PLCD(posXY[i].x, posXY[i-1].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i-1].y) != bkColor  &&  // right-up
+//			_PLCD(posXY[i].x, posXY[i-2].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i-2].y) != bkColor)
+//		{
+//			_PLCD(posXY[i+1].x, posXY[i-1].y) = colorLineAA;
+//		}
+//
+//
+//		if(_PLCD(posXY[i].x, posXY[i-1].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i-1].y) != bkColor  &&  //  left-up
+//			_PLCD(posXY[i].x, posXY[i-2].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i-2].y) != bkColor)
+//		{
+//			_PLCD(posXY[i-1].x, posXY[i-1].y) = colorLineAA;
+//		}
+//
+//
+//		if(_PLCD(posXY[i].x, posXY[i+1].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i+1].y) != bkColor  &&  //  right-down
+//			_PLCD(posXY[i].x, posXY[i+2].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i+2].y) != bkColor)
+//		{
+//			_PLCD(posXY[i+1].x, posXY[i+1].y) = colorLineAA;
+//		}
+//
+//
+//		if(_PLCD(posXY[i].x, posXY[i+1].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i+1].y) != bkColor  &&  //  left-down
+//			_PLCD(posXY[i].x, posXY[i+2].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i+2].y) != bkColor)
+//		{
+//			_PLCD(posXY[i-1].x, posXY[i+1].y) = colorLineAA;
+//		}
+//
+//	}
+
+
 }
 
+void GRAPH_Draw(){
+
+}
 
 /*------------------- Example Shape Outline -------------------------------------
 SHAPE_PARAMS LCD_XXX(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS param)
