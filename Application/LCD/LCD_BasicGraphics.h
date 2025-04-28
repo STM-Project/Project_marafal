@@ -132,7 +132,7 @@ typedef struct{
 
 typedef struct{
 	u16 x,y;
-	int rx,ry;
+	int16_t rx,ry;
 }structRepPos;
 
 typedef struct{
