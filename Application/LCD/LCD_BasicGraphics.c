@@ -5658,38 +5658,38 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 
 
 
-	LOOP_INIT(i,5,len_posXY-5)
-	{
-		u32 bkColor = _PLCD(posXY[i+4].x, posXY[i+4].y);
-
-		if(_PLCD(posXY[i].x, posXY[i-1].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i-1].y) != bkColor  &&  // right-up
-			_PLCD(posXY[i].x, posXY[i-2].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i-2].y) != bkColor)
-		{
-			_PLCD(posXY[i+1].x, posXY[i-1].y) = colorLineAA;
-		}
-
-
-		if(_PLCD(posXY[i].x, posXY[i-1].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i-1].y) != bkColor  &&  //  left-up
-			_PLCD(posXY[i].x, posXY[i-2].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i-2].y) != bkColor)
-		{
-			_PLCD(posXY[i-1].x, posXY[i-1].y) = colorLineAA;
-		}
-
-
-		if(_PLCD(posXY[i].x, posXY[i+1].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i+1].y) != bkColor  &&  //  right-down
-			_PLCD(posXY[i].x, posXY[i+2].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i+2].y) != bkColor)
-		{
-			_PLCD(posXY[i+1].x, posXY[i+1].y) = colorLineAA;
-		}
-
-
-		if(_PLCD(posXY[i].x, posXY[i+1].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i+1].y) != bkColor  &&  //  left-down
-			_PLCD(posXY[i].x, posXY[i+2].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i+2].y) != bkColor)
-		{
-			_PLCD(posXY[i-1].x, posXY[i+1].y) = colorLineAA;
-		}
-
-	}
+//	LOOP_INIT(i,5,len_posXY-5)
+//	{
+//		u32 bkColor = _PLCD(posXY[i+4].x, posXY[i+4].y);
+//
+//		if(_PLCD(posXY[i].x, posXY[i-1].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i-1].y) != bkColor  &&  // right-up
+//			_PLCD(posXY[i].x, posXY[i-2].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i-2].y) != bkColor)
+//		{
+//			_PLCD(posXY[i+1].x, posXY[i-1].y) = colorLineAA;
+//		}
+//
+//
+//		if(_PLCD(posXY[i].x, posXY[i-1].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i-1].y) != bkColor  &&  //  left-up
+//			_PLCD(posXY[i].x, posXY[i-2].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i-2].y) != bkColor)
+//		{
+//			_PLCD(posXY[i-1].x, posXY[i-1].y) = colorLineAA;
+//		}
+//
+//
+//		if(_PLCD(posXY[i].x, posXY[i+1].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i+1].y) != bkColor  &&  //  right-down
+//			_PLCD(posXY[i].x, posXY[i+2].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i+2].y) != bkColor)
+//		{
+//			_PLCD(posXY[i+1].x, posXY[i+1].y) = colorLineAA;
+//		}
+//
+//
+//		if(_PLCD(posXY[i].x, posXY[i+1].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i+1].y) != bkColor  &&  //  left-down
+//			_PLCD(posXY[i].x, posXY[i+2].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i+2].y) != bkColor)
+//		{
+//			_PLCD(posXY[i-1].x, posXY[i+1].y) = colorLineAA;
+//		}
+//
+//	}
 
 
 }
