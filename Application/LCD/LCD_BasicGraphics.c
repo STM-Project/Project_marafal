@@ -5657,10 +5657,38 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 	}
 
 
+	u32 mask[3][3]={ {1,1,1} ,\
+						  {0,0,1} ,\
+						  {0,0,1} };
 
-//	LOOP_INIT(i,5,len_posXY-5)
-//	{
-//		u32 bkColor = _PLCD(posXY[i+4].x, posXY[i+4].y);
+	int _Isxxx(int x, int y, u32 color){
+		LOOP_INIT(n,-1,1){
+			LOOP_INIT(m,-1,1){
+					  if(mask[1+n][1+m]==1 && _PLCD(x+n,y+m)!=color);
+				else if(mask[1+n][1+m]==0 && _PLCD(x+n,y+m)==color);
+				else return 0;
+		}}
+		return 1;
+	}
+
+
+	LOOP_INIT(i,6,len_posXY-6)
+	{
+
+
+
+		u32 bkColor = _PLCD(posXY[i-4].x, posXY[i-4].y);
+
+//		LOOP_INIT(o,-3,6){
+//			if(_Isxxx(posXY[i].x+o, posXY[i].y, bkColor)){
+//				 _PLCD(posXY[i].x+o-1, posXY[i].y-0) = colorLineAA;
+//			}
+//		}
+
+
+
+
+
 //
 //		if(_PLCD(posXY[i].x, posXY[i-1].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i-1].y) != bkColor  &&  // right-up
 //			_PLCD(posXY[i].x, posXY[i-2].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i-2].y) != bkColor)
@@ -5688,8 +5716,8 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 //		{
 //			_PLCD(posXY[i-1].x, posXY[i+1].y) = colorLineAA;
 //		}
-//
-//	}
+
+	}
 
 
 }
