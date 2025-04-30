@@ -5576,34 +5576,36 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 	}TransParam[transParamSize];
 
 
-	switch((int)bkGradType)
+	if((int)bkGradType > -1)
 	{
-		case Grad_YmaxYmin:
-			LOOP_FOR(i,transParamSize){
-				TransParam[i].lineColor	 = gradColor1;
-				TransParam[i].bkColor	 = 0;
-				TransParam[i].coeff		 = (amplTrans * ((float)i)) / (float)transParamSize + offsTrans;
-				TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
-			break;
+		switch((int)bkGradType)
+		{
+			case Grad_YmaxYmin:
+				LOOP_FOR(i,transParamSize){
+					TransParam[i].lineColor	 = gradColor1;
+					TransParam[i].bkColor	 = 0;
+					TransParam[i].coeff		 = (amplTrans * ((float)i)) / (float)transParamSize + offsTrans;
+					TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
+				break;
 
-		case Grad_Ystrip:
-			break;
+			case Grad_Ystrip:
+				break;
 
-		case Grad_Ycolor:
-			LOOP_FOR(i,transParamSize){
-				TransParam[i].coeff		 = (amplTrans * ((float)i)) / (float)transParamSize + offsTrans;
-				TransParam[i].lineColor	 = GetTransitionColor(gradColor1, gradColor2, TransParam[i].coeff);
-				TransParam[i].bkColor	 = 0;
-				TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
-			break;
-	}
+			case Grad_Ycolor:
+				LOOP_FOR(i,transParamSize){
+					TransParam[i].coeff		 = (amplTrans * ((float)i)) / (float)transParamSize + offsTrans;
+					TransParam[i].lineColor	 = GetTransitionColor(gradColor1, gradColor2, TransParam[i].coeff);
+					TransParam[i].bkColor	 = 0;
+					TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
+				break;
+		}
 
 
-	LOOP_FOR(i,len_posXY)
-	{
-		if(posXY[i].x != posX_prev){
-			if(_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA)
-			{
+		LOOP_FOR(i,len_posXY)
+		{
+			if(posXY[i].x != posX_prev){
+				if(_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA)
+				{
 
 					if(Grad_Ystrip == bkGradType){
 						if(gradStripY) distanceY = gradStripY;
@@ -5615,33 +5617,34 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 							TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff); }
 					}
 
-				LOOP_INIT(j, posXY[i].y+1, startY+yMax)
-				{
-					switch((int)bkGradType)
+					LOOP_INIT(j, posXY[i].y+1, startY+yMax)
 					{
-						case Grad_YmaxYmin:
-						case Grad_Ycolor:
-							if(0==colorIn)	bkColor = _PLCD(posXY[i].x, j);
-							else				bkColor = colorIn;
-							n = j-(startY+yMin);
-							if(TransParam[n].bkColor == bkColor)
-								_PLCD(posXY[i].x, j) = TransParam[n].transColor;
-							else{
-								TransParam[n].bkColor 	 = bkColor;
-								TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
-								_PLCD(posXY[i].x, j) = TransParam[n].transColor;
-							}
-							break;
+						switch((int)bkGradType)
+						{
+							case Grad_YmaxYmin:
+							case Grad_Ycolor:
+								if(0==colorIn)	bkColor = _PLCD(posXY[i].x, j);
+								else				bkColor = colorIn;
+								n = j-(startY+yMin);
+								if(TransParam[n].bkColor == bkColor)
+									_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+								else{
+									TransParam[n].bkColor 	 = bkColor;
+									TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
+									_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+								}
+								break;
 
-						case Grad_Ystrip:
-							n = j - (posXY[i].y+1);
-							if(n < distanceY)
-								_PLCD(posXY[i].x, j) = TransParam[n].transColor;
-							break;
-				}}
+							case Grad_Ystrip:
+								n = j - (posXY[i].y+1);
+								if(n < distanceY)
+									_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+								break;
+					}}
+				}
 			}
+			posX_prev = posXY[i].x;
 		}
-		posX_prev = posXY[i].x;
 	}
 
 
@@ -5657,67 +5660,21 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 	}
 
 
-	u32 mask[3][3]={ {1,1,1} ,\
-						  {0,0,1} ,\
-						  {0,0,1} };
-
-	int _Isxxx(int x, int y, u32 color){
-		LOOP_INIT(n,-1,1){
-			LOOP_INIT(m,-1,1){
-					  if(mask[1+n][1+m]==1 && _PLCD(x+n,y+m)!=color);
-				else if(mask[1+n][1+m]==0 && _PLCD(x+n,y+m)==color);
-				else return 0;
-		}}
-		return 1;
-	}
-
-
-	LOOP_INIT(i,6,len_posXY-6)
-	{
-
-
-
-		u32 bkColor = _PLCD(posXY[i-4].x, posXY[i-4].y);
-
-//		LOOP_INIT(o,-3,6){
-//			if(_Isxxx(posXY[i].x+o, posXY[i].y, bkColor)){
-//				 _PLCD(posXY[i].x+o-1, posXY[i].y-0) = colorLineAA;
-//			}
-//		}
-
-
-
-
-
+//	u32 mask[3][3]={ {1,1,1} ,\
+//						  {0,0,1} ,\
+//						  {0,0,1} };
 //
-//		if(_PLCD(posXY[i].x, posXY[i-1].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i-1].y) != bkColor  &&  // right-up
-//			_PLCD(posXY[i].x, posXY[i-2].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i-2].y) != bkColor)
-//		{
-//			_PLCD(posXY[i+1].x, posXY[i-1].y) = colorLineAA;
-//		}
-//
-//
-//		if(_PLCD(posXY[i].x, posXY[i-1].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i-1].y) != bkColor  &&  //  left-up
-//			_PLCD(posXY[i].x, posXY[i-2].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i-2].y) != bkColor)
-//		{
-//			_PLCD(posXY[i-1].x, posXY[i-1].y) = colorLineAA;
-//		}
-//
-//
-//		if(_PLCD(posXY[i].x, posXY[i+1].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+1].x, posXY[i+1].y) != bkColor  &&  //  right-down
-//			_PLCD(posXY[i].x, posXY[i+2].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i+2].x, posXY[i+2].y) != bkColor)
-//		{
-//			_PLCD(posXY[i+1].x, posXY[i+1].y) = colorLineAA;
-//		}
-//
-//
-//		if(_PLCD(posXY[i].x, posXY[i+1].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-1].x, posXY[i+1].y) != bkColor  &&  //  left-down
-//			_PLCD(posXY[i].x, posXY[i+2].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i].y) != bkColor  &&  _PLCD(posXY[i-2].x, posXY[i+2].y) != bkColor)
-//		{
-//			_PLCD(posXY[i-1].x, posXY[i+1].y) = colorLineAA;
-//		}
+//	int _Isxxx(int x, int y, u32 color){
+//		LOOP_INIT(n,-1,1){
+//			LOOP_INIT(m,-1,1){
+//					  if(mask[1+n][1+m]==1 && _PLCD(x+m,y+n)!=color);
+//				else if(mask[1+n][1+m]==0 && _PLCD(x+m,y+n)==color);
+//				else return 0;
+//		}}
+//		return 1;
+//	}
 
-	}
+
 
 
 }
