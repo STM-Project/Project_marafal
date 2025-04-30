@@ -44,6 +44,7 @@
 #define GRAD_YmaxYmin(gradColor)							Grad_YmaxYmin,gradColor,unUsed,unUsed
 #define GRAD_Ystrip(gradColor,stripLen)				Grad_Ystrip,gradColor,unUsed,stripLen
 #define GRAD_Ycolor(fromGradColor,toGradColor)		Grad_Ycolor,fromGradColor,toGradColor,unUsed
+#define GRAD_None												-1,unUsed,unUsed,unUsed
 #define GRAD_COEFF(amplTrans,offsTrans)				amplTrans,offsTrans
 
 #define DRAW_NO	 0,0,0,0,0
