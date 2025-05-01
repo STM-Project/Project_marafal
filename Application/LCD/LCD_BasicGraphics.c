@@ -3304,7 +3304,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 	u16 lastSample = 0;
 	int i;
 
-	void _GetSamplesDir0(int dir, int sign){
+	void _GetSamplesDir0(int sign){
 		if(lastSample){
 			if(lastSample%2==0){
 				buff[1+buff[0]++]=lastSample/2;
@@ -3316,14 +3316,13 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 			}
 		}
 		else{
-			if(dir) buff[1+buff[0]++]=ABS(pos[i].ry);
-			else    buff[1+buff[0]++]=ABS(pos[i].rx);
+			buff[1+buff[0]++]=ABS(pos[i].ry);
 			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y); }
 		}
 		lastSample=0;
 	}
 
-	void _GetSamplesDir1(int dir, int sign){  /// Chyba int dir nie ma sensu bo jest w nazwie  ...Dir1 !!!!!!!!!!
+	void _GetSamplesDir1(int sign){
 		if(lastSample){
 			if(lastSample%2==0){
 				buff[1+buff[0]++]=lastSample/2;
@@ -3335,8 +3334,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 			}
 		}
 		else{
-			if(dir) buff[1+buff[0]++]=ABS(pos[i].ry);
-			else    buff[1+buff[0]++]=ABS(pos[i].rx);
+			buff[1+buff[0]++]=ABS(pos[i].rx);
 			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y); }
 		}
 		lastSample=0;
@@ -3367,7 +3365,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 			return;
 
 		if(IS_RightDownDir0	&& EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightDownDir0) && ABS(pos[i].ry)>0){
-			_GetSamplesDir0(1,1);
+			_GetSamplesDir0(1);
 			functionType = RightDownDir0;
 		}
 		else{
@@ -3387,7 +3385,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		}
 
 		if(IS_RightUpDir0 && EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightUpDir0) && ABS(pos[i].ry)>0){
-			_GetSamplesDir0(1,1);
+			_GetSamplesDir0(1);
 			functionType = RightUpDir0;
 		}
 		else{
@@ -3407,7 +3405,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		}
 
 		if(IS_RightDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownDir1) && ABS(pos[i].rx)>0){
-			_GetSamplesDir1(0,1);
+			_GetSamplesDir1(1);
 			functionType = RightDownDir1;
 		}
 		else{
@@ -3427,7 +3425,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		}
 
 		if(IS_RightUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDir1) && ABS(pos[i].rx)>0){
-			_GetSamplesDir1(0,-1);
+			_GetSamplesDir1(-1);
 			functionType = RightUpDir1;
 		}
 		else{
@@ -3447,7 +3445,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		}
 
 		if(IS_LeftDownDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir0) && ABS(pos[i].ry)>0){
-			_GetSamplesDir0(1,-1);
+			_GetSamplesDir0(-1);
 			functionType = LeftDownDir0;
 		}
 		else{
@@ -3467,7 +3465,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		}
 
 		if(IS_LeftUpDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir0) && ABS(pos[i].ry)>0){
-			_GetSamplesDir0(1,-1);
+			_GetSamplesDir0(-1);
 			functionType = LeftUpDir0;
 		}
 		else{
@@ -3487,7 +3485,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		}
 
 		if(IS_LeftDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir1) && ABS(pos[i].rx)>0){
-			_GetSamplesDir1(0,1);
+			_GetSamplesDir1(1);
 			functionType = LeftDownDir1;
 		}
 		else{
@@ -3507,7 +3505,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		}
 
 		if(IS_LeftUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir1) && ABS(pos[i].rx)>0){
-			_GetSamplesDir1(0,-1);
+			_GetSamplesDir1(-1);
 			functionType = LeftUpDir1;
 		}
 		else{
@@ -3547,7 +3545,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 
 
 		if(IS_RightUpDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1) && ABS(pos[i].rx)>2){
-			_GetSamplesDir1(0,-1);
+			_GetSamplesDir1(-1);
 			functionType = RightUpDownDir1;
 		}
 		else if(functionType == RightUpDownDir1)
@@ -3563,7 +3561,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 
 
 		if(IS_RightDownUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1) && ABS(pos[i].rx)>2){
-			_GetSamplesDir1(0,-1);
+			_GetSamplesDir1(-1);
 			functionType = RightDownUpDir1;
 		}
 		else if(functionType == RightDownUpDir1)

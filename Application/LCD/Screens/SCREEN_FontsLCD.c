@@ -1795,11 +1795,29 @@ void FILE_NAME(debugRcvStr)(void)
 
 
 	/* ----- Debug Test GRAPH ----- */
-	_DBG_PARAM_NOWRAP("a",&testGraph.scaleX,_double,_Incr,_Double(0.1),_Double(20.0),"Test Graph scaleX: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("z",&testGraph.scaleX,_double,_Decr,_Double(0.1),_Double( 1.0),"Test Graph scaleX: ",MainFuncRefresh)
+	_DBG3_PARAM_NOWRAP("a","A","z","Z",&testGraph.scaleX,_double,_Double(0.1),_Double(1.5),_Double(20.0),_Double(1.0),"Test Graph scaleX: ",MainFuncRefresh)  //OPISAC TO W EXAMPLE !!!!!!
 
-	_DBG_PARAM_NOWRAP("s",&testGraph.scaleY,_double,_Incr,_Double(1.0),_Double(100.0),"Test Graph scaleY: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("x",&testGraph.scaleY,_double,_Decr,_Double(1.0),_Double(  1.0),"Test Graph scaleY: ",MainFuncRefresh)
+/*	_DBG2_PARAM_NOWRAP("a","A",&testGraph.scaleX,_double,_Incr,_Double(0.1),_Double(1.0),_Double(20.0),"Test Graph scaleX: ",MainFuncRefresh)
+	_DBG2_PARAM_NOWRAP("z","Z",&testGraph.scaleX,_double,_Decr,_Double(0.1),_Double(1.0),_Double( 1.0),"Test Graph scaleX: ",MainFuncRefresh) */
+
+/*	_DBG_PARAM_NOWRAP("a",&testGraph.scaleX,_double,_Incr,_Double(0.1),_Double(20.0),"Test Graph scaleX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("z",&testGraph.scaleX,_double,_Decr,_Double(0.1),_Double( 1.0),"Test Graph scaleX: ",MainFuncRefresh) */
+
+
+
+
+	_DBG3_PARAM_NOWRAP("s","S","x","X",&testGraph.scaleY,_double,_Double(1.0),_Double(10.0),_Double(100.0),_Double( 1.0),"Test Graph scaleY: ",MainFuncRefresh)
+
+/*	_DBG2_PARAM_NOWRAP("s","S",&testGraph.scaleY,_double,_Incr,_Double(1.0),_Double(10.0),_Double(100.0),"Test Graph scaleY: ",MainFuncRefresh)
+	_DBG2_PARAM_NOWRAP("x","X",&testGraph.scaleY,_double,_Decr,_Double(1.0),_Double(10.0),_Double(  1.0),"Test Graph scaleY: ",MainFuncRefresh) */
+
+/*	_DBG_PARAM_NOWRAP("s",&testGraph.scaleY,_double,_Incr,_Double(1.0),_Double(100.0),"Test Graph scaleY: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("x",&testGraph.scaleY,_double,_Decr,_Double(1.0),_Double(  1.0),"Test Graph scaleY: ",MainFuncRefresh) */
+
+
+
+
+
 
 	_DBG_PARAM_NOWRAP("d",&testGraph.funcType,_uint8,_Incr,_Uint8(1),_Uint8(Func_lines6),"Test Graph funcType: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("c",&testGraph.funcType,_uint8,_Decr,_Uint8(1),_Uint8(Func_sin),	 "Test Graph funcType: ",MainFuncRefresh)
@@ -2369,6 +2387,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 //ROBIMY :  1. LISTVIEW  tabelko z lista   2. klawiature i koniec !!!
+	//GRAPH ZADANIA  : delikatna siateczka, okienko XY, wskaznik pionowy
 
 	//ATTENTION IN FUTURE   tylko w jednej funkcji umieszczamy zmienne odswiezane reularnie i ta funkcja idzie do jakiegos watku !!!!!
 
