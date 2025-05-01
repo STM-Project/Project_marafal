@@ -498,7 +498,7 @@ f_close(&FilData);
 
 SZARPANIE OBRAZY:
 - w funkcji internal implementowanej w funkcji nie stosuj semaforów !!
-- w parametrach funkcji jak jest mozliwosc stosuj #define a nie funkcje
+- w argumentach funkcji jak jest mozliwosc stosuj #define a nie funkcje lub jako lokalne funkcje
 
 //#####################################################################
 

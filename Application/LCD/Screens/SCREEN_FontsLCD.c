@@ -2370,6 +2370,8 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 //ROBIMY :  1. LISTVIEW  tabelko z lista   2. klawiature i koniec !!!
 
+	//ATTENTION IN FUTURE   tylko w jednej funkcji umieszczamy zmienne odswiezane reularnie i ta funkcja idzie do jakiegos watku !!!!!
+
 }
 
 #undef POS_X_TXT

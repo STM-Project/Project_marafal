@@ -5557,7 +5557,7 @@ int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nm
 	#if defined(GRAPH_MEMORY_SDRAM2)
 		extern char* GETVAL_ptr(uint32_t nrVal);
 		extern uint32_t GETVAL_freeMemSize(uint32_t offs);
-		if(GETVAL_freeMemSize(nrMem) > GRAPH_MAX_SIZE_POSXY*(sizeof(structRepPos)+sizeof(structPosU16))){  //tu dac u16 a nie int dla ograniczenia pamieci !~!!!!
+		if(GETVAL_freeMemSize(nrMem) > GRAPH_MAX_SIZE_POSXY*(sizeof(structRepPos)+sizeof(structPosU16))){
 			posXY 	 = (structPosU16*)GETVAL_ptr(nrMem);
 			posXY_rep = (structRepPos*)  GETVAL_ptr(nrMem + GRAPH_MAX_SIZE_POSXY*sizeof(structPosU16)); }
 		else return 0;
@@ -5674,25 +5674,6 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, len_posXYrep, color2);
 		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart);   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
 	}
-
-
-//	u32 mask[3][3]={ {1,1,1} ,\
-//						  {0,0,1} ,\
-//						  {0,0,1} };
-//
-//	int _Isxxx(int x, int y, u32 color){
-//		LOOP_INIT(n,-1,1){
-//			LOOP_INIT(m,-1,1){
-//					  if(mask[1+n][1+m]==1 && _PLCD(x+m,y+n)!=color);
-//				else if(mask[1+n][1+m]==0 && _PLCD(x+m,y+n)==color);
-//				else return 0;
-//		}}
-//		return 1;
-//	}
-
-
-
-
 }
 
 void GRAPH_Draw(){
