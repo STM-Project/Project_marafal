@@ -1462,9 +1462,9 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 		return -1;
 	}
 
-	int _AAcorrectFor45degH(int sign)
+	int _AAcorrectFor45degH(DIRECTIONS upDwn)
 	{
-		int ggg;
+		int ggg, sign=CONDITION(upDwn==Down,1,-1);
       int mm = __ArePoints45degInRange(3,150, 2,2, 0,&ggg);
 		if(mm)
 		{
@@ -1518,10 +1518,10 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 		return 0;
 	}
 
-	int _AAcorrectFor45degV(int sign)
+	int _AAcorrectFor45degV(DIRECTIONS upDwn)
 	{
-		int ggg;
-		int mm = __ArePoints45degInScheme(2,  3,150, 2, 1,2,    2,  0,&ggg,NULL);
+		int ggg, sign=CONDITION(upDwn==Down,1,-1);
+		int mm = __ArePoints45degInScheme(2,  3,150, 2, 1,2,    2,  0,&ggg,NULL);  // odstepy uporzadkuj!!!
 		if(mm)
 		{
 			if(mm==2) goto GOTO_ToEndAAcorrect45degV;
@@ -1591,7 +1591,7 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 
 	if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
 	{
-		if(_AAcorrectFor45degH(1))
+		if(_AAcorrectFor45degH(Down))
 			goto GOTO_ToDrawAAforH;
 	}
 
@@ -1700,7 +1700,7 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 
 				if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
 				{
-					if(_AAcorrectFor45degH(-1))
+					if(_AAcorrectFor45degH(Up))
 						goto GOTO_ToDrawAAforH_2;
 				}
 
