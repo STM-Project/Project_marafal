@@ -3307,7 +3307,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 	#define IS_RightUpDownDir1_ver2		(pos[i].rx < 0  &&  pos[i+1].rx > 0)
 	#define IS_RightDownUpDir1_ver2		(pos[i].rx > 0  &&  pos[i+1].rx < 0)
 
-	structRepPos* pos = posXY_rep;
+	structRepPos *pos_beforeCorrect = posXY_rep, 	*pos = posXY_rep + GRAPH_MAX_SIZE_POSXY;
 	u16 buff[MAX_SIZE_BUFF];
 	u8 functionType = NONE_FUNC_TYPE;
 	u16 lastSample = 0;
@@ -3349,6 +3349,8 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		lastSample=0;
 	}
 
+	for(i=0; i<lenStruct; ++i) *(pos+i)=*(pos_beforeCorrect+i);
+
 	/*     		 					 _____            ____
 	   Pixels correct from:  ___|       to:  ___|			for 'Up' (on this example) and the same for 'Down'
 	*/
@@ -3386,7 +3388,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 				else
 					buff[1+buff[0]++]=ABS(pos[i].ry);
 
-				_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);
+				_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, 0, buff);  //zrobic zamiast 0 -> degTo45   1-> degAbove45 !!!!
 				functionType=NONE_FUNC_TYPE;
 				buff[0]=0;
 				goto TempEnd_Display;
@@ -5564,17 +5566,17 @@ int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nm
 	#if defined(GRAPH_MEMORY_SDRAM2)
 		extern char* GETVAL_ptr(uint32_t nrVal);
 		extern uint32_t GETVAL_freeMemSize(uint32_t offs);
-		if(GETVAL_freeMemSize(nrMem) > GRAPH_MAX_SIZE_POSXY*(sizeof(structRepPos)+sizeof(structPosU16))){
+		if(GETVAL_freeMemSize(nrMem) > GRAPH_MAX_SIZE_POSXY*(sizeof(structPosU16)+2*sizeof(structRepPos))){		/* size of structRepPos is 2 times larger then size of structPosU16,   2 * size of structRepPos is for correct for GRAPH_Display() */
 			posXY 	 = (structPosU16*)GETVAL_ptr(nrMem);
-			posXY_rep = (structRepPos*)  GETVAL_ptr(nrMem + GRAPH_MAX_SIZE_POSXY*sizeof(structPosU16)); }
+			posXY_rep = (structRepPos*)GETVAL_ptr(nrMem + GRAPH_MAX_SIZE_POSXY*sizeof(structPosU16)); }
 		else return 0;
 	#endif
 
 	GRAPH_ClearPosXY();
 	GRAPH_ClearPosXYrep();
-	int len_posXY = GRAPH_GetFuncPosXY(startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType);
+	int len_posXY = GRAPH_GetFuncPosXY(startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType);		/* len_posXY >> len_posXYrep (many times larger, at least 2 times) */
 	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(len_posXY);
-	if(pLenPosXY!=NULL) *pLenPosXY=len_posXY;     //spawdz w debug ile ma   len_posXY  i   len_posXYrep  !!!????
+	if(pLenPosXY!=NULL) *pLenPosXY=len_posXY;
 	return len_posXYrep;
 }
 
@@ -5673,8 +5675,8 @@ void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax
 
 	if((int)dispOption==Disp_AA){
 					   GRAPH_Display(0,	    len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart);  	testFuncGraph = 0;   //UWAGA !!!!!!!!!! to nadpisuje do zmiennej static i gdy wywolujemy kilka razy GRAPH_Display to BLEDY !!!!!!
-		if(offsK1){ GRAPH_Display(offsK1, len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart); }	testFuncGraph = testAAAAA;
-		if(offsK2){ GRAPH_Display(offsK2, len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0); }
+		if(offsK1){ GRAPH_Display(offsK1, len_posXYrep, color1,		colorOut,colorIn, outRatioStart,inRatioStart); }	testFuncGraph = testAAAAA;
+		if(offsK2){ GRAPH_Display(offsK2, len_posXYrep, color2,		colorOut,colorIn, 1.0,			   1.0); }
 	}
 	else{
 		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, len_posXY,	   color1);
