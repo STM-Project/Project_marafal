@@ -1464,40 +1464,40 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 
 	int _AAcorrectFor45degH(DIRECTIONS upDwn)
 	{
-		int ggg, sign=CONDITION(upDwn==Down,1,-1);
-      int mm = __ArePoints45degInRange(3,150, 2,2, 0,&ggg);
-		if(mm)
+		int len45degLine, sign=CONDITION(upDwn==Down,1,-1);
+      int scheme = __ArePoints45degInRange(3,150, 2,2, 0,&len45degLine);
+		if(scheme)
 		{
 			_StartPxlsCorrect(sign);
 			_DrawAAfor2pxl(sign);
-			for(int a=0;a<ggg;++a){  k+=BkpSizeX*sign; _ReadBK(ggg,-3,3);  pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff2_AA[1+(ggg-1)-a]; pLcd[k+2]=_outColor;    pLcd[k++]=drawColor;  }
+			for(int a=0;a<len45degLine;++a){  k+=BkpSizeX*sign; _ReadBK(len45degLine,-3,3);  pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff2_AA[1+(len45degLine-1)-a]; pLcd[k+2]=_outColor;    pLcd[k++]=drawColor;  }
 			k+=BkpSizeX*sign;
-			p+=ggg;  j-=(ggg+1);
+			p+=len45degLine;  j-=(len45degLine+1);
 			i=buf[p++];   flagss=1;
 			return 1;
 		}
 		else
 		{
-			int ggg;
-			if(__ArePoints45degInRange(3,150, 2,3, 0,&ggg))
+			int len45degLine;
+			if(__ArePoints45degInRange(3,150, 2,3, 0,&len45degLine))
 			{
 				_StartPxlsCorrect(sign);
 				_DrawAAfor2pxl(sign);
-				for(int a=0;a<ggg;++a){  k+=BkpSizeX*sign; _ReadBK(ggg,-4,3);   pLcd[k-3]=_inColor; pLcd[k-2]=buff_AA[1+a]; 		pLcd[k-1]=drawColor;   pLcd[k+1]=buff2_AA[1+(ggg-1)-a];  pLcd[k+2]=(a==(ggg-1)?buff2_AA[1+ggg/2]:_outColor);     pLcd[k++]=drawColor;  }
+				for(int a=0;a<len45degLine;++a){  k+=BkpSizeX*sign; _ReadBK(len45degLine,-4,3);   pLcd[k-3]=_inColor; pLcd[k-2]=buff_AA[1+a]; 		pLcd[k-1]=drawColor;   pLcd[k+1]=buff2_AA[1+(len45degLine-1)-a];  pLcd[k+2]=(a==(len45degLine-1)?buff2_AA[1+len45degLine/2]:_outColor);     pLcd[k++]=drawColor;  }
 				k+=BkpSizeX*sign;
-				p+=ggg;  j-=(ggg+1);
+				p+=len45degLine;  j-=(len45degLine+1);
 				i=buf[p++];   flagss=1;
 				return 1;
 			}
 			else
 			{
-				if(__ArePoints45degInRange(3,150, 3,2, 0,&ggg))
+				if(__ArePoints45degInRange(3,150, 3,2, 0,&len45degLine))
 				{
 					_StartPxlsCorrect(sign);
 					_DrawAAfor2pxl(sign);
-					for(int a=0;a<ggg;++a){  k+=BkpSizeX*sign; _ReadBK(ggg,-4,3);   pLcd[k-3]=(a==0?buff_AA[1+ggg/2]:_inColor); pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff2_AA[1+(ggg-1)-a]; pLcd[k+2]=_outColor;    pLcd[k++]=drawColor; }
+					for(int a=0;a<len45degLine;++a){  k+=BkpSizeX*sign; _ReadBK(len45degLine,-4,3);   pLcd[k-3]=(a==0?buff_AA[1+len45degLine/2]:_inColor); pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff2_AA[1+(len45degLine-1)-a]; pLcd[k+2]=_outColor;    pLcd[k++]=drawColor; }
 					k+=BkpSizeX*sign;
-					p+=ggg;  j-=(ggg+1);
+					p+=len45degLine;  j-=(len45degLine+1);
 					i=buf[p++];		flagss=1;
 					return 1;
 				}
@@ -1520,41 +1520,41 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 
 	int _AAcorrectFor45degV(DIRECTIONS upDwn)
 	{
-		int ggg, sign=CONDITION(upDwn==Down,1,-1);
-		int mm = __ArePoints45degInScheme(2,  3,150, 2, 1,2,    2,  0,&ggg,NULL);  // odstepy uporzadkuj!!!
-		if(mm)
+		int len45degLine, sign=CONDITION(upDwn==Down,1,-1);
+		int scheme = __ArePoints45degInScheme(2,  3,150, 2, 1,2,   2,  0,&len45degLine,NULL);
+		if(scheme)
 		{
-			if(mm==2) goto GOTO_ToEndAAcorrect45degV;
+			if(scheme==2) goto GOTO_ToEndAAcorrect45degV;
 			_StartPxlsCorrect(sign);
 			_DrawAAfor2pxl(sign);
 			k++;
-			for(int a=0;a<ggg;++a){  _ReadBK(ggg,-3,3);   pLcd[k+2]=buff2_AA[1+a]; pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(ggg-1)-a]; pLcd[k-2]=_inColor;    pLcd[k++]=drawColor;  k+=BkpSizeX*sign; }
-			p+=ggg;  j-=(ggg+1);
+			for(int a=0;a<len45degLine;++a){  _ReadBK(len45degLine,-3,3);   pLcd[k+2]=buff2_AA[1+a]; pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(len45degLine-1)-a]; pLcd[k-2]=_inColor;    pLcd[k++]=drawColor;  k+=BkpSizeX*sign; }
+			p+=len45degLine;  j-=(len45degLine+1);
 			i=buf[p++];   flagss=1;
 			return 1;
 		}
 		else
 		{
-			int ggg;
-			if(__ArePoints45degInRange(3,150, 2,3, 0,&ggg))
+			int len45degLine;
+			if(__ArePoints45degInRange(3,150, 2,3, 0,&len45degLine))
 			{
 				_StartPxlsCorrect(sign);
 				_DrawAAfor2pxl(sign);
 				k++;
-				for(int a=0;a<ggg;++a){  _ReadBK(ggg,-3,4);    pLcd[k+3]=_outColor; pLcd[k+2]=buff2_AA[1+a]; 		pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(ggg-1)-a];  pLcd[k-2]=(a==(ggg-1)?buff_AA[1+ggg/2]:_inColor);     pLcd[k++]=drawColor;   k+=BkpSizeX*sign; }
-				p+=ggg;  j-=(ggg+1);
+				for(int a=0;a<len45degLine;++a){  _ReadBK(len45degLine,-3,4);    pLcd[k+3]=_outColor; pLcd[k+2]=buff2_AA[1+a]; 		pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(len45degLine-1)-a];  pLcd[k-2]=(a==(len45degLine-1)?buff_AA[1+len45degLine/2]:_inColor);     pLcd[k++]=drawColor;   k+=BkpSizeX*sign; }
+				p+=len45degLine;  j-=(len45degLine+1);
 				i=buf[p++];   flagss=1;
 				return 1;
 			}
 			else
 			{
-				if(__ArePoints45degInRange(3,150, 3,2, 0,&ggg))
+				if(__ArePoints45degInRange(3,150, 3,2, 0,&len45degLine))
 				{
 					_StartPxlsCorrect(sign);
 					_DrawAAfor2pxl(sign);
 					k++;
-					for(int a=0;a<ggg;++a){   _ReadBK(ggg,-3,4);    pLcd[k+3]=(a==0?buff2_AA[1+ggg/2]:_outColor); pLcd[k+2]=buff2_AA[1+a]; pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(ggg-1)-a]; pLcd[k-2]=_inColor;     pLcd[k++]=drawColor;   k+=BkpSizeX*sign; }
-					p+=ggg;  j-=(ggg+1);
+					for(int a=0;a<len45degLine;++a){   _ReadBK(len45degLine,-3,4);    pLcd[k+3]=(a==0?buff2_AA[1+len45degLine/2]:_outColor); pLcd[k+2]=buff2_AA[1+a]; pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(len45degLine-1)-a]; pLcd[k-2]=_inColor;     pLcd[k++]=drawColor;   k+=BkpSizeX*sign; }
+					p+=len45degLine;  j-=(len45degLine+1);
 					i=buf[p++];   flagss=1;
 					return 1;
 				}
@@ -1575,28 +1575,22 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 		return 0;
 	}
 
-
 	switch((int)upDwn)
 	{
 	case Down:
-
 
 		if(0==direction)
 		{
 			while(j--)
 			{
-				GOTO_ToDrawAAforH:
+				GOTO_ToDrawAAforH_Down:
 				i_prev=i;
 				while(i--) pLcd[k++]=drawColor;
 
-	if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
-	{
-		if(_AAcorrectFor45degH(Down))
-			goto GOTO_ToDrawAAforH;
-	}
-
-
-
+				if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0){
+					if(_AAcorrectFor45degH(upDwn))
+						goto GOTO_ToDrawAAforH_Down;
+				}
 				i=buf[p++];
 
 				if(outRatioStart<1.0){
@@ -1634,22 +1628,14 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 		{
 			while(j--)
 			{
-
-
-				GOTO_ToDrawAAforV:
-
-
+				GOTO_ToDrawAAforV_Down:
 				i_prev=i;
-				while(i--){  pLcd[k]=drawColor;  k+=BkpSizeX;  }
+				while(i--){ pLcd[k]=drawColor; k+=BkpSizeX; }
 
-	if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
-	{
-
-		if(_AAcorrectFor45degV(1))
-			goto GOTO_ToDrawAAforV;
-
-	}
-
+				if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0){
+					if(_AAcorrectFor45degV(upDwn))
+						goto GOTO_ToDrawAAforV_Down;
+				}
 				i=buf[p++];
 
 				if(inRatioStart<1.0){
@@ -1683,9 +1669,7 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 			}
 			k--;
 		}
-
 		break;
-
 
 	case Up:
 
@@ -1693,17 +1677,14 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 		{
 			while(j--)
 			{
-				GOTO_ToDrawAAforH_2:  //lepiej Up i Down
-
+				GOTO_ToDrawAAforH_Up:
 				i_prev=i;
 				while(i--) pLcd[k++]=drawColor;
 
-				if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
-				{
-					if(_AAcorrectFor45degH(Up))
-						goto GOTO_ToDrawAAforH_2;
+				if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0){
+					if(_AAcorrectFor45degH(upDwn))
+						goto GOTO_ToDrawAAforH_Up;
 				}
-
 				i=buf[p++];
 
 				if(inRatioStart<1.0){
@@ -1742,15 +1723,13 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 		{
 			while(j--)
 			{
-				GOTO_ToDrawAAforV_2:
-
+				GOTO_ToDrawAAforV_Up:
 				i_prev=i;
-				while(i--){  pLcd[k]=drawColor;  k-=BkpSizeX;  }
+				while(i--){ pLcd[k]=drawColor; k-=BkpSizeX; }
 
-				if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0)
-				{
-					if(_AAcorrectFor45degV(-1))
-						goto GOTO_ToDrawAAforV_2;
+				if(testFuncGraph && outRatioStart < 1.0 && inRatioStart < 1.0){
+					if(_AAcorrectFor45degV(upDwn))
+						goto GOTO_ToDrawAAforV_Up;
 				}
 
 				i=buf[p++];
@@ -1787,7 +1766,6 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 			k--;
 		}
 		break;
-
 
 	default:
 		break;
