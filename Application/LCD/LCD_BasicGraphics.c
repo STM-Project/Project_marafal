@@ -1400,9 +1400,9 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 				k-=(i_prev-1); k-=2;
 				_ReadBK(3, -1,0);
 				pLcd[k]=buff_AA[1+0];
-				k+=2;  k+=(i_prev-1);	k-=BkpSizeX*sign;	k-=(i_prev-1);
+				k+=2;  k+=(i_prev-1);	k-=BkpSizeX;	k-=(i_prev-1);
 				pLcd[k]=_inColor;
-				k+=(i_prev-1); k+=BkpSizeX*sign;
+				k+=(i_prev-1);  k+=BkpSizeX;
 			}
 		}
 		else{

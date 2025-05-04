@@ -1773,7 +1773,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 	return NULL;
 }
 
-static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=75.0, .funcType=Func_sin, .grad.bkType=Grad_YmaxYmin};
+static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=46.0, .funcType=Func_sin, .grad.bkType=Grad_Ystrip};
 extern int testFuncGraph;   // tymczasowe zmienne
 
 void FILE_NAME(debugRcvStr)(void)
