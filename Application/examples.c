@@ -8,6 +8,7 @@
 #include "mini_printf.h"
 #include <string.h>
 #include "common.h"
+#include "debug.h"
 
 
 void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLOR_BkScreen, int FONT_ID_Descr)
@@ -216,6 +217,26 @@ void MEMEXAMPLE_MemoryFunc(void)
 	_USED(retFlag);
 	_USED(pChar);
 	_USED(vChar);
+}
+
+void DBGEXAMPLE_Graph(void)
+{
+	double testVal = 0.0;
+	void* FuncExample(void *arg1,void *arg2){ return NULL; }
+
+	if(DEBUG_RcvStr("example")){ ; }
+
+	/* 1. Debug option */
+	_DBG_PARAM_NOWRAP("a",&testVal,_double,_Incr,_Double(0.1),_Double(20.0),"Test debug 1: ",FuncExample)		/* for 'a' increment value by step 0.1 */
+	_DBG_PARAM_NOWRAP("b",&testVal,_double,_Decr,_Double(0.1),_Double( 1.0),"Test debug 1: ",FuncExample)		/* for 'b' decrement value by step 0.1 */
+
+	/* 2. Debug option */
+	_DBG2_PARAM_NOWRAP("a","A",&testVal,_double,_Incr,_Double(0.1),_Double(1.3),_Double(20.0),"Test debug 2: ",FuncExample)		/* for 'a' increment value by step 0.1 but for 'A' increment value by step 1.3 */
+	_DBG2_PARAM_NOWRAP("b","B",&testVal,_double,_Decr,_Double(0.1),_Double(1.3),_Double( 1.0),"Test debug 2: ",FuncExample)		/* for 'b' decrement value by step 0.1 but for 'B' decrement value by step 1.3 */
+
+	/* 3. Debug option */
+	_DBG3_PARAM_NOWRAP("a","A","b","B",&testVal,_double,_Double(0.1),_Double(1.5),_Double(20.0),_Double(1.0),"Test debug 3: ",FuncExample)		/* for 'a' increment value by step 0.1 but for 'A' increment value by step 1.5 */
+																																															/* for 'b' decrement value by step 0.1 but for 'B' decrement value by step 1.5 */
 }
 
 void LCDEXAMPLE_Graph(u32 COLOR_BkScreen)
