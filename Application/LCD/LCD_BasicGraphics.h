@@ -164,7 +164,7 @@ typedef struct{
 	u32 colorLinePosXYrep;
 	int KoffsPosXY;
 	int KoffsPosXYrep;
-	u8 corrAA45deg;
+	u8 corr45degAA;
 	structGradParam grad;
 }USER_GRAPH_PARAM;
 
@@ -293,7 +293,7 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param);
 
 int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints, double scaleX,double scaleY, double precision, int funcPatternType, int *pLenPosXY);
 void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
-										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans);
+										DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA);
 
 
 #endif /* LCD_LCD_BASICGAPHICS_H_ */
