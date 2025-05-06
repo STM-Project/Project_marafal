@@ -137,7 +137,7 @@ typedef struct{
 }structRepPos;
 
 typedef struct{
-	int startX; int startY; int yMin; int yMax; int nmbrPoints; double precision; double scaleX; double scaleY; int funcPatternType;
+	int startX; int startY; int yMin; int yMax; int nmbrPoints; u32 precision; u32 scaleX; u32 scaleY; int funcPatternType;
 	int len_posXY;  int len_posXYrep;
 }structGetSmpl;
 

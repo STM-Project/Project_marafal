@@ -1405,9 +1405,9 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 				k-=(i_prev-1); k-=2;
 				_ReadBK(3, -1,0);
 				pLcd[k]=buff_AA[1+0];
-				k+=2;  k+=(i_prev-1);	k-=BkpSizeX;	k-=(i_prev-1);
+				k+=2;  k+=(i_prev-1);	k-=BkpSizeX*(-1*sign);	k-=(i_prev-1);
 				pLcd[k]=_inColor;
-				k+=(i_prev-1);  k+=BkpSizeX;
+				k+=(i_prev-1);  k+=BkpSizeX*(-1*sign);
 			}
 		}
 		else{
@@ -1512,10 +1512,10 @@ static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, 
 						flagss=0;
 						_ReadBK(3, -i_prev-2,0);
 						pLcd[k-i_prev-1]=buff_AA[1+0];
-						k-=BkpSizeX*sign;	k-=(i_prev-0);
+						k-=BkpSizeX*(-1*sign);	k-=(i_prev-0);
 						pLcd[k+0]=buff_AA[1+0];
 						pLcd[k+1]=buff_AA[1+1];
-						k+=(i_prev-0); k+=BkpSizeX*sign;
+						k+=(i_prev-0); k+=BkpSizeX*(-1*sign);
 					}
 				}
 			}
@@ -5595,8 +5595,7 @@ int GRAPH_GetSamples(int offsMem,int nrMem, int startX,int startY, int yMin,int 
 {
 	if(GRAPH_SetPointers(offsMem,nrMem)) return 0;
 
-	//GRAPH_ClearPosXYpar();
-	posXY_par[0].startX=0;
+	GRAPH_ClearPosXYpar();
 	GRAPH_ClearPosXY();
 	GRAPH_ClearPosXYrep();
 
@@ -5608,9 +5607,9 @@ int GRAPH_GetSamples(int offsMem,int nrMem, int startX,int startY, int yMin,int 
 	posXY_par[0].yMin=yMin;
 	posXY_par[0].yMax=yMax;
 	posXY_par[0].nmbrPoints=nmbrPoints;
-	posXY_par[0].precision=precision;
-	posXY_par[0].scaleX=scaleX;
-	posXY_par[0].scaleY=scaleY;
+	posXY_par[0].precision=(u32)precision;
+	posXY_par[0].scaleX=(u32)scaleX;
+	posXY_par[0].scaleY=(u32)scaleY;
 	posXY_par[0].funcPatternType=funcPatternType;
 
 	if(1 > posXY_par[0].len_posXYrep) return 1;
@@ -5625,7 +5624,7 @@ void GRAPH_Draw(int offsMem,int nrMem, u32 colorLineAA, u32 colorOut, u32 colorI
 		if(GRAPH_SetPointers(offsMem,nrMem)) return;
 	#endif
 
-	if(1 > posXY_par[0].len_posXYrep) return;
+	if(1 > posXY_par[0].len_posXYrep) return;  //IS_RANGE(0, MAX_SIZE....) !!!!!
 
 	u32 bkColor = 0;
 	int transParamSize = 1 + (posXY_par[0].yMax - posXY_par[0].yMin),   posX_prev=0,   distanceY,   n;
