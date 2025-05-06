@@ -17,6 +17,7 @@
 #define MAX_LINE_BUFF_CIRCLE_SIZE  100
 #define MAX_DEGREE_CIRCLE  10
 #define GRAPH_MAX_SIZE_POSXY	10000
+#define SIZE_ONE_CHART		sizeof(structGetSmpl) + GRAPH_MAX_SIZE_POSXY*sizeof(structPosU16) + 2*GRAPH_MAX_SIZE_POSXY*sizeof(structRepPos)
 
 /* Select one memory type for graphic of chart */
 /* #define GRAPH_MEMORY_RAM */
@@ -93,23 +94,24 @@ static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .
 
 #if defined(GRAPH_MEMORY_RAM)
 
-	static structPosition posXY	  [GRAPH_MAX_SIZE_POSXY] = {0};
-	static structRepPos 	 posXY_rep [GRAPH_MAX_SIZE_POSXY] = {0};
+	static structGetSmpl posXY_par [1]= {0};
+	static structPosU16  posXY	  	 [GRAPH_MAX_SIZE_POSXY] = {0};
+	static structRepPos 	posXY_rep [GRAPH_MAX_SIZE_POSXY] = {0};
 
 #elif defined(GRAPH_MEMORY_SDRAM)
 
-	SDRAM static structPosition posXY	  [GRAPH_MAX_SIZE_POSXY];
-	SDRAM static structRepPos 	 posXY_rep [GRAPH_MAX_SIZE_POSXY];
+	SDRAM static structGetSmpl posXY_par [1];
+	SDRAM static structPosU16  posXY	  	 [GRAPH_MAX_SIZE_POSXY];
+	SDRAM static structRepPos 	posXY_rep [GRAPH_MAX_SIZE_POSXY];
 
 #elif defined(GRAPH_MEMORY_SDRAM2)
 
-	static structPosU16* posXY 	 = NULL;
-	static structRepPos* posXY_rep = NULL;
+	static structGetSmpl *posXY_par = NULL;
+	static structPosU16  *posXY 	  = NULL;
+	static structRepPos  *posXY_rep = NULL;
+
 #endif
 
-
-static u8 correctAA45degLineH = 0;
-static u8 correctAA45degLineV = 0;
 
 uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
 uint16_t* GET_CIRCLE_correctPercDeg(int nr){	return &Circle.correctPercDeg[nr]; }
@@ -2940,11 +2942,35 @@ static int LCD_CIRCLE_GetRadiusFromPosXY(int x,int y, int x0,int y0){
 	return sqrt(ABS((x-x0)*(x-x0)) + ABS((y-y0)*(y-y0)));
 }
 
+static void GRAPH_ClearPosXYpar(void){
+	for(int i=0;i<1;i++){ posXY_par[i].startX=0; posXY_par[i].startY=0; posXY_par[i].yMin=0; posXY_par[i].yMax=0; posXY_par[i].nmbrPoints=0; posXY_par[i].precision=0; posXY_par[i].scaleX=0; posXY_par[i].scaleY=0; posXY_par[i].funcPatternType=0; posXY_par[i].len_posXY=0; posXY_par[i].len_posXYrep=0; }
+}
 static void GRAPH_ClearPosXY(void){
 	for(int i=0;i<GRAPH_MAX_SIZE_POSXY;i++){ posXY[i].x=0; posXY[i].y=0; }
 }
 static void GRAPH_ClearPosXYrep(void){
 	for(int i=0;i<GRAPH_MAX_SIZE_POSXY;i++){ posXY_rep[i].x=0; posXY_rep[i].y=0; 	posXY_rep[i].rx=0; posXY_rep[i].ry=0; }
+}
+
+static int GRAPH_SetPointers(int offsMem, int nrMem)
+{
+	#if defined(GRAPH_MEMORY_SDRAM2)
+		extern char* GETVAL_ptr(uint32_t nrVal);
+		extern uint32_t GETVAL_freeMemSize(uint32_t offs);
+
+		int size_param		= sizeof(structGetSmpl);
+		int size_posXY 	= 	 GRAPH_MAX_SIZE_POSXY*sizeof(structPosU16);
+		int size_posXYrep = 2*GRAPH_MAX_SIZE_POSXY*sizeof(structRepPos);				/* size of structRepPos is 2 times larger then size of structPosU16,   2 * size of structRepPos is for pixels correct for GRAPH_Display() */
+
+		int ptr2Mem = offsMem + (SIZE_ONE_CHART * nrMem);
+
+		if(GETVAL_freeMemSize(ptr2Mem) > size_param + size_posXY + size_posXYrep){
+			posXY_par = (structGetSmpl*) GETVAL_ptr (ptr2Mem);
+			posXY 	 = (structPosU16*)  GETVAL_ptr (ptr2Mem + size_param);
+			posXY_rep = (structRepPos*)  GETVAL_ptr (ptr2Mem + size_param + size_posXY); 	return 0; }
+		else return 1;
+	#endif
+	return 0;
 }
 
 static double GRAPHFUNC_UpDownUp(double posX){
@@ -5564,32 +5590,45 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
 }
 
 /* ---------------------------- GRAPH ------------------------- */
-int GRAPH_GetSamples(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, int *pLenPosXY)
+							/* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
+int GRAPH_GetSamples(int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType)
 {
-	#if defined(GRAPH_MEMORY_SDRAM2)
-		extern char* GETVAL_ptr(uint32_t nrVal);
-		extern uint32_t GETVAL_freeMemSize(uint32_t offs);
-		if(GETVAL_freeMemSize(nrMem) > GRAPH_MAX_SIZE_POSXY*(sizeof(structPosU16)+2*sizeof(structRepPos))){		/* size of structRepPos is 2 times larger then size of structPosU16,   2 * size of structRepPos is for correct for GRAPH_Display() */
-			posXY 	 = (structPosU16*)GETVAL_ptr(nrMem);
-			posXY_rep = (structRepPos*)GETVAL_ptr(nrMem + GRAPH_MAX_SIZE_POSXY*sizeof(structPosU16)); }
-		else return 0;
-	#endif
+	if(GRAPH_SetPointers(offsMem,nrMem)) return 0;
 
+	//GRAPH_ClearPosXYpar();
+	posXY_par[0].startX=0;
 	GRAPH_ClearPosXY();
 	GRAPH_ClearPosXYrep();
-	int len_posXY = GRAPH_GetFuncPosXY(startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType);		/* len_posXY >> len_posXYrep (many times larger, at least 2 times) */
-	int len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(len_posXY);
-	if(pLenPosXY!=NULL) *pLenPosXY=len_posXY;
-	return len_posXYrep;
+
+	posXY_par[0].len_posXY 	  = GRAPH_GetFuncPosXY(startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType);		/* len_posXY >> len_posXYrep (many times larger, at least 2 times) */
+	posXY_par[0].len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY_par[0].len_posXY);
+
+	posXY_par[0].startX=startX;
+	posXY_par[0].startY=startY;
+	posXY_par[0].yMin=yMin;
+	posXY_par[0].yMax=yMax;
+	posXY_par[0].nmbrPoints=nmbrPoints;
+	posXY_par[0].precision=precision;
+	posXY_par[0].scaleX=scaleX;
+	posXY_par[0].scaleY=scaleY;
+	posXY_par[0].funcPatternType=funcPatternType;
+
+	if(1 > posXY_par[0].len_posXYrep) return 1;
+	else										 return 0;
 }
 
-void GRAPH_Draw(int len_posXY,int len_posXYrep, int startX,int startY, int yMin,int yMax, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
-					DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA){
+					 /* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
+void GRAPH_Draw(int offsMem,int nrMem, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+					DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA)
+{
+	#if defined(GRAPH_MEMORY_SDRAM2)
+		if(GRAPH_SetPointers(offsMem,nrMem)) return;
+	#endif
 
-	if(0==len_posXYrep) return;
+	if(1 > posXY_par[0].len_posXYrep) return;
 
 	u32 bkColor = 0;
-	int transParamSize = 1+(yMax-yMin),  posX_prev=0,  distanceY,  n;
+	int transParamSize = 1 + (posXY_par[0].yMax - posXY_par[0].yMin),   posX_prev=0,   distanceY,   n;
 
 	struct COLOR_TRANS_PARAM{
 		u32 lineColor;
@@ -5598,7 +5637,7 @@ void GRAPH_Draw(int len_posXY,int len_posXYrep, int startX,int startY, int yMin,
 		u32 transColor;
 	}TransParam[transParamSize];
 
-
+	/* Draw gradient background for chart */
 	if((int)bkGradType > -1)
 	{
 		switch((int)bkGradType)
@@ -5624,7 +5663,7 @@ void GRAPH_Draw(int len_posXY,int len_posXYrep, int startX,int startY, int yMin,
 		}
 
 
-		LOOP_FOR(i,len_posXY)
+		LOOP_FOR(i,posXY_par[0].len_posXY)
 		{
 			if(posXY[i].x != posX_prev){
 				if(_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA)
@@ -5632,7 +5671,7 @@ void GRAPH_Draw(int len_posXY,int len_posXYrep, int startX,int startY, int yMin,
 
 					if(Grad_Ystrip == bkGradType){
 						if(gradStripY) distanceY = gradStripY;
-						else				distanceY = (startY+yMax)-(posXY[i].y+1);
+						else				distanceY = (posXY_par[0].startY + posXY_par[0].yMax)-(posXY[i].y+1);
 						LOOP_FOR(m, distanceY){
 							TransParam[m].lineColor	 = gradColor1;
 							TransParam[m].bkColor	 = CONDITION(0==colorIn, _PLCD(posXY[i].x,posXY[i].y+1+m), colorIn);
@@ -5640,7 +5679,7 @@ void GRAPH_Draw(int len_posXY,int len_posXYrep, int startX,int startY, int yMin,
 							TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff); }
 					}
 
-					LOOP_INIT(j, posXY[i].y+1, startY+yMax)
+					LOOP_INIT(j, posXY[i].y+1, posXY_par[0].startY + posXY_par[0].yMax)
 					{
 						switch((int)bkGradType)
 						{
@@ -5648,7 +5687,7 @@ void GRAPH_Draw(int len_posXY,int len_posXYrep, int startX,int startY, int yMin,
 							case Grad_Ycolor:
 								if(0==colorIn)	bkColor = _PLCD(posXY[i].x, j);
 								else				bkColor = colorIn;
-								n = j-(startY+yMin);
+								n = j-(posXY_par[0].startY + posXY_par[0].yMin);
 								if(TransParam[n].bkColor == bkColor)
 									_PLCD(posXY[i].x, j) = TransParam[n].transColor;
 								else{
@@ -5670,121 +5709,26 @@ void GRAPH_Draw(int len_posXY,int len_posXYrep, int startX,int startY, int yMin,
 		}
 	}
 
-
+	/* Draw lines of the chart */
 	if((int)dispOption==Disp_AA){
-					   GRAPH_Display(0,	    len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
-		if(offsK1){ GRAPH_Display(offsK1, len_posXYrep, color1,		colorOut,colorIn, outRatioStart,inRatioStart, 0); 		 }
-		if(offsK2){ GRAPH_Display(offsK2, len_posXYrep, color2,		colorOut,colorIn, 1.0,			   1.0,			 unUsed); }
+					   GRAPH_Display(0,	    posXY_par[0].len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
+		if(offsK1){ GRAPH_Display(offsK1, posXY_par[0].len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart, 0); 		 }
+		if(offsK2){ GRAPH_Display(offsK2, posXY_par[0].len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0,			  unUsed); }
 	}
 	else{
-		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, len_posXY,	   color1);
-		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, len_posXYrep, color2);
-		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
+		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, posXY_par[0].len_posXY,	 color1);
+		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_par[0].len_posXYrep, color2);
+		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 posXY_par[0].len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
 	}
 
 }
 
-									  /* 'nrMem' is used only for GRAPH_MEMORY_SDRAM2 */
-void GRAPH_GetSamplesAndDraw(int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+									  /* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
+void GRAPH_GetSamplesAndDraw(int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
 									DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA)
 {
-	int len_posXY = 0;
-	int len_posXYrep = GRAPH_GetSamples(nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType,&len_posXY);
-	if(0==len_posXYrep) return;
-
-	u32 bkColor = 0;
-	int transParamSize = 1+(yMax-yMin),  posX_prev=0,  distanceY,  n;
-
-	struct COLOR_TRANS_PARAM{
-		u32 lineColor;
-		u32 bkColor;
-		float coeff;
-		u32 transColor;
-	}TransParam[transParamSize];
-
-
-	if((int)bkGradType > -1)
-	{
-		switch((int)bkGradType)
-		{
-			case Grad_YmaxYmin:
-				LOOP_FOR(i,transParamSize){
-					TransParam[i].lineColor	 = gradColor1;
-					TransParam[i].bkColor	 = 0;
-					TransParam[i].coeff		 = (amplTrans * ((float)i)) / (float)transParamSize + offsTrans;
-					TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
-				break;
-
-			case Grad_Ystrip:
-				break;
-
-			case Grad_Ycolor:
-				LOOP_FOR(i,transParamSize){
-					TransParam[i].coeff		 = (amplTrans * ((float)i)) / (float)transParamSize + offsTrans;
-					TransParam[i].lineColor	 = GetTransitionColor(gradColor1, gradColor2, TransParam[i].coeff);
-					TransParam[i].bkColor	 = 0;
-					TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
-				break;
-		}
-
-
-		LOOP_FOR(i,len_posXY)
-		{
-			if(posXY[i].x != posX_prev){
-				if(_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA)
-				{
-
-					if(Grad_Ystrip == bkGradType){
-						if(gradStripY) distanceY = gradStripY;
-						else				distanceY = (startY+yMax)-(posXY[i].y+1);
-						LOOP_FOR(m, distanceY){
-							TransParam[m].lineColor	 = gradColor1;
-							TransParam[m].bkColor	 = CONDITION(0==colorIn, _PLCD(posXY[i].x,posXY[i].y+1+m), colorIn);
-							TransParam[m].coeff		 = (amplTrans * ((float)m)) / ((float)distanceY) + offsTrans;
-							TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff); }
-					}
-
-					LOOP_INIT(j, posXY[i].y+1, startY+yMax)
-					{
-						switch((int)bkGradType)
-						{
-							case Grad_YmaxYmin:
-							case Grad_Ycolor:
-								if(0==colorIn)	bkColor = _PLCD(posXY[i].x, j);
-								else				bkColor = colorIn;
-								n = j-(startY+yMin);
-								if(TransParam[n].bkColor == bkColor)
-									_PLCD(posXY[i].x, j) = TransParam[n].transColor;
-								else{
-									TransParam[n].bkColor 	 = bkColor;
-									TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
-									_PLCD(posXY[i].x, j) = TransParam[n].transColor;
-								}
-								break;
-
-							case Grad_Ystrip:
-								n = j - (posXY[i].y+1);
-								if(n < distanceY)
-									_PLCD(posXY[i].x, j) = TransParam[n].transColor;
-								break;
-					}}
-				}
-			}
-			posX_prev = posXY[i].x;
-		}
-	}
-
-
-	if((int)dispOption==Disp_AA){
-					   GRAPH_Display(0,	    len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
-		if(offsK1){ GRAPH_Display(offsK1, len_posXYrep, color1,		colorOut,colorIn, outRatioStart,inRatioStart, 0); 		 }
-		if(offsK2){ GRAPH_Display(offsK2, len_posXYrep, color2,		colorOut,colorIn, 1.0,			   1.0,			 unUsed); }
-	}
-	else{
-		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, len_posXY,	   color1);
-		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, len_posXYrep, color2);
-		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
-	}
+	if(GRAPH_GetSamples(offsMem,nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType)) return;
+	GRAPH_Draw(offsMem,nrMem, colorLineAA, colorOut, colorIn, outRatioStart, inRatioStart, dispOption, color1, color2, offsK1, offsK2, bkGradType, gradColor1, gradColor2, gradStripY, amplTrans, offsTrans, corr45degAA);
 }
 
 
