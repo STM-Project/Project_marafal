@@ -5624,7 +5624,7 @@ void GRAPH_Draw(int offsMem,int nrMem, u32 colorLineAA, u32 colorOut, u32 colorI
 		if(GRAPH_SetPointers(offsMem,nrMem)) return;
 	#endif
 
-	if(1 > posXY_par[0].len_posXYrep) return;  //IS_RANGE(0, MAX_SIZE....) !!!!!
+	if(!IS_RANGE(posXY_par[0].len_posXYrep,1,GRAPH_MAX_SIZE_POSXY)) return;
 
 	u32 bkColor = 0;
 	int transParamSize = 1 + (posXY_par[0].yMax - posXY_par[0].yMin),   posX_prev=0,   distanceY,   n;
@@ -5664,10 +5664,8 @@ void GRAPH_Draw(int offsMem,int nrMem, u32 colorLineAA, u32 colorOut, u32 colorI
 
 		LOOP_FOR(i,posXY_par[0].len_posXY)
 		{
-			if(posXY[i].x != posX_prev){
-				if(_PLCD(posXY[i].x, posXY[i].y+1) != colorLineAA)
-				{
-
+			if(posXY[i].x != posX_prev)
+			{
 					if(Grad_Ystrip == bkGradType){
 						if(gradStripY) distanceY = gradStripY;
 						else				distanceY = (posXY_par[0].startY + posXY_par[0].yMax)-(posXY[i].y+1);
@@ -5702,7 +5700,6 @@ void GRAPH_Draw(int offsMem,int nrMem, u32 colorLineAA, u32 colorOut, u32 colorI
 									_PLCD(posXY[i].x, j) = TransParam[n].transColor;
 								break;
 					}}
-				}
 			}
 			posX_prev = posXY[i].x;
 		}
