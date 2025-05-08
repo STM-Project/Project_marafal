@@ -242,14 +242,14 @@ void DBGEXAMPLE_Graph(void)
 void LCDEXAMPLE_Graph(u32 COLOR_BkScreen)
 {
 	/* GRAPH - various options */
-	int nrMem = 0;
-	u32 colorLine 		= WHITE;
-
-	u32 colorPosXY 	= RED;			int offsK_PosXY 	 = 20*LCD_X+0;
-	u32 colorPosXYrep = DARKGREEN;	int offsK_PosXYrep = 40*LCD_X+0;
-
-	u32 colorLine45degCorrectOFF = RED;			 int offsK_45degCorrectOFF = 20*LCD_X+0;
-	u32 colorLineAAoff 			  = DARKGREEN;	 int offsK_AAoff 			   = 40*LCD_X+0;
+//	int nrMem = 0;
+//	u32 colorLine 		= WHITE;
+//
+//	u32 colorPosXY 	= RED;			int offsK_PosXY 	 = 20*LCD_X+0;
+//	u32 colorPosXYrep = DARKGREEN;	int offsK_PosXYrep = 40*LCD_X+0;
+//
+//	u32 colorLine45degCorrectOFF = RED;			 int offsK_45degCorrectOFF = 20*LCD_X+0;
+//	u32 colorLineAAoff 			  = DARKGREEN;	 int offsK_AAoff 			   = 40*LCD_X+0;
 
 //	GRAPH_GetSamplesAndDraw(nrMem, XYPOS_YMIN_YMAX(10,320, -150,150), POINTS_STEP_XYSCALE(780,1.0, 1.0,50.0), FUNC_TYPE(5), LINE_COLOR(colorLine,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,   colorLine45degCorrectOFF, colorLineAAoff,   offsK_45degCorrectOFF, offsK_AAoff) );
 //
