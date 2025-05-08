@@ -33,8 +33,9 @@
 #define _IS_NOT_PXL(i,color1,color2,color3,color4)		(pLcd[i]!=color1 && pLcd[i]!=color2 && pLcd[i]!=color3 && pLcd[i]!=color4)
 #define _IS_NEXT_PXL(bkX,i,color)	(pLcd[(i)+1]==color || pLcd[(i)-1]==color || pLcd[(i)+bkX]==color || pLcd[(i)-bkX]==color || pLcd[(i)+bkX+1]==color || pLcd[(i)+bkX-1]==color || pLcd[(i)-bkX+1]==color || pLcd[(i)-bkX-1]==color)
 
-#define _PLCD(x,y)	 pLcd[LCD_X*(y)+(x)]
-#define _K(x,y)	 			LCD_X*(y)+(x)
+#define _PLCD_SET_WIDTH(w)			  widthBk=w
+#define _PLCD(x,y)	 			pLcd[widthBk*(y)+(x)]
+#define _K(x,y)	 					  widthBk*(y)+(x)
 
 typedef enum{
 	RightUpDir1,
@@ -57,6 +58,7 @@ typedef enum{
 
 ALIGN_32BYTES(uint32_t pLcd[LCD_BUFF_XSIZE*LCD_BUFF_YSIZE] __attribute__ ((section(".sdram"))));
 
+static uint16_t widthBk=0;
 static uint32_t k, kCopy;
 static uint32_t buff_AA[MAX_SIZE_TAB_AA];
 static uint32_t buff2_AA[MAX_SIZE_TAB_AA];
@@ -90,6 +92,8 @@ typedef struct
 static AACoeff_RoundFrameRectangle AA;
 static uint8_t correctLine_AA=0;
 static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .errorDecision= {0.1, 0.4}};
+
+USER_GRAPH_PARAM USER_GRAPH_PARAM_Zero = {0};
 
 
 #if defined(GRAPH_MEMORY_RAM)
@@ -3047,6 +3051,10 @@ static double GRAPHFUNC_Example3(double posX){
 	else if(posX>353)  return 41;
 	return 0;
 }
+static double GRAPHFUNC_Owner(double posX){
+	/* return bufferY[posX]; */
+	return 0;
+}
 
 static double GRAPHFUNC_Noise(void){
 	static uint32_t aRandom32bit=0;
@@ -3089,6 +3097,8 @@ static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
 		case Func_lines4:  return GRAPHFUNC_Example1(posX);
 		case Func_lines5:  return GRAPHFUNC_Example2(posX);
 		case Func_lines6:  return GRAPHFUNC_Example3(posX);
+
+		case Func_owner:	return GRAPHFUNC_Owner(posX);
 
 		default:
 			return 0;
@@ -3154,9 +3164,9 @@ static int GRAPH_GetFuncPosXY(int startX,int startY, int yMin,int yMax, int nmbr
 	return n;
 }
 
-static void GRAPH_DispPosXY(int offs_k, int numberOfPoints, u32 color){
+static void GRAPH_DispPosXY(int offs_k, int widthBk, int numberOfPoints, u32 color){
 	LOOP_FOR(i,numberOfPoints){
-		pLcd[offs_k + posXY[i].y * LCD_X + posXY[i].x] = color;
+		pLcd[offs_k + posXY[i].y * widthBk + posXY[i].x] = color;
 }}
 
 static int GRAPH_RepetitionRedundancyOfPosXY(int nmbrPoints)
@@ -3298,28 +3308,28 @@ static int GRAPH_RepetitionRedundancyOfPosXY(int nmbrPoints)
 	return j;
 }
 
-static void GRAPH_DispPosXYrep(int offs_k, int lenStruct, u32 color){
+static void GRAPH_DispPosXYrep(int offs_k, int widthBk, int lenStruct, u32 color){
 	LOOP_FOR(a,lenStruct){
 		if(posXY_rep[a].ry!=0){
 			LOOP_FOR(b,ABS(posXY_rep[a].ry)){
-				if(posXY_rep[a].ry > 0)	 pLcd[offs_k + posXY_rep[a].y*LCD_X + posXY_rep[a].x + b]=color;
-				else							 pLcd[offs_k + posXY_rep[a].y*LCD_X + posXY_rep[a].x - b]=color;
+				if(posXY_rep[a].ry > 0)	 pLcd[offs_k + posXY_rep[a].y*widthBk + posXY_rep[a].x + b]=color;
+				else							 pLcd[offs_k + posXY_rep[a].y*widthBk + posXY_rep[a].x - b]=color;
 		}}
 		else if(posXY_rep[a].rx!=0){
 			LOOP_FOR(b,ABS(posXY_rep[a].rx)){
-				if(posXY_rep[a].rx > 0)	 pLcd[offs_k + (posXY_rep[a].y+b)*LCD_X + posXY_rep[a].x]=color;
-				else							 pLcd[offs_k + (posXY_rep[a].y-b)*LCD_X + posXY_rep[a].x]=color;
+				if(posXY_rep[a].rx > 0)	 pLcd[offs_k + (posXY_rep[a].y+b)*widthBk + posXY_rep[a].x]=color;
+				else							 pLcd[offs_k + (posXY_rep[a].y-b)*widthBk + posXY_rep[a].x]=color;
 		}}
 		else{
 			if(posXY_rep[a].ry==0 && posXY_rep[a].rx==0){
-				pLcd[offs_k + posXY_rep[a].y*LCD_X + posXY_rep[a].x]=color;
+				pLcd[offs_k + posXY_rep[a].y*widthBk + posXY_rep[a].x]=color;
 		}}
 }}
 
-static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, int corr45degAA)
+static void GRAPH_Display(int offs_k, int widthBk, int lenStruct, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, int corr45degAA)
 {
 	#define NONE_FUNC_TYPE	100
-	#define MAX_SIZE_BUFF	LCD_X
+	#define MAX_SIZE_BUFF	widthBk
 
 	#define IS_RightDownDir0		(pos[i].x+ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y+1==pos[i+1].y)
 	#define IS_RightUpDir0			(pos[i].x+ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y-1==pos[i+1].y)
@@ -3346,16 +3356,16 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		if(lastSample){
 			if(lastSample%2==0){
 				buff[1+buff[0]++]=lastSample/2;
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*(lastSample/2), widthBk, pos[i].x, pos[i].y); }
 			}
 			else{
 				buff[1+buff[0]++]=lastSample/2+1;
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*(lastSample/2), widthBk, pos[i].x, pos[i].y); }
 			}
 		}
 		else{
 			buff[1+buff[0]++]=ABS(pos[i].ry);
-			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y); }
+			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, widthBk,pos[i].x,pos[i].y); }
 		}
 		lastSample=0;
 	}
@@ -3364,16 +3374,16 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		if(lastSample){
 			if(lastSample%2==0){
 				buff[1+buff[0]++]=lastSample/2;
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*LCD_X*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*widthBk*(lastSample/2), widthBk, pos[i].x, pos[i].y); }
 			}
 			else{
 				buff[1+buff[0]++]=lastSample/2+1;
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*LCD_X*(lastSample/2), LCD_X, pos[i].x, pos[i].y); }
+				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*widthBk*(lastSample/2), widthBk, pos[i].x, pos[i].y); }
 			}
 		}
 		else{
 			buff[1+buff[0]++]=ABS(pos[i].rx);
-			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y); }
+			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, widthBk,pos[i].x,pos[i].y); }
 		}
 		lastSample=0;
 	}
@@ -3417,7 +3427,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 				else
 					buff[1+buff[0]++]=ABS(pos[i].ry);
 
-				_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegTo45, buff,corr45degAA);
+				_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegTo45, buff,corr45degAA);
 				functionType=NONE_FUNC_TYPE;
 				buff[0]=0;
 				goto TempEnd_Display;
@@ -3437,7 +3447,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 				else
 					buff[1+buff[0]++]=ABS(pos[i].ry);
 
-				_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegTo45, buff,corr45degAA);
+				_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegTo45, buff,corr45degAA);
 				functionType=NONE_FUNC_TYPE;
 				buff[0]=0;
 				goto TempEnd_Display;
@@ -3457,7 +3467,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 				else
 					buff[1+buff[0]++]=ABS(pos[i].rx);
 
-				_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegAbove45, buff,corr45degAA);
+				_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
 				functionType=NONE_FUNC_TYPE;
 				buff[0]=0;
 				goto TempEnd_Display;
@@ -3477,7 +3487,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 				else
 					buff[1+buff[0]++]=ABS(pos[i].rx);
 
-				_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegAbove45, buff,corr45degAA);
+				_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
 				functionType=NONE_FUNC_TYPE;
 				buff[0]=0;
 				goto TempEnd_Display;
@@ -3497,7 +3507,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 				else
 					buff[1+buff[0]++]=ABS(pos[i].ry);
 
-				_DrawArrayBuffLeftDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegTo45, buff);
+				_DrawArrayBuffLeftDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegTo45, buff);
 				functionType=NONE_FUNC_TYPE;
 				buff[0]=0;
 				goto TempEnd_Display;
@@ -3517,7 +3527,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 				else
 					buff[1+buff[0]++]=ABS(pos[i].ry);
 
-				_DrawArrayBuffLeftUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegTo45, buff);
+				_DrawArrayBuffLeftUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegTo45, buff);
 				functionType=NONE_FUNC_TYPE;
 				buff[0]=0;
 				goto TempEnd_Display;
@@ -3537,7 +3547,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 				else
 					buff[1+buff[0]++]=ABS(pos[i].rx);
 
-				_DrawArrayBuffLeftDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegAbove45, buff);
+				_DrawArrayBuffLeftDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff);
 				functionType=NONE_FUNC_TYPE;
 				buff[0]=0;
 				goto TempEnd_Display;
@@ -3557,7 +3567,7 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 				else
 					buff[1+buff[0]++]=ABS(pos[i].rx);
 
-				_DrawArrayBuffLeftUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegAbove45, buff);
+				_DrawArrayBuffLeftUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff);
 				functionType=NONE_FUNC_TYPE;
 				buff[0]=0;
 				goto TempEnd_Display;
@@ -3568,8 +3578,8 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		if(IS_RightUpDownDir1_ver2 && (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1))
 		{
 			buff[0]=0;    buff[1+buff[0]++]=ABS(pos[i].rx);
-			_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
-			_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegAbove45, buff,corr45degAA);
+			_StartDrawLine(offs_k, widthBk,pos[i].x,pos[i].y);
+			_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
 			functionType = NONE_FUNC_TYPE;
 			buff[0]=0;
 		}
@@ -3577,8 +3587,8 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		if(IS_RightDownUpDir1_ver2 && (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1))
 		{
 			buff[0]=0;    buff[1+buff[0]++]=ABS(pos[i].rx);
-			_StartDrawLine(offs_k, LCD_X,pos[i].x,pos[i].y);
-			_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegAbove45, buff,corr45degAA);
+			_StartDrawLine(offs_k, widthBk,pos[i].x,pos[i].y);
+			_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
 			functionType = NONE_FUNC_TYPE;
 			buff[0]=0;
 		}
@@ -3590,10 +3600,10 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		}
 		else if(functionType == RightUpDownDir1)
 		{
-			_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegAbove45, buff,corr45degAA);
+			_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
 			buff[0]=0;  buff[1+buff[0]++]=ABS(pos[i].rx);
-			_StartDrawLine(offs_k, LCD_X, pos[i].x, pos[i].y);
-			_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegAbove45, buff,corr45degAA);
+			_StartDrawLine(offs_k, widthBk, pos[i].x, pos[i].y);
+			_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
 			functionType=NONE_FUNC_TYPE;
 			buff[0]=0;
 			goto TempEnd_Display;
@@ -3606,10 +3616,10 @@ static void GRAPH_Display(int offs_k, int lenStruct, u32 color, u32 colorOut, u3
 		}
 		else if(functionType == RightDownUpDir1)
 		{
-			_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegAbove45, buff,corr45degAA);
+			_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
 			buff[0]=0;  buff[1+buff[0]++]=ABS(pos[i].rx);
-			_StartDrawLine(offs_k, LCD_X, pos[i].x, pos[i].y);
-			_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, LCD_X, DegAbove45, buff,corr45degAA);
+			_StartDrawLine(offs_k, widthBk, pos[i].x, pos[i].y);
+			_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
 			functionType=NONE_FUNC_TYPE;
 			buff[0]=0;
 			goto TempEnd_Display;
@@ -5602,22 +5612,14 @@ int GRAPH_GetSamples(int offsMem,int nrMem, int startX,int startY, int yMin,int 
 	posXY_par[0].len_posXY 	  = GRAPH_GetFuncPosXY(startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType);		/* len_posXY >> len_posXYrep (many times larger, at least 2 times) */
 	posXY_par[0].len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY_par[0].len_posXY);
 
-	posXY_par[0].startX=startX;
-	posXY_par[0].startY=startY;
-	posXY_par[0].yMin=yMin;
-	posXY_par[0].yMax=yMax;
-	posXY_par[0].nmbrPoints=nmbrPoints;
-	posXY_par[0].precision=(u32)precision;
-	posXY_par[0].scaleX=(u32)scaleX;
-	posXY_par[0].scaleY=(u32)scaleY;
-	posXY_par[0].funcPatternType=funcPatternType;
+	posXY_par[0].startX=startX;	posXY_par[0].startY=startY;	posXY_par[0].yMin=yMin;		posXY_par[0].yMax=yMax;		posXY_par[0].nmbrPoints=nmbrPoints;	  posXY_par[0].precision=DOUBLE_TO_U64(precision);	  posXY_par[0].scaleX=DOUBLE_TO_U64(scaleX);	 posXY_par[0].scaleY=DOUBLE_TO_U64(scaleY);	 posXY_par[0].funcPatternType=funcPatternType;
 
 	if(1 > posXY_par[0].len_posXYrep) return 1;
 	else										 return 0;
 }
 
 					 /* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
-void GRAPH_Draw(int offsMem,int nrMem, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
 					DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA)
 {
 	#if defined(GRAPH_MEMORY_SDRAM2)
@@ -5635,6 +5637,8 @@ void GRAPH_Draw(int offsMem,int nrMem, u32 colorLineAA, u32 colorOut, u32 colorI
 		float coeff;
 		u32 transColor;
 	}TransParam[transParamSize];
+
+	_PLCD_SET_WIDTH(widthBk);
 
 	/* Draw gradient background for chart */
 	if((int)bkGradType > -1)
@@ -5707,25 +5711,81 @@ void GRAPH_Draw(int offsMem,int nrMem, u32 colorLineAA, u32 colorOut, u32 colorI
 
 	/* Draw lines of the chart */
 	if((int)dispOption==Disp_AA){
-					   GRAPH_Display(0,	    posXY_par[0].len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
-		if(offsK1){ GRAPH_Display(offsK1, posXY_par[0].len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart, 0); 		 }
-		if(offsK2){ GRAPH_Display(offsK2, posXY_par[0].len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0,			  unUsed); }
+					   GRAPH_Display(0,	    widthBk, posXY_par[0].len_posXYrep, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
+		if(offsK1){ GRAPH_Display(offsK1, widthBk, posXY_par[0].len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart, 0); 		 }
+		if(offsK2){ GRAPH_Display(offsK2, widthBk, posXY_par[0].len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0,			  unUsed); }
 	}
 	else{
-		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, posXY_par[0].len_posXY,	 color1);
-		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, posXY_par[0].len_posXYrep, color2);
-		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 posXY_par[0].len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
+		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (offsK1, widthBk, posXY_par[0].len_posXY,	 color1);
+		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(offsK2, widthBk, posXY_par[0].len_posXYrep, color2);
+		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (0,		 widthBk, posXY_par[0].len_posXYrep, colorLineAA,	colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
 	}
 
 }
 
 									  /* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
-void GRAPH_GetSamplesAndDraw(int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+void GRAPH_GetSamplesAndDraw(int posBuff, int offsMem,int nrMem, u32 widthBk, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
 									DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA)
 {
 	if(GRAPH_GetSamples(offsMem,nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType)) return;
-	GRAPH_Draw(offsMem,nrMem, colorLineAA, colorOut, colorIn, outRatioStart, inRatioStart, dispOption, color1, color2, offsK1, offsK2, bkGradType, gradColor1, gradColor2, gradStripY, amplTrans, offsTrans, corr45degAA);
+	GRAPH_Draw(posBuff, offsMem,nrMem, widthBk, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, dispOption,color1,color2,offsK1,offsK2, bkGradType,gradColor1,gradColor2,gradStripY,amplTrans,offsTrans, corr45degAA);
 }
+
+//typedef struct{
+//	int startX; int startY; int yMin; int yMax; int nmbrPoints; u64 precision; u64 scaleX; u64 scaleY; int funcPatternType;
+//	int len_posXY;  int len_posXYrep;
+//}structGetSmpl;
+
+/* ---------------------------- CHART ------------------------- */
+													 /* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
+USER_GRAPH_PARAM LCD_Chart(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA){
+	#if defined(GRAPH_MEMORY_SDRAM2)
+		if(GRAPH_SetPointers(offsMem,nrMem)) return USER_GRAPH_PARAM_Zero;
+	#endif
+	USER_GRAPH_PARAM params = {.offsMem=offsMem, .nrMem=nrMem, .widthBk=widthBk, .lineColor=colorLineAA, .AAoutColor=colorOut, .AAinColor=colorIn, .AAoutCoeff=outRatioStart, .AAinCoeff=inRatioStart, .dispOpt=dispOption, .colorLinePosXY=color1, .colorLinePosXYrep=color2, .KoffsPosXY=offsK1, .KoffsPosXYrep=offsK2, .grad.bkType=bkGradType, .grad.fromColor=gradColor1, .grad.toColor=gradColor2, .grad.stripY=gradStripY, .grad.amplTrans=amplTrans, .grad.offsTrans=offsTrans };
+
+	params.par.startX				= posXY_par[0].startX;  // to moze do func!!!!!! nie wiem?!!
+	params.par.startY				= posXY_par[0].startY;
+	params.par.yMin				= posXY_par[0].yMin;
+	params.par.yMax				= posXY_par[0].yMax,
+	params.par.nmbrPoints		= posXY_par[0].nmbrPoints;
+	params.par.precision			= posXY_par[0].precision;
+	params.par.scaleX				= posXY_par[0].scaleX;
+	params.par.scaleY				= posXY_par[0].scaleY;
+	params.par.funcPatternType	= posXY_par[0].funcPatternType;
+	params.par.len_posXY			= posXY_par[0].len_posXY;
+	params.par.len_posXYrep		= posXY_par[0].len_posXYrep;
+
+	if(ToStructAndReturn == posBuff)
+		return params;
+	GRAPH_Draw(posBuff, offsMem,nrMem, widthBk, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, dispOption,color1,color2,offsK1,offsK2, bkGradType,gradColor1,gradColor2,gradStripY,amplTrans,offsTrans, corr45degAA);
+	return params;
+}
+void LCD_Chart_Indirect(int offsMem,int nrMem, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA, u32 bkColor){
+	#if defined(GRAPH_MEMORY_SDRAM2)
+		if(GRAPH_SetPointers(offsMem,nrMem)) return;
+	#endif
+	u16 interSpace = 8;
+	int x	= posXY_par[0].startX - interSpace;
+	int y = (posXY_par[0].startY + posXY_par[0].yMin) - interSpace;
+	int width = interSpace + posXY_par[0].nmbrPoints + interSpace;
+	int height = interSpace + (posXY_par[0].yMax - posXY_par[0].yMin) + interSpace;
+	if(bkColor) LCD_ShapeWindow(LCD_Rectangle, 0, width,height, 0,0, width,height, bkColor,bkColor,bkColor);
+	GRAPH_Draw(0, offsMem,nrMem, posXY_par[0].nmbrPoints, colorLineAA, colorOut, colorIn, outRatioStart, inRatioStart, dispOption, color1, color2, offsK1, offsK2, bkGradType, gradColor1, gradColor2, gradStripY, amplTrans, offsTrans, corr45degAA);
+	LCD_Display(0, x,y, width,height);
+}
+USER_GRAPH_PARAM LCDSHAPE_Chart(uint32_t posBuff, USER_GRAPH_PARAM param){
+	return LCD_Chart(posBuff, param.offsMem, param.nrMem, param.widthBk, param.lineColor, param.AAoutColor, param.AAinColor, param.AAoutCoeff, param.AAinCoeff, param.dispOpt, param.colorLinePosXY, param.colorLinePosXYrep, param.KoffsPosXY, param.KoffsPosXYrep, param.grad.bkType, param.grad.fromColor, param.grad.toColor, param.grad.stripY, param.grad.amplTrans, param.grad.offsTrans, param.corr45degAA);
+}
+void LCDSHAPE_Chart_Indirect(USER_GRAPH_PARAM param){
+	LCD_Chart_Indirect(param.offsMem, param.nrMem, param.lineColor, param.AAoutColor, param.AAinColor, param.AAoutCoeff, param.AAinCoeff, param.dispOpt, param.colorLinePosXY, param.colorLinePosXYrep, param.KoffsPosXY, param.KoffsPosXYrep, param.grad.bkType, param.grad.fromColor, param.grad.toColor, param.grad.stripY, param.grad.amplTrans, param.grad.offsTrans, param.corr45degAA, param.bkColor);
+}
+
+
+
+
+
+
 
 
 
