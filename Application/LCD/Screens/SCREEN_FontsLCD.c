@@ -1773,7 +1773,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 	return NULL;
 }
 
-static USER_GRAPH_PARAM testGraph = {.scaleX=1.0, .scaleY=46.0, .funcType=Func_sin, .grad.bkType=Grad_Ystrip, .corr45degAA=1};
+static USER_GRAPH_PARAM testGraph = {.par.scaleX=1.0, .par.scaleY=46.0, .funcType=Func_sin, .grad.bkType=Grad_Ystrip, .corr45degAA=1};
 
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
@@ -1794,8 +1794,8 @@ void FILE_NAME(debugRcvStr)(void)
 
 
 	/* ----- Debug Test GRAPH ----- */
-	_DBG3_PARAM_NOWRAP("a","A","z","Z",&testGraph.scaleX,_double,_Double(0.1),_Double(1.5),_Double(20.0),_Double(1.0),"Test Graph scaleX: ",MainFuncRefresh)
-	_DBG3_PARAM_NOWRAP("s","S","x","X",&testGraph.scaleY,_double,_Double(1.0),_Double(10.0),_Double(100.0),_Double( 1.0),"Test Graph scaleY: ",MainFuncRefresh)
+	_DBG3_PARAM_NOWRAP("a","A","z","Z",&testGraph.par.scaleX,_double,_Double(0.1),_Double( 1.5),_Double( 20.0),_Double(1.0),"Test Graph scaleX: ",MainFuncRefresh) ///!!!!!!!!scaleX to u64 rzutuj do double !!!!!!
+	_DBG3_PARAM_NOWRAP("s","S","x","X",&testGraph.par.scaleY,_double,_Double(1.0),_Double(10.0),_Double(100.0),_Double(1.0),"Test Graph scaleY: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("d",&testGraph.funcType,_uint8,_Incr,_Uint8(1),_Uint8(Func_lines6),"Test Graph funcType: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("c",&testGraph.funcType,_uint8,_Decr,_Uint8(1),_Uint8(Func_sin),	 "Test Graph funcType: ",MainFuncRefresh)
@@ -2318,39 +2318,52 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
-double ffff = 123456789.0987654321;
-u64 gggg = *((u64*)(&ffff));
 
-double ssss = *((double*)(&gggg));
 	StartMeasureTime_us();
 
 
-	// UWAGA !! lineColor musi byc inny niz w tle np dac 0xFFFFFFFE zamista WHITE !!!!!!!!!!!!!
+//-----CHART  opt 1 --------
 
 	if(testGraph.grad.bkType == 0){
-		GRAPH_GetSamplesAndDraw(0,0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 70*LCD_X-0, 140*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.2),testGraph.corr45degAA );
-		//GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,340, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType/*testGraph.funcType*/), LINE_COLOR(BrightDecr(WHITE,0x01),0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(MYGREEN), GRAD_COEFF(1.0,0.2),testGraph.corrAA45deg );
+		GRAPH_GetSamplesAndDraw(0, 0,0,LCD_X, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 70*LCD_X-0, 140*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.2),testGraph.corr45degAA );
+		//GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,340, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType/*testGraph.funcType*/), LINE_COLOR(BrightDecr(WHITE,0x01),0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(MYGREEN), GRAD_COEFF(1.0,0.2),testGraph.corrAA45deg );
 	}
 	else if(testGraph.grad.bkType == 1){
-		GRAPH_GetSamplesAndDraw(0,0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 140*LCD_X-0), GRAD_Ystrip(GREEN,51),GRAD_COEFF(1.0,0.2),testGraph.corr45degAA );
-		//GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,340, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType/*testGraph.funcType*/), LINE_COLOR(BrightDecr(WHITE,0x01),0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), GRAD_Ystrip(MYGREEN,51),GRAD_COEFF(1.0,0.2),testGraph.corrAA45deg );
+		GRAPH_GetSamplesAndDraw(0, 0,0,LCD_X, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 140*LCD_X-0), GRAD_Ystrip(GREEN,51),GRAD_COEFF(1.0,0.2),testGraph.corr45degAA );
+		//GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,340, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType/*testGraph.funcType*/), LINE_COLOR(BrightDecr(WHITE,0x01),0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), GRAD_Ystrip(MYGREEN,51),GRAD_COEFF(1.0,0.2),testGraph.corrAA45deg );
 
 	}
 	else if(testGraph.grad.bkType == 2){
-		GRAPH_GetSamplesAndDraw(0,0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY/*|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 0*LCD_X-0), GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.2),testGraph.corr45degAA );
-		//GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,340, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(testGraph.funcType/*testGraph.funcType*/), LINE_COLOR(BrightDecr(WHITE,0x01),0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.2),testGraph.corrAA45deg );
+		GRAPH_GetSamplesAndDraw(0, 0,0,LCD_X, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY/*|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 0*LCD_X-0), GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.2),testGraph.corr45degAA );
+		//GRAPH_GetSamplesAndDraw(0, XYPOS_YMIN_YMAX(50,340, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType/*testGraph.funcType*/), LINE_COLOR(BrightDecr(WHITE,0x01),0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.2),testGraph.corrAA45deg );
 
 	}
 
-//To pozniej sprawdz !!!
-//	GRAPH_GetSamples(2000000,0, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(200,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(Func_sin));
-//	GRAPH_GetSamples(4000000,1, XYPOS_YMIN_YMAX(300,250, -170,170), POINTS_STEP_XYSCALE(200,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(Func_sin1));
-//	GRAPH_GetSamples(5500000,2, XYPOS_YMIN_YMAX(550,250, -170,170), POINTS_STEP_XYSCALE(200,1.0, testGraph.scaleX,testGraph.scaleY), FUNC_TYPE(Func_noise));
-//
-//	GRAPH_Draw(5500000,0, LINE_COLOR(BrightDecr(WHITE,0x01),0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.2),testGraph.corr45degAA );
-//	GRAPH_Draw(4000000,1, LINE_COLOR(BrightDecr(WHITE,0x01),0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.2),testGraph.corr45degAA );
-//	GRAPH_Draw(2000000,2, LINE_COLOR(BrightDecr(WHITE,0x01),0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.2),testGraph.corr45degAA );
-//
+
+//-----CHART  common --------
+	GRAPH_GetSamples(2000000,0, XYPOS_YMIN_YMAX( 50,250, -170,170), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
+	GRAPH_GetSamples(4000000,1, XYPOS_YMIN_YMAX(300,250, -170,170), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin1));
+	GRAPH_GetSamples(5500000,2, XYPOS_YMIN_YMAX(550,250, -170,170), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_noise));
+
+	USER_GRAPH_PARAM par1, par2;
+	par1 = LCD_Chart(ToStructAndReturn, 2000000,0,LCD_X, LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA );
+	par2 = LCD_Chart(ToStructAndReturn, 5500000,2,LCD_X, LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA );
+
+//-----CHART  opt 1 --------
+	LCD_Chart(0, 5500000,2,LCD_X, LINE_COLOR(BrightDecr(WHITE,0x01),0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA );
+	LCD_Chart(0, 4000000,1,LCD_X, LINE_COLOR(BrightDecr(WHITE,0x01),0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA );
+	LCD_Chart(0, 2000000,0,LCD_X, LINE_COLOR(BrightDecr(WHITE,0x01),0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA );
+
+//-----CHART  opt 2 --------
+	LCDSHAPE_Chart(0,par1);
+
+//-----CHART  opt 3 --------
+	LCDSHAPE_Chart_Indirect(par2);
+
+
+
+
+
 
 
 
