@@ -500,8 +500,10 @@ SZARPANIE OBRAZY:
 - w funkcji internal implementowanej w funkcji nie stosuj semaforów !!
 - w argumentach funkcji jak jest mozliwosc stosuj #define a nie funkcje lub jako lokalne funkcje
 
-//#####################################################################
-
+//##################### ---  Float to u32  and vice versa #######################################
+double ffff = 123456789.0987654321;
+u64 gggg = *((u64*)(&ffff));
+double ssss = *((double*)(&gggg));
 
 //#####################################################################################################################################################
 
