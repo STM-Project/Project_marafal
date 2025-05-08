@@ -88,6 +88,7 @@ typedef enum{
 	Func_lines4,
 	Func_lines5,
 	Func_lines6,
+	Func_owner,
 }GRAPH_FUNC;
 
 typedef enum{
@@ -137,7 +138,7 @@ typedef struct{
 }structRepPos;
 
 typedef struct{
-	int startX; int startY; int yMin; int yMax; int nmbrPoints; u32 precision; u32 scaleX; u32 scaleY; int funcPatternType;
+	int startX; int startY; int yMin; int yMax; int nmbrPoints; u64 precision; u64 scaleX; u64 scaleY; int funcPatternType;
 	int len_posXY;  int len_posXYrep;
 }structGetSmpl;
 
@@ -151,14 +152,11 @@ typedef struct{
 }structGradParam;
 
 typedef struct{
-	structPosition staPos;
-	u16 minY;
-	u16 maxY;
-	u16 nmbrPoints;
-	double scaleX;
-	double scaleY;
-	double step;
+	u32 offsMem; u32 nrMem;		/* only for GRAPH_MEMORY_SDRAM2 */
+	structGetSmpl par;
+	u32 widthBk;
 	u8 funcType;
+	u32 bkColor;
 	u32 lineColor;
 	u32 AAoutColor;
 	u32 AAinColor;
@@ -172,6 +170,8 @@ typedef struct{
 	u8 corr45degAA;
 	structGradParam grad;
 }USER_GRAPH_PARAM;
+
+extern USER_GRAPH_PARAM USER_GRAPH_PARAM_Zero;
 
 extern uint32_t LCD_GetXSize(void);
 extern uint32_t LCD_GetYSize(void);
@@ -254,15 +254,16 @@ void LCD_HalfCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32
 SHAPE_PARAMS LCDSHAPE_Create(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor,u32 selFillColorFrom,u32 selFillColor,u32 selFillColorTo,u16 degree,DIRECTIONS fillDir, u32 outColorRead);
 
 /* ------- Selected Figures ------------------*/
-void LCD_SignStar(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
-void LCD_SimpleTriangle(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t y, uint32_t halfWidth,uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, DIRECTIONS direct);
-structPosition LCD_ShapeExample(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t y, uint32_t lineLen, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int angleInclination);
-SHAPE_PARAMS LCD_Arrow(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor, DIRECTIONS direct);
-SHAPE_PARAMS LCD_Enter(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor);
-SHAPE_PARAMS LCD_Exit(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor);
-SHAPE_PARAMS LCD_KeyBackspace(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
-SHAPE_PARAMS LCD_GradientCircleButton(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColor,u32 FillColorGradStart,u32 FillColorGradStop,u32 BkpColor,u32 outColorRead);
-SHAPE_PARAMS LCD_GradientCircleSlider(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorSlid,u32 FillColorSlid,u32 GradColorStartSlid,u32 GradColorSlid,u32 GradColorStopSlid,u32 FrameColorButt,u32 FillColorStartButt,u32 FillColorStopButt,u32 BkpColor,u16 degree,DIRECTIONS fillDirSlid,u32 outColorRead);
+void 					LCD_SignStar					(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
+void 					LCD_SimpleTriangle			(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t y, uint32_t halfWidth,uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, DIRECTIONS direct);
+structPosition 	LCD_ShapeExample				(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t y, uint32_t lineLen, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int angleInclination);
+SHAPE_PARAMS 		LCD_Arrow						(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor, DIRECTIONS direct);
+SHAPE_PARAMS 		LCD_Enter						(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor);
+SHAPE_PARAMS 		LCD_Exit							(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor);
+SHAPE_PARAMS 		LCD_KeyBackspace				(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
+SHAPE_PARAMS 		LCD_GradientCircleButton	(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColor,u32 FillColorGradStart,u32 FillColorGradStop,u32 BkpColor,u32 outColorRead);
+SHAPE_PARAMS 		LCD_GradientCircleSlider	(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorSlid,u32 FillColorSlid,u32 GradColorStartSlid,u32 GradColorSlid,u32 GradColorStopSlid,u32 FrameColorButt,u32 FillColorStartButt,u32 FillColorStopButt,u32 BkpColor,u16 degree,DIRECTIONS fillDirSlid,u32 outColorRead);
+USER_GRAPH_PARAM 	LCD_Chart						(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA);
 
 SHAPE_PARAMS LCD_SimpleSliderH(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t widthParam, uint32_t heightParam, uint32_t ElementsColor, uint32_t LineColor, uint32_t LineSelColor, uint32_t BkpColor, uint32_t slidPos, int elemSel);
 SHAPE_PARAMS LCD_SimpleSliderV(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t widthParam, uint32_t heightParam, uint32_t ElementsColor, uint32_t LineColor, uint32_t LineSelColor, uint32_t BkpColor, uint32_t slidPos, int elemSel);
@@ -273,32 +274,36 @@ uint32_t SetValType(uint16_t slidPos, uint16_t param);
 uint32_t SetLineBold2Width(uint32_t width, uint8_t bold);
 uint32_t SetTriangHeightCoeff2Height(uint32_t height, uint8_t coeff);
 
-SHAPE_PARAMS LCDSHAPE_Window					(ShapeFunc pShape, uint32_t posBuff, SHAPE_PARAMS param);
-SHAPE_PARAMS LCDSHAPE_Arrow					(uint32_t posBuff, SHAPE_PARAMS param);
-SHAPE_PARAMS LCDSHAPE_Enter					(uint32_t posBuff, SHAPE_PARAMS param);
-SHAPE_PARAMS LCDSHAPE_Exit						(uint32_t posBuff, SHAPE_PARAMS param);
-SHAPE_PARAMS LCDSHAPE_KeyBackspace			(uint32_t posBuff, SHAPE_PARAMS param);
-SHAPE_PARAMS LCDSHAPE_Rectangle				(uint32_t posBuff, SHAPE_PARAMS param);
-SHAPE_PARAMS LCDSHAPE_RoundRectangle		(uint32_t posBuff, SHAPE_PARAMS param);
-SHAPE_PARAMS LCDSHAPE_GradientCircleButton(uint32_t posBuff, SHAPE_PARAMS param);
-SHAPE_PARAMS LCDSHAPE_GradientCircleSlider(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS 		LCDSHAPE_Window						(ShapeFunc pShape, uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS 		LCDSHAPE_Arrow							(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS 		LCDSHAPE_Enter							(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS 		LCDSHAPE_Exit							(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS 		LCDSHAPE_KeyBackspace				(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS 		LCDSHAPE_Rectangle					(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS 		LCDSHAPE_RoundRectangle				(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS 		LCDSHAPE_GradientCircleButton		(uint32_t posBuff, SHAPE_PARAMS param);
+SHAPE_PARAMS 		LCDSHAPE_GradientCircleSlider		(uint32_t posBuff, SHAPE_PARAMS param);
+USER_GRAPH_PARAM 	LCDSHAPE_Chart							(uint32_t posBuff, USER_GRAPH_PARAM param);
 
-void LCD_Arrow_Indirect						(uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor, DIRECTIONS direct);
-void LCD_Rectangle_Indirect				(u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct);
-void LCD_RoundRectangle_Indirect			(int rectFrame,u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct);
-void LCD_GradientCircleButton_Indirect	(u32 x,u32 y,u32 width,u32 height,u32 FrameColor,u32 FillColorGradStart,u32 FillColorGradStop,u32 BkpColor,u32 outColorRead);
-void LCD_GradientCircleSlider_Indirect(u32 x,u32 y,u32 width,u32 height,u32 FrameColorSlid,u32 FillColorSlid,u32 GradColorStartSlid,u32 GradColorSlid,u32 GradColorStopSlid,u32 FrameColorButt,u32 FillColorStartButt,u32 FillColorStopButt,u32 BkpColor,u16 degree,DIRECTIONS fillDirSlid,u32 outColorRead);
+void 	LCD_Arrow_Indirect						(uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor, DIRECTIONS direct);
+void 	LCD_Rectangle_Indirect					(u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct);
+void 	LCD_RoundRectangle_Indirect			(int rectFrame,u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct);
+void 	LCD_GradientCircleButton_Indirect	(u32 x,u32 y,u32 width,u32 height,u32 FrameColor,u32 FillColorGradStart,u32 FillColorGradStop,u32 BkpColor,u32 outColorRead);
+void 	LCD_GradientCircleSlider_Indirect	(u32 x,u32 y,u32 width,u32 height,u32 FrameColorSlid,u32 FillColorSlid,u32 GradColorStartSlid,u32 GradColorSlid,u32 GradColorStopSlid,u32 FrameColorButt,u32 FillColorStartButt,u32 FillColorStopButt,u32 BkpColor,u16 degree,DIRECTIONS fillDirSlid,u32 outColorRead);
+void 	LCD_Chart_Indirect						(int offsMem,int nrMem, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA, u32 bkColor);
 
-void LCDSHAPE_Arrow_Indirect			 		 (SHAPE_PARAMS param);
-void LCDSHAPE_Rectangle_Indirect		 		 (SHAPE_PARAMS param);
-void LCDSHAPE_RoundRectangle_Indirect		 (SHAPE_PARAMS param);
-void LCDSHAPE_GradientCircleButton_Indirect(SHAPE_PARAMS param);
-void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param);
+void 	LCDSHAPE_Arrow_Indirect			 		 		(SHAPE_PARAMS param);
+void 	LCDSHAPE_Rectangle_Indirect		 		 	(SHAPE_PARAMS param);
+void 	LCDSHAPE_RoundRectangle_Indirect		 		(SHAPE_PARAMS param);
+void 	LCDSHAPE_GradientCircleButton_Indirect		(SHAPE_PARAMS param);
+void 	LCDSHAPE_GradientCircleSlider_Indirect		(SHAPE_PARAMS param);
+void 	LCDSHAPE_Chart_Indirect							(USER_GRAPH_PARAM param);
 /* ------- End Selected Figures ------------------*/
 
-int  GRAPH_GetSamples		  (int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType);
-void GRAPH_Draw				  (int offsMem,int nrMem, 																																										 u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA);
-void GRAPH_GetSamplesAndDraw (int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA);
+int  GRAPH_GetSamples		  (				int offsMem,int nrMem, 					int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType);
+void GRAPH_Draw				  (int posBuff,int offsMem,int nrMem, u32 widthBk,																																						 				  u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA);
+void GRAPH_GetSamplesAndDraw (int posBuff,int offsMem,int nrMem, u32 widthBk, int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA);
+
 
 
 #endif /* LCD_LCD_BASICGAPHICS_H_ */
