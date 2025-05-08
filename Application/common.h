@@ -112,8 +112,12 @@ typedef uint8_t u8;
 #define LOOP_FOR2(cnt,max,step) 	for(double (cnt)=0;(cnt)<(max);cnt+=step)
 
 #define PARAM32(a,b,c,d)	((a)<<24|(b)<<16|(c<<8)|(d))
+
 #define U32_TO_FLOAT(val)	(*((float*)(&(val))))
 #define FLOAT_TO_U32(val)	(*((uint32_t*)(&(val))))
+
+#define U64_TO_DOUBLE(val)	(*((double*)(&(val))))
+#define DOUBLE_TO_U64(val)	(*((uint64_t*)(&(val))))
 
 #define _ZERO 0
 #define _ZEROS2 _ZERO,_ZERO
