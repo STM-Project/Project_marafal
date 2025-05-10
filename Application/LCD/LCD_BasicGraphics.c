@@ -33,7 +33,7 @@
 #define _IS_NOT_PXL(i,color1,color2,color3,color4)		(pLcd[i]!=color1 && pLcd[i]!=color2 && pLcd[i]!=color3 && pLcd[i]!=color4)
 #define _IS_NEXT_PXL(bkX,i,color)	(pLcd[(i)+1]==color || pLcd[(i)-1]==color || pLcd[(i)+bkX]==color || pLcd[(i)-bkX]==color || pLcd[(i)+bkX+1]==color || pLcd[(i)+bkX-1]==color || pLcd[(i)-bkX+1]==color || pLcd[(i)-bkX-1]==color)
 
-#define _PLCD(x,y)	 			pLcd[widthBk*(y)+(x)]
+#define _PLCD(offs,x,y)	 			pLcd[(offs)+widthBk*(y)+(x)]
 #define _K(x,y)	 					  widthBk*(y)+(x)
 
 typedef enum{
@@ -5682,7 +5682,7 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 						else				distanceY = (posXY_par[0].startY + posXY_par[0].yMax)-(posXY[i].y+1);
 						LOOP_FOR(m, distanceY){
 							TransParam[m].lineColor	 = gradColor1;
-							TransParam[m].bkColor	 = CONDITION(0==colorIn, _PLCD(posXY[i].x,posXY[i].y+1+m), colorIn);
+							TransParam[m].bkColor	 = CONDITION(0==colorIn, _PLCD(posBuff,posXY[i].x,posXY[i].y+1+m), colorIn);
 							TransParam[m].coeff		 = (amplTrans * ((float)m)) / ((float)distanceY) + offsTrans;
 							TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff); }
 					}
@@ -5693,22 +5693,22 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 						{
 							case Grad_YmaxYmin:
 							case Grad_Ycolor:
-								if(0==colorIn)	bkColor = _PLCD(posXY[i].x, j);
+								if(0==colorIn)	bkColor = _PLCD(posBuff,posXY[i].x, j);
 								else				bkColor = colorIn;
 								n = j-(posXY_par[0].startY + posXY_par[0].yMin);
 								if(TransParam[n].bkColor == bkColor)
-									_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+									_PLCD(posBuff,posXY[i].x, j) = TransParam[n].transColor;
 								else{
 									TransParam[n].bkColor 	 = bkColor;
 									TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
-									_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+									_PLCD(posBuff,posXY[i].x, j) = TransParam[n].transColor;
 								}
 								break;
 
 							case Grad_Ystrip:
 								n = j - (posXY[i].y+1);
 								if(n < distanceY)
-									_PLCD(posXY[i].x, j) = TransParam[n].transColor;
+									_PLCD(posBuff,posXY[i].x, j) = TransParam[n].transColor;
 								break;
 					}}
 			}
@@ -5744,7 +5744,7 @@ USER_GRAPH_PARAM LCD_Chart(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 
 	#if defined(GRAPH_MEMORY_SDRAM2)
 		if(GRAPH_SetPointers(offsMem,nrMem)) return USER_GRAPH_PARAM_Zero;
 	#endif
-	USER_GRAPH_PARAM params = {.offsMem=offsMem, .nrMem=nrMem, .widthBk=widthBk, .lineColor=colorLineAA, .AAoutColor=colorOut, .AAinColor=colorIn, .AAoutCoeff=outRatioStart, .AAinCoeff=inRatioStart, .dispOpt=dispOption, .colorLinePosXY=color1, .colorLinePosXYrep=color2, .KoffsPosXY=offsK1, .KoffsPosXYrep=offsK2, .grad.bkType=bkGradType, .grad.fromColor=gradColor1, .grad.toColor=gradColor2, .grad.stripY=gradStripY, .grad.amplTrans=amplTrans, .grad.offsTrans=offsTrans, .bkRectColor=bkRectColor };
+	USER_GRAPH_PARAM params = {.offsMem=offsMem, .nrMem=nrMem, .widthBk=widthBk, .lineColor=colorLineAA, .AAoutColor=colorOut, .AAinColor=colorIn, .AAoutCoeff=outRatioStart, .AAinCoeff=inRatioStart, .dispOpt=dispOption, .colorLinePosXY=color1, .colorLinePosXYrep=color2, .KoffsPosXY=offsK1, .KoffsPosXYrep=offsK2, .grad.bkType=bkGradType, .grad.fromColor=gradColor1, .grad.toColor=gradColor2, .grad.stripY=gradStripY, .grad.amplTrans=amplTrans, .grad.offsTrans=offsTrans, .bkRectColor=bkRectColor, .corr45degAA=corr45degAA };
 
 	params.par.startX				= posXY_par[0].startX;
 	params.par.startY				= posXY_par[0].startY;
@@ -5773,8 +5773,22 @@ void LCD_Chart_Indirect(int offsMem, int nrMem, u32 widthBk, u32 colorLineAA, u3
 	int y			= MASK(widthBk,	 FFFF);
 	int width  	= posXY_par[0].nmbrPoints;
 	int height 	= posXY_par[0].yMax - posXY_par[0].yMin;
-	if(bkRectColor) LCD_ShapeWindow(LCD_Rectangle, 0, width,height, 0,0, width,height, bkRectColor,bkRectColor,bkRectColor);
+	if(bkRectColor) LCD_ShapeWindow(LCD_Rectangle, width, width,height, 0,0, width,height, bkRectColor,bkRectColor,bkRectColor);
 	GRAPH_Draw(width, offsMem,nrMem, width, colorLineAA, colorOut, colorIn, outRatioStart, inRatioStart, dispOption, color1, color2, offsK1, offsK2, bkGradType, gradColor1, gradColor2, gradStripY, amplTrans, offsTrans, corr45degAA);
+
+
+	k = width;
+	for(int j=0; j<height; j++){
+		for(int i=0; i<width; i++){
+			if(i==0) 		pLcd[k+i]=bkRectColor;
+			if(i==width-1) pLcd[k+i]=bkRectColor;
+		}
+		k += width;
+		//LCD_DisplayBuff(Xpos,Ypos+j,width,1, tab);
+	}
+
+
+
 	LCD_Display(width, x,y, width,height);
 }
 USER_GRAPH_PARAM LCDSHAPE_Chart(uint32_t posBuff, USER_GRAPH_PARAM param){
