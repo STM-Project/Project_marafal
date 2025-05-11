@@ -36,6 +36,11 @@
 #define _PLCD(offs,x,y)	 			pLcd[(offs)+widthBk*(y)+(x)]
 #define _K(x,y)	 					  widthBk*(y)+(x)
 
+#define _2LOOP(ix,iy,widthX,widthY)								 for(int (iy)=0;(iy)<(widthY);(iy)++){ for(int (ix)=0;(ix)<(widthX);(ix)++){
+#define _2LOOP_INIT(init,ix,iy,widthX,widthY)		init;  for(int (iy)=0;(iy)<(widthY);(iy)++){ for(int (ix)=0;(ix)<(widthX);(ix)++){
+#define _2LOOP_END		}}
+#define _1LOOP_END		}
+
 typedef enum{
 	RightUpDir1,
 	RightUpDir0,
@@ -5773,22 +5778,15 @@ void LCD_Chart_Indirect(int offsMem, int nrMem, u32 widthBk, u32 colorLineAA, u3
 	int y			= MASK(widthBk,	 FFFF);
 	int width  	= posXY_par[0].nmbrPoints;
 	int height 	= posXY_par[0].yMax - posXY_par[0].yMin;
-	if(bkRectColor) LCD_ShapeWindow(LCD_Rectangle, width, width,height, 0,0, width,height, bkRectColor,bkRectColor,bkRectColor);
-	GRAPH_Draw(width, offsMem,nrMem, width, colorLineAA, colorOut, colorIn, outRatioStart, inRatioStart, dispOption, color1, color2, offsK1, offsK2, bkGradType, gradColor1, gradColor2, gradStripY, amplTrans, offsTrans, corr45degAA);
-
-
-	k = width;
-	for(int j=0; j<height; j++){
-		for(int i=0; i<width; i++){
+	int offsK	= width;
+	if(bkRectColor) LCD_ShapeWindow(LCD_Rectangle, offsK, width,height, 0,0, width,height, bkRectColor,bkRectColor,bkRectColor);
+	GRAPH_Draw(offsK, offsMem,nrMem, width, colorLineAA, colorOut, colorIn, outRatioStart, inRatioStart, dispOption, color1, color2, offsK1, offsK2, bkGradType, gradColor1, gradColor2, gradStripY, amplTrans, offsTrans, corr45degAA);
+	_2LOOP_INIT(k=width,i,j,width,height)
 			if(i==0) 		pLcd[k+i]=bkRectColor;
 			if(i==width-1) pLcd[k+i]=bkRectColor;
-		}
+		_1LOOP_END
 		k += width;
-		//LCD_DisplayBuff(Xpos,Ypos+j,width,1, tab);
-	}
-
-
-
+	_1LOOP_END
 	LCD_Display(width, x,y, width,height);
 }
 USER_GRAPH_PARAM LCDSHAPE_Chart(uint32_t posBuff, USER_GRAPH_PARAM param){
