@@ -5762,11 +5762,16 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 	//sprawdz z 'ToStructAndDisplay'!!!
 
 	int len = posXY_par[0].len_posXY;
-	LCD_GradientCircleButton(0,widthBk,LCD_Y, posXY[len/2].x-30, posXY[len/2].y-30, 60,60, SetBold2Color(0x383838,0),LIGHTBLUE,DARKBLUE,0x383838,ReadOutColor);  //sprawdz jesli  outColorRead == ReadOutColor to nie jest brany bkColor ????
+	 //sprawdz jesli  outColorRead == ReadOutColor to nie jest brany bkColor ????
 
+	u32 col1 = GetTransitionColor(LIGHTBLUE,DARKBLUE,0.5);
+	u32 col2 = GetTransitionColor(LIGHTRED,DARKRED,0.5);
+	u32 col3 = GetTransitionColor(GREEN,DARKGREEN,0.5);
 
-	LCD_GradientCircleButton(0,widthBk,LCD_Y, posXY[len/3].x-30,     posXY[len/3].y-30, 	 60,60, SetBold2Color(0x383838,20),LIGHTRED,DARKRED,0x383838,ReadOutColor);
-	LCD_GradientCircleButton(0,widthBk,LCD_Y, posXY[(2*len)/3].x-30, posXY[(2*len)/3].y-30, 60,60, SetBold2Color(0x383838,25),  GREEN,DARKGREEN,0x383838,ReadOutColor);
+	LCD_GradientCircleButton(0,widthBk,LCD_Y, posXY[len/2].x-9, posXY[len/2].y-9, 18,18, SetBold2Color(col1,1),LIGHTBLUE,DARKBLUE,0,ReadOutColor);  //Ta wielkosc jes t ok !!!!
+
+	LCD_GradientCircleButton(0,widthBk,LCD_Y, posXY[len/3].x-8,     posXY[len/3].y-8, 	 16,16, SetBold2Color(col2,0),LIGHTRED,DARKRED,0,ReadOutColor);
+	LCD_GradientCircleButton(0,widthBk,LCD_Y, posXY[(2*len)/3].x-7, posXY[(2*len)/3].y-7, 14,14, SetBold2Color(col3,0),  GREEN,DARKGREEN,0x383838,ReadOutColor);
 
 
 

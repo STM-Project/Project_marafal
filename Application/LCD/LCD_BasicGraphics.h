@@ -116,7 +116,8 @@ typedef enum{
 }SHAPE_TYPES;
 
 typedef enum{
-	ReadOutColor = 0x1,
+	NoReadOutColor,
+	ReadOutColor
 }SHAPE_FLAGS;
 
 typedef enum{
