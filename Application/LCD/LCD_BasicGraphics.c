@@ -5105,6 +5105,7 @@ void LCD_Circle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x
 	#undef EASY_BOLD_CIRCLE
 }
 
+/* LCDSHAPE_Create() is defined for circle now,  in future for other shapes maybe */
 SHAPE_PARAMS LCDSHAPE_Create(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor,u32 selFillColorFrom,u32 selFillColor,u32 selFillColorTo,u16 degree,DIRECTIONS fillDir,u32 outColorRead)
 {
 	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=_width, .size[0].h=height, .color[0].frame=FrameColor, .color[1].frame=FillColor, .color[2].frame=BkpColor, .color[0].fill=selFillColorFrom, .color[1].fill=selFillColor, .color[2].fill=selFillColorTo, .param[0]=degree, .param[1]=fillDir, .param[2]=outColorRead };
@@ -5721,6 +5722,23 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 		}
 	}
 
+
+
+
+//	posX_prev=0;
+//	LOOP_FOR(i,posXY_par[0].len_posXY)
+//	{
+//		if(posXY[i].x != posX_prev)
+//		{
+//
+//		}
+//		posX_prev = posXY[i].x;
+//
+//
+//	}
+
+
+
 	/* Draw lines of the chart */
 	if((int)dispOption==Disp_AA){
 					   GRAPH_Display(posBuff,	    	widthBk, posXY_par[0].len_posXYrep, colorLineAA, colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
@@ -5732,6 +5750,27 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(posBuff+offsK2, widthBk, posXY_par[0].len_posXYrep, color2);
 		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (posBuff,		 	widthBk, posXY_par[0].len_posXYrep, colorLineAA, colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
 	}
+
+
+
+
+
+
+
+	/* Draw point pointer for chart */
+
+	//sprawdz z 'ToStructAndDisplay'!!!
+
+	int len = posXY_par[0].len_posXY;
+	LCD_GradientCircleButton(0,widthBk,LCD_Y, posXY[len/2].x-30, posXY[len/2].y-30, 60,60, SetBold2Color(0x383838,0),LIGHTBLUE,DARKBLUE,0x383838,ReadOutColor);  //sprawdz jesli  outColorRead == ReadOutColor to nie jest brany bkColor ????
+
+
+	LCD_GradientCircleButton(0,widthBk,LCD_Y, posXY[len/3].x-30,     posXY[len/3].y-30, 	 60,60, SetBold2Color(0x383838,20),LIGHTRED,DARKRED,0x383838,ReadOutColor);
+	LCD_GradientCircleButton(0,widthBk,LCD_Y, posXY[(2*len)/3].x-30, posXY[(2*len)/3].y-30, 60,60, SetBold2Color(0x383838,25),  GREEN,DARKGREEN,0x383838,ReadOutColor);
+
+
+
+
 
 }
 
