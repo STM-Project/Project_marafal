@@ -126,6 +126,11 @@ typedef enum{
 	Grad_Ycolor,
 }GRADIENT_GRAPH_TYPE;
 
+typedef enum{
+	Grid_Dots,
+	Grid_Line
+}GRID_TYPE;
+
 #define K_TAB_SIZE 	4
 typedef struct{
 	u32 k[K_TAB_SIZE];
@@ -149,6 +154,12 @@ typedef struct{
 }structGetSmpl;
 
 typedef struct{
+	u32 color;
+	structSizeU16 size;
+	GRID_TYPE type;
+}structGridParam;
+
+typedef struct{
 	GRADIENT_GRAPH_TYPE bkType;
 	u32 fromColor;
 	u32 toColor;
@@ -156,6 +167,11 @@ typedef struct{
 	float amplTrans;
 	float offsTrans;
 }structGradParam;
+
+typedef struct{
+	u32 fromColorPtr; u32 toColorPtr; structSizeU16 sizePtr;	u16 xPos;
+	u32 fromColorRct; u32 toColorRct; structSizeU16 sizeRct; structPosU16 posRct;
+}structPointParam;
 
 typedef struct{
 	u32 offsMem; u32 nrMem;		/* only for GRAPH_MEMORY_SDRAM2 */
@@ -174,7 +190,9 @@ typedef struct{
 	int KoffsPosXY;
 	int KoffsPosXYrep;
 	u8 corr45degAA;
+	structGridParam grid;
 	structGradParam grad;
+	structPointParam ptr;
 }USER_GRAPH_PARAM;
 
 extern USER_GRAPH_PARAM USER_GRAPH_PARAM_Zero;
