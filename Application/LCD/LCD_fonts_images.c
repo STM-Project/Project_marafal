@@ -649,7 +649,11 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 	return -1;
 }
 
-static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex)
+static int __wskBK=0;
+static int __wskFont=0;
+static int __wskAA=0;
+
+static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontID)
 {
 	const char *pChar;
 	uint8_t fontSize=ReturnFontSize(fontIndex);
@@ -694,6 +698,52 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex)
 	backGround[2]=pbmp[2];
 
 	Font[fontIndex].height=height;
+
+
+
+	//--------------------------------------------------------------------------
+	char *pbmp1;
+	int shiftX=0;
+	uint8_t fontColor[3] = {FontID[fontID].color*0xFF, (FontID[fontID].color>>8)*0xFF, (FontID[fontID].color>>16)*0xFF};
+
+	__wskBK=0;
+	__wskFont=0;
+	__wskAA=0;
+
+
+	for(int i=0; i < width; i++)
+	{
+			pbmp1=pbmp+3*shiftX;
+			for(int j=0; j < height; j++)
+			{
+				if((*(pbmp1+0)==backGround[0])&&(*(pbmp1+1)==backGround[1])&&(*(pbmp1+2)==backGround[2]))
+				{
+					__wskBK++;
+				}
+				else if((*(pbmp1+0)==fontColor[0])&&(*(pbmp1+1)==fontColor[1])&&(*(pbmp1+2)==fontColor[2]))
+				{
+					__wskFont++;
+				}
+				else
+				{
+					__wskAA++;
+				}
+
+				pbmp1 -= width*bit_pixel;
+
+			}
+			shiftX++;
+	}
+
+	DbgVar(1,100,"\r\nBK: %d    Font: %d    AA: %d ",__wskBK,__wskFont,__wskAA);
+
+	//--------------------------------------------------------------------------
+
+
+
+
+
+
 
 	for(j=0; j < lenTab; j++)
 	{
@@ -1857,21 +1907,22 @@ int LCD_LoadFont(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t
 			return -5;
 		if(FR_OK!=SDCardFileClose(1))
 			return -6;
-		SearchCurrentFont_TablePos(Font[fontIndex].pointerToMemoryFont, fontIndex);
+
+		if(fontID < MAX_OPEN_FONTS_SIMULTANEOUSLY)
+		{
+			FontID[fontID].size = fontSize;
+			FontID[fontID].style = fontStyle;
+			FontID[fontID].bkColor = backgroundColor;
+			FontID[fontID].color = fontColor;
+
+			SearchCurrentFont_TablePos(Font[fontIndex].pointerToMemoryFont, fontIndex, fontID);
+			return fontID;
+		}
+		else
+			return -8;
 	}
 	else
 		return -7;
-
-	if(fontID < MAX_OPEN_FONTS_SIMULTANEOUSLY)
-	{
-		FontID[fontID].size = fontSize;
-		FontID[fontID].style = fontStyle;
-		FontID[fontID].bkColor = backgroundColor;
-		FontID[fontID].color = fontColor;
-		return fontID;
-	}
-	else
-		return -8;
 }
 
 int LCD_LoadFont_WhiteBlack(int fontSize, int fontStyle, uint32_t fontID){
