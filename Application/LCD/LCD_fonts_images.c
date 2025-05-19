@@ -704,7 +704,7 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 	//--------------------------------------------------------------------------
 	char *pbmp1;
 	int shiftX=0;
-	uint8_t fontColor[3] = {FontID[fontID].color*0xFF, (FontID[fontID].color>>8)*0xFF, (FontID[fontID].color>>16)*0xFF};
+	uint8_t fontColor[3] = {FontID[fontID].color&0xFF, (FontID[fontID].color>>8)&0xFF, (FontID[fontID].color>>16)&0xFF};
 
 	__wskBK=0;
 	__wskFont=0;
