@@ -649,9 +649,9 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 	return -1;
 }
 
-static int __wskBK=0;
-static int __wskFont=0;
-static int __wskAA=0;
+static u32 __wskBK=0;
+static u32 __wskFont=0;
+static u32 __wskAA=0;
 
 static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontID)
 {
@@ -705,6 +705,7 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 	char *pbmp1;
 	int shiftX=0;
 	uint8_t fontColor[3] = {FontID[fontID].color&0xFF, (FontID[fontID].color>>8)&0xFF, (FontID[fontID].color>>16)&0xFF};
+	char bufTemp[30],bufTemp2[30],bufTemp3[30];
 
 	__wskBK=0;
 	__wskFont=0;
@@ -735,7 +736,7 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 			shiftX++;
 	}
 
-	DbgVar(1,100,"\r\nBK: %s    Font: %s    AA: %s ",DispLongNmb(__wskBK,NULL), DispLongNmb(__wskFont,NULL), DispLongNmb(__wskAA,NULL));
+	DbgVar(1,100,"\r\nBK: %s    Font: %s    AA: %s ",DispLongNmb(__wskBK,bufTemp), DispLongNmb(__wskFont,bufTemp2), DispLongNmb(__wskAA,bufTemp3));
 
 	//--------------------------------------------------------------------------
 

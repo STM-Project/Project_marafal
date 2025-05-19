@@ -113,7 +113,7 @@ typedef uint8_t u8;
 
 #define PARAM32(a,b,c,d)	((a)<<24|(b)<<16|(c<<8)|(d))
 
-#define U32_TO_FLOAT(val)	(*((float*)(&(val))))
+#define U32_TO_FLOAT(val)	(*((float*)(&(val))))			/* problem with -0fast optimize */
 #define FLOAT_TO_U32(val)	(*((uint32_t*)(&(val))))
 
 #define U64_TO_DOUBLE(val)	(*((double*)(&(val))))

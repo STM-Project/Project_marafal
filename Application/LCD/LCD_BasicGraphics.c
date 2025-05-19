@@ -13,6 +13,9 @@
 #include "LCD_Common.h"
 #include "rng.h"
 
+//#pragma GCC push_options
+//#pragma GCC optimize ("-Ofast")
+
 #define MAX_SIZE_TAB_AA		365
 #define MAX_LINE_BUFF_CIRCLE_SIZE  100
 #define MAX_DEGREE_CIRCLE  10
@@ -4018,7 +4021,7 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len,
 		int  k_p=k;
 		int linePointsStructSize;
 		int nmbPxl,repeatPxl,repeatPxl_next;
-		int direction, upDown;
+		int direction=0, upDown;
 
 		int _GetNmbPxls(void)
 		{
@@ -4092,7 +4095,7 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len,
 				}
 			}
 			else{
-				if(pLcd[k_p-direction]!=lineColor) 			  pLcd[k_p-direction]			=	buff_AA[offs];
+				if(pLcd[k_p-direction]!=lineColor) 			  pLcd[k_p-direction]			=	buff_AA[offs];						/* problem with -0fast optimize !!! */
 				if(pLcd[k_p+direction*nmbPxl_H]!=lineColor) pLcd[k_p+direction*nmbPxl_H]=	buff2_AA[offs];
 				k_p=k_p+upDown*BkpSizeX+direction*nmbPxl_H;
 			}
@@ -5841,10 +5844,14 @@ void LCDSHAPE_Chart_Indirect(USER_GRAPH_PARAM param){
 
 
 
+//#pragma GCC pop_options
 
 
 
-
+//void __attribute__ ((optimize("-Ofast"))) EXTI4_15_IRQHandler(void)
+//{
+//    // ...
+//}
 
 
 /*------------------- Example Shape Outline -------------------------------------
