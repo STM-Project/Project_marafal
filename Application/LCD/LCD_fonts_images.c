@@ -735,7 +735,7 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 			shiftX++;
 	}
 
-	DbgVar(1,100,"\r\nBK: %d    Font: %d    AA: %d ",__wskBK,__wskFont,__wskAA);
+	DbgVar(1,100,"\r\nBK: %s    Font: %s    AA: %s ",DispLongNmb(__wskBK,NULL), DispLongNmb(__wskFont,NULL), DispLongNmb(__wskAA,NULL));
 
 	//--------------------------------------------------------------------------
 
