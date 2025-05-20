@@ -702,10 +702,66 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 
 
 	//--------------------------------------------------------------------------
+
+// Chars Table
+//	Table Size (2B)
+//	char1:  ASCII (1B),  address (3B)
+//	char2:  ASCII (1B),  address (3B)
+//  ...
+
+// Colors Table
+//	Table Size (2B)
+//	color bk:  	 color (3B)
+//	color font:  color (3B)
+//	color AA1:   color (3B)
+//	color AA2:   color (3B)
+//  ...
+
+//dla bk lub font color
+//													 if > 64 to next byte				if > 255 to next byte										itd ...																		...
+// 3 info:	 	Bit7|Bit6 (bk,font)		ile tych samych colorow			(alt. next byte:  ile= byte0 & 0x3F + byte1)			(alt. next byte:  ile= byte0 & 0x3F + byte1 + byte2)				...
+
+
+//dla AA color
+//													if > 64 to next byte
+// 3 info:	 	Bit7|Bit6 (AA)			 nrTabColor dla tego coloru		(alt. next byte:  ile= byte0 & 0x3F + byte1)
+
+
+
+#define _B_		//cale H to BK color,  jezeli 3 razy pod rzad ten sam color to:  ile(1B),nrToColorTab(1B)
+	// if byte >255 to:   byte0=255, byte1=nrTableColor>>8
+
+// Colors Coding
+// bit32
+
+	typedef enum{
+		bk   = 0x80,
+		font = 0x40,
+		AA   = 0xC0
+	}COLOR_TYPE;
+
+
+	u32 tabColor[500]={0}, ind=0, tempColor=0;
 	char *pbmp1;
 	int shiftX=0;
 	uint8_t fontColor[3] = {FontID[fontID].color&0xFF, (FontID[fontID].color>>8)&0xFF, (FontID[fontID].color>>16)&0xFF};
 	char bufTemp[30],bufTemp2[30],bufTemp3[30];
+
+	int _IfNewColorThenSetToTab(u32 color){
+		for(int i=0; i<ind; i++){
+			if(tabColor[i]==color) return 0;
+		}
+		if(ind < STRUCT_TAB_SIZE(tabColor)){ tabColor[ind++]= color;  return 1;  }
+		else										  { 								  return -1; }
+	}
+
+	int _GetIndexToTabColor(u32 color){
+		for(int i=0; i < ind; i++){
+			if(tabColor[i]==color)
+				return i;
+		}
+		return -1;
+	}
 
 	__wskBK=0;
 	__wskFont=0;
@@ -727,6 +783,8 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 				}
 				else
 				{
+					tempColor = RGB2INT(*(pbmp1+2),*(pbmp1+1),*(pbmp1+0));
+					_IfNewColorThenSetToTab(tempColor);
 					__wskAA++;
 				}
 
@@ -736,7 +794,7 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 			shiftX++;
 	}
 
-	DbgVar(1,100,"\r\nBK: %s    Font: %s    AA: %s ",DispLongNmb(__wskBK,bufTemp), DispLongNmb(__wskFont,bufTemp2), DispLongNmb(__wskAA,bufTemp3));
+	DbgVar(1,100,"\r\nBK: %s    Font: %s    AA: %s (%d) ",DispLongNmb(__wskBK,bufTemp), DispLongNmb(__wskFont,bufTemp2), DispLongNmb(__wskAA,bufTemp3), ind);
 
 	//--------------------------------------------------------------------------
 
