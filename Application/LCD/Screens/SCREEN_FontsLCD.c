@@ -2388,6 +2388,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 //ROBIMY :  1. LISTVIEW  tabelko z lista   2. klawiature i koniec !!!
 	//GRAPH ZADANIA  : delikatna siateczka, okienko XY, wskaznik pionowy
+	//pobawic sie w selektywna optymalizacje
 
 	//ATTENTION IN FUTURE   tylko w jednej funkcji umieszczamy zmienne odswiezane reularnie i ta funkcja idzie do jakiegos watku !!!!!
 

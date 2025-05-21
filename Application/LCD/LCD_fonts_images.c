@@ -653,6 +653,10 @@ static u32 __wskBK=0;
 static u32 __wskFont=0;
 static u32 __wskAA=0;
 
+static u32 start_bk=0, _licz_bk=0;
+static u32 start_fo=0, _licz_fo=0;
+static u32 start_aa=0, _licz_aa=0;
+
 static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontID)
 {
 	const char *pChar;
@@ -767,6 +771,10 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 	__wskFont=0;
 	__wskAA=0;
 
+	start_bk=0;   _licz_bk=0;
+	start_fo=0;   _licz_fo=0;
+	start_aa=0;   _licz_aa=0;
+
 
 	for(int i=0; i < width; i++)
 	{
@@ -807,7 +815,8 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 			shiftX++;
 	}
 
-	DbgVar(1,100,"\r\nBK: %s    Font: %s    AA: %s (%d) ",DispLongNmb(__wskBK,bufTemp), DispLongNmb(__wskFont,bufTemp2), DispLongNmb(__wskAA,bufTemp3), ind);
+	DbgVar(1,100,"\r\n111: BK: %s    Font: %s    AA: %s (%d) ",DispLongNmb(__wskBK,bufTemp), DispLongNmb(__wskFont,bufTemp2), DispLongNmb(__wskAA,bufTemp3), ind);
+	DbgVar(1,100,"\r\n222: BK: %s    Font: %s    AA: %s \r\n",DispLongNmb(_licz_bk,bufTemp), DispLongNmb(_licz_fo,bufTemp2), DispLongNmb(_licz_aa,bufTemp3));
 
 	//--------------------------------------------------------------------------
 
