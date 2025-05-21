@@ -718,13 +718,13 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 //  ...
 
 //dla bk lub font color
-//													 if > 64 to next byte				if > 255 to next byte										itd ...																		...
-// 3 info:	 	Bit7|Bit6 (bk,font)		ile tych samych colorow			(alt. next byte:  ile= byte0 & 0x3F + byte1)			(alt. next byte:  ile= byte0 & 0x3F + byte1 + byte2)				...
+//													 if byte0==63 to next 1 byte         if byte1==255 to next 2 bytes
+// 3 info:	 	Bit7|Bit6 (bk,font)		 ile tych samych colorow			    (alt.:  ile= byte0(63) + byte1)					(alt.:  ile= byte0(63) + byte1(255) + (byte2 + 256*byte3))
 
 
 //dla AA color
-//													if > 64 to next byte
-// 3 info:	 	Bit7|Bit6 (AA)			 nrTabColor dla tego coloru		(alt. next byte:  ile= byte0 & 0x3F + byte1)
+//													if byte0==63 to next 2 bytes         if byte1==255 to next 2 bytes
+// 3 info:	 	Bit7|Bit6 (AA)			  nrTabColor dla tego coloru			    (alt.:  nr= byte0(63) + byte1)					(alt.:  nr= byte0(63) + byte1(255) + (byte2 + 256*byte3))
 
 
 
@@ -775,14 +775,27 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 			{
 				if((*(pbmp1+0)==backGround[0])&&(*(pbmp1+1)==backGround[1])&&(*(pbmp1+2)==backGround[2]))
 				{
+					start_bk=1;
+					if(start_fo==1){ start_fo=0;  _licz_fo++;  }
+					if(start_aa==1){ start_aa=0;  _licz_aa++;  }
+
 					__wskBK++;
 				}
 				else if((*(pbmp1+0)==fontColor[0])&&(*(pbmp1+1)==fontColor[1])&&(*(pbmp1+2)==fontColor[2]))
 				{
+					start_fo=1;
+					if(start_bk==1){ start_bk=0;  _licz_bk++;  }
+					if(start_aa==1){ start_aa=0;  _licz_aa++;  }
+
 					__wskFont++;
 				}
 				else
 				{
+					start_aa=1;
+					if(start_fo==1){ start_fo=0;  _licz_fo++;  }
+					if(start_bk==1){ start_bk=0;  _licz_bk++;  }
+
+
 					tempColor = RGB2INT(*(pbmp1+2),*(pbmp1+1),*(pbmp1+0));
 					_IfNewColorThenSetToTab(tempColor);
 					__wskAA++;
