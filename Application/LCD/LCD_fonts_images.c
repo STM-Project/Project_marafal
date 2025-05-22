@@ -656,7 +656,7 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 
 }
 
-static void FONTS_InfoFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)
+static void  /*__attribute__ ((optimize("-Ofast")))*/ FONTS_InfoFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)
 {
   /*
 	--- Fonts Info --------
@@ -707,7 +707,7 @@ static void FONTS_InfoFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID,
 		uint8_t bkColor[3] = {FontID[fontID].bkColor&0xFF, (FontID[fontID].bkColor>>8)&0xFF, (FontID[fontID].bkColor>>16)&0xFF};
 		char bufTemp[30],bufTemp2[30],bufTemp3[30];
 
-		int _IfNewColorThenSetToTab(u32 color){
+		int  /* __attribute__ ((optimize("-Ofast")))*/ _IfNewColorThenSetToTab(u32 color){
 			for(int i=0; i<ind; i++){
 				if(tabColor[i]==color) return 0;
 			}
