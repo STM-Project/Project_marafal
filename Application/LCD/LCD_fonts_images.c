@@ -649,13 +649,130 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 	return -1;
 }
 
-static u32 __wskBK=0;
-static u32 __wskFont=0;
-static u32 __wskAA=0;
+static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)
+{
 
-static u32 start_bk=0, _licz_bk=0;
-static u32 start_fo=0, _licz_fo=0;
-static u32 start_aa=0, _licz_aa=0;
+
+
+}
+
+static void FONTS_InfoFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)
+{
+  /*
+	--- Fonts Info --------
+	  Table Size (2B)
+	  (char) FontID[fontID]
+	  (char) Font[fontIndex]
+
+	--- Chars Table --------
+	  Table Size (2B)
+	  char1:  ASCII (1B),  address (3B)
+	  char2:  ASCII (1B),  address (3B)
+	  ...
+
+	--- Colors Table --------
+	  Table Size (2B)
+	  color bk:  	color (3B)
+	  color font:  color (3B)
+	  color AA1:   color (3B)
+	  color AA2:   color (3B)
+	  ...
+  */
+
+
+	//dla bk lub font color
+	//													 if byte0==63 to next 1 byte         if byte1==255 to next 2 bytes
+	// 3 info:	 	Bit7|Bit6 (bk,font)		 ile tych samych colorow			    (alt.:  ile= byte0(63) + byte1)					(alt.:  ile= byte0(63) + byte1(255) + (byte2 + 256*byte3))
+
+
+	//dla AA color
+	//													if byte0==63 to next 2 bytes         if byte1==255 to next 2 bytes
+	// 3 info:	 	Bit7|Bit6 (AA)			  nrTabColor dla tego coloru			    (alt.:  nr= byte0(63) + byte1)					(alt.:  nr= byte0(63) + byte1(255) + (byte2 + 256*byte3))
+
+
+
+		typedef enum{
+			bk   = 0x80,
+			font = 0x40,
+			AA   = 0xC0
+		}COLOR_TYPE;
+
+
+
+
+		u32 tabColor[500]={0}, ind=0;
+		char *pbmp1;
+		int shiftX=0;
+		uint8_t foColor[3] = {FontID[fontID].color&0xFF, (FontID[fontID].color>>8)&0xFF, (FontID[fontID].color>>16)&0xFF};
+		uint8_t bkColor[3] = {FontID[fontID].bkColor&0xFF, (FontID[fontID].bkColor>>8)&0xFF, (FontID[fontID].bkColor>>16)&0xFF};
+		char bufTemp[30],bufTemp2[30],bufTemp3[30];
+
+		int _IfNewColorThenSetToTab(u32 color){
+			for(int i=0; i<ind; i++){
+				if(tabColor[i]==color) return 0;
+			}
+			if(ind < STRUCT_TAB_SIZE(tabColor)){ tabColor[ind++]= color;  return 1;  }
+			else										  { 								  return -1; }
+		}
+
+		int _GetIndexToTabColor(u32 color){
+			for(int i=0; i < ind; i++){
+				if(tabColor[i]==color)
+					return i;
+			}
+			return -1;
+		}
+
+		u32 __wskBK=0;
+		u32 __wskFont=0;
+		u32 __wskAA=0;
+
+		u32 start_bk=0, _licz_bk=0;
+		u32 start_fo=0, _licz_fo=0;
+		u32 start_aa=0, _licz_aa=0;
+
+
+		for(int i=0; i < width; i++)
+		{
+				pbmp1=pbmp+3*shiftX;
+				for(int j=0; j < height; j++)
+				{
+					if((*(pbmp1+0)==bkColor[0])&&(*(pbmp1+1)==bkColor[1])&&(*(pbmp1+2)==bkColor[2]))
+					{
+						start_bk=1;
+						if(start_fo==1){ start_fo=0;  _licz_fo++;  }
+						if(start_aa==1){ start_aa=0;  _licz_aa++;  }
+
+						__wskBK++;
+					}
+					else if((*(pbmp1+0)==foColor[0])&&(*(pbmp1+1)==foColor[1])&&(*(pbmp1+2)==foColor[2]))
+					{
+						start_fo=1;
+						if(start_bk==1){ start_bk=0;  _licz_bk++;  }
+						if(start_aa==1){ start_aa=0;  _licz_aa++;  }
+
+						__wskFont++;
+					}
+					else
+					{
+						start_aa=1;
+						if(start_fo==1){ start_fo=0;  _licz_fo++;  }
+						if(start_bk==1){ start_bk=0;  _licz_bk++;  }
+
+
+						_IfNewColorThenSetToTab( RGB2INT(*(pbmp1+2),*(pbmp1+1),*(pbmp1+0)) );
+						__wskAA++;
+					}
+
+					pbmp1 -= width * bytesPerPxl;
+
+				}
+				shiftX++;
+		}
+
+		DbgVar(1,100,"\r\n111: BK: %s    Font: %s    AA: %s (%d) ",DispLongNmb(__wskBK,bufTemp), DispLongNmb(__wskFont,bufTemp2), DispLongNmb(__wskAA,bufTemp3), ind);
+		DbgVar(1,100,"\r\n222: BK: %s    Font: %s    AA: %s \r\n",DispLongNmb(_licz_bk,bufTemp), DispLongNmb(_licz_fo,bufTemp2), DispLongNmb(_licz_aa,bufTemp3));
+}
 
 static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontID)
 {
@@ -703,129 +820,6 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 
 	Font[fontIndex].height=height;
 
-
-
-	//--------------------------------------------------------------------------
-
-// Chars Table
-//	Table Size (2B)
-//	char1:  ASCII (1B),  address (3B)
-//	char2:  ASCII (1B),  address (3B)
-//  ...
-
-// Colors Table
-//	Table Size (2B)
-//	color bk:  	 color (3B)
-//	color font:  color (3B)
-//	color AA1:   color (3B)
-//	color AA2:   color (3B)
-//  ...
-
-//dla bk lub font color
-//													 if byte0==63 to next 1 byte         if byte1==255 to next 2 bytes
-// 3 info:	 	Bit7|Bit6 (bk,font)		 ile tych samych colorow			    (alt.:  ile= byte0(63) + byte1)					(alt.:  ile= byte0(63) + byte1(255) + (byte2 + 256*byte3))
-
-
-//dla AA color
-//													if byte0==63 to next 2 bytes         if byte1==255 to next 2 bytes
-// 3 info:	 	Bit7|Bit6 (AA)			  nrTabColor dla tego coloru			    (alt.:  nr= byte0(63) + byte1)					(alt.:  nr= byte0(63) + byte1(255) + (byte2 + 256*byte3))
-
-
-
-#define _B_		//cale H to BK color,  jezeli 3 razy pod rzad ten sam color to:  ile(1B),nrToColorTab(1B)
-	// if byte >255 to:   byte0=255, byte1=nrTableColor>>8
-
-// Colors Coding
-// bit32
-
-	typedef enum{
-		bk   = 0x80,
-		font = 0x40,
-		AA   = 0xC0
-	}COLOR_TYPE;
-
-
-	u32 tabColor[500]={0}, ind=0, tempColor=0;
-	char *pbmp1;
-	int shiftX=0;
-	uint8_t fontColor[3] = {FontID[fontID].color&0xFF, (FontID[fontID].color>>8)&0xFF, (FontID[fontID].color>>16)&0xFF};
-	char bufTemp[30],bufTemp2[30],bufTemp3[30];
-
-	int _IfNewColorThenSetToTab(u32 color){
-		for(int i=0; i<ind; i++){
-			if(tabColor[i]==color) return 0;
-		}
-		if(ind < STRUCT_TAB_SIZE(tabColor)){ tabColor[ind++]= color;  return 1;  }
-		else										  { 								  return -1; }
-	}
-
-	int _GetIndexToTabColor(u32 color){
-		for(int i=0; i < ind; i++){
-			if(tabColor[i]==color)
-				return i;
-		}
-		return -1;
-	}
-
-	__wskBK=0;
-	__wskFont=0;
-	__wskAA=0;
-
-	start_bk=0;   _licz_bk=0;
-	start_fo=0;   _licz_fo=0;
-	start_aa=0;   _licz_aa=0;
-
-
-	for(int i=0; i < width; i++)
-	{
-			pbmp1=pbmp+3*shiftX;
-			for(int j=0; j < height; j++)
-			{
-				if((*(pbmp1+0)==backGround[0])&&(*(pbmp1+1)==backGround[1])&&(*(pbmp1+2)==backGround[2]))
-				{
-					start_bk=1;
-					if(start_fo==1){ start_fo=0;  _licz_fo++;  }
-					if(start_aa==1){ start_aa=0;  _licz_aa++;  }
-
-					__wskBK++;
-				}
-				else if((*(pbmp1+0)==fontColor[0])&&(*(pbmp1+1)==fontColor[1])&&(*(pbmp1+2)==fontColor[2]))
-				{
-					start_fo=1;
-					if(start_bk==1){ start_bk=0;  _licz_bk++;  }
-					if(start_aa==1){ start_aa=0;  _licz_aa++;  }
-
-					__wskFont++;
-				}
-				else
-				{
-					start_aa=1;
-					if(start_fo==1){ start_fo=0;  _licz_fo++;  }
-					if(start_bk==1){ start_bk=0;  _licz_bk++;  }
-
-
-					tempColor = RGB2INT(*(pbmp1+2),*(pbmp1+1),*(pbmp1+0));
-					_IfNewColorThenSetToTab(tempColor);
-					__wskAA++;
-				}
-
-				pbmp1 -= width*bit_pixel;
-
-			}
-			shiftX++;
-	}
-
-	DbgVar(1,100,"\r\n111: BK: %s    Font: %s    AA: %s (%d) ",DispLongNmb(__wskBK,bufTemp), DispLongNmb(__wskFont,bufTemp2), DispLongNmb(__wskAA,bufTemp3), ind);
-	DbgVar(1,100,"\r\n222: BK: %s    Font: %s    AA: %s \r\n",DispLongNmb(_licz_bk,bufTemp), DispLongNmb(_licz_fo,bufTemp2), DispLongNmb(_licz_aa,bufTemp3));
-
-	//--------------------------------------------------------------------------
-
-
-
-
-
-
-
 	for(j=0; j < lenTab; j++)
 	{
 		SearchFontsField(pbmp,width,height,bit_pixel,&shiftXpos,backGround);
@@ -840,6 +834,18 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 		}
 	}
 	Font[fontIndex].fontsTabPos[(int)' '][0] = shiftXpos;
+
+
+	//--------------- TEST ------------------------------------------
+
+
+
+
+	FONTS_InfoFileBMP(pbmp, width, height, fontID, bit_pixel);
+
+
+
+//--------------- END TEST ------------------------------------------
 }
 
 static void LCD_Set_ConstWidthFonts(int fontIndex)
