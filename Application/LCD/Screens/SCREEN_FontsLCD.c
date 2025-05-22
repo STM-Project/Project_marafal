@@ -1,2430 +1,4263 @@
+/*
+ * LCD_fonts_images.c
+ *
+ *  Created on: 20.04.2021
+ *      Author: Elektronika RM
+ */
 
-#include "SCREEN_FontsLCD.h"
-#include "LCD_BasicGraphics.h"
-#include "SCREEN_ReadPanel.h"
-#include "LCD_Common.h"
-#include "timer.h"
-#include "lang.h"
+#include "LCD_fonts_images.h"
+#include <string.h>
+#include <stdbool.h>
+#include "LCD_Hardware.h"
+#include "ff.h"
+#include "sd_card.h"
+#include "errors_service.h"
 #include "debug.h"
-#include "string_oper.h"
-#include "cpu_utils.h"
-#include "tim.h"
-#include "touch.h"
-#include "common.h"
 #include "mini_printf.h"
-#include "TouchLcdTask.h"
-#include "stmpe811.h"
+#include "timer.h"
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "Keyboard.h"
-#include "examples.h"
+#define MAX_FONTS_AND_IMAGES_MEMORY_SIZE	0x600000
+#define LCD_MOVABLE_FONTS_BUFF_SIZE		LCD_BUFF_XSIZE * LCD_BUFF_YSIZE
 
+#define MAX_OPEN_FONTS_SIMULTANEOUSLY	 17
+#define MAX_CHARS		256
+#define POSITION_AND_WIDTH		2
 
-/*----------------- Main Settings ------------------*/
-#define FILE_NAME(extend) SCREEN_Fonts_##extend
+#define MAX_OPEN_IMAGES_SIMULTANEOUSLY	 300
+#define MAX_IMAGE_NAME_LEN		30
+#define MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY	 40
+#define MAX_SPACE_CORRECT	100
 
-#define SCREEN_FONTS_LANG \
-	X(LANG_nazwa_0, "Czcionki LCD", "Fonts LCD") \
-	X(LANG_nazwa_1, "Zmiana kolor"ó"w czcionki", "Press to change color fonts") \
-	X(LANG_nazwa_2, "1.", "1.") \
-	X(LANG_nazwa_3, "Czer", "Red") \
-	X(LANG_nazwa_4, "Ziel", "Green") \
-	X(LANG_nazwa_5, "Nieb", "Blue") \
-	X(LANG_nazwa_6, "Zmiana kolor"ó"w t"ł"a", "Press to change color fonts background") \
-	X(LANG_nazwa_7, "2.", "2.") \
-	X(LANG_nazwa_8, "Klawiatura RGB", "Keyboard RGB") \
-	X(LANG_FontTypeAbove, "Zmiana typu czcionki", "Press to change type fonts") \
-	X(LANG_FontTypeLeft, "3.", "3.") \
-	X(LANG_FontTypeUnder, "kolor t"ł"a i czcionki", "background - font") \
-	X(LANG_FontSizeAbove,    "Zmiana rozmiaru czcionki", "Press to change size fonts") \
-	X(LANG_FontSizeLeft, 	 "4.", "4.") \
-	X(LANG_FontSizeUnder, 	 "normalna, t"ł"usta, pochy"ł"a", "normal,bold,italics") \
-	X(LANG_FontStyleAbove, "Zmiana stylu czcionki", "Press to change style fonts") \
-	X(LANG_FontStyleLeft, 	 "5.", "5.") \
-	X(LANG_FontStyleUnder, 	 "Nazwa stylu pod czcionk"ą"", "---2") \
-	X(LANG_FontCoeffAbove, "Wsp"ó""ł"czynnik", "Coefficient") \
-	X(LANG_FontCoeffLeft, 	 "6.", "6.") \
-	X(LANG_FontCoeffUnder, 	 "naci"ś"nij", "press me") \
-	X(LANG_CoeffKeyName, "Wsp"ó""ł"czyn", "Coeff") \
-	X(LANG_LenOffsWin1, "Okre"ś"lenie odst"ę"p"ó"w pom"ę"dzy literami", "Specifying the spacing between letters") \
-	X(LANG_LenOffsWin2, "Przesuwanie tekstu, zmiana pozycji kursora i zapis zmian", "Moving text, changing cursor position, editing and saving changes") \
-	X(LANG_LenOffsWin3, "Szeroko"ś""ć" tekstu", "xxxxxxx") \
-	X(LANG_LenOffsWin4, "i jego przesuni"ę"cie", "xxxxxxx") \
-	X(LANG_TimeSpeed1, "Czas za"ł"adowania czcionek", "xxxxxxx") \
-	X(LANG_TimeSpeed2, "i szybko"ś""ć" wy"ś"wietlenia", "xxxxxxx") \
-	X(LANG_WinInfo, "Zmiany odst"ę"p"ó"w mi"ę"dzy literami zosta"ł"y zapisane", "xxxxxxx") \
-	X(LANG_WinInfo2, "Reset wszystkich ustawie"ń" dla odst"ę"p"ó"w mi"ę"dzy literami", "xxxxxxx") \
-	X(LANG_MainFrameType, "Zmie"ń" wygl"ą"d", "Change appearance") \
+#define MAX_SIZE_CHANGECOLOR_BUFF	300
+#define LCD_XY_POS_MAX_NUMBER_USE	50
 
-/* MYGRAY2 in below because function 'LoadFont' must load font type of 'MYGRAY-MYGREEN' to enable to change font colors (not MYGRAY-WHITE and not enable to change font colors) */
-#define SCREEN_FONTS_SET_PARAMETERS \
-/* id   name							default value */ \
-	X(0, FONT_SIZE_Title, 	 		FONT_24_bold) \
-	X(1, FONT_SIZE_FontColor, 	 	FONT_14) \
-	X(2, FONT_SIZE_BkColor,			FONT_14) \
-	X(3, FONT_SIZE_FontType,		FONT_14) \
-	X(4, FONT_SIZE_FontSize,		FONT_14) \
-	X(5, FONT_SIZE_FontStyle,		FONT_14) \
-	X(6, FONT_SIZE_Coeff,			FONT_14) \
-	X(7, FONT_SIZE_LenWin,			FONT_14) \
-	X(8, FONT_SIZE_OffsWin,			FONT_10) \
-	X(9, FONT_SIZE_LoadFontTime,	FONT_10) \
-	X(10, FONT_SIZE_PosCursor,		FONT_10) \
-	X(11, FONT_SIZE_CPUusage,		FONT_10) \
-	X(12, FONT_SIZE_Speed,			FONT_10) \
-	X(13, FONT_SIZE_Descr, 	 		FONT_12) \
-	X(14, FONT_SIZE_Press, 	 		FONT_14) \
-	X(15, FONT_SIZE_Fonts,			FONT_20) \
-	\
-	X(16, FONT_STYLE_Title, 	 	Arial) \
-	X(17, FONT_STYLE_FontColor, 	Arial) \
-	X(18, FONT_STYLE_BkColor, 		Arial) \
-	X(19, FONT_STYLE_FontType, 	Arial) \
-	X(20, FONT_STYLE_FontSize, 	Arial) \
-	X(21, FONT_STYLE_FontStyle, 	Arial) \
-	X(22, FONT_STYLE_Coeff, 		Arial) \
-	X(23, FONT_STYLE_LenWin, 		Arial) \
-	X(24, FONT_STYLE_OffsWin, 		Arial) \
-	X(25, FONT_STYLE_LoadFontTime,Arial) \
-	X(26, FONT_STYLE_PosCursor,	Arial) \
-	X(27, FONT_STYLE_CPUusage,		Arial) \
-	X(28, FONT_STYLE_Speed,			Arial) \
-	X(29, FONT_STYLE_Descr, 		Times_New_Roman) \
-	X(30, FONT_STYLE_Press, 		Arial) \
-	X(31, FONT_STYLE_Fonts, 		Arial) \
-	\
-	X(32, FONT_COLOR_Title,  	 	WHITE) \
-	X(33, FONT_COLOR_FontColor, 	WHITE) \
-	X(34, FONT_COLOR_BkColor, 	 	WHITE) \
-	X(35, FONT_COLOR_FontType,  	WHITE) \
-	X(36, FONT_COLOR_FontSize,  	WHITE) \
-	X(37, FONT_COLOR_FontStyle,  	WHITE) \
-	X(38, FONT_COLOR_Coeff,  		WHITE) \
-	X(39, FONT_COLOR_LenWin,  		WHITE) \
-	X(40, FONT_COLOR_OffsWin,  	WHITE) \
-	X(41, FONT_COLOR_LoadFontTime,WHITE) \
-	X(42, FONT_COLOR_PosCursor,	WHITE) \
-	X(43, FONT_COLOR_CPUusage,		WHITE) \
-	X(44, FONT_COLOR_Speed,			WHITE) \
-	X(45, FONT_COLOR_Descr, 		COLOR_GRAY(0x99)) \
-	X(46, FONT_COLOR_Press, 		DARKRED) \
-	X(47, FONT_COLOR_Fonts,  		0xFFE1A000) \
-	\
-	X(48, FONT_BKCOLOR_Title,  	 	MYGRAY2) \
-	X(49, FONT_BKCOLOR_FontColor, 	MYGRAY2) \
-	X(50, FONT_BKCOLOR_BkColor, 	 	MYGRAY2) \
-	X(51, FONT_BKCOLOR_FontType,  	MYGRAY2) \
-	X(52, FONT_BKCOLOR_FontSize,  	MYGRAY2) \
-	X(53, FONT_BKCOLOR_FontStyle,  	MYGRAY2) \
-	X(54, FONT_BKCOLOR_Coeff,  		MYGRAY2) \
-	X(55, FONT_BKCOLOR_LenWin,  		MYGRAY2) \
-	X(56, FONT_BKCOLOR_OffsWin,  		MYGRAY2) \
-	X(57, FONT_BKCOLOR_LoadFontTime,	MYGRAY2) \
-	X(58, FONT_BKCOLOR_PosCursor,		MYGRAY2) \
-	X(59, FONT_BKCOLOR_CPUusage,		MYGRAY2) \
-	X(60, FONT_BKCOLOR_Speed,			MYGRAY2) \
-	X(61, FONT_BKCOLOR_Descr, 			MYGRAY2) \
-	X(62, FONT_BKCOLOR_Press, 			WHITE) \
-	X(63, FONT_BKCOLOR_Fonts,  		0x090440) \
-	\
-	X(64, COLOR_BkScreen,  			COLOR_GRAY(0x38)) \
-	X(65, COLOR_MainFrame,  		COLOR_GRAY(0xD0)) \
-	X(66, COLOR_FillMainFrame, 	COLOR_GRAY(0x31)) \
-	X(67, COLOR_Frame,  				COLOR_GRAY(0xD0)) \
-	X(68, COLOR_FillFrame, 			COLOR_GRAY(0x3B)) \
-	X(69, COLOR_FramePress, 		COLOR_GRAY(0xBA)) \
-	X(70, COLOR_FillFramePress,	COLOR_GRAY(0x60)) \
-	X(71, DEBUG_ON,  	1) \
-	X(72, BK_FONT_ROUND,  	1) \
-	X(73, LANG_SELECT,  	Polish) \
-	\
-	X(74, FONT_ID_Title,			fontID_1) \
-	X(75, FONT_ID_FontColor,	fontID_2) \
-	X(76, FONT_ID_BkColor, 		fontID_3) \
-	X(77, FONT_ID_FontType, 	fontID_4) \
-	X(78, FONT_ID_FontSize, 	fontID_5) \
-	X(79, FONT_ID_FontStyle,  	fontID_6) \
-	X(80, FONT_ID_Coeff,  		fontID_7) \
-	X(81, FONT_ID_LenWin,  		fontID_8) \
-	X(82, FONT_ID_OffsWin,  	fontID_9) \
-	X(83, FONT_ID_LoadFontTime,fontID_10) \
-	X(84, FONT_ID_PosCursor,	fontID_11) \
-	X(85, FONT_ID_CPUusage,		fontID_12) \
-	X(86, FONT_ID_Speed,			fontID_13) \
-	X(87, FONT_ID_Descr,  		fontID_14) \
-	X(88, FONT_ID_Press,  		fontID_15) \
-	X(89, FONT_ID_Fonts,  		fontID_16) \
-	\
-	X(90, FONT_VAR_Title,			fontVar_1) \
-	X(91, FONT_VAR_FontColor,		fontVar_2) \
-	X(92, FONT_VAR_BkColor, 		fontVar_3) \
-	X(93, FONT_VAR_FontType, 		fontVar_4) \
-	X(94, FONT_VAR_FontSize, 		fontVar_5) \
-	X(95, FONT_VAR_FontStyle,  	fontVar_6) \
-	X(96, FONT_VAR_Coeff,  			fontVar_7) \
-	X(97, FONT_VAR_LenWin,  		fontVar_8) \
-	X(98, FONT_VAR_OffsWin,  		fontVar_9) \
-	X(99, FONT_VAR_LoadFontTime,	fontVar_10) \
-	X(100, FONT_VAR_PosCursor,		fontVar_11) \
-	X(101, FONT_VAR_CPUusage,		fontVar_12) \
-	X(102, FONT_VAR_Speed,			fontVar_13) \
-	X(103, FONT_VAR_Fonts,  		fontVar_14) \
-	X(104, FONT_VAR_Press,  		fontVar_15) \
-/*------------ End Main Settings -----------------*/
+#define COMMON_SIGN	'.'
 
-/*------------ Main Screen MACROs -----------------*/
-#define SL(name)	(char*)FILE_NAME(Lang)[ v.LANG_SELECT==Polish ? 2*(name) : 2*(name)+1 ]
+LIST_TXT 		 LIST_TXT_Zero			 = {0};
+StructTxtPxlLen StructTxtPxlLen_Zero = {0};
+LCD_STR_PARAM	 LCD_STR_PARAM_Zero	 = {0};
 
-typedef enum{
-	#define X(a,b,c) a,
-		SCREEN_FONTS_LANG
-	#undef X
-}FILE_NAME(Lang_enum);
+static const char CharsTab_full[]="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-.,:;[]{}<>'~*()&#^=_$%\xB0@|?!\xA5\xB9\xC6\xE6\xCA\xEA\xA3\xB3\xD1\xF1\xD3\xF3\x8C\x9C\x8F\x9F\xAF\xBF/1234567890";
+static const char CharsTab_digits[]="+-1234567890.";
 
-static const char *FILE_NAME(Lang)[]={
-	#define X(a,b,c) b"\x00",c"\x00",
-		SCREEN_FONTS_LANG
-	#undef X
+static const char *TxtFontType[]={
+		"RGB-RGB",
+		"Gray-Green",
+		"RGB-White",
+		"White-Black"
+};
+static const char *TxtFontStyle[]={
+		"Arial",
+		"Times_New_Roman",
+		"Comic_Saens_MS"
+};
+static const char *BkColorFontFilePath[]={
+		"BackGround_darkGray/",
+		"BackGround_black/",
+		"BackGround_brown/",
+		"BackGround_white/"
+};
+static const char *ColorFontFilePath[]={
+		"Color_white/",
+		"Color_blue/",
+		"Color_red/",
+		"Color_green/",
+		"Color_black/"
+};
+static const char *StyleFontFilePath[]={
+		"Arial/",
+		"Times_New_Roman/",
+		"Comic_Saens_MS/",
+		"Arial_Narrow/",
+		"Calibri_Light/",
+		"Bodoni_MT_Condenset/"
+};
+static const char *TxtFontSize[]={
+		"font_8",
+		"font_8_bold",
+		"font_8_italics",
+		"font_9",
+		"font_9_bold",
+		"font_9_italics",
+		"font_10",
+		"font_10_bold",
+		"font_10_italics",
+		"font_11",
+		"font_11_bold",
+		"font_11_italics",
+		"font_12",
+		"font_12_bold",
+		"font_12_italics",
+		"font_14",
+		"font_14_bold",
+		"font_14_italics",
+		"font_16",
+		"font_16_bold",
+		"font_16_italics",
+		"font_18",
+		"font_18_bold",
+		"font_18_italics",
+		"font_20",
+		"font_20_bold",
+		"font_20_italics",
+		"font_22",
+		"font_22_bold",
+		"font_22_italics",
+		"font_24",
+		"font_24_bold",
+		"font_24_italics",
+		"font_26",
+		"font_26_bold",
+		"font_26_italics",
+		"font_28",
+		"font_28_bold",
+		"font_28_italics",
+		"font_36",
+		"font_36_bold",
+		"font_36_italics",
+		"font_48",
+		"font_48_bold",
+		"font_48_italics",
+		"font_72",
+		"font_72_bold",
+		"font_72_italics",
+		"font_130",
+		"font_130_bold",
+		"font_130_italics"
 };
 
-typedef enum{
-	#define X(a,b,c) b,
-		SCREEN_FONTS_SET_PARAMETERS
-	#undef X
-}FILE_NAME(enum);
+static const char *TxtBMP = ".bmp";
+
+static uint32_t buffChangeColorIN[MAX_SIZE_CHANGECOLOR_BUFF]={0};
+static uint32_t buffChangeColorOUT[MAX_SIZE_CHANGECOLOR_BUFF]={0};
+static int idxChangeColorBuff=0;
+static int fontsTabPos_temp[MAX_CHARS][POSITION_AND_WIDTH];
+static StructTxtPxlLen StructTxtPxlLen_ZeroValue={0,0,0};
+
+SDRAM static char fontsImagesMemoryBuffer[MAX_FONTS_AND_IMAGES_MEMORY_SIZE];
+
+static int movableFontsBuffer_pos;
+SDRAM static uint32_t movableFontsBuffer[LCD_MOVABLE_FONTS_BUFF_SIZE];
 
 typedef struct{
-	#define X(a,b,c) int b;
-		SCREEN_FONTS_SET_PARAMETERS
-	#undef X
-}FILE_NAME(struct);
-
-static FILE_NAME(struct) v ={
-	#define X(a,b,c) c,
-		SCREEN_FONTS_SET_PARAMETERS
-	#undef X
-};
-
-#define SEL_BITS_SIZE	5
-static uint32_t FILE_NAME(SelBits)[SEL_BITS_SIZE] = {0};
-static uint32_t FILE_NAME(SelTouch)[SEL_BITS_SIZE] = {0};
-/*
-static int FILE_NAME(SetDefaultParam)(int param){
-	int temp;
-	#define X(a,b,c) \
-		if(b==param){ v.b=c; temp=c; }
-		SCREEN_FONTS_SET_PARAMETERS
-	#undef X
-		return temp;
-}
-*/
-static int FILE_NAME(GetDefaultParam)(int param){
-	int temp;
-	#define X(a,b,c) \
-		if(b==param) temp=c;
-		SCREEN_FONTS_SET_PARAMETERS
-	#undef X
-		return temp;
-}
-
-void FILE_NAME(printInfo)(void){
-	if(v.DEBUG_ON){
-		Dbg(1,Clr_ CoG2_"\r\ntypedef struct{\r\n"_X);
-		DbgVar2(1,200,CoGr_"%*s %*s %*s %s\r\n"_X, -8,"id", -18,"name", -15,"default value", "value");
-		#define X(a,b,c) DbgVar2(1,200,CoGr_"%*d"_X	"%*s" 	CoGr_"= "_X	 	"%*s" 	"(%s0x%x)\r\n",-4,a,		-23,getName(b),	-15,getName(c), 	CHECK_bit( FILE_NAME(SelBits)[a/32], (a-32*(a/32)) )?CoR_"change to: "_X:"", v.b);
-			SCREEN_FONTS_SET_PARAMETERS
-		#undef X
-		DbgVar(1,200,CoG2_"}%s;\r\n"_X,getName(FILE_NAME(struct)));
-	}
-}
-//ZROBIC szablon z macro by dla kazdego pliku szybko skopioowac !!!!!!!!!!!!!!!
-int FILE_NAME(funcGet)(int offs){
-	return *( (int*)((int*)(&v) + offs) );
-}
-
-void FILE_NAME(funcSet)(int offs, int val){
-	*( (int*)((int*)(&v) + offs) ) = val;
-	SET_bit( FILE_NAME(SelBits)[offs/32], (offs-32*(offs/32)) );
-}
-
-void FILE_NAME(setDefaultAllParam)(int rst){
-	#define X(a,b,c) FILE_NAME(funcSet)(b,c);
-		SCREEN_FONTS_SET_PARAMETERS
-	#undef X
-	if(rst){
-		for(int i=0;i<SEL_BITS_SIZE;++i)
-			FILE_NAME(SelBits)[i]=0;
-	}
-}
-
-void FILE_NAME(debugRcvStr)(void);
-void FILE_NAME(setTouch)(void);
-
-void 	FILE_NAME(main)(int argNmb, char **argVal);
-/*------------ End Main Screen MACRO -----------------*/
-
-#define USE_DBG_CLR	0
-
-#define TEXT_TO_SHOW		"1234567890"//"Rafa"ł" Markielowski"
-
-#define ID_MIDDLE_TXT	LCD_XY_MIDDLE_MAX_NUMBER_USE-1
-#define POS_X_TXT		LCD_Xmiddle(ID_MIDDLE_TXT,GetPos,v.FONT_ID_Fonts,Test.txt,Test.spaceBetweenFonts,Test.constWidth)
-#define POS_Y_TXT		LCD_Ymiddle(ID_MIDDLE_TXT,GetPos,v.FONT_ID_Fonts)
-
-#define TXT_FONT_COLOR 	StrAll(7," ",INT2STR(Test.font[0])," ",INT2STR(Test.font[1])," ",INT2STR(Test.font[2])," ")
-#define TXT_BK_COLOR 	StrAll(7," ",INT2STR(Test.bk[0]),  " ",INT2STR(Test.bk[1]),  " ",INT2STR(Test.bk[2])," ")
-#define TXT_FONT_TYPE	StrAll(3," ",LCD_FontType2Str(bufTemp,0,Test.type+1)+1," ")
-#define TXT_FONT_SIZE	StrAll(3," ",LCD_FontSize2Str(bufTemp+25,Test.size)," ")
-#define TXT_FONT_STYLE	StrAll(3," ",LCD_FontStyle2Str(bufTemp,Test.style)," ")
-#define TXT_COEFF			StrAll(3," ",Int2Str(Test.coeff,Space,3,Sign_plusMinus)," ")
-#define TXT_LEN_WIN		Int2Str(Test.lenWin ,' ',3,Sign_none)
-#define TXT_OFFS_WIN		Int2Str(Test.offsWin,' ',3,Sign_none)
-#define TXT_LENOFFS_WIN StrAll(5," ",TXT_LEN_WIN," ",TXT_OFFS_WIN," ")
-#define TXT_TIMESPEED 			StrAll(4,Int2Str(Test.loadFontTime,' ',5,Sign_none)," ms   ",Int2Str(Test.speed,' ',6,Sign_none)," us")
-#define TXT_CPU_USAGE		   StrAll(2,INT2STR(osGetCPUUsage()),"c")
-
-#define RGB_FONT 	RGB2INT(Test.font[0],Test.font[1],Test.font[2])
-#define RGB_BK    RGB2INT(Test.bk[0],  Test.bk[1],  Test.bk[2])
-
-#define CHECK_TOUCH(state)		CHECK_bit(FILE_NAME(SelTouch)[state/32],(state-32*(state/32)-1))
-#define SET_TOUCH(state) 		SET_bit(FILE_NAME(SelTouch)[state/32],(state-32*(state/32)-1))
-#define CLR_TOUCH(state) 		RST_bit(FILE_NAME(SelTouch)[state/32],(state-32*(state/32)-1))
-#define CLR_ALL_TOUCH 			for(int i=0;i<SEL_BITS_SIZE;++i) FILE_NAME(SelTouch)[i]=0
-#define GET_TOUCH 				FILE_NAME(SelTouch)[0]!=0 || FILE_NAME(SelTouch)[1]!=0 || FILE_NAME(SelTouch)[2]!=0 || FILE_NAME(SelTouch)[3]!=0 || FILE_NAME(SelTouch)[4]!=0		/* determine by 'SEL_BITS_SIZE' */
-
-#define NONE_TYPE_REQ	-1
-#define MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY		20
-/* #define TOUCH_MAINFONTS_WITHOUT_DESCR */
-
-#define SELECT_CURRENT_FONT(src,dst,txt,coeff) \
-	LCD_SetStrVar_fontID		(v.FONT_VAR_##src, v.FONT_ID_##dst);\
-	LCD_SetStrVar_fontColor	(v.FONT_VAR_##src, v.FONT_COLOR_##dst);\
-	LCD_SetStrVar_bkColor  	(v.FONT_VAR_##src, v.FONT_BKCOLOR_##dst);\
-	LCD_SetStrVar_coeff		(v.FONT_VAR_##src, coeff);\
-	LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_##src, txt)
-
-#define ROLL_1		0
-
-typedef enum{
-	NoTouch = NO_TOUCH,
-	Touch_FontColor,
-	Touch_FontColor2,
-	Touch_FontColorMoveRight,
-	Touch_FontColorMoveLeft,
-	Touch_BkColor,
-	Touch_BkColor2,
-	Touch_BkColorMove,
-	Touch_FontType,
-	Touch_FontType2,
-	Touch_FontSize,
-	Touch_FontSize2,
-	Touch_FontSizeMove,
-	Touch_FontStyle,
-	Touch_FontStyle2,
-	Touch_FontCoeff,
-	Touch_FontLenOffsWin,
-
-	Touch_fontRp,
-	Touch_fontGp,
-	Touch_fontBp,
-	Touch_fontRm,
-	Touch_fontGm,
-	Touch_fontBm,
-
-	Touch_bkRp,
-	Touch_bkGp,
-	Touch_bkBp,
-	Touch_bkRm,
-	Touch_bkGm,
-	Touch_bkBm,
-
-	Touch2_bkSliderR_left,
-	Touch2_bkSliderR,
-	Touch2_bkSliderR_right,
-	Touch2_bkSliderG_left,
-	Touch2_bkSliderG,
-	Touch2_bkSliderG_right,
-	Touch2_bkSliderB_left,
-	Touch2_bkSliderB,
-	Touch2_bkSliderB_right,
-	Touch2_fontSliderR_left,
-	Touch2_fontSliderR,
-	Touch2_fontSliderR_right,
-	Touch2_fontSliderG_left,
-	Touch2_fontSliderG,
-	Touch2_fontSliderG_right,
-	Touch2_fontSliderB_left,
-	Touch2_fontSliderB,
-	Touch2_fontSliderB_right,
-
-	Touch_fontCircleSliderR,
-	Touch_fontCircleSliderG,
-	Touch_fontCircleSliderB,
-	Touch_CircleSliderStyle,
-	Touch_CircleSlider3D,
-	Touch_bkCircleSliderR,
-	Touch_bkCircleSliderG,
-	Touch_bkCircleSliderB,
-
-	Touch_style1,
-	Touch_style2,
-	Touch_style3,
-	Touch_type1,
-	Touch_type2,
-	Touch_type3,
-	Touch_type4,
-	Touch_size_plus,
-	Touch_size_minus,
-	Touch_size_norm,
-	Touch_size_bold,
-	Touch_size_italic,
-	Touch_FontSizeRoll,
-	Touch_coeff_plus,
-	Touch_coeff_minus,
-	Touch_LenWin_plus,
-	Touch_LenWin_minus,
-	Touch_OffsWin_plus,
-	Touch_OffsWin_minus,
-	Touch_PosInWin_plus,
-	Touch_PosInWin_minus,
-	Touch_SpaceFonts_plus,
-	Touch_SpaceFonts_minus,
-	Touch_DispSpaces,
-	Touch_WriteSpaces,
-	Touch_ResetSpaces,
-	Touch_SpacesInfoUp,
-	Touch_SpacesInfoDown,
-	Touch_SpacesInfoStyle,
-	Touch_SpacesInfoRoll,
-	Touch_SpacesInfoSel,
-	Touch_SpacesInfoTest,
-	Touch_MainFramesType,
-	Touch_SetTxt,
-	Move_1,
-	Move_2,
-	Move_3,
-	Point_1,
-	AnyPress,
-	AnyPressWithWait,
-	Touch_Q,Touch_W,Touch_E,Touch_R,Touch_T,Touch_Y,Touch_U,Touch_I,Touch_O,Touch_P,Touch_A,Touch_S,Touch_D,Touch_F,Touch_G,Touch_H,Touch_J,Touch_K,TOouch_L,Touch_big,Touch_Z,Touch_X,Touch_C,Touch_V,Touch_B,Touch_N,Touch_M,Touch_back,Touch_alt,Touch_exit,Touch_space,Touch_comma,Touch_dot,Touch_enter
-}TOUCH_POINTS;		/* MAX_OPEN_TOUCH_SIMULTANEOUSLY */
-
-typedef enum{
-	KEYBOARD_none,
-	KEYBOARD_fontRGB,
-	KEYBOARD_bkRGB,
-	KEYBOARD_fontSize,
-	KEYBOARD_fontSize2,
-	KEYBOARD_fontType,
-	KEYBOARD_fontStyle,
-	KEYBOARD_fontCoeff,
-	KEYBOARD_LenOffsWin,
-	KEYBOARD_sliderRGB,
-	KEYBOARD_sliderBkRGB,
-	KEYBOARD_circleSliderRGB,
-	KEYBOARD_circleSliderBkRGB,
-	KEYBOARD_setTxt,
-}KEYBOARD_TYPES;	/* MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY */
-
-typedef enum{
-	KEY_NO_RELEASE,
-	KEY_All_release,
-	KEY_Select_one,
-	KEY_Timer,
-	KEY_Timer2,
-
-	KEY_Red_plus,
-	KEY_Green_plus,
-	KEY_Blue_plus,
-	KEY_Red_minus,
-	KEY_Green_minus,
-	KEY_Blue_minus,
-
-	KEY2_bkSliderR_left,
-	KEY2_bkSliderR,
-	KEY2_bkSliderR_right,
-	KEY2_bkSliderG_left,
-	KEY2_bkSliderG,
-	KEY2_bkSliderG_right,
-	KEY2_bkSliderB_left,
-	KEY2_bkSliderB,
-	KEY2_bkSliderB_right,
-	KEY2_fontSliderR_left,
-	KEY2_fontSliderR,
-	KEY2_fontSliderR_right,
-	KEY2_fontSliderG_left,
-	KEY2_fontSliderG,
-	KEY2_fontSliderG_right,
-	KEY2_fontSliderB_left,
-	KEY2_fontSliderB,
-	KEY2_fontSliderB_right,
-
-	KEY_fontCircleSliderR,
-	KEY_fontCircleSliderG,
-	KEY_fontCircleSliderB,
-	KEY_CircleSliderStyle,
-	KEY_CircleSlider3D,
-	KEY_bkCircleSliderR,
-	KEY_bkCircleSliderG,
-	KEY_bkCircleSliderB,
-
-	KEY_Style_1,
-	KEY_Style_2,
-	KEY_Style_3,
-
-	KEY_Size_plus,
-	KEY_Size_minus,
-	KEY_Size_norm,
-	KEY_Size_bold,
-	KEY_Size_italic,
-
-	KEY_Coeff_plus,
-	KEY_Coeff_minus,
-
-	KEY_LenWin_plus,
-	KEY_LenWin_minus,
-	KEY_OffsWin_plus,
-	KEY_OffsWin_minus,
-	KEY_PosInWin_plus,
-	KEY_PosInWin_minus,
-	KEY_SpaceFonts_plus,
-	KEY_SpaceFonts_minus,
-	KEY_DispSpaces,
-	KEY_WriteSpaces,
-	KEY_ResetSpaces,
-	KEY_InfoSpacesUp,
-	KEY_InfoSpacesDown,
-	KEY_InfoSpacesStyle,
-	KEY_InfoSpacesRoll,
-	KEY_InfoSpacesSel,
-
-	KEY_Q,KEY_W,KEY_E,KEY_R,KEY_T,KEY_Y,KEY_U,KEY_I,KEY_O,KEY_P,KEY_A,KEY_S,KEY_D,KEY_F,KEY_G,KEY_H,KEY_J,KEY_K,KEY_L,KEY_big,KEY_Z,KEY_X,KEY_C,KEY_V,KEY_B,KEY_N,KEY_M,KEY_back,KEY_alt,KEY_exit,KEY_space,KEY_comma,KEY_dot,KEY_enter,
-
-}SELECT_PRESS_BLOCK;
-
-typedef enum{
-	PARAM_TYPE,
-	PARAM_SIZE,
-	PARAM_COLOR_BK,
-	PARAM_COLOR_FONT,
-	PARAM_LEN_WINDOW,
-	PARAM_OFFS_WINDOW,
-	PARAM_STYLE,
-	PARAM_COEFF,
-	PARAM_SPEED,
-	PARAM_LOAD_FONT_TIME,
-	PARAM_POS_CURSOR,
-	PARAM_CPU_USAGE,
-	PARAM_MOV_TXT,
-	FONTS
-}REFRESH_DATA;
-
-typedef enum{
-	TIMER_Cpu,
-	TIMER_InfoWrite,
-	TIMER_Release,
-	TIMER_BlockTouch,
-	TIMER_Scroll,
-}TIMER_FOR_THIS_SCREEN;
-
-static int temp;
-static char bufTemp[50];
-static int lenTxt_prev;
-static StructTxtPxlLen lenStr;
-static KEYBOARD_TYPES actualKeyboardType = KEYBOARD_none;
+	uint32_t size;
+	uint32_t style;
+	uint32_t bkColor;
+	uint32_t color;
+} ID_FONT;
+static ID_FONT FontID[MAX_OPEN_FONTS_SIMULTANEOUSLY];
 
 typedef struct{
-	int32_t bk[3];
-	int32_t font[3];
-	uint16_t xFontsField;
-	uint16_t yFontsField;
-	int8_t step;
-	int16_t coeff;
-	int16_t coeff_prev[2];
-	int8_t size;
-	uint8_t style;
-	uint32_t time;
-	int8_t type;
-	char txt[200];  //!!!!!!!!!!!!!!!!! ZMIANA TEXTU NA INNY DOWOLNY
-	int16_t lenWin;
-	int16_t offsWin;
-	int16_t lenWin_prev;
-	int16_t offsWin_prev;
-	uint8_t normBoldItal;
-	uint32_t speed;
-	uint32_t loadFontTime;
-	uint8_t posCursor;
-	uint8_t spaceCoursorY;
-	uint8_t heightCursor;
-	uint8_t spaceBetweenFonts;
-	uint8_t constWidth;
-} RGB_BK_FONT;
-static RGB_BK_FONT Test;
+	uint32_t fontSizeToIndex;
+	uint32_t fontStyleToIndex;
+	uint32_t fontBkColorToIndex;
+	uint32_t fontColorToIndex;
+	int fontsTabPos[MAX_CHARS][POSITION_AND_WIDTH];
+	int height;
+	int heightHalf;
+	char *pointerToMemoryFont;
+	uint32_t fontSdramLenght;
+} FONTS_SETTING;
+static FONTS_SETTING Font[MAX_OPEN_FONTS_SIMULTANEOUSLY]={0};
 
-static void FRAMES_GROUP_combined(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY,  int bold);
-static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY,  int boldFrame);
+typedef struct{
+	uint16_t imagesNumber;
+	uint16_t actualImage;
+	portTickType everyTime;
+} ANIMATION_SETTING;
 
-static int *ppMain[7] = {(int*)FRAMES_GROUP_combined,(int*)FRAMES_GROUP_separat,(int*)"Rafal", (int*)&Test, NULL, NULL, NULL };
-/*
-static char* TXT_PosCursor(void){
-	return Test.posCursor>0 ? Int2Str(Test.posCursor-1,' ',3,Sign_none) : StrAll(1,"off");
-}
-*/
-static void ClearCursorField(void){
-	LCD_ShapeIndirect(LCD_GetStrVar_x(v.FONT_VAR_Fonts),LCD_GetStrVar_y(v.FONT_VAR_Fonts)+LCD_GetFontHeight(v.FONT_ID_Fonts)+Test.spaceCoursorY,LCD_Rectangle, lenStr.inPixel,Test.heightCursor, v.COLOR_BkScreen,v.COLOR_BkScreen,v.COLOR_BkScreen);
-}
-static void TxtTouch(TOUCH_SET_UPDATE type){
-	switch((int)type){
-		case TouchSetNew:
-			LCD_TOUCH_DeleteSelectTouch(Touch_SetTxt);
-			LCDTOUCH_Set(POS_X_TXT, POS_Y_TXT, lenStr.inPixel, lenStr.height, ID_TOUCH_POINT,Touch_SetTxt,press);
-			break;
-		case TouchUpdate:
-			LCDTOUCH_Update(POS_X_TXT, POS_Y_TXT, lenStr.inPixel, lenStr.height, ID_TOUCH_POINT,Touch_SetTxt,press);
-			break;
-	}
-}
+typedef struct{
+	char name[MAX_IMAGE_NAME_LEN];
+	uint8_t *pointerToMemory;
+	uint32_t sdramLenght;
+	ANIMATION_SETTING Animation;
+} IMAGES_SETTING;
+static IMAGES_SETTING Image[MAX_OPEN_IMAGES_SIMULTANEOUSLY];
 
-static void SetCursor(void)  //KURSOR DLA BIG FONT DAC PODWOJNY !!!!!
+typedef struct
 {
-	ClearCursorField();
-	if(Test.posCursor)
-	{
-		uint32_t color;
-		switch(Test.type)
+	uint32_t colorIn[2];
+	uint32_t colorOut[2];
+	float aY;
+	float aCr;
+	float aCb;
+	float bY;
+	float bCr;
+	float bCb;
+}FontCoeff;
+static FontCoeff coeff;
+
+typedef struct{
+	uint32_t posBuff;
+	uint16_t xImgWidth;
+	uint16_t yImgHeight;
+	uint16_t posWin;
+	uint16_t windowWidth;
+	uint16_t windowHeight;
+	uint16_t pxlTxtLen;
+	uint16_t spaceEndStart;
+}MOVABLE_FONTS_SETTING;
+
+typedef struct{
+	uint16_t id;
+	uint16_t xPos;
+	uint16_t yPos;
+	int8_t heightType;
+	uint8_t space;
+	uint32_t bkColor;
+	uint32_t bkScreenColor;
+	uint32_t fontColor;
+	uint8_t rotate;
+	int coeff;
+	uint8_t widthType;
+	uint16_t xPos_prev;
+	uint16_t yPos_prev;
+	uint16_t widthPxl_prev;
+	uint16_t heightPxl_prev;
+	uint16_t touch_idx[MAX_SIZE_TOUCHIDX_FOR_STRVAR];
+	uint8_t bkRoundRect;
+	MOVABLE_FONTS_SETTING FontMov;
+} FONTS_VAR_SETTING;
+static FONTS_VAR_SETTING FontVar[MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY];
+
+typedef struct
+{
+	uint8_t fontStyle;
+	uint8_t fontSize;
+	char char1;
+	char char2;
+	int8_t val;
+}Struct_SpaceCorrect;
+static Struct_SpaceCorrect space[MAX_SPACE_CORRECT];
+static uint8_t StructSpaceCount=0;
+
+static uint32_t CounterBusyBytesForFontsImages=0;
+
+extern uint32_t pLcd[];
+
+/* -------------- My Settings -------------- */
+static int MyRealizeSpaceCorrect(char *txt, int id)
+{
+/*		if((FONT_20==FontID[id].size)&&(Times_New_Roman==FontID[id].style))
 		{
-			case RGB_RGB:  	color=RGB_FONT; break;
-			case Gray_Green:  color=MYGREEN;  break;
-			case RGB_White:  	color=WHITE; 	 break;
-			case White_Black:
-			default: 			color=BLACK; 	 break;
-		}
-		if(Test.posCursor>Test.lenWin)
-			Test.posCursor=Test.lenWin;
-		LCD_ShapeIndirect(LCD_GetStrVar_x(v.FONT_VAR_Fonts)+LCD_GetStrPxlWidth(v.FONT_ID_Fonts,Test.txt,Test.posCursor-1,Test.spaceBetweenFonts,Test.constWidth),LCD_GetStrVar_y(v.FONT_VAR_Fonts)+LCD_GetFontHeight(v.FONT_ID_Fonts)+Test.spaceCoursorY,LCD_Rectangle, LCD_GetFontWidth(v.FONT_ID_Fonts,Test.txt[Test.posCursor-1]),Test.heightCursor, color,color,color);
-	}
+			if((txt[0]=='i')&&(txt[1]=='j'))
+				return 20;
+		}	*/
+
+	return 0;
 }
 
-static void Data2Refresh(int nr)
+static int RealizeWidthConst(const char _char)
 {
-	switch(nr)
+	if(((_char > 0x2F) && (_char < 0x3A)) || (_char == ':') || (_char == '-'))
+		return 1;
+	else
+		return 0;
+}
+/* -------------- END My Settings -------------- */
+
+static void LCD_CopyBuff2pLcd(int rot, uint32_t posBuff, uint32_t *buff, uint32_t xImgWidth, uint32_t yImgHeight, int posWin, uint16_t windowWidth, uint16_t xPosLcd, uint16_t yPosLcd, int param)
+{
+	uint32_t n=0, offsX,offsY, pos=posBuff+posWin, posLcd=yPosLcd*LCD_GetXSize()+xPosLcd;
+	switch(rot)
 	{
-	case PARAM_TYPE:
-		lenStr=LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontType,TXT_FONT_TYPE);
-#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
-		SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontType,0, lenStr);
-#endif
-		break;
-	case PARAM_SIZE:
-		lenStr=LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontSize,TXT_FONT_SIZE);
-#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
-		SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontSize,0, lenStr);
-#endif
-		break;
-	case FONTS:
-		switch(Test.type)
-		{
-		case RGB_RGB:
-			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
-			LCD_SetStrVar_fontColor(v.FONT_VAR_Fonts,RGB_FONT);
-			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,RGB_BK);
-			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
-			StartMeasureTime_us();
-			 lenStr=LCD_StrChangeColorVarIndirect(v.FONT_VAR_Fonts,Test.txt);
-			Test.speed=StopMeasureTime_us("");
-		   TxtTouch(TouchUpdate);
-			break;
-		case Gray_Green:
-			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
-			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,MYGRAY);
-			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
-			StartMeasureTime_us();
-			lenStr=LCD_StrVarIndirect(v.FONT_VAR_Fonts,Test.txt);
-			Test.speed=StopMeasureTime_us("");
-		   TxtTouch(TouchUpdate);
-			break;
-		case RGB_White:
-			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
-			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,RGB_BK);
-			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
-			StartMeasureTime_us();
-			lenStr=LCD_StrVarIndirect(v.FONT_VAR_Fonts,Test.txt);
-		   Test.speed=StopMeasureTime_us("");
-		   TxtTouch(TouchUpdate);
-		   break;
-		case White_Black:
-			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
-			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,WHITE);
-			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
-			StartMeasureTime_us();
-			lenStr=LCD_StrVarIndirect(v.FONT_VAR_Fonts,Test.txt);
-		   Test.speed=StopMeasureTime_us("");
-		   TxtTouch(TouchUpdate);
-			break;
+	case Rotate_0:
+		for(int j=0; j<yImgHeight; ++j){
+			for(int i=0; i<windowWidth; ++i)
+				pLcd[posLcd+i] = buff[pos+n++];
+			n+=xImgWidth-windowWidth;
+			posLcd+=LCD_GetXSize();
 		}
 		break;
-	case PARAM_COLOR_BK:
-		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_BkColor,TXT_BK_COLOR);
+	case Rotate_90:
+		offsX=yImgHeight-1;
+		for(int j=0; j<yImgHeight; ++j){
+			for(int i=0; i<windowWidth; ++i)
+				pLcd[posLcd+offsX+i*LCD_GetXSize()] = buff[pos+n++];
+			n+=xImgWidth-windowWidth;
+			offsX--;
+		}
 		break;
-	case PARAM_COLOR_FONT:
-		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontColor,TXT_FONT_COLOR);
+	case Rotate_180:
+		offsX=0;
+		offsY=param;
+		for(int j=0; j<yImgHeight; ++j){
+			for(int i=0; i<windowWidth; ++i)
+				pLcd[posLcd+offsX+(offsY+windowWidth-1-i)*LCD_GetXSize()] = buff[pos+n++];
+			n+=xImgWidth-windowWidth;
+			offsX++;
+		}
 		break;
-	case PARAM_OFFS_WINDOW:
-	case PARAM_LEN_WINDOW:
-		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_LenWin, TXT_LENOFFS_WIN);
-		break;
-	case PARAM_STYLE:
-		lenStr=LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontStyle, TXT_FONT_STYLE);
-#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
-		SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontStyle,0, lenStr);
-#endif
-		break;
-	case PARAM_COEFF:
-		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_Coeff,TXT_COEFF);
-		break;
-	case PARAM_SPEED:
-	case PARAM_LOAD_FONT_TIME:
-		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_LoadFontTime, TXT_TIMESPEED);
-		break;
-	case PARAM_CPU_USAGE:
-		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_CPUusage,TXT_CPU_USAGE);
-		break;
-/*	case PARAM_POS_CURSOR:
-		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_PosCursor,TXT_PosCursor());
-		break; */
 	}
 }
-/*
-static void RefreshAllParam(void)
+
+static void LCD_CopyBuff2pLcdIndirect(int rot, uint32_t posBuff, uint32_t *buff, uint32_t xImgWidth, uint32_t yImgHeight, int posWin, uint16_t windowWidth, int param)
 {
-	Data2Refresh(FONTS);
-	Data2Refresh(PARAM_COLOR_FONT);
-	Data2Refresh(PARAM_COLOR_BK);
-	Data2Refresh(PARAM_TYPE);
-	Data2Refresh(PARAM_SIZE);
-	Data2Refresh(PARAM_STYLE);
-	Data2Refresh(PARAM_COEFF);
-	Data2Refresh(PARAM_LEN_WINDOW);
-	Data2Refresh(PARAM_OFFS_WINDOW);
-	Data2Refresh(PARAM_LOAD_FONT_TIME);
-	Data2Refresh(PARAM_SPEED);
-	Data2Refresh(PARAM_POS_CURSOR);
+	uint32_t offsX,offsY,k=0,n=0,pos=posBuff+posWin;
+	switch(rot)
+	{
+	case Rotate_0:
+		for(int j=0; j<yImgHeight; ++j){
+			for(int i=0; i<windowWidth; ++i)
+				pLcd[k++] = buff[pos+n++];
+			n+=xImgWidth-windowWidth;
+		}
+		break;
+	case Rotate_90:
+		offsX=yImgHeight-1;
+		for(int j=0; j<yImgHeight; ++j){
+			for(int i=0; i<windowWidth; ++i)
+				pLcd[offsX+i*yImgHeight] = buff[pos+n++];
+			n+=xImgWidth-windowWidth;
+			offsX--;
+		}
+		break;
+	case Rotate_180:
+		offsX=0;
+		offsY=param;
+		for(int j=0; j<yImgHeight; ++j){
+			for(int i=0; i<windowWidth; ++i)
+				pLcd[offsX+(offsY+windowWidth-1-i)*yImgHeight] = buff[pos+n++];
+			n+=xImgWidth-windowWidth;
+			offsX++;
+		}
+		break;
+	}
 }
-*/
-static void RefreshValRGB(void){
-	Data2Refresh(FONTS);
-	Data2Refresh(PARAM_COLOR_FONT);
-	Data2Refresh(PARAM_COLOR_BK);
-	Data2Refresh(PARAM_SPEED);
+
+static uint32_t k;
+static void _StartLine(uint32_t posBuff,uint32_t BkpSizeX,uint32_t x,uint32_t y){
+	k=posBuff+(y*BkpSizeX+x);
 }
-static void ChangeValRGB(char font_bk, char rgb, int32_t sign)
+static void _NextLine(uint32_t BkpSizeX,uint32_t width){
+	k+=(BkpSizeX-width);
+}
+static void _FillBuff(uint32_t *buff, int itCount, uint32_t color)
 {
-	int32_t *color;
-	int idx;
-
-	switch(font_bk)
+	if(itCount>10)
 	{
-	case 'b': color=&Test.bk[0];	break;
-	case 'f': color=&Test.font[0];	break;
+		int j=itCount/2;
+		int a=j;
+
+		uint64_t *pLcd64=(uint64_t*) (buff+k);
+		uint64_t color64=(((uint64_t)color)<<32)|((uint64_t)color);
+
+		j--;
+		while (j)
+			pLcd64[j--]=color64;
+
+		pLcd64[j]=color64;
+		k+=a+itCount/2;
+
+		if (itCount%2)
+			buff[k++]=color;
+	}
+	else
+	{
+		for(int i=0;i<itCount;++i)
+			buff[k++]=color;
+	}
+}
+static void LCD_RectangleBuff(uint32_t *buff, uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor)
+{
+	_StartLine(posBuff,BkpSizeX,x,y);
+	_FillBuff(buff, width, FrameColor);
+	if(height>1)
+	{
+		_NextLine(BkpSizeX,width);
+		for (int j=0; j<height-2; j++)
+		{
+			if(width>1)
+			{
+				_FillBuff(buff,1, FrameColor);
+				_FillBuff(buff,width-2, FillColor);
+				_FillBuff(buff,1, FrameColor);
+				_NextLine(BkpSizeX,width);
+			}
+			else
+			{
+				_FillBuff(buff,width, FillColor);
+				_NextLine(BkpSizeX,width);
+			}
+		}
+		_FillBuff(buff,width, FrameColor);
+	}
+}
+static void LCD_LittleRoundRectangleBuff(uint32_t *buff, uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor)
+{
+	_StartLine(posBuff,BkpSizeX,x,y);
+	_FillBuff(buff, 2, BkpColor);	 _FillBuff(buff, width-4, FrameColor);  _FillBuff(buff, 2, BkpColor);
+	_NextLine(BkpSizeX,width);
+	_FillBuff(buff, 1, BkpColor); _FillBuff(buff, width-2, FrameColor);  _FillBuff(buff, 1, BkpColor);
+	if(height>1)
+	{
+		_NextLine(BkpSizeX,width);
+		for (int j=0; j<height-4; j++)
+		{
+			if(width>1)
+			{
+				_FillBuff(buff,1, FrameColor);
+				_FillBuff(buff,width-2, FillColor);
+				_FillBuff(buff,1, FrameColor);
+				_NextLine(BkpSizeX,width);
+			}
+			else
+			{
+				_FillBuff(buff,width, FillColor);
+				_NextLine(BkpSizeX,width);
+			}
+		}
+		_FillBuff(buff, 1, BkpColor); _FillBuff(buff, width-2, FrameColor);  _FillBuff(buff, 1, BkpColor);
+		_NextLine(BkpSizeX,width);
+		_FillBuff(buff, 2, BkpColor);	 _FillBuff(buff, width-4, FrameColor);  _FillBuff(buff, 2, BkpColor);
+	}
+}
+
+static int RealizeSpaceCorrect(char *txt, int id)
+{
+	if(StructSpaceCount){
+		for(int i=0;i < StructSpaceCount;i++){
+			if((FontID[id].style == space[i].fontStyle) && (FontID[id].size == space[i].fontSize)){
+				if((txt[0] == space[i].char1) && (txt[1] == space[i].char2))
+					return space[i].val + MyRealizeSpaceCorrect(txt,id);
+	}}}
+	return MyRealizeSpaceCorrect(txt,id);
+}
+
+static void CorrectFloatRange(float *data, float rangeDown, float rangeUp)
+{
+	if(*data>rangeUp)
+		*data=rangeUp;
+	else if(*data<rangeDown)
+		*data=rangeDown;
+}
+
+static void CalculateFontCoeff(uint32_t colorIn_1, uint32_t colorIn_2, uint32_t colorOut_1, uint32_t colorOut_2,uint8_t maxVal)
+{
+	uint32_t R,G,B;
+	float Y_in[2],  Cr_in[2],  Cb_in[2];
+	float Y_out[2], Cr_out[2], Cb_out[2];
+
+	coeff.colorIn[0]	= 0x00FFFFFF & colorIn_1;
+	coeff.colorIn[1]	= 0x00FFFFFF & colorIn_2;
+	coeff.colorOut[0]	= 0x00FFFFFF & colorOut_1;
+	coeff.colorOut[1]	= 0x00FFFFFF & colorOut_2;
+
+	void _Color2YCrCb(int nr, uint32_t color, float *y, float *cr, float *cb)
+	{
+		R= (color>>16)&0x000000FF;
+		G= (color>>8) &0x000000FF;
+		B=  color     &0x000000FF;
+
+		if(nr)
+		{
+			if(R>maxVal) R=maxVal;
+			if(G>maxVal) G=maxVal;
+			if(B>maxVal) B=maxVal;
+		}
+
+		*y = _Y (R,G,B);
+		*cr= _Cr(R,G,B);
+		*cb= _Cb(R,G,B);
 	}
 
-	switch (rgb)
-	{
-	case 'R': idx=0; break;
-	case 'G': idx=1; break;
-	case 'B': idx=2; break;
-	}
+	_Color2YCrCb(0,coeff.colorIn[0], &Y_in[0], &Cr_in[0], &Cb_in[0]);
+	_Color2YCrCb(0,coeff.colorIn[1], &Y_in[1], &Cr_in[1], &Cb_in[1]);
 
-	switch (sign)
+	_Color2YCrCb(1,coeff.colorOut[0], &Y_out[0], &Cr_out[0], &Cb_out[0]);
+	_Color2YCrCb(1,coeff.colorOut[1], &Y_out[1], &Cr_out[1], &Cb_out[1]);
+
+	coeff.aY  = (Y_out[1] -Y_out[0])  / (Y_in[1] -Y_in[0]);
+	coeff.aCr = (Cr_out[1]-Cr_out[0]) / (Cr_in[1]-Cr_in[0]);
+	coeff.aCb = (Cb_out[1]-Cb_out[0]) / (Cb_in[1]-Cb_in[0]);
+
+	coeff.bY  = Y_out[0]  - coeff.aY  * Y_in[0];
+	coeff.bCr = Cr_out[0] - coeff.aCr * Cr_in[0];
+	coeff.bCb = Cb_out[0] - coeff.aCb * Cb_in[0];
+}
+
+static uint32_t GetCalculatedRGB(uint8_t red, uint8_t green, uint8_t blue)
+{
+	uint32_t temp = RGB2INT(red,green,blue);
+
+   for(int i=0; i<idxChangeColorBuff; i++){
+   	if(buffChangeColorIN[i]==temp)
+   		return buffChangeColorOUT[i];
+   }
+   buffChangeColorIN[idxChangeColorBuff]=temp;
+
+	float Y  = coeff.aY  * _Y (red,green,blue) + coeff.bY;
+	float Cr = coeff.aCr * _Cr(red,green,blue) + coeff.bCr;
+	float Cb = coeff.aCb * _Cb(red,green,blue) + coeff.bCb;
+
+	CorrectFloatRange(&Y,0,255);
+	CorrectFloatRange(&Cr,0,255);
+	CorrectFloatRange(&Cb,0,255);
+
+	temp = RGB2INT((uint32_t)_R(Y,Cb,Cr),(uint32_t)_G(Y,Cb,Cr),(uint32_t)_B(Y,Cb,Cr));
+
+   buffChangeColorOUT[idxChangeColorBuff++]=temp;
+   if(idxChangeColorBuff>MAX_SIZE_CHANGECOLOR_BUFF){
+   	ERROR_StrChangeColor();
+   	return 0;
+   }
+	return temp;
+}
+
+static int LoadFontIndex(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor)
+{
+    int i;
+    for(i=0; i<MAX_OPEN_FONTS_SIMULTANEOUSLY; i++)
+    {
+    	if(0==Font[i].fontSizeToIndex)
+    	{
+    		Font[i].fontSizeToIndex = fontSize+1;
+    		Font[i].fontStyleToIndex = fontStyle;
+    		Font[i].fontBkColorToIndex = backgroundColor;
+    		Font[i].fontColorToIndex = fontColor;
+    		return i;
+    	}
+    }
+    return -1;
+}
+
+static int SearchFontIndex(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor)
+{
+    int i;
+    for(i=0; i<MAX_OPEN_FONTS_SIMULTANEOUSLY; i++)
+    {
+    	if(((fontSize+1)	==	Font[i].fontSizeToIndex)&&
+    		(fontStyle	    ==	Font[i].fontStyleToIndex)&&
+			(backgroundColor==	Font[i].fontBkColorToIndex)&&
+			(fontColor	    ==	Font[i].fontColorToIndex))
+    		return i;
+    }
+    return -1;
+}
+
+static uint8_t ReturnFontSize(int fontIndex){
+	return Font[fontIndex].fontSizeToIndex-1;
+}
+
+static void SetFontHeightHalf(int fontIndex, int heightHalf){
+	Font[fontIndex].heightHalf = heightHalf;
+}
+
+static int LCD_GetFontID(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor)
+{
+    int i;
+    for(i=0; i<MAX_OPEN_FONTS_SIMULTANEOUSLY; i++)
+    {
+    	if((fontSize			==	FontID[i].size)&&
+    	   (fontStyle	    	==	FontID[i].style)&&
+		   (backgroundColor	==	FontID[i].bkColor)&&
+		   (fontColor	   	==	FontID[i].color))
+    			return i;
+    }
+    return -1;
+}
+
+static bool DynamicFontMemoryAllocation(uint32_t fontFileSize, int fontIndex)
+{
+	if(CounterBusyBytesForFontsImages+fontFileSize < MAX_FONTS_AND_IMAGES_MEMORY_SIZE)
 	{
-	case 1:
-		if(color[idx] <= 255-Test.step)
-			color[idx]+=Test.step;
+		Font[fontIndex].fontSdramLenght=fontFileSize;
+		Font[fontIndex].pointerToMemoryFont=(char*)( fontsImagesMemoryBuffer + CounterBusyBytesForFontsImages );
+		CounterBusyBytesForFontsImages += fontFileSize;
+		return true;
+	}
+	else
+		return false;
+}
+
+static void SearchFontsField(char *pbmp, uint32_t width, uint32_t height, uint32_t bit_pixel, uint32_t *shiftXpos, uint8_t *backGround)
+{
+	int i,j,k;
+	char *pbmp1;
+	j=0;
+	do
+	{
+		pbmp1=pbmp+3*(j+*shiftXpos);
+		k=0;
+		for(i=0; i < height; i++)
+		{
+			if((*(pbmp1+0)==backGround[0])&&(*(pbmp1+1)==backGround[1])&&(*(pbmp1+2)==backGround[2]))
+				k++;
+			else
+				break;
+			pbmp1 -= width*bit_pixel;
+		}
+		if(k!=height)
+		{
+			*shiftXpos+=j;
+			break;
+		}
+		j++;
+	}while(1);
+}
+
+static uint32_t CountCharLenght(char *pbmp, uint32_t width, uint32_t height, uint32_t bit_pixel, uint32_t *shiftXpos, uint8_t *backGround)
+{
+	int i,j,k;
+	char *pbmp1;
+	uint32_t charLenght=0;
+	j=0;
+	do
+	{
+		pbmp1=pbmp+3*(j+*shiftXpos);
+		k=0;
+		for(i=0; i < height; i++)
+		{
+			if((*(pbmp1+0)==backGround[0])&&(*(pbmp1+1)==backGround[1])&&(*(pbmp1+2)==backGround[2]))
+				k++;
+			else
+			{
+				k=0;
+				break;
+			}
+			pbmp1 -= width*bit_pixel;
+		}
+		if(k==height)
+		{
+			charLenght+=j;
+			break;
+		}
+		j++;
+
+	}while(1);
+	return charLenght;
+}
+
+static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, uint32_t bit_pixel, uint32_t shiftXpos, uint8_t *backGround)
+{
+	int i,j=0,m=0;
+	char *pbmp1;
+
+	pbmp1=pbmp + 3 * (j + shiftXpos);
+	m=0;
+	for(i=0;i < height;i++)
+	{
+		if((*(pbmp1 + 0) == backGround[0]) && (*(pbmp1 + 1) == backGround[1]) && (*(pbmp1 + 2) == backGround[2]))
+		{
+			if(m == 1)
+				return i;
+		}
 		else
-			color[idx]=255;
-		break;
-	case -1:
-		if(color[idx] >= Test.step)
-			color[idx]-=Test.step;
-		else
-			color[idx]=0;
-		break;
+			m=1;
+		pbmp1-=width * bit_pixel;
 	}
-	RefreshValRGB();
-}
-/*
-static void IncStepRGB(void){
-	Test.step>=255 ? 255 : Test.step++;
-}
-static void DecStepRGB(void){
-	Test.step<=0 ? 0 : Test.step--;
-}
-*/
-static void IncCoeffRGB(void){
-	switch(Test.type){
-		case RGB_RGB:
-			Test.coeff>=255 ? 255 : Test.coeff++;
-			break;
-		case RGB_White:
-			Test.coeff>=127 ? 127 : Test.coeff++;
-			break;
-		case Gray_Green:
-		case White_Black:
-			Test.coeff=0;
-			break;
-	}
-	Data2Refresh(FONTS);
-	Data2Refresh(PARAM_COEFF);
-	Data2Refresh(PARAM_SPEED);
-}
-static void DecCoeefRGB(void){
-	switch(Test.type){
-		case RGB_RGB:
-			Test.coeff<=0 ? 0 : Test.coeff--;
-			break;
-		case RGB_White:
-			Test.coeff<=-127 ? -127 : Test.coeff--;
-			break;
-		case Gray_Green:
-		case White_Black:
-			Test.coeff=0;
-			break;
-	}
-	Data2Refresh(FONTS);
-	Data2Refresh(PARAM_COEFF);
-	Data2Refresh(PARAM_SPEED);
+	return -1;
 }
 
-static int ChangeTxt(void){ //wprowadzanie z klawiatury textu !!!!!!
-	//return CopyCharsTab(Test.txt,Test.lenWin,Test.offsWin,Test.size);
+static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)
+{
 
+
+
+}
+
+static void FONTS_InfoFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)
+{
+  /*
+	--- Fonts Info --------
+	  Table Size (2B)
+	  (char) FontID[fontID]
+	  (char) Font[fontIndex]
+
+	--- Chars Table --------
+	  Table Size (2B)
+	  char1:  ASCII (1B),  address (3B)
+	  char2:  ASCII (1B),  address (3B)
+	  ...
+
+	--- Colors Table --------
+	  Table Size (2B)
+	  color bk:  	color (3B)
+	  color font:  color (3B)
+	  color AA1:   color (3B)
+	  color AA2:   color (3B)
+	  ...
+  */
+
+
+	//dla bk lub font color
+	//													 if byte0==63 to next 1 byte         if byte1==255 to next 2 bytes
+	// 3 info:	 	Bit7|Bit6 (bk,font)		 ile tych samych colorow			    (alt.:  ile= byte0(63) + byte1)					(alt.:  ile= byte0(63) + byte1(255) + (byte2 + 256*byte3))
+
+
+	//dla AA color
+	//													if byte0==63 to next 2 bytes         if byte1==255 to next 2 bytes
+	// 3 info:	 	Bit7|Bit6 (AA)			  nrTabColor dla tego coloru			    (alt.:  nr= byte0(63) + byte1)					(alt.:  nr= byte0(63) + byte1(255) + (byte2 + 256*byte3))
+
+
+
+		typedef enum{
+			bk   = 0x80,
+			font = 0x40,
+			AA   = 0xC0
+		}COLOR_TYPE;
+
+
+
+
+		u32 tabColor[500]={0}, ind=0;
+		char *pbmp1;
+		int shiftX=0;
+		uint8_t foColor[3] = {FontID[fontID].color&0xFF, (FontID[fontID].color>>8)&0xFF, (FontID[fontID].color>>16)&0xFF};
+		uint8_t bkColor[3] = {FontID[fontID].bkColor&0xFF, (FontID[fontID].bkColor>>8)&0xFF, (FontID[fontID].bkColor>>16)&0xFF};
+		char bufTemp[30],bufTemp2[30],bufTemp3[30];
+
+		int _IfNewColorThenSetToTab(u32 color){
+			for(int i=0; i<ind; i++){
+				if(tabColor[i]==color) return 0;
+			}
+			if(ind < STRUCT_TAB_SIZE(tabColor)){ tabColor[ind++]= color;  return 1;  }
+			else										  { 								  return -1; }
+		}
+
+		int _GetIndexToTabColor(u32 color){
+			for(int i=0; i < ind; i++){
+				if(tabColor[i]==color)
+					return i;
+			}
+			return -1;
+		}
+
+		u32 __wskBK=0;
+		u32 __wskFont=0;
+		u32 __wskAA=0;
+
+		u32 start_bk=0, _licz_bk=0;
+		u32 start_fo=0, _licz_fo=0;
+		u32 start_aa=0, _licz_aa=0;
+
+
+		for(int i=0; i < width; i++)
+		{
+				pbmp1=pbmp+3*shiftX;
+				for(int j=0; j < height; j++)
+				{
+					if((*(pbmp1+0)==bkColor[0])&&(*(pbmp1+1)==bkColor[1])&&(*(pbmp1+2)==bkColor[2]))
+					{
+						start_bk=1;
+						if(start_fo==1){ start_fo=0;  _licz_fo++;  }
+						if(start_aa==1){ start_aa=0;  _licz_aa++;  }
+
+						__wskBK++;
+					}
+					else if((*(pbmp1+0)==foColor[0])&&(*(pbmp1+1)==foColor[1])&&(*(pbmp1+2)==foColor[2]))
+					{
+						start_fo=1;
+						if(start_bk==1){ start_bk=0;  _licz_bk++;  }
+						if(start_aa==1){ start_aa=0;  _licz_aa++;  }
+
+						__wskFont++;
+					}
+					else
+					{
+						start_aa=1;
+						if(start_fo==1){ start_fo=0;  _licz_fo++;  }
+						if(start_bk==1){ start_bk=0;  _licz_bk++;  }
+
+
+						_IfNewColorThenSetToTab( RGB2INT(*(pbmp1+2),*(pbmp1+1),*(pbmp1+0)) );
+						__wskAA++;
+					}
+
+					pbmp1 -= width * bytesPerPxl;
+
+				}
+				shiftX++;
+		}
+
+		DbgVar(1,100,"\r\n111: BK: %s    Font: %s    AA: %s (%d) ",DispLongNmb(__wskBK,bufTemp), DispLongNmb(__wskFont,bufTemp2), DispLongNmb(__wskAA,bufTemp3), ind);
+		DbgVar(1,100,"\r\n222: BK: %s    Font: %s    AA: %s \r\n",DispLongNmb(_licz_bk,bufTemp), DispLongNmb(_licz_fo,bufTemp2), DispLongNmb(_licz_aa,bufTemp3));
+}
+
+static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontID)
+{
 	const char *pChar;
-	int i, j, lenChars;
+	uint8_t fontSize=ReturnFontSize(fontIndex);
 
-	pChar= TEXT_TO_SHOW;
-
-	lenChars=mini_strlen(pChar);
-	for(i=0;i < Test.lenWin;++i)
+	switch(fontSize)
 	{
-		j=Test.offsWin + i;
-		if(j < lenChars)
-			Test.txt[i]=pChar[j];
+	case FONT_72:
+	case FONT_72_bold:
+	case FONT_72_italics:
+	case FONT_130:
+	case FONT_130_bold:
+	case FONT_130_italics:
+		pChar=CharsTab_digits;
+		break;
+	default:
+		pChar=CharsTab_full;
+		break;
+	}
+
+	int j, lenTab=strlen(pChar);
+	uint32_t shiftXpos=0, index = 0, width = 0, height = 0, bit_pixel = 0;
+	uint8_t backGround[3];
+
+	/* Get bitmap data address offset */
+	index = pbmp[10] + (pbmp[11] << 8) + (pbmp[12] << 16)  + (pbmp[13] << 24);
+
+	/* Read bitmap width */
+	width = pbmp[18] + (pbmp[19] << 8) + (pbmp[20] << 16)  + (pbmp[21] << 24);  		/* 'width' must be multiple of 4 */
+
+	/* Read bitmap height */
+	height = pbmp[22] + (pbmp[23] << 8) + (pbmp[24] << 16)  + (pbmp[25] << 24);
+
+	/* Read bit/pixel */
+	bit_pixel = pbmp[28] + (pbmp[29] << 8);
+	bit_pixel/=8;
+
+	pbmp += (index + (width * height * bit_pixel));
+	pbmp -= width*bit_pixel;
+
+	backGround[0]=pbmp[0];
+	backGround[1]=pbmp[1];
+	backGround[2]=pbmp[2];
+
+	Font[fontIndex].height=height;
+
+	for(j=0; j < lenTab; j++)
+	{
+		SearchFontsField(pbmp,width,height,bit_pixel,&shiftXpos,backGround);
+		if(pChar[j]=='.')  SetFontHeightHalf(fontIndex, CountHalfHeightForDot(pbmp,width,height,bit_pixel,shiftXpos,backGround)+2);
+		Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1] = CountCharLenght(pbmp,width,height,bit_pixel,&shiftXpos,backGround);
+		Font[fontIndex].fontsTabPos[ (int)pChar[j] ][0] = shiftXpos;
+		shiftXpos += (Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1]+1);
+		if(j==0){
+			Font[fontIndex].fontsTabPos[(int)' '   ][1] = (2*Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1])/3; 		/* sign pixel width of 'space' is calculated as 2/3 first sign pixel width of tab[] */
+			Font[fontIndex].fontsTabPos[(int)_L_[0]][1] = 0;
+			Font[fontIndex].fontsTabPos[(int)_E_[0]][1] = 0;
+		}
+	}
+	Font[fontIndex].fontsTabPos[(int)' '][0] = shiftXpos;
+
+
+	//--------------- TEST ------------------------------------------
+
+
+
+
+	FONTS_InfoFileBMP(pbmp, width, height, fontID, bit_pixel);
+
+
+
+//--------------- END TEST ------------------------------------------
+}
+
+static void LCD_Set_ConstWidthFonts(int fontIndex)
+{
+	const char *pChar;
+	uint8_t fontSize=ReturnFontSize(fontIndex);
+
+	switch(fontSize)
+	{
+	case FONT_72:
+	case FONT_72_bold:
+	case FONT_72_italics:
+	case FONT_130:
+	case FONT_130_bold:
+	case FONT_130_italics:
+		pChar=CharsTab_digits;
+		break;
+	default:
+		pChar=CharsTab_full;
+		break;
+	}
+	int j, lenTab=strlen(pChar);
+
+	int maxWidth=0;
+	for(j=0;j < lenTab;j++)
+	{
+		if(RealizeWidthConst(pChar[j]))
+		{
+			if(Font[fontIndex].fontsTabPos[(int) pChar[j]][1] > maxWidth)
+				maxWidth=Font[fontIndex].fontsTabPos[(int) pChar[j]][1];
+		}
+	}
+	for(j=0;j < lenTab;j++)
+	{
+		if(RealizeWidthConst(pChar[j]))
+		{
+			fontsTabPos_temp[(int) pChar[j]][0]=Font[fontIndex].fontsTabPos[(int) pChar[j]][0];
+			fontsTabPos_temp[(int) pChar[j]][1]=Font[fontIndex].fontsTabPos[(int) pChar[j]][1];
+
+			Font[fontIndex].fontsTabPos[(int) pChar[j]][0]-=(maxWidth - Font[fontIndex].fontsTabPos[(int) pChar[j]][1]) / 2;
+			Font[fontIndex].fontsTabPos[(int) pChar[j]][1]=maxWidth;
+		}
+	}
+	fontsTabPos_temp[(int) ' '][1]=Font[fontIndex].fontsTabPos[(int) ' '][1];
+	Font[fontIndex].fontsTabPos[(int) ' '][1]=maxWidth;
+}
+
+static void LCD_Reset_ConstWidthFonts(int fontIndex)
+{
+	const char *pChar;
+	uint8_t fontSize=ReturnFontSize(fontIndex);
+
+	switch(fontSize)
+	{
+	case FONT_72:
+	case FONT_72_bold:
+	case FONT_72_italics:
+	case FONT_130:
+	case FONT_130_bold:
+	case FONT_130_italics:
+		pChar=CharsTab_digits;
+		break;
+	default:
+		pChar=CharsTab_full;
+		break;
+	}
+	int j, lenTab=strlen(pChar);
+
+	for(j=0; j < lenTab; j++)
+	{
+		if(RealizeWidthConst(pChar[j]))
+		{
+			Font[fontIndex].fontsTabPos[ (int)pChar[j] ][0] = fontsTabPos_temp[(int)pChar[j]][0];
+			Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1] = fontsTabPos_temp[(int)pChar[j]][1];
+		}
+	}
+	Font[fontIndex].fontsTabPos[(int)' '][1] = fontsTabPos_temp[(int)' '][1];
+}
+
+static void _Middle_RoundRectangleFrame(uint32_t *buff, int fillHeight, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpSizeX, uint32_t width, uint32_t height){
+	int _height = height-fillHeight;
+	int _width = width-2;
+	if(1/*rectangleFrame*/)
+	{
+		for (int j=0; j<_height; j++)
+		{
+			_FillBuff(buff,1, FrameColor);
+			_FillBuff(buff,_width, FillColor);
+			_FillBuff(buff,1, FrameColor);
+			_NextLine(BkpSizeX,width);
+		}
+	}
+	else
+	{
+		for (int j=0; j<_height; j++)
+		{
+			_FillBuff(buff,1, FrameColor);
+			k+=_width;
+			_FillBuff(buff,1, FrameColor);
+			_NextLine(BkpSizeX,width);
+		}
+	}
+}
+
+static void LCD_RoundRectangleBuff(uint32_t *buff, uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor)
+{
+	#define A(a,b) 	_FillBuff(buff,a,b)
+
+	uint8_t thickness = BkpColor>>24;
+	uint32_t o1,o2;
+	uint32_t i1 = GetTransitionColor(FrameColor,FillColor,0.55);
+	uint32_t i2 = GetTransitionColor(FrameColor,FillColor,0.73);
+
+	if((thickness==0)||(thickness==255)){
+		o1 = GetTransitionColor(FrameColor,BkpColor,0.55);
+		o2 = GetTransitionColor(FrameColor,BkpColor,0.73);
+	}
+
+	void _Fill(int x){
+		A(x,FillColor);
+	}
+
+	void _Out_AA_left(int stage)
+	{
+		if((thickness==0)||(thickness==255))
+		{	switch(stage)
+			{
+			case 0:	A(3,BkpColor); A(1,o2); A(1,o1);  break;
+			case 1:	A(2,BkpColor); A(1,o1);  break;
+			case 2:	A(1,BkpColor); A(1,o1);  break;
+			case 3:	A(1,o2); break;
+			case 4:	A(1,o1); break;
+			}
+		}
+		else
+		{  switch(stage)
+			{
+			case 0:	k+=5; break;
+			case 1:	k+=3; break;
+			case 2:	k+=2; break;
+			case 3:	k+=1; break;
+			case 4:	k+=1; break;
+			}
+		}
+	}
+
+	void _Out_AA_right(int stage)
+	{
+		if((thickness==0)||(thickness==255))
+		{	switch(stage)
+			{
+			case 0:	A(1,o1); A(1,o2); A(3,BkpColor);  break;
+			case 1:	A(1,o1); A(2,BkpColor);  break;
+			case 2:	A(1,o1); A(1,BkpColor);  break;
+			case 3:	A(1,o2); break;
+			case 4:	A(1,o1); break;
+			}
+		}
+		else
+		{	switch(stage)
+			{
+			case 0:	k+=5; break;
+			case 1:	k+=3; break;
+			case 2:	k+=2; break;
+			case 3:	k+=1; break;
+			case 4:	k+=1; break;
+			}
+		}
+	}
+
+	_StartLine(posBuff,BkpSizeX,x,y);
+	_Out_AA_left(0); A(width-10,FrameColor); _Out_AA_right(0);
+	_NextLine(BkpSizeX,width);
+	_Out_AA_left(1); A(2,FrameColor); A(1,i1);A(1,i2); _Fill(width-14); A(1,i2);A(1,i1);A(2,FrameColor); _Out_AA_right(1);
+	_NextLine(BkpSizeX,width);
+	_Out_AA_left(2); A(1,FrameColor); A(1,i1); _Fill(width-8); A(1,i1); A(1,FrameColor); _Out_AA_right(2);
+	_NextLine(BkpSizeX,width);
+	_Out_AA_left(3); A(1,FrameColor); A(1,i1); _Fill(width-6); A(1,i1); A(1,FrameColor); _Out_AA_right(3);
+	_NextLine(BkpSizeX,width);
+	_Out_AA_left(4); A(1,FrameColor); _Fill(width-4); A(1,FrameColor); _Out_AA_right(4);
+	_NextLine(BkpSizeX,width);
+
+	A(1,FrameColor);  A(1,i1); _Fill(width-4); A(1,i1); A(1,FrameColor);
+	_NextLine(BkpSizeX,width);
+	A(1,FrameColor);  A(1,i2); _Fill(width-4); A(1,i2); A(1,FrameColor);
+	_NextLine(BkpSizeX,width);
+
+	_Middle_RoundRectangleFrame(buff,14,FrameColor,FillColor,BkpSizeX,width,height);
+
+	A(1,FrameColor);  A(1,i2); _Fill(width-4); A(1,i2); A(1,FrameColor);
+	_NextLine(BkpSizeX,width);
+	A(1,FrameColor);  A(1,i1); _Fill(width-4); A(1,i1); A(1,FrameColor);
+	_NextLine(BkpSizeX,width);
+
+	_Out_AA_left(4); A(1,FrameColor); _Fill(width-4); A(1,FrameColor); _Out_AA_right(4);
+	_NextLine(BkpSizeX,width);
+	_Out_AA_left(3); A(1,FrameColor); A(1,i1); _Fill(width-6); A(1,i1); A(1,FrameColor); _Out_AA_right(3);
+	_NextLine(BkpSizeX,width);
+	_Out_AA_left(2); A(1,FrameColor); A(1,i1); _Fill(width-8); A(1,i1); A(1,FrameColor); _Out_AA_right(2);
+	_NextLine(BkpSizeX,width);
+	_Out_AA_left(1); A(2,FrameColor); A(1,i1);A(1,i2); _Fill(width-14); A(1,i2);A(1,i1);A(2,FrameColor); _Out_AA_right(1);
+	_NextLine(BkpSizeX,width);
+	_Out_AA_left(0); A(width-10,FrameColor); _Out_AA_right(0);
+
+	#undef  A
+}
+
+static StructTxtPxlLen LCD_DrawStrToBuff(uint32_t posBuff,uint32_t windowX,uint32_t windowY,int id, int X, int Y_, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth)
+{
+	StructTxtPxlLen structTemp={0,0,0};
+	int idVar = id>>16;
+	id=id&0x0000FFFF;
+	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
+	if(fontIndex==-1)
+		return structTemp;
+	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
+	int i,j,n,o,temp,lenTxt,lenTxtInPixel=0;
+	int posX=X, posY=Y_&0xFFFF, Y=Y_&0xFFFF;
+	char *pbmp;
+	uint32_t index=0, width=0, height=0, bit_pixel=0;
+	uint32_t backGround;
+	uint32_t pos, pos2, xi;
+	uint32_t Y_bkColor;
+
+	if(constWidth)
+		LCD_Set_ConstWidthFonts(fontIndex);
+
+	/* Get bitmap data address offset */
+	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
+	/* Read bitmap width */
+	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
+	/* Read bitmap height */
+	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
+	/* Read bit/pixel */
+	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
+	bit_pixel/=8;
+
+	fontsBuffer += (index + (width * height * bit_pixel));
+	fontsBuffer -= width*bit_pixel;
+
+	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];
+
+	if(OnlyDigits==halfHight)
+		height=Font[fontIndex].heightHalf;
+
+	if(0==(Y_>>16)) j=strlen(txt);
+	else				 j=Y_>>16;
+
+	for(i=0;i<j;i++)
+	{
+		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
+		if(posX+lenTxtInPixel+temp <= windowX)
+			lenTxtInPixel += temp;
+		else break;
+	}
+	lenTxt=i;
+
+	if(bkColor)
+	{
+		if(id==LCD_GetStrVar_fontID(idVar))
+		{
+			switch(LCD_GetStrVar_bkRoundRect(idVar))
+			{
+			case BK_Rectangle:
+				LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,bkColor);
+				break;
+			case BK_Round:
+				LCD_RoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				break;
+			case BK_LittleRound:
+				LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				break;
+			case BK_None:
+				break;
+			}
+		}
+		else LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,bkColor);
+
+		Y_bkColor= COLOR_TO_Y(bkColor)+coeff;
+	}
+
+	for(n=0;n<lenTxt;++n)
+	{
+		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
+		pos2= posBuff+(windowX*posY + posX);
+		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
+
+		for(j=0; j < height; ++j)
+		{
+			if(Y+j>=windowY)
+				break;
+			pos=pos2+windowX*j;
+			o=0;
+			for(i=0; i<xi; ++i)
+			{
+				if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
+				{
+					LcdBuffer[pos+i]= *((uint32_t*)(pbmp+o));
+
+					if(coeff!=0)
+					{
+						if(coeff>0)
+						{
+							if(COLOR_TO_Y(LcdBuffer[pos+i]) < Y_bkColor)
+								LcdBuffer[pos+i]= bkColor;
+						}
+						else
+						{
+							if(COLOR_TO_Y(LcdBuffer[pos+i]) > Y_bkColor)
+								LcdBuffer[pos+i]= bkColor;
+						}
+					}
+				}
+				o+=3;
+			}
+			pbmp -= width*bit_pixel;
+		}
+		posX += xi;
+		posX += space + RealizeSpaceCorrect(txt+n,id);
+	}
+
+	if(constWidth)
+		LCD_Reset_ConstWidthFonts(fontIndex);
+
+	structTemp.inChar=lenTxt;
+	structTemp.inPixel=lenTxtInPixel;
+	structTemp.height=j;
+	return structTemp;
+}
+
+static StructTxtPxlLen LCD_DrawStrIndirectToBuffAndDisplay(uint32_t posBuff, int displayOn, uint32_t maxSizeX, uint32_t maxSizeY, int id, int X, int Y, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth)
+{
+	StructTxtPxlLen structTemp={0,0,0};
+	int idVar = id>>16;
+	id=id&0x0000FFFF;
+	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
+	if(fontIndex==-1)
+		return structTemp;
+	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
+	int i,j,n,o,lenTxt,temp,lenTxtInPixel=0;
+	int posX=0;
+	char *pbmp;
+	uint32_t index=0, width=0, height=0, bit_pixel=0;
+	uint32_t backGround;
+	uint32_t pos, pos2, xi;
+	uint32_t Y_bkColor;
+
+	if(constWidth)
+		LCD_Set_ConstWidthFonts(fontIndex);
+
+	/* Get bitmap data address offset */
+	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
+	/* Read bitmap width */
+	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
+	/* Read bitmap height */
+	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
+	/* Read bit/pixel */
+	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
+	bit_pixel/=8;
+
+	fontsBuffer += (index + (width * height * bit_pixel));
+	fontsBuffer -= width*bit_pixel;
+
+	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];
+
+	if(OnlyDigits==halfHight)
+		height=Font[fontIndex].heightHalf;
+
+	j=strlen(txt);
+	for(i=0;i<j;i++)
+	{
+		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
+		if(X+lenTxtInPixel+temp <= maxSizeX)
+			lenTxtInPixel += temp;
+		else break;
+	}
+	lenTxt=i;
+
+	if(bkColor)
+	{
+		if(id==LCD_GetStrVar_fontID(idVar))
+		{
+			switch(LCD_GetStrVar_bkRoundRect(idVar))
+			{
+			case BK_Rectangle:
+				LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,bkColor);
+				break;
+			case BK_Round:
+				LCD_RoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				break;
+			case BK_LittleRound:
+				LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				break;
+			case BK_None:
+				break;
+			}
+		}
+		else LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,bkColor);
+
+		Y_bkColor= COLOR_TO_Y(bkColor)+coeff;
+	}
+
+	for(n=0;n<lenTxt;++n)
+	{
+		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
+		pos2= posBuff+posX;
+		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
+
+		for(j=0; j < height; ++j)
+		{
+			if(Y+j>=maxSizeY)
+				break;
+			pos=pos2+lenTxtInPixel*j;
+			o=0;
+			for(i=0; i<xi; ++i)
+			{
+				if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
+				{
+					LcdBuffer[pos+i]= *((uint32_t*)(pbmp+o));
+
+					if(coeff!=0)
+					{
+						if(coeff>0)
+						{
+							if(COLOR_TO_Y(LcdBuffer[pos+i]) < Y_bkColor)
+								LcdBuffer[pos+i]= bkColor;
+						}
+						else
+						{
+							if(COLOR_TO_Y(LcdBuffer[pos+i]) > Y_bkColor)
+								LcdBuffer[pos+i]= bkColor;
+						}
+					}
+				}
+				o+=3;
+			}
+			pbmp -= width*bit_pixel;
+		}
+		posX += xi;
+		posX += space + RealizeSpaceCorrect(txt+n,id);
+	}
+
+	if(constWidth)
+		LCD_Reset_ConstWidthFonts(fontIndex);
+
+	if(displayOn)
+		LCD_DisplayBuff((uint32_t)X,(uint32_t)Y,(uint32_t)lenTxtInPixel,(uint32_t)j,LcdBuffer+posBuff);
+	structTemp.inChar=lenTxt;
+	structTemp.inPixel=lenTxtInPixel;
+	structTemp.height=j;
+	return structTemp;
+
+}
+static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t windowX,uint32_t windowY,int id, int X, int Y_, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t NewBkColor, uint32_t NewFontColor, int constWidth)
+{
+	StructTxtPxlLen structTemp={0,0,0};
+	int idVar = id>>16;
+	id=id&0x0000FFFF;
+	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
+	if(fontIndex==-1)
+		return structTemp;
+	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
+	int i,j,n,o,lenTxt,temp,lenTxtInPixel=0;
+	int posX=X, posY=Y_&0xFFFF, Y=Y_&0xFFFF;
+	char *pbmp;
+	uint32_t index=0, width=0, height=0, bit_pixel=0;
+	uint32_t backGround /*=(FontID[id].bkColor & 0x00FFFFFF)*/, currColor, fontColor=(FontID[id].color & 0x00FFFFFF);
+	uint32_t pos, pos2, xi;
+
+	if(constWidth)
+		LCD_Set_ConstWidthFonts(fontIndex);
+
+	/* Get bitmap data address offset */
+	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
+	/* Read bitmap width */
+	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
+	/* Read bitmap height */
+	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
+	/* Read bit/pixel */
+	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
+	bit_pixel/=8;
+
+	fontsBuffer += (index + (width * height * bit_pixel));
+	fontsBuffer -= width*bit_pixel;
+
+	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];		/* = (FontID[id].color & 0x00FFFFFF) */
+
+	if(OnlyDigits==halfHight)
+		height=Font[fontIndex].heightHalf;
+
+	if(0==(Y_>>16)) j=strlen(txt);
+	else				 j=Y_>>16;
+
+	for(i=0;i<j;i++)
+	{
+		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
+		if(posX+lenTxtInPixel+temp <= windowX)
+			lenTxtInPixel += temp;
+		else break;
+	}
+	lenTxt=i;
+
+	if(id==LCD_GetStrVar_fontID(idVar))
+	{
+		switch(LCD_GetStrVar_bkRoundRect(idVar))
+		{
+		case BK_Rectangle:
+			LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,NewBkColor);
+			break;
+		case BK_Round:
+			LCD_RoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
+			break;
+		case BK_LittleRound:
+			LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
+			break;
+		case BK_None:
+			break;
+		}
+	}
+	else LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,NewBkColor);
+
+	idxChangeColorBuff=0;
+   for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
+   	buffChangeColorIN[i]=0;
+   	buffChangeColorOUT[i]=0;
+   }
+
+	for(n=0;n<lenTxt;++n)
+	{
+		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
+		pos2= posBuff+(windowX*posY + posX);
+		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
+
+		for(j=0; j < height; ++j)
+		{
+			if(Y+j>=windowY)
+				break;
+			pos=pos2+windowX*j;
+			o=0;
+			for(i=0; i<xi; ++i)
+			{
+		/*		if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
+					LcdBuffer[pos+i] = GetCalculatedRGB(*(pbmp+o+2),*(pbmp+o+1),*(pbmp+o+0));		*/
+
+				currColor = (*((uint32_t*)(pbmp+o))&0x00FFFFFF);
+				if (currColor != backGround)
+				{
+					if (currColor == fontColor)
+						LcdBuffer[pos+i] = NewFontColor;
+					else	/* transition color */
+						LcdBuffer[pos+i]=GetTransitionColor(NewFontColor&0x00FFFFFF, LcdBuffer[pos+i]&0x00FFFFFF, GetTransitionCoeff(fontColor,backGround,currColor));
+				}
+
+				o+=3;
+			}
+			pbmp -= width*bit_pixel;
+		}
+		posX += xi;
+		posX += space + RealizeSpaceCorrect(txt+n,id);
+	}
+
+	if(constWidth)
+		LCD_Reset_ConstWidthFonts(fontIndex);
+
+	structTemp.inChar=lenTxt;
+	structTemp.inPixel=lenTxtInPixel;
+	structTemp.height=j;
+	return structTemp;
+
+}
+
+static StructTxtPxlLen LCD_DrawStrChangeColorIndirectToBuffAndDisplay(uint32_t posBuff, int displayOn, uint32_t maxSizeX, uint32_t maxSizeY, int id, int X, int Y, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t NewBkColor, uint32_t NewFontColor, int constWidth)
+{
+	StructTxtPxlLen structTemp={0,0,0};
+	int idVar = id>>16;
+	id=id&0x0000FFFF;
+	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
+	if(fontIndex==-1)
+		return structTemp;
+	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
+	int i,j,n,o,lenTxt,temp,lenTxtInPixel=0;
+	int posX=0;
+	char *pbmp;
+	uint32_t index=0, width=0, height=0, bit_pixel=0;
+	uint32_t backGround /*=(FontID[id].bkColor & 0x00FFFFFF)*/, currColor, fontColor=(FontID[id].color & 0x00FFFFFF);
+	uint32_t pos, pos2, xi;
+
+	if(constWidth)
+		LCD_Set_ConstWidthFonts(fontIndex);
+
+	/* Get bitmap data address offset */
+	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
+	/* Read bitmap width */
+	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
+	/* Read bitmap height */
+	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
+	/* Read bit/pixel */
+	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
+	bit_pixel/=8;
+
+	fontsBuffer += (index + (width * height * bit_pixel));
+	fontsBuffer -= width*bit_pixel;
+
+	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];
+
+	if(OnlyDigits==halfHight)
+		height=Font[fontIndex].heightHalf;
+
+	j=strlen(txt);
+	for(i=0;i<j;i++)
+	{
+		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
+		if(X+lenTxtInPixel+temp <= maxSizeX)
+			lenTxtInPixel += temp;
+		else break;
+	}
+	lenTxt=i;
+
+	if(id==LCD_GetStrVar_fontID(idVar))
+	{
+		switch(LCD_GetStrVar_bkRoundRect(idVar))
+		{
+		case BK_Rectangle:
+			LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,NewBkColor);
+			break;
+		case BK_Round:
+			LCD_RoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
+			break;
+		case BK_LittleRound:
+			LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
+			break;
+		case BK_None:
+			break;
+		}
+	}
+	else LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,NewBkColor);
+
+	idxChangeColorBuff=0;
+   for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
+   	buffChangeColorIN[i]=0;
+   	buffChangeColorOUT[i]=0;
+   }
+
+	for(n=0;n<lenTxt;++n)
+	{
+		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
+		pos2= posBuff+posX;
+		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
+
+		for(j=0; j < height; ++j)
+		{
+			if(Y+j>=maxSizeY)
+				break;
+			pos=pos2+lenTxtInPixel*j;
+			o=0;
+			for(i=0; i<xi; ++i)
+			{
+		/*		if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
+					LcdBuffer[pos+i] = GetCalculatedRGB(*(pbmp+o+2),*(pbmp+o+1),*(pbmp+o+0));		*/
+
+				currColor = (*((uint32_t*)(pbmp+o))&0x00FFFFFF);
+				if (currColor != backGround)
+				{
+					if (currColor == fontColor)
+						LcdBuffer[pos+i] = NewFontColor;
+					else	/* transition color */
+						LcdBuffer[pos+i]=GetTransitionColor(NewFontColor&0x00FFFFFF, LcdBuffer[pos+i]&0x00FFFFFF, GetTransitionCoeff(fontColor,backGround,currColor));
+				}
+
+				o+=3;
+			}
+			pbmp -= width*bit_pixel;
+		}
+		posX += xi;
+		posX += space + RealizeSpaceCorrect(txt+n,id);
+	}
+
+	if(constWidth)
+		LCD_Reset_ConstWidthFonts(fontIndex);
+
+	if(displayOn)
+		LCD_DisplayBuff((uint32_t)X,(uint32_t)Y,(uint32_t)lenTxtInPixel,(uint32_t)j,LcdBuffer+posBuff);
+	structTemp.inChar=lenTxt;
+	structTemp.inPixel=lenTxtInPixel;
+	structTemp.height=j;
+	return structTemp;
+}
+
+static StructTxtPxlLen LCD_DrawStr(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, uint32_t *LcdBuffer, int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth){
+	if((fontID&0x0000FFFF) < MAX_OPEN_FONTS_SIMULTANEOUSLY)
+		return LCD_DrawStrToBuff(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,LcdBuffer,OnlyDigits,space,bkColor,coeff,constWidth);
+	else
+		return StructTxtPxlLen_ZeroValue;
+}
+static StructTxtPxlLen LCD_DrawStrIndirect(uint32_t posBuff,int displayOn,uint32_t maxSizeX,uint32_t maxSizeY,int fontID, int Xpos, int Ypos, char *txt, uint32_t *LcdBuffer, int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth){
+	if((fontID&0x0000FFFF) < MAX_OPEN_FONTS_SIMULTANEOUSLY)
+		return LCD_DrawStrIndirectToBuffAndDisplay(posBuff,displayOn,maxSizeX,maxSizeY,fontID,Xpos,Ypos,txt,LcdBuffer,OnlyDigits,space,bkColor,coeff,constWidth);
+	else
+		return StructTxtPxlLen_ZeroValue;
+}
+static StructTxtPxlLen LCD_DrawStrChangeColor(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, uint32_t *LcdBuffer, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor, uint8_t maxVal, int constWidth){
+	if((fontID&0x0000FFFF) < MAX_OPEN_FONTS_SIMULTANEOUSLY){
+	/*	CalculateFontCoeff(FontID[fontID&0x0000FFFF].bkColor,FontID[fontID&0x0000FFFF].color,bkColor,fontColor,maxVal); */
+		return LCD_DrawStrChangeColorToBuff(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,LcdBuffer,OnlyDigits,space,bkColor,fontColor,constWidth);
+	}
+	else
+		return StructTxtPxlLen_ZeroValue;
+}
+static StructTxtPxlLen LCD_DrawStrChangeColorIndirect(uint32_t posBuff,int displayOn,uint32_t maxSizeX,uint32_t maxSizeY,int fontID, int Xpos, int Ypos, char *txt, uint32_t *LcdBuffer, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor, uint8_t maxVal, int constWidth){
+	if((fontID&0x0000FFFF) < MAX_OPEN_FONTS_SIMULTANEOUSLY){
+	/*	CalculateFontCoeff(FontID[fontID&0x0000FFFF].bkColor,FontID[fontID&0x0000FFFF].color,bkColor,fontColor,maxVal); */
+		return LCD_DrawStrChangeColorIndirectToBuffAndDisplay(posBuff,displayOn,maxSizeX,maxSizeY,fontID,Xpos,Ypos,txt,LcdBuffer,OnlyDigits,space,bkColor,fontColor,constWidth);
+	}
+	else
+		return StructTxtPxlLen_ZeroValue;
+}
+
+static void LCD_StartInsertingSpacesBetweenFonts(void){
+	for(int i=0;i<MAX_SPACE_CORRECT;i++){
+		space[i].fontStyle=0;
+		space[i].fontSize=0;
+		space[i].char1=0;
+		space[i].char2=0;
+		space[i].val=0;
+	}
+	StructSpaceCount=0;
+}
+static uint8_t* LCD_GetPtr2SpacesBetweenFontsStruct(void){
+	return &space[0].fontStyle;
+}
+static int LCD_GetSpacesBetweenFontsStructSize(void){
+	return sizeof(space);
+}
+static uint8_t* LCD_GetStructSpaceCount(void){
+	return &StructSpaceCount;
+}
+static int ReadSpacesBetweenFontsFromSDcard(void){
+	if(TakeMutex(Semphr_cardSD,1000)){
+		if(FR_OK==SDCardFileOpen(0,"Spaces_Between_Font.bin",FA_READ)){
+			SDCardFileRead(0,(char*)LCD_GetStructSpaceCount(),1);
+			SDCardFileRead(0,(char*)LCD_GetPtr2SpacesBetweenFontsStruct(),LCD_GetSpacesBetweenFontsStructSize());
+			SDCardFileClose(0);
+			GiveMutex(Semphr_cardSD);
+			return 0;
+		}
+		else{ GiveMutex(Semphr_cardSD); return 1; }
+	}
+	return 2;
+}
+
+/* ------------ Global Declarations ------------ */
+
+int SETVAL_char(uint32_t nrVal, char val){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal ){
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal] = val;
+		return 1;
+	}
+	return 0;
+}
+int SETVAL_str(uint32_t nrVal, char* val, uint32_t len){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal + len ){
+		for(int i=0; i<len; i++)
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + i] = *(val+i);
+		return 1;
+	}
+	return 0;
+}
+int SETVAL_int16(uint32_t nrVal, uint16_t val){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal+1 ){
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal]   = val>>8;
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+1] = val;
+		return 1;
+	}
+	return 0;
+}
+int SETVAL_int32(uint32_t nrVal, uint32_t val){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal+3 ){
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal]   = val>>24;
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+1] = val>>16;
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+2] = val>>8;
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+3] = val;
+		return 1;
+	}
+	return 0;
+}
+int SETVAL_array16(uint32_t nrVal, uint16_t* val, uint32_t len){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal + 2*len ){
+		for(int i=0,j=0; i<len; i++){
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j++] = *(val+i)>>8;
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j++] = *(val+i);
+		}
+		return 1;
+	}
+	return 0;
+}
+int SETVAL_array32(uint32_t nrVal, uint32_t* val, uint32_t len){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal + 4*len ){
+		for(int i=0,j=0; i<len; i++){
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j++] = *(val+i)>>24;
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j++] = *(val+i)>>16;
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j++] = *(val+i)>>8;
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j++] = *(val+i);
+		}
+		return 1;
+	}
+	return 0;
+}
+
+char* GETVAL_ptr(uint32_t nrVal){
+	return &fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal];
+}
+uint32_t GETVAL_freeMemSize(uint32_t offs){
+	return MAX_FONTS_AND_IMAGES_MEMORY_SIZE - (CounterBusyBytesForFontsImages+1 + offs);
+}
+char GETVAL_char(uint32_t nrVal){
+	return fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal];
+}
+int GETVAL_str(uint32_t nrVal, char* val, uint32_t len){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal + len ){
+		for(int i=0; i<len; i++)
+			*(val+i) = fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + i];
+		return 1;
+	}
+	return 0;
+}
+uint16_t GETVAL_int16(uint32_t nrVal){
+	return fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal]<<8
+		  | fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+1];
+}
+uint32_t GETVAL_int32(uint32_t nrVal){
+	return fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal]  <<24
+		  | fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+1]<<16
+		  | fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+2]<<8
+		  | fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+3];
+}
+int GETVAL_array16(uint32_t nrVal, uint16_t* val, uint32_t len){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal + 2*len ){
+		for(int i=0,j=0; i<len; i++){
+			*(val+i) = fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j]<<8
+						| fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j+1];
+			j+=2;
+		}
+		return 1;
+	}
+	return 0;
+}
+int GETVAL_array32(uint32_t nrVal, uint32_t* val, uint32_t len){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal + 4*len ){
+		for(int i=0,j=0; i<len; i++){
+			*(val+i) = fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j]	 <<24
+						| fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j+1]<<16
+						| fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j+2]<<8
+						| fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j+3];
+			j+=4;
+		}
+		return 1;
+	}
+	return 0;
+}
+
+void LCD_SetStrVar_bkColor(int idVar, uint32_t bkColor){
+	FontVar[idVar].bkColor=bkColor;
+}
+void LCD_SetStrVar_fontColor(int idVar, uint32_t fontColor){
+	FontVar[idVar].fontColor=fontColor;
+}
+void LCD_SetStrVar_x(int idVar,int x){
+	FontVar[idVar].xPos=x;
+}
+void LCD_SetStrVar_y(int idVar,int y){
+	FontVar[idVar].yPos=y;
+}
+void LCD_OffsStrVar_x(int idVar,int x){
+	FontVar[idVar].xPos+=x;
+}
+void LCD_OffsStrVar_y(int idVar,int y){
+	FontVar[idVar].yPos+=y;
+}
+void LCD_SetStrVar_heightType(int idVar, int OnlyDigits){
+	FontVar[idVar].heightType=OnlyDigits;
+}
+void LCD_SetStrVar_widthType(int idVar, int constWidth){
+	FontVar[idVar].widthType=constWidth;
+}
+void LCD_SetStrVar_coeff(int idVar, int coeff){
+	FontVar[idVar].coeff=coeff;
+}
+void LCD_SetStrVar_space(int idVar, int space){
+	FontVar[idVar].space=space;
+}
+void LCD_SetStrVar_fontID(int idVar, int fontID){
+	FontVar[idVar].id=fontID;
+}
+void LCD_SetStrVar_bkRoundRect(int idVar, int bkRoundRect){
+	FontVar[idVar].bkRoundRect=bkRoundRect;
+}
+void LCD_SetStrVar_bkScreenColor(int idVar, int bkScreenColor){
+	FontVar[idVar].bkScreenColor=bkScreenColor;
+}
+void LCD_SetStrVar_idxTouch(int idVar, int nr, int idxTouch){
+	FontVar[idVar].touch_idx[nr]=idxTouch;
+}
+void LCD_SetStrVar_Mov_posWin(int idVar, int posWin){
+	FontVar[idVar].FontMov.posWin=posWin;
+}
+
+uint32_t LCD_GetStrVar_bkColor(int idVar){
+	return FontVar[idVar].bkColor;
+}
+uint32_t LCD_GetStrVar_fontColor(int idVar){
+	return FontVar[idVar].bkColor;
+}
+int LCD_GetStrVar_x(int idVar){
+	return FontVar[idVar].xPos;
+}
+int LCD_GetStrVar_y(int idVar){
+	return FontVar[idVar].yPos;
+}
+int LCD_GetStrVar_heightType(int idVar){
+	return FontVar[idVar].heightType;
+}
+int LCD_GetStrVar_widthType(int idVar){
+	return FontVar[idVar].widthType;
+}
+int LCD_GetStrVar_coeff(int idVar){
+	return FontVar[idVar].coeff;
+}
+int LCD_GetStrVar_space(int idVar){
+	return FontVar[idVar].space;
+}
+int LCD_GetStrVar_widthPxl(int idVar){
+	return FontVar[idVar].widthPxl_prev;
+}
+int LCD_GetStrVar_heightPxl(int idVar){
+	return FontVar[idVar].heightPxl_prev;
+}
+int LCD_GetStrVar_fontID(int idVar){
+	return FontVar[idVar].id;
+}
+int LCD_GetStrVar_bkScreenColor(int idVar){
+	return FontVar[idVar].bkScreenColor;
+}
+int LCD_GetStrVar_bkRoundRect(int idVar){
+	return FontVar[idVar].bkRoundRect;
+}
+int LCD_GetStrVar_idxTouch(int idVar, int nr){
+	return FontVar[idVar].touch_idx[nr];
+}
+int LCD_GetStrVar_Mov_posWin(int idVar){
+	return FontVar[idVar].FontMov.posWin;
+}
+void LCD_SetBkFontShape(int idVar, int bkType){
+	FontVar[idVar].bkRoundRect=bkType;
+}
+void LCD_BkFontTransparent(int idVar, int fontID){
+	LCD_SetStrVar_fontID(idVar, fontID);
+	LCD_SetBkFontShape  (idVar, BK_None);
+}
+
+void LCD_DeleteAllFontAndImages(void)
+{
+	int i;
+	CounterBusyBytesForFontsImages=0;
+	for(i=0; i<MAX_OPEN_FONTS_SIMULTANEOUSLY; i++)
+	{
+		Font[i].fontSizeToIndex=0;
+		Font[i].fontStyleToIndex=0;
+		Font[i].fontBkColorToIndex=0;
+		Font[i].fontColorToIndex=0;
+		Font[i].pointerToMemoryFont=0;
+		Font[i].fontSdramLenght=0;
+	}
+	for(i=0; i<MAX_OPEN_FONTS_SIMULTANEOUSLY; i++)
+	{
+		FontID[i].size=0;
+		FontID[i].style=0;
+		FontID[i].bkColor=0;
+		FontID[i].color=0;
+	}
+	for(i=0; i<MAX_OPEN_IMAGES_SIMULTANEOUSLY; i++)
+	{
+		Image[i].name[0]=0;
+		Image[i].pointerToMemory=0;
+		Image[i].sdramLenght=0;
+	}
+	for(i=0; i<MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY; i++)
+	{
+		FontVar[i].id=0;
+		FontVar[i].bkRoundRect=0;
+	}
+}
+
+int LCD_DeleteFont(uint32_t fontID)
+{
+	int fontIndex=SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
+	if(fontIndex==-1)
+		return 1;
+	Font[fontIndex].fontSizeToIndex=0;
+	Font[fontIndex].fontStyleToIndex=0;
+	Font[fontIndex].fontBkColorToIndex=0;
+	Font[fontIndex].fontColorToIndex=0;
+	Font[fontIndex].pointerToMemoryFont=0;
+
+	FontID[fontID].size=0;
+	FontID[fontID].style=0;
+	FontID[fontID].bkColor=0;
+	FontID[fontID].color=0;
+
+	if( CounterBusyBytesForFontsImages >= Font[fontIndex].fontSdramLenght )
+	{
+		CounterBusyBytesForFontsImages -= Font[fontIndex].fontSdramLenght;
+		Font[fontIndex].fontSdramLenght=0;
+		return 0;
+	}
+	else
+	{
+		CounterBusyBytesForFontsImages=0;
+		Font[fontIndex].fontSdramLenght=0;
+		return 2;
+	}
+}
+
+int LCD_GetFontStyleMaxNmb(void){
+	return STRUCT_TAB_SIZE(TxtFontStyle);
+}
+int LCD_GetFontTypeMaxNmb(void){
+	return STRUCT_TAB_SIZE(TxtFontType);
+}
+int LCD_GetFontSizeMaxNmb(void){
+	return STRUCT_TAB_SIZE(TxtFontSize);
+}
+const char *LCD_GetFontStyleStr(int fontStyle){
+	return TxtFontStyle[fontStyle];
+}
+const char *LCD_GetFontTypeStr(int fontStyle){
+	return TxtFontType[fontStyle];
+}
+const char *LCD_GetFontSizeStr(int fontSize){
+	return TxtFontSize[fontSize];
+}
+const char **LCD_GetFontSizePtr(void){
+	return TxtFontSize;
+}
+char *LCD_FontSize2Str(char *buffTemp, int fontSize){
+	strcpy(buffTemp,TxtFontSize[fontSize]);
+	return buffTemp;
+}
+
+char *LCD_FontStyle2Str(char *buffTemp, int fontStyle)
+{
+	switch(fontStyle)
+	{
+	case Arial:   			  strcpy(buffTemp,TxtFontStyle[0]); break;
+	case Times_New_Roman:  strcpy(buffTemp,TxtFontStyle[1]); break;
+	case Comic_Saens_MS:   strcpy(buffTemp,TxtFontStyle[2]); break;
+
+	default:	buffTemp[0]=0;	break;
+	}
+	return buffTemp;
+}
+
+char *LCD_FontType2Str(char *buffTemp, int id, int idAlt)
+{
+	if		 (idAlt ? (idAlt==1) : (MYGRAY==Font[id].fontBkColorToIndex && MYGREEN==Font[id].fontColorToIndex)){
+		*buffTemp = '1';	strcpy(buffTemp+1,TxtFontType[0]); }
+	else if(idAlt ? (idAlt==2) : (MYGRAY==Font[id].fontBkColorToIndex && MYGREEN==Font[id].fontColorToIndex)){
+		*buffTemp = '2';	strcpy(buffTemp+1,TxtFontType[1]); }
+	else if(idAlt ? (idAlt==3) : (MYGRAY==Font[id].fontBkColorToIndex && WHITE==Font[id].fontColorToIndex)){
+		*buffTemp = '3';	strcpy(buffTemp+1,TxtFontType[2]); }
+	else if(idAlt ? (idAlt==4) : (WHITE==Font[id].fontBkColorToIndex  && BLACK==Font[id].fontColorToIndex)){
+		*buffTemp = '4';	strcpy(buffTemp+1,TxtFontType[3]); }
+	else{
+		*buffTemp = '0';	buffTemp[1]=0; }
+	return buffTemp;
+}
+
+void DisplayFontsStructState(void){
+	char bufTemp[65],bufTemp2[210];
+	DbgVar(1,250,CoGr_"\r\nBuff address: 0x%x     Buff size: %s     busy bytes: %s\r\n"_X, fontsImagesMemoryBuffer, DispLongNmb(MAX_FONTS_AND_IMAGES_MEMORY_SIZE,GETVAL_ptr(0)), DispLongNmb(CounterBusyBytesForFontsImages,GETVAL_ptr(20)));
+	for(int i=0; i < MAX_OPEN_FONTS_SIMULTANEOUSLY; i++){
+		if(Font[i].fontSizeToIndex){
+			LCD_FontType2Str(bufTemp+40,i,0);
+			switch(bufTemp[40]){
+				case '1': mini_snprintf(bufTemp2,210,CoR_"%c"_X Gre_"%c"_X CoB_"%c"_X "%c" CoR_"%c"_X Gre_"%c"_X CoB_"%c"_X,bufTemp[41],bufTemp[42],bufTemp[43],  bufTemp[44],  bufTemp[45],bufTemp[46],bufTemp[47]); break;
+				case '2': mini_snprintf(bufTemp2,210,CoG_"%s"_X, bufTemp+41); break;		/* This case never happened, because this is not new load_font just option case 1 */
+				case '3': mini_snprintf(bufTemp2,210,CoR_"%c"_X CoG_"%c"_X CoB_"%c"_X "%s",bufTemp[41],bufTemp[42],bufTemp[43],  &bufTemp[44]); break;
+				case '4': mini_snprintf(bufTemp2,210,BkW_ CoBl_"%s"_X, bufTemp+41); break;
+				default:  bufTemp2[0]=0; break;
+			}
+			DbgVar2(1,350,CoGr_"%*d"_X "%*s %*s %s %s"CoGr_"FontAddr:"_X" 0x%06x   "CoGr_"fontSdramLenght:"_X" %s\r\n",-2,i, -16,LCD_FontStyle2Str(bufTemp,Font[i].fontStyleToIndex), -17,LCD_FontSize2Str(bufTemp+20,Font[i].fontSizeToIndex-1), bufTemp2, CONDITION('4'==bufTemp[40],_1SPACE,TABU_2SPACE), Font[i].pointerToMemoryFont-fontsImagesMemoryBuffer, DispLongNmb(Font[i].fontSdramLenght,NULL));
+		}
+	}
+}
+
+void InfoForImagesFonts(void){
+	DbgVar(1,250,"\r\nImages SDRAM size: 0x%08x\r\nCounterBusyBytesForFontsImages: 0x%08x\r\nStruct size Font+Image: %d+%d=%d  ",MAX_FONTS_AND_IMAGES_MEMORY_SIZE,CounterBusyBytesForFontsImages,sizeof(Font),sizeof(Image), sizeof(Font)+sizeof(Image));
+}
+
+int LCD_LoadFont(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor, uint32_t fontID)
+{
+	int resultSearch;
+	uint32_t fontFileSize;
+
+	resultSearch=SearchFontIndex(fontSize,fontStyle,backgroundColor,fontColor);
+	if(-1!=resultSearch)
+		return LCD_GetFontID(fontSize,fontStyle,backgroundColor,fontColor);
+
+	int fontIndex=LoadFontIndex(fontSize,fontStyle,backgroundColor,fontColor);
+	if(-1==fontIndex)
+		return -2;
+	char fileOpenName[100]="Fonts/";
+
+	int _backgroundColor;
+	switch(backgroundColor){ default:
+	case DARKGRAY:  _backgroundColor=0; break;
+	case BLACK: 	 _backgroundColor=1; break;
+	case BROWN: 	 _backgroundColor=2; break;
+	case WHITE: 	 _backgroundColor=3; break;
+	}
+	strncat(fileOpenName,BkColorFontFilePath[_backgroundColor],strlen(BkColorFontFilePath[_backgroundColor]));
+
+	int _fontColor;
+	switch(fontColor){ default:
+	 case WHITE: 	 _fontColor=0; break;
+	 case MYBLUE: 	 _fontColor=1; break;
+	 case MYRED: 	 _fontColor=2; break;
+	 case MYGREEN:  _fontColor=3; break;
+	 case BLACK: 	 _fontColor=4; break;
+	}
+	strncat(fileOpenName,ColorFontFilePath[_fontColor],strlen(ColorFontFilePath[_fontColor]));
+	strncat(fileOpenName,StyleFontFilePath[fontStyle],strlen(StyleFontFilePath[fontStyle]));
+	strncat(fileOpenName,TxtFontSize[fontSize],strlen(TxtFontSize[fontSize]));
+	strncat(fileOpenName,TxtBMP,strlen(TxtBMP));
+
+	if(FR_OK!=SDCardFileInfo(fileOpenName,&fontFileSize))
+		return -3;
+
+	while((fontFileSize%4)!=0)
+		fontFileSize++;
+
+	if(true==DynamicFontMemoryAllocation( fontFileSize, fontIndex) )
+	{
+		if(FR_OK!=SDCardFileOpen(1,fileOpenName,FA_READ))
+			return -4;
+		if(0 > SDCardFileRead(1,Font[fontIndex].pointerToMemoryFont,MAX_FONTS_AND_IMAGES_MEMORY_SIZE))
+			return -5;
+		if(FR_OK!=SDCardFileClose(1))
+			return -6;
+
+		if(fontID < MAX_OPEN_FONTS_SIMULTANEOUSLY)
+		{
+			FontID[fontID].size = fontSize;
+			FontID[fontID].style = fontStyle;
+			FontID[fontID].bkColor = backgroundColor;
+			FontID[fontID].color = fontColor;
+
+			SearchCurrentFont_TablePos(Font[fontIndex].pointerToMemoryFont, fontIndex, fontID);
+			return fontID;
+		}
+		else
+			return -8;
+	}
+	else
+		return -7;
+}
+
+int LCD_LoadFont_WhiteBlack(int fontSize, int fontStyle, uint32_t fontID){
+	return LCD_LoadFont(fontSize,fontStyle,WHITE,BLACK,fontID);
+}
+int LCD_LoadFont_DarkgrayGreen(int fontSize, int fontStyle, uint32_t fontID){
+	return LCD_LoadFont(fontSize,fontStyle,DARKGRAY,MYGREEN,fontID);
+}
+int LCD_LoadFont_DarkgrayWhite(int fontSize, int fontStyle, uint32_t fontID){
+	return LCD_LoadFont(fontSize,fontStyle,DARKGRAY,WHITE,fontID);
+}
+int LCD_LoadFont_ChangeColor(int fontSize, int fontStyle, uint32_t fontID){
+	return LCD_LoadFont_DarkgrayGreen(fontSize,fontStyle,fontID);
+}
+
+StructTxtPxlLen LCD_Str(int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space,uint32_t bkColor, int coeff, int constWidth){
+	return LCD_DrawStr(0,LCD_GetXSize(),LCD_GetYSize(),fontID,Xpos,Ypos,txt, pLcd,OnlyDigits,space,bkColor,coeff,constWidth);
+}
+StructTxtPxlLen LCD_StrWindow(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space,uint32_t bkColor, int coeff, int constWidth){
+	return LCD_DrawStr(posBuff,BkpSizeX,BkpSizeY,fontID, Xpos,Ypos, txt, pLcd,OnlyDigits, space,bkColor,coeff,constWidth);
+}
+StructTxtPxlLen LCD_StrIndirect(int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth){
+	return LCD_DrawStrIndirect(0,1,LCD_GetXSize(),LCD_GetYSize(),fontID, Xpos,Ypos, txt, pLcd,OnlyDigits, space,bkColor,coeff,constWidth);
+}
+StructTxtPxlLen LCD_StrWindowIndirect(uint32_t posBuff, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space,uint32_t bkColor, int coeff, int constWidth){
+	StructTxtPxlLen out= LCD_DrawStr(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,pLcd,OnlyDigits,space,bkColor,coeff,constWidth);
+	if(out.inChar>0) LCD_DisplayBuff((uint32_t)Xwin,(uint32_t)Ywin,BkpSizeX,BkpSizeY,pLcd+posBuff);
+	return out;
+}
+StructTxtPxlLen LCD_StrChangeColor(int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth){
+	return LCD_DrawStrChangeColor(0,LCD_GetXSize(),LCD_GetYSize(),fontID,Xpos,Ypos,txt,pLcd,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+}
+StructTxtPxlLen LCD_StrChangeColorWindow(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth){
+	return LCD_DrawStrChangeColor(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,pLcd,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+}
+StructTxtPxlLen LCD_StrChangeColorIndirect(int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth){
+	return LCD_DrawStrChangeColorIndirect(0,1,LCD_GetXSize(),LCD_GetYSize(),fontID,Xpos,Ypos,txt,pLcd,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+}
+StructTxtPxlLen LCD_StrChangeColorWindowIndirect(uint32_t posBuff, int Xwin, int Ywin,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth){
+	StructTxtPxlLen out= LCD_DrawStrChangeColor(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,pLcd,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+	if(out.inChar>0) LCD_DisplayBuff((uint32_t)Xwin,(uint32_t)Ywin,BkpSizeX,BkpSizeY,pLcd+posBuff);
+	return out;
+}
+StructTxtPxlLen LCD_StrVar(int idVar,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth, uint32_t bkScreenColor){
+	StructTxtPxlLen temp;
+	uint32_t bkScreenColor_copy = FontVar[idVar].bkScreenColor;
+	FontVar[idVar].bkScreenColor = bkScreenColor;
+	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
+	{
+		FontVar[idVar].id=fontID;
+		FontVar[idVar].xPos=Xpos;
+		FontVar[idVar].yPos=Ypos;
+		FontVar[idVar].heightType=OnlyDigits;
+		FontVar[idVar].space=space;
+		FontVar[idVar].bkColor=bkColor;
+		FontVar[idVar].coeff=coeff;
+		FontVar[idVar].widthType=constWidth;
+		FontVar[idVar].xPos_prev = FontVar[idVar].xPos;
+		FontVar[idVar].yPos_prev = FontVar[idVar].yPos;
+
+		temp = LCD_Str( fontID|(idVar<<16)/*FontVar[idVar].bkRoundRect ? fontID|(idVar<<16) : fontID*/, Xpos,Ypos,txt,OnlyDigits,space,bkColor,coeff,constWidth);
+		if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0)){
+			FontVar[idVar].bkScreenColor = bkScreenColor_copy;
+			return temp;
+		}
+		FontVar[idVar].widthPxl_prev = temp.inPixel;
+		FontVar[idVar].heightPxl_prev = temp.height;
+		return temp;
+	}
+	else return StructTxtPxlLen_ZeroValue;
+}
+
+StructTxtPxlLen LCD_StrDescrVar(int idVar,int fontID,  int Xpos, 		 int Ypos, 				 char *txt, int OnlyDigits,  int space, uint32_t bkColor, int coeff, int constWidth, uint32_t bkScreenColor, \
+														int fontID2, int interspace, int directionDescr, char *txt2,int OnlyDigits2, int space2, uint32_t bkColor2, uint32_t fontColor2, int maxVal2, int constWidth2)
+{
+	StructTxtPxlLen len = {0};
+
+	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
+	{
+		int width_main; 		/* LCD_GetWholeStrPxlWidth(fontID, txt, space, constWidth); */
+		int height_main	= LCD_GetFontHeight(fontID);
+		int heightHalf_main = LCD_GetFontHalfHeight(fontID);
+
+		int width_descr 	= LCD_GetWholeStrPxlWidth(fontID2, txt2, space2, constWidth2);
+		int height_descr 	= LCD_GetFontHeight(fontID2);
+		int heightHalf_descr = LCD_GetFontHalfHeight(fontID2);
+
+		int Y_descr, X_descr;
+		int Y_descr_correct = 0;	/* for 'Right_up'  'Left_up' */
+
+		len = LCD_StrVar(idVar,fontID, Xpos, Ypos,txt,OnlyDigits,space,bkColor,coeff,constWidth,bkScreenColor);
+		width_main = len.inPixel;
+
+		switch(directionDescr)
+		{
+		case Under_center:
+		default:
+			LCD_Xmiddle(0,SetPos,SetPosAndWidth(Xpos,width_main),NULL,0,0);
+			X_descr = LCD_Xmiddle(0,GetPos,fontID2,txt2,space2,constWidth2);
+			Y_descr = Ypos + len.height + interspace;
+			break;
+
+		case Under_left:
+			X_descr = interspace >> 16;
+			Y_descr = Ypos + len.height + interspace;
+			break;
+
+		case Under_right:
+			X_descr = interspace >> 16;
+			Y_descr = Ypos + len.height + interspace;
+			break;
+
+		case Above_center:
+	   	LCD_Xmiddle(0,SetPos,SetPosAndWidth(Xpos,width_main),NULL,0,0);
+	      X_descr = LCD_Xmiddle(0,GetPos,fontID2,txt2,space2,constWidth2);
+	      Y_descr = Ypos - interspace - height_descr;
+			break;
+
+		case Above_left:
+			X_descr = interspace >> 16;
+			Y_descr = Ypos - interspace - height_descr;
+			break;
+
+		case Above_right:
+			X_descr = interspace >> 16;
+			Y_descr = Ypos - interspace - height_descr;
+			break;
+
+		case Left_down:
+	      X_descr = Xpos - interspace - width_descr;
+	      Y_descr = Ypos + (heightHalf_main - heightHalf_descr);
+			break;
+
+		case Left_mid:
+	      LCD_Ymiddle(0,SetPos,SetPosAndWidth(Ypos,height_main));
+	      X_descr = Xpos - interspace - width_descr;
+	      Y_descr = LCD_Ymiddle(0,GetPos,fontID2);
+			break;
+
+		case Left_up:
+			X_descr = Xpos - interspace - width_descr;
+	      Y_descr = Ypos + ABS(height_main-heightHalf_main) - ABS(height_descr-heightHalf_descr);
+			Y_descr += Y_descr_correct;
+			break;
+
+		case Right_down:
+	      X_descr = Xpos + width_main + interspace;
+	      Y_descr = Ypos + (heightHalf_main - heightHalf_descr);
+			break;
+
+		case Right_mid:
+	      LCD_Ymiddle(0,SetPos,SetPosAndWidth(Ypos,height_main));
+	      X_descr = Xpos + width_main + interspace;
+	      Y_descr = LCD_Ymiddle(0,GetPos,fontID2);
+			break;
+
+		case Right_up:
+	      X_descr = Xpos + width_main + interspace;
+	      Y_descr = Ypos + ABS(height_main-heightHalf_main) - ABS(height_descr-heightHalf_descr);
+			Y_descr += Y_descr_correct;
+			break;
+		}
+
+		if((bkColor2==MYGRAY && fontColor2 == WHITE) ||
+			(bkColor2==MYGRAY && fontColor2 == MYGREEN) ||
+			(bkColor2==WHITE  && fontColor2 == BLACK)){
+			LCD_Str(fontID2, X_descr, Y_descr, txt2, OnlyDigits2, space2,bkColor2, 0, constWidth2);
+		}
+		else
+			LCD_StrChangeColor(fontID2, X_descr, Y_descr, txt2, OnlyDigits2, space2, bkColor2, fontColor2,maxVal2, constWidth2);
+	}
+	return len;
+}
+
+static void LCD_DimensionBkCorrect(int idVar, StructTxtPxlLen temp, uint32_t *LcdBuffer)
+{
+	int xEnd_prev = FontVar[idVar].xPos_prev + FontVar[idVar].widthPxl_prev;
+	int xEnd		  = FontVar[idVar].xPos 	  + temp.inPixel;
+	int yEnd_prev = FontVar[idVar].yPos_prev + FontVar[idVar].heightPxl_prev;
+	int yEnd		  = FontVar[idVar].yPos 	  + temp.height;
+
+	if(FontVar[idVar].xPos > FontVar[idVar].xPos_prev){
+		int width=FontVar[idVar].xPos-FontVar[idVar].xPos_prev;
+		LCD_RectangleBuff(LcdBuffer,0,width,FontVar[idVar].heightPxl_prev,0,0,width,FontVar[idVar].heightPxl_prev,FontVar[idVar].bkScreenColor,FontVar[idVar].bkScreenColor,FontVar[idVar].bkScreenColor);
+		LCD_DisplayBuff((uint32_t)FontVar[idVar].xPos_prev,(uint32_t)FontVar[idVar].yPos_prev,width,FontVar[idVar].heightPxl_prev,pLcd+0);
+	}
+	if(xEnd_prev > xEnd){
+		int width=xEnd_prev-xEnd;
+		LCD_RectangleBuff(LcdBuffer,0,width,FontVar[idVar].heightPxl_prev,0,0,width,FontVar[idVar].heightPxl_prev,FontVar[idVar].bkScreenColor,FontVar[idVar].bkScreenColor,FontVar[idVar].bkScreenColor);
+		LCD_DisplayBuff((uint32_t)xEnd,(uint32_t)FontVar[idVar].yPos_prev,width,FontVar[idVar].heightPxl_prev,pLcd+0);
+	}
+	if(FontVar[idVar].yPos > FontVar[idVar].yPos_prev){
+		int height=FontVar[idVar].yPos-FontVar[idVar].yPos_prev;
+		LCD_RectangleBuff(LcdBuffer,0,FontVar[idVar].widthPxl_prev,height,0,0,FontVar[idVar].widthPxl_prev,height,FontVar[idVar].bkScreenColor,FontVar[idVar].bkScreenColor,FontVar[idVar].bkScreenColor);
+		LCD_DisplayBuff((uint32_t)FontVar[idVar].xPos_prev,(uint32_t)FontVar[idVar].yPos_prev,FontVar[idVar].widthPxl_prev,height,pLcd+0);
+	}
+	if(yEnd_prev > yEnd){
+		int height=yEnd_prev-yEnd;
+		LCD_RectangleBuff(LcdBuffer,0,FontVar[idVar].widthPxl_prev,height,0,0,FontVar[idVar].widthPxl_prev,height,FontVar[idVar].bkScreenColor,FontVar[idVar].bkScreenColor,FontVar[idVar].bkScreenColor);
+		LCD_DisplayBuff((uint32_t)FontVar[idVar].xPos_prev,yEnd,FontVar[idVar].widthPxl_prev,height,pLcd+0);
+	}
+	FontVar[idVar].xPos_prev=FontVar[idVar].xPos;
+	FontVar[idVar].yPos_prev=FontVar[idVar].yPos;
+	FontVar[idVar].widthPxl_prev=temp.inPixel;
+	FontVar[idVar].heightPxl_prev=temp.height;
+}
+
+StructTxtPxlLen LCD_StrVarIndirect(int idVar, char *txt){
+	StructTxtPxlLen temp;
+	temp = LCD_StrIndirect( FontVar[idVar].id|(idVar<<16)/*(FontVar[idVar].bkRoundRect ? FontVar[idVar].id|(idVar<<16) : FontVar[idVar].id)*/, FontVar[idVar].xPos,FontVar[idVar].yPos,txt,FontVar[idVar].heightType,FontVar[idVar].space,FontVar[idVar].bkColor,FontVar[idVar].coeff,FontVar[idVar].widthType);
+	if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0))
+		return temp;
+	LCD_DimensionBkCorrect(idVar,temp,pLcd);
+	return temp;
+}
+
+StructTxtPxlLen LCD_StrChangeColorVar(int idVar,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t bkScreenColor){
+	StructTxtPxlLen temp;
+	uint32_t bkScreenColor_copy = FontVar[idVar].bkScreenColor;
+	FontVar[idVar].bkScreenColor = bkScreenColor;
+	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
+	{
+		FontVar[idVar].id=fontID;
+		FontVar[idVar].xPos=Xpos;
+		FontVar[idVar].yPos=Ypos;
+		FontVar[idVar].heightType=OnlyDigits;
+		FontVar[idVar].space=space;
+		FontVar[idVar].bkColor=bkColor;
+		FontVar[idVar].fontColor=fontColor;
+		FontVar[idVar].coeff=maxVal;
+		FontVar[idVar].widthType=constWidth;
+		FontVar[idVar].xPos_prev = FontVar[idVar].xPos;
+		FontVar[idVar].yPos_prev = FontVar[idVar].yPos;
+
+		temp = LCD_StrChangeColor( fontID|(idVar<<16)/*FontVar[idVar].bkRoundRect ? fontID|(idVar<<16) : fontID*/,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+		if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0)){
+			FontVar[idVar].bkScreenColor = bkScreenColor_copy;
+			return temp;
+		}
+		FontVar[idVar].widthPxl_prev = temp.inPixel;
+		FontVar[idVar].heightPxl_prev = temp.height;
+		return temp;
+	}
+	else return StructTxtPxlLen_ZeroValue;
+}
+
+StructTxtPxlLen LCD_StrChangeColorDescrVar(int idVar,int fontID, int Xpos, 		int Ypos, 				char *txt, int OnlyDigits, 	int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t bkScreenColor, \
+																		int fontID2, int interspace, int directionDescr, char *txt2, int OnlyDigits2, int space2, uint32_t bkColor2, uint32_t fontColor2,uint8_t maxVal2, int constWidth2 )
+{
+	StructTxtPxlLen len = {0};
+
+	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
+	{
+		int width_main; 		/* LCD_GetWholeStrPxlWidth(fontID, txt, space, constWidth); */
+		int height_main	= LCD_GetFontHeight(fontID);
+		int heightHalf_main = LCD_GetFontHalfHeight(fontID);
+
+		int width_descr 	= LCD_GetWholeStrPxlWidth(fontID2, txt2, space2, constWidth2);
+		int height_descr 	= LCD_GetFontHeight(fontID2);
+		int heightHalf_descr = LCD_GetFontHalfHeight(fontID2);
+
+		int Y_descr, X_descr;
+		int Y_descr_correct = 0;	/* for 'Right_up'  'Left_up' */
+
+		len = LCD_StrChangeColorVar(idVar,fontID, Xpos, Ypos, txt, OnlyDigits, space, bkColor, fontColor,maxVal, constWidth, bkScreenColor);
+		width_main = len.inPixel;
+
+		switch(directionDescr)
+		{
+		case Under_center:
+		default:
+			LCD_Xmiddle(0,SetPos,SetPosAndWidth(Xpos,width_main),NULL,0,0);
+			X_descr = LCD_Xmiddle(0,GetPos,fontID2,txt2,space2,constWidth2);
+			Y_descr = Ypos + len.height + interspace;
+			break;
+
+		case Under_left:
+			X_descr = interspace >> 16;
+			Y_descr = Ypos + len.height + interspace;
+			break;
+
+		case Under_right:
+			X_descr = interspace >> 16;
+			Y_descr = Ypos + len.height + interspace;
+			break;
+
+		case Above_center:
+	   	LCD_Xmiddle(0,SetPos,SetPosAndWidth(Xpos,width_main),NULL,0,0);
+	      X_descr = LCD_Xmiddle(0,GetPos,fontID2,txt2,space2,constWidth2);
+	      Y_descr = Ypos - interspace - height_descr;
+			break;
+
+		case Above_left:
+			X_descr = interspace >> 16;
+			Y_descr = Ypos - interspace - height_descr;
+			break;
+
+		case Above_right:
+			X_descr = interspace >> 16;
+			Y_descr = Ypos - interspace - height_descr;
+			break;
+
+		case Left_down:
+	      X_descr = Xpos - interspace - width_descr;
+	      Y_descr = Ypos + (heightHalf_main - heightHalf_descr);
+			break;
+
+		case Left_mid:
+	      LCD_Ymiddle(0,SetPos,SetPosAndWidth(Ypos,height_main));
+	      X_descr = Xpos - interspace - width_descr;
+	      Y_descr = LCD_Ymiddle(0,GetPos,fontID2);
+			break;
+
+		case Left_up:
+			X_descr = Xpos - interspace - width_descr;
+	      Y_descr = Ypos + ABS(height_main-heightHalf_main) - ABS(height_descr-heightHalf_descr);
+			Y_descr += Y_descr_correct;
+			break;
+
+		case Right_down:
+	      X_descr = Xpos + width_main + interspace;
+	      Y_descr = Ypos + (heightHalf_main - heightHalf_descr);
+			break;
+
+		case Right_mid:
+	      LCD_Ymiddle(0,SetPos,SetPosAndWidth(Ypos,height_main));
+	      X_descr = Xpos + width_main + interspace;
+	      Y_descr = LCD_Ymiddle(0,GetPos,fontID2);
+			break;
+
+		case Right_up:
+	      X_descr = Xpos + width_main + interspace;
+	      Y_descr = Ypos + ABS(height_main-heightHalf_main) - ABS(height_descr-heightHalf_descr);
+			Y_descr += Y_descr_correct;
+			break;
+		}
+
+		if((bkColor2==MYGRAY && fontColor2 == WHITE) ||
+			(bkColor2==MYGRAY && fontColor2 == MYGREEN) ||
+			(bkColor2==WHITE  && fontColor2 == BLACK)){
+			LCD_Str(fontID2, X_descr, Y_descr, txt2, OnlyDigits2, space2,bkColor2, 0, constWidth2);
+		}
+		else
+			LCD_StrChangeColor(fontID2, X_descr, Y_descr, txt2, OnlyDigits2, space2, bkColor2, fontColor2,maxVal2, constWidth2);
+	}
+	return len;
+}
+
+StructTxtPxlLen LCD_StrChangeColorVarIndirect(int idVar, char *txt){
+	StructTxtPxlLen temp;
+	temp = LCD_StrChangeColorIndirect( FontVar[idVar].id|(idVar<<16)/*(FontVar[idVar].bkRoundRect ? FontVar[idVar].id|(idVar<<16) : FontVar[idVar].id)*/, FontVar[idVar].xPos,FontVar[idVar].yPos,txt,FontVar[idVar].heightType,FontVar[idVar].space,FontVar[idVar].bkColor,FontVar[idVar].fontColor,FontVar[idVar].coeff,FontVar[idVar].widthType);
+	if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0))
+		return temp;
+	LCD_DimensionBkCorrect(idVar,temp,pLcd);
+	return temp;
+}
+
+void LCD_ResetStrMovBuffPos(void){
+	movableFontsBuffer_pos=0;
+}
+void LCD_DisplayStrMovBuffState(void){
+	DbgVar(1,250,"\r\nMovBuff -> MaxSize: %d   LoadedSize: %d   ",LCD_MOVABLE_FONTS_BUFF_SIZE, movableFontsBuffer_pos);
+}
+
+extern void SwapUint16(uint16_t *a, uint16_t *b);
+
+StructTxtPxlLen LCD_StrRot(int rot, int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth){
+	StructTxtPxlLen temp;
+	int fontHeight= OnlyDigits==fullHight?LCD_GetFontHeight(fontID):LCD_GetFontHalfHeight(fontID);
+	if(fontHeight<0)
+		return StructTxtPxlLen_ZeroValue;
+	int pxlTxtLen = LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth);
+
+	int posMovBuff_copy = movableFontsBuffer_pos + fontHeight * pxlTxtLen;
+	if(posMovBuff_copy >= LCD_MOVABLE_FONTS_BUFF_SIZE)
+		return StructTxtPxlLen_ZeroValue;
+
+	temp=LCD_DrawStr(movableFontsBuffer_pos, pxlTxtLen,fontHeight, fontID,0,0,txt,movableFontsBuffer,OnlyDigits,space,bkColor,coeff,constWidth);
+	LCD_CopyBuff2pLcd(rot,movableFontsBuffer_pos, movableFontsBuffer, pxlTxtLen,fontHeight,0, temp.inPixel, Xpos,Ypos,0);
+	if(rot>Rotate_0)
+		SwapUint16(&temp.inPixel,&temp.height);
+	return temp;
+}
+StructTxtPxlLen LCD_StrChangeColorRot(int rot, int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor, int maxVal, int constWidth){
+	StructTxtPxlLen temp;
+	int fontHeight= OnlyDigits==fullHight?LCD_GetFontHeight(fontID):LCD_GetFontHalfHeight(fontID);
+	if(fontHeight<0)
+		return StructTxtPxlLen_ZeroValue;
+	int pxlTxtLen = LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth);
+
+	int posMovBuff_copy = movableFontsBuffer_pos + fontHeight * pxlTxtLen;
+	if(posMovBuff_copy >= LCD_MOVABLE_FONTS_BUFF_SIZE)
+		return StructTxtPxlLen_ZeroValue;
+
+	temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, pxlTxtLen,fontHeight, fontID,0,0,txt,movableFontsBuffer,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+	LCD_CopyBuff2pLcd(rot,movableFontsBuffer_pos, movableFontsBuffer, pxlTxtLen,fontHeight,0, temp.inPixel, Xpos,Ypos,0);
+	if(rot>Rotate_0)
+		SwapUint16(&temp.inPixel,&temp.height);
+	return temp;
+}
+StructTxtPxlLen LCD_StrRotVar(int idVar, int rot ,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth, uint32_t bkScreenColor){
+	StructTxtPxlLen temp;
+	int fontHeight= OnlyDigits==fullHight?LCD_GetFontHeight(fontID):LCD_GetFontHalfHeight(fontID);
+	if(fontHeight<0)
+		return StructTxtPxlLen_ZeroValue;
+	int pxlTxtLen = LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth);
+
+	int posMovBuff_copy = movableFontsBuffer_pos + fontHeight * pxlTxtLen;
+	if(posMovBuff_copy >= LCD_MOVABLE_FONTS_BUFF_SIZE)
+		return StructTxtPxlLen_ZeroValue;
+
+	FontVar[idVar].id=fontID;
+	FontVar[idVar].xPos=Xpos;
+	FontVar[idVar].yPos=Ypos;
+	FontVar[idVar].heightType=OnlyDigits;
+	FontVar[idVar].space=space;
+	FontVar[idVar].bkColor=bkColor;
+	FontVar[idVar].bkScreenColor=bkScreenColor;
+	FontVar[idVar].coeff=coeff;
+	FontVar[idVar].widthType=constWidth;
+	FontVar[idVar].rotate=rot;
+
+	temp=LCD_DrawStr(movableFontsBuffer_pos, pxlTxtLen,fontHeight, fontID,0,0,txt,movableFontsBuffer,OnlyDigits,space,bkColor,coeff,constWidth);
+	LCD_CopyBuff2pLcd(rot,movableFontsBuffer_pos, movableFontsBuffer, pxlTxtLen,fontHeight,0, temp.inPixel, Xpos,Ypos,0);
+
+	if(rot>Rotate_0)
+		SwapUint16(&temp.inPixel,&temp.height);
+
+	FontVar[idVar].xPos_prev = FontVar[idVar].xPos;
+	FontVar[idVar].yPos_prev = FontVar[idVar].yPos;
+	FontVar[idVar].widthPxl_prev = temp.inPixel;
+	FontVar[idVar].heightPxl_prev = temp.height;
+
+	return temp;
+}
+
+StructTxtPxlLen LCD_StrChangeColorRotVar(int idVar, int rot ,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor, int maxVal, int constWidth, uint32_t bkScreenColor){
+	StructTxtPxlLen temp;
+	int fontHeight= OnlyDigits==fullHight?LCD_GetFontHeight(fontID):LCD_GetFontHalfHeight(fontID);
+	if(fontHeight<0)
+		return StructTxtPxlLen_ZeroValue;
+	int pxlTxtLen = LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth);
+
+	int posMovBuff_copy = movableFontsBuffer_pos + fontHeight * pxlTxtLen;
+	if(posMovBuff_copy >= LCD_MOVABLE_FONTS_BUFF_SIZE)
+		return StructTxtPxlLen_ZeroValue;
+
+	FontVar[idVar].id=fontID;
+	FontVar[idVar].xPos=Xpos;
+	FontVar[idVar].yPos=Ypos;
+	FontVar[idVar].heightType=OnlyDigits;
+	FontVar[idVar].space=space;
+	FontVar[idVar].bkColor=bkColor;
+	FontVar[idVar].fontColor=fontColor;
+	FontVar[idVar].bkScreenColor=bkScreenColor;
+	FontVar[idVar].coeff=maxVal;
+	FontVar[idVar].widthType=constWidth;
+	FontVar[idVar].rotate=rot;
+
+	temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, pxlTxtLen,fontHeight, fontID,0,0,txt,movableFontsBuffer,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+	LCD_CopyBuff2pLcd(rot,movableFontsBuffer_pos, movableFontsBuffer, pxlTxtLen,fontHeight,0, temp.inPixel, Xpos,Ypos,0);
+
+	if(rot>Rotate_0)
+		SwapUint16(&temp.inPixel,&temp.height);
+
+	FontVar[idVar].xPos_prev = FontVar[idVar].xPos;
+	FontVar[idVar].yPos_prev = FontVar[idVar].yPos;
+	FontVar[idVar].widthPxl_prev = temp.inPixel;
+	FontVar[idVar].heightPxl_prev = temp.height;
+
+	return temp;
+}
+StructTxtPxlLen LCD_StrRotVarIndirect(int idVar, char *txt){
+	StructTxtPxlLen temp;
+	int pxlTxtLen = LCD_GetWholeStrPxlWidth(FontVar[idVar].id,txt,FontVar[idVar].space,FontVar[idVar].widthType);
+	if(pxlTxtLen<0)
+		return StructTxtPxlLen_ZeroValue;
+	int fontHeight= FontVar[idVar].heightType==fullHight?LCD_GetFontHeight(FontVar[idVar].id):LCD_GetFontHalfHeight(FontVar[idVar].id);
+
+	int posMovBuff_copy = movableFontsBuffer_pos + fontHeight * pxlTxtLen;
+	if(posMovBuff_copy >= LCD_MOVABLE_FONTS_BUFF_SIZE)
+		return StructTxtPxlLen_ZeroValue;
+
+	temp=LCD_DrawStr(movableFontsBuffer_pos, pxlTxtLen,fontHeight, FontVar[idVar].id,0,0,txt,movableFontsBuffer,FontVar[idVar].heightType,FontVar[idVar].space,FontVar[idVar].bkColor,FontVar[idVar].coeff,FontVar[idVar].widthType);
+	LCD_CopyBuff2pLcdIndirect(FontVar[idVar].rotate,movableFontsBuffer_pos, movableFontsBuffer, pxlTxtLen,fontHeight,0, temp.inPixel,0);
+	switch(FontVar[idVar].rotate)
+	{	case Rotate_0:
+			LCD_DisplayBuff((uint32_t)FontVar[idVar].xPos,(uint32_t)FontVar[idVar].yPos, pxlTxtLen,fontHeight, pLcd);
+			break;
+		case Rotate_90:
+		case Rotate_180:
+		default:
+			LCD_DisplayBuff((uint32_t)FontVar[idVar].xPos,(uint32_t)FontVar[idVar].yPos, fontHeight,pxlTxtLen, pLcd);
+			break;
+	}
+	if(FontVar[idVar].rotate>Rotate_0)
+		SwapUint16(&temp.inPixel,&temp.height);
+	LCD_DimensionBkCorrect(idVar,temp,pLcd);
+	return temp;
+}
+StructTxtPxlLen LCD_StrChangeColorRotVarIndirect(int idVar, char *txt){
+	StructTxtPxlLen temp;
+	int pxlTxtLen = LCD_GetWholeStrPxlWidth(FontVar[idVar].id,txt,FontVar[idVar].space,FontVar[idVar].widthType);
+	if(pxlTxtLen<0)
+		return StructTxtPxlLen_ZeroValue;
+	int fontHeight= FontVar[idVar].heightType==fullHight?LCD_GetFontHeight(FontVar[idVar].id):LCD_GetFontHalfHeight(FontVar[idVar].id);
+
+	int posMovBuff_copy = movableFontsBuffer_pos + fontHeight * pxlTxtLen;
+	if(posMovBuff_copy >= LCD_MOVABLE_FONTS_BUFF_SIZE)
+		return StructTxtPxlLen_ZeroValue;
+
+	temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, pxlTxtLen,fontHeight, FontVar[idVar].id,0,0,txt,movableFontsBuffer,FontVar[idVar].heightType,FontVar[idVar].space,FontVar[idVar].bkColor,FontVar[idVar].fontColor,FontVar[idVar].coeff,FontVar[idVar].widthType);
+	LCD_CopyBuff2pLcdIndirect(FontVar[idVar].rotate,movableFontsBuffer_pos, movableFontsBuffer, pxlTxtLen,fontHeight,0, temp.inPixel,0);
+	switch(FontVar[idVar].rotate)
+	{	case Rotate_0:
+			LCD_DisplayBuff((uint32_t)FontVar[idVar].xPos,(uint32_t)FontVar[idVar].yPos, pxlTxtLen,fontHeight, pLcd);
+			break;
+		case Rotate_90:
+		case Rotate_180:
+		default:
+			LCD_DisplayBuff((uint32_t)FontVar[idVar].xPos,(uint32_t)FontVar[idVar].yPos, fontHeight,pxlTxtLen, pLcd);
+			break;
+	}
+	if(FontVar[idVar].rotate>Rotate_0)
+		SwapUint16(&temp.inPixel,&temp.height);
+	LCD_DimensionBkCorrect(idVar,temp,pLcd);
+	return temp;
+}
+
+StructTxtPxlLen LCD_StrRotWin(int rot, int winWidth, int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth, uint32_t bkScreenColor)
+{
+	StructTxtPxlLen temp;
+	int fontHeight= OnlyDigits==fullHight?LCD_GetFontHeight(fontID):LCD_GetFontHalfHeight(fontID);
+	if(fontHeight<0)
+		return StructTxtPxlLen_ZeroValue;
+	int pxlTxtLen = LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth);
+
+	int posMovBuff_copy = movableFontsBuffer_pos + fontHeight*pxlTxtLen;
+	if(posMovBuff_copy >= LCD_MOVABLE_FONTS_BUFF_SIZE)
+		return StructTxtPxlLen_ZeroValue;
+
+	int i=0,it=0,iH=0,j;
+	int movableFontsBuffer_pos_copy=movableFontsBuffer_pos;
+	char bufTxt[winWidth/LCD_GetFontWidth(fontID,'1')];
+
+		do
+		{	if(iH>0){ if(txt[it]==' ') it++; }
+			i= LCD_GetStrLenForPxlWidth(fontID,&txt[it],winWidth,space,constWidth);
+			if(i==0) break;
+			for(j=0;j<i;++j)
+			{	if(j==sizeof(bufTxt)-1)
+					break;
+				bufTxt[j]=txt[it+j];
+			}
+			bufTxt[j]=0;
+			it+=i;
+			temp=LCD_DrawStr(movableFontsBuffer_pos, winWidth, fontHeight, fontID,0,0,bufTxt,movableFontsBuffer,OnlyDigits,space,bkColor,coeff,constWidth);
+
+			int diffWidth=winWidth-temp.inPixel;
+			if(diffWidth>0)
+				LCD_RectangleBuff(movableFontsBuffer,movableFontsBuffer_pos, winWidth,fontHeight, temp.inPixel,0, diffWidth,fontHeight, bkColor,bkColor,bkColor);
+
+			movableFontsBuffer_pos += fontHeight*winWidth;
+			iH++;
+		}while(movableFontsBuffer_pos + fontHeight*winWidth < LCD_MOVABLE_FONTS_BUFF_SIZE);
+
+		int winHeight = fontHeight*iH;
+		LCD_CopyBuff2pLcd(rot,movableFontsBuffer_pos_copy, movableFontsBuffer, winWidth,winHeight, 0, winWidth, Xpos,Ypos,0);
+
+		temp.inChar=0;
+		temp.inPixel=winWidth;
+		temp.height=winHeight;
+		if(rot>Rotate_0)
+			SwapUint16(&temp.inPixel,&temp.height);
+		return temp;
+}
+
+StructTxtPxlLen LCD_StrChangeColorRotWin(int rot, int winWidth, int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor, int maxVal, int constWidth, uint32_t bkScreenColor)
+{
+	StructTxtPxlLen temp;
+	int fontHeight= OnlyDigits==fullHight?LCD_GetFontHeight(fontID):LCD_GetFontHalfHeight(fontID);
+	if(fontHeight<0)
+		return StructTxtPxlLen_ZeroValue;
+	int pxlTxtLen = LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth);
+
+	int posMovBuff_copy = movableFontsBuffer_pos + fontHeight*pxlTxtLen;
+	if(posMovBuff_copy >= LCD_MOVABLE_FONTS_BUFF_SIZE)
+		return StructTxtPxlLen_ZeroValue;
+
+	int i=0,it=0,iH=0,j;
+	int movableFontsBuffer_pos_copy=movableFontsBuffer_pos;
+	char bufTxt[winWidth/LCD_GetFontWidth(fontID,'1')];
+
+		do
+		{	if(iH>0){ if(txt[it]==' ') it++; }
+			i= LCD_GetStrLenForPxlWidth(fontID,&txt[it],winWidth,space,constWidth);
+			if(i==0) break;
+			for(j=0;j<i;++j)
+			{	if(j==sizeof(bufTxt)-1)
+					break;
+				bufTxt[j]=txt[it+j];
+			}
+			bufTxt[j]=0;
+			it+=i;
+			if(iH==2)
+				temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, winWidth, fontHeight, fontID,0,0,bufTxt,movableFontsBuffer,OnlyDigits,space,DARKBLUE,fontColor,maxVal,constWidth);
+			else
+				temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, winWidth, fontHeight, fontID,0,0,bufTxt,movableFontsBuffer,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+
+			int diffWidth=winWidth-temp.inPixel;
+			if(diffWidth>0)
+				LCD_RectangleBuff(movableFontsBuffer,movableFontsBuffer_pos, winWidth,fontHeight, temp.inPixel,0, diffWidth,fontHeight, bkColor,bkColor,bkColor);
+
+			movableFontsBuffer_pos += fontHeight*winWidth;
+			iH++;
+		}while(movableFontsBuffer_pos + fontHeight*winWidth < LCD_MOVABLE_FONTS_BUFF_SIZE);
+
+		int winHeight = fontHeight*iH;
+		LCD_CopyBuff2pLcd(rot,movableFontsBuffer_pos_copy, movableFontsBuffer, winWidth,winHeight, 0, winWidth, Xpos,Ypos,0);
+
+		temp.inChar=0;
+		temp.inPixel=winWidth;
+		temp.height=winHeight;
+		if(rot>Rotate_0)
+			SwapUint16(&temp.inPixel,&temp.height);
+		return temp;
+}
+
+StructTxtPxlLen LCD_StrMovH(int idVar, int rot, int posWin, int winWidth ,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth)
+{
+	StructTxtPxlLen temp;
+	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
+	{
+		int fontHeight= OnlyDigits==fullHight?LCD_GetFontHeight(fontID):LCD_GetFontHalfHeight(fontID);
+		if(fontHeight<0)
+			return StructTxtPxlLen_ZeroValue;
+		int pxlTxtLen = LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth);
+
+		int posMovBuff_copy = movableFontsBuffer_pos + fontHeight * pxlTxtLen;
+		if(posMovBuff_copy >= LCD_MOVABLE_FONTS_BUFF_SIZE)
+			return StructTxtPxlLen_ZeroValue;
+
+		FontVar[idVar].id=fontID;
+		FontVar[idVar].xPos=Xpos;
+		FontVar[idVar].yPos=Ypos;
+		FontVar[idVar].heightType=OnlyDigits;
+		FontVar[idVar].space=space;
+		FontVar[idVar].bkColor=bkColor;
+		FontVar[idVar].coeff=coeff;
+		FontVar[idVar].widthType=constWidth;
+		FontVar[idVar].rotate=rot;
+
+		FontVar[idVar].FontMov.xImgWidth=pxlTxtLen;
+		FontVar[idVar].FontMov.yImgHeight=fontHeight;
+		FontVar[idVar].FontMov.posWin=posWin;
+		FontVar[idVar].FontMov.windowWidth=winWidth;
+		FontVar[idVar].FontMov.spaceEndStart=winWidth/3;
+		FontVar[idVar].FontMov.posBuff=movableFontsBuffer_pos;
+		movableFontsBuffer_pos = posMovBuff_copy;
+
+		temp=LCD_DrawStr(FontVar[idVar].FontMov.posBuff, FontVar[idVar].FontMov.xImgWidth, FontVar[idVar].FontMov.yImgHeight, fontID,0,0,txt,movableFontsBuffer,OnlyDigits,space,bkColor,coeff,constWidth);
+		int diffWidth=winWidth-temp.inPixel;
+		LCD_CopyBuff2pLcd(rot,FontVar[idVar].FontMov.posBuff, movableFontsBuffer, FontVar[idVar].FontMov.xImgWidth, FontVar[idVar].FontMov.yImgHeight, posWin, diffWidth>0?temp.inPixel:winWidth, Xpos,Ypos,diffWidth>0?diffWidth:0);
+
+		FontVar[idVar].FontMov.pxlTxtLen=temp.inPixel;
+		if(diffWidth>0)
+		{	switch(rot)
+			{
+			case Rotate_0:
+				LCD_RectangleBuff(pLcd,0, LCD_GetXSize(),LCD_GetYSize(), Xpos+temp.inPixel,Ypos, diffWidth, FontVar[idVar].FontMov.yImgHeight, bkColor,bkColor,bkColor);
+				break;
+			case Rotate_90:
+				LCD_RectangleBuff(pLcd,0, LCD_GetXSize(),LCD_GetYSize(), Xpos,Ypos+temp.inPixel, FontVar[idVar].FontMov.yImgHeight,diffWidth, bkColor,bkColor,bkColor);
+				break;
+			case Rotate_180:
+				LCD_RectangleBuff(pLcd,0, LCD_GetXSize(),LCD_GetYSize(), Xpos,Ypos, FontVar[idVar].FontMov.yImgHeight,diffWidth, bkColor,bkColor,bkColor);
+				break;
+			}
+		}
+		FontVar[idVar].xPos_prev = Xpos;
+		FontVar[idVar].yPos_prev = Ypos;
+		FontVar[idVar].widthPxl_prev = winWidth;
+		FontVar[idVar].heightPxl_prev = FontVar[idVar].FontMov.yImgHeight;
+
+		temp.inChar=0;
+		temp.inPixel=winWidth;
+		if(rot>Rotate_0)
+			SwapUint16(&temp.inPixel,&temp.height);
+		return temp;
+	}
+	else return StructTxtPxlLen_ZeroValue;
+}
+
+StructTxtPxlLen LCD_StrChangeColorMovH(int idVar, int rot, int posWin, int winWidth ,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor, int maxVal, int constWidth)
+{
+	StructTxtPxlLen temp;
+	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
+	{
+		int fontHeight= OnlyDigits==fullHight?LCD_GetFontHeight(fontID):LCD_GetFontHalfHeight(fontID);
+		if(fontHeight<0)
+			return StructTxtPxlLen_ZeroValue;
+		int pxlTxtLen = LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth);
+
+		int posMovBuff_copy = movableFontsBuffer_pos + fontHeight * pxlTxtLen;
+		if(posMovBuff_copy >= LCD_MOVABLE_FONTS_BUFF_SIZE)
+			return StructTxtPxlLen_ZeroValue;
+
+		FontVar[idVar].id=fontID;
+		FontVar[idVar].xPos=Xpos;
+		FontVar[idVar].yPos=Ypos;
+		FontVar[idVar].heightType=OnlyDigits;
+		FontVar[idVar].space=space;
+		FontVar[idVar].bkColor=bkColor;
+		FontVar[idVar].coeff=maxVal;
+		FontVar[idVar].widthType=constWidth;
+		FontVar[idVar].rotate=rot;
+
+		FontVar[idVar].FontMov.xImgWidth=pxlTxtLen;
+		FontVar[idVar].FontMov.yImgHeight=fontHeight;
+		FontVar[idVar].FontMov.posWin=posWin;
+		FontVar[idVar].FontMov.windowWidth=winWidth;
+		FontVar[idVar].FontMov.spaceEndStart=winWidth/3;
+		FontVar[idVar].FontMov.posBuff=movableFontsBuffer_pos;
+		movableFontsBuffer_pos = posMovBuff_copy;
+
+		temp=LCD_DrawStrChangeColor(FontVar[idVar].FontMov.posBuff, FontVar[idVar].FontMov.xImgWidth, FontVar[idVar].FontMov.yImgHeight, fontID,0,0,txt,movableFontsBuffer,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+		int diffWidth=winWidth-temp.inPixel;
+		LCD_CopyBuff2pLcd(rot,FontVar[idVar].FontMov.posBuff, movableFontsBuffer, FontVar[idVar].FontMov.xImgWidth, FontVar[idVar].FontMov.yImgHeight, posWin, diffWidth>0?temp.inPixel:winWidth, Xpos,Ypos,diffWidth>0?diffWidth:0);
+
+		FontVar[idVar].FontMov.pxlTxtLen=temp.inPixel;
+		if(diffWidth>0)
+		{	switch(rot)
+			{
+			case Rotate_0:
+				LCD_RectangleBuff(pLcd,0, LCD_GetXSize(),LCD_GetYSize(), Xpos+temp.inPixel,Ypos, diffWidth, FontVar[idVar].FontMov.yImgHeight, bkColor,bkColor,bkColor);
+				break;
+			case Rotate_90:
+				LCD_RectangleBuff(pLcd,0, LCD_GetXSize(),LCD_GetYSize(), Xpos,Ypos+temp.inPixel, FontVar[idVar].FontMov.yImgHeight,diffWidth, bkColor,bkColor,bkColor);
+				break;
+			case Rotate_180:
+				LCD_RectangleBuff(pLcd,0, LCD_GetXSize(),LCD_GetYSize(), Xpos,Ypos, FontVar[idVar].FontMov.yImgHeight,diffWidth, bkColor,bkColor,bkColor);
+				break;
+			}
+		}
+		FontVar[idVar].xPos_prev = Xpos;
+		FontVar[idVar].yPos_prev = Ypos;
+		FontVar[idVar].widthPxl_prev = winWidth;
+		FontVar[idVar].heightPxl_prev = FontVar[idVar].FontMov.yImgHeight;
+
+		temp.inChar=0;
+		temp.inPixel=winWidth;
+		if(rot>Rotate_0)
+			SwapUint16(&temp.inPixel,&temp.height);
+		return temp;
+	}
+	else return StructTxtPxlLen_ZeroValue;
+}
+
+int LCD_StrMovHIndirect(int idVar, int incrDecr)
+{
+	#define M	FontVar[idVar].FontMov
+	#define F	FontVar[idVar]
+
+	if(SearchFontIndex(FontID[F.id].size, FontID[F.id].style, FontID[F.id].bkColor, FontID[F.id].color)<0)
+		return -1;
+
+	if(M.windowWidth>M.pxlTxtLen) return 0;
+
+	if(M.posWin+incrDecr>=0)
+		M.posWin += incrDecr;
+
+	if(M.posWin + M.windowWidth <= M.pxlTxtLen)
+	{	LCD_CopyBuff2pLcdIndirect(F.rotate,M.posBuff, movableFontsBuffer, M.xImgWidth, M.yImgHeight, M.posWin, M.windowWidth,0);
+		switch(F.rotate)
+		{	case Rotate_0:
+				LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, M.windowWidth,M.yImgHeight, pLcd);
+				break;
+			case Rotate_90:
+			case Rotate_180:
+			default:
+				LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, M.yImgHeight,M.windowWidth, pLcd);
+				break;
+		}
+	}
+	else
+	{	int windowWidth_new = M.pxlTxtLen - M.posWin;
+		int windowWidth_empty = M.posWin + M.windowWidth - M.pxlTxtLen;
+
+		if(windowWidth_new>0)
+		{	LCD_CopyBuff2pLcdIndirect(F.rotate,M.posBuff, movableFontsBuffer, M.xImgWidth, M.yImgHeight, M.posWin, windowWidth_new,0);
+			switch(F.rotate)
+			{	case Rotate_0:
+					LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, windowWidth_new, M.yImgHeight, pLcd);
+					break;
+				case Rotate_90:
+					LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, M.yImgHeight,windowWidth_new, pLcd);
+					break;
+				case Rotate_180:
+				default:
+					LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos+windowWidth_empty, M.yImgHeight,windowWidth_new, pLcd);
+					break;
+			}
+
+			if(windowWidth_empty>M.spaceEndStart)
+			{	int windowWidth_next = M.windowWidth - (windowWidth_new + M.spaceEndStart);
+
+				switch(F.rotate)
+				{	case Rotate_0:
+						LCD_RectangleBuff(pLcd,0,M.spaceEndStart,M.yImgHeight,0,0,M.spaceEndStart,M.yImgHeight,F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos+windowWidth_new, (uint32_t)F.yPos, M.spaceEndStart, M.yImgHeight, pLcd);
+						break;
+					case Rotate_90:
+						LCD_RectangleBuff(pLcd,0,M.yImgHeight,M.spaceEndStart,0,0,M.yImgHeight,M.spaceEndStart,F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos+windowWidth_new, M.yImgHeight, M.spaceEndStart, pLcd);
+						break;
+					case Rotate_180:
+					default:
+						LCD_RectangleBuff(pLcd,0,M.yImgHeight,M.spaceEndStart,0,0,M.yImgHeight,M.spaceEndStart,F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos+windowWidth_next, M.yImgHeight, M.spaceEndStart, pLcd);
+						break;
+				}
+
+				LCD_CopyBuff2pLcdIndirect(F.rotate,M.posBuff, movableFontsBuffer, M.xImgWidth, M.yImgHeight, 0, windowWidth_next,0);
+				switch(F.rotate)
+				{	case Rotate_0:
+						LCD_DisplayBuff((uint32_t)F.xPos+windowWidth_new+M.spaceEndStart, (uint32_t)F.yPos, windowWidth_next, M.yImgHeight, pLcd);
+						break;
+					case Rotate_90:
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos+windowWidth_new+M.spaceEndStart, M.yImgHeight, windowWidth_next, pLcd);
+						break;
+					case Rotate_180:
+					default:
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos, M.yImgHeight, windowWidth_next, pLcd);
+						break;
+				}
+			}
+			else{
+				switch(F.rotate)
+				{	case Rotate_0:
+						LCD_RectangleBuff(pLcd,0,windowWidth_empty,M.yImgHeight,0,0,windowWidth_empty,M.yImgHeight,F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos+windowWidth_new, (uint32_t)F.yPos, windowWidth_empty, M.yImgHeight, pLcd);
+						break;
+					case Rotate_90:
+						LCD_RectangleBuff(pLcd,0,M.yImgHeight,windowWidth_empty,0,0,M.yImgHeight,windowWidth_empty,F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos+windowWidth_new, M.yImgHeight, windowWidth_empty, pLcd);
+						break;
+					case Rotate_180:
+					default:
+						LCD_RectangleBuff(pLcd,0,M.yImgHeight,windowWidth_empty,0,0,M.yImgHeight,windowWidth_empty,F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos, M.yImgHeight, windowWidth_empty, pLcd);
+						break;
+				}
+			}
+		}
+		else
+		{	int spaceEndStart_new = M.spaceEndStart + windowWidth_new;
+
+			if(spaceEndStart_new>0)
+			{	int windowWidth_next = M.windowWidth - spaceEndStart_new;
+
+				switch(F.rotate)
+				{	case Rotate_0:
+						LCD_RectangleBuff(pLcd,0,spaceEndStart_new,M.yImgHeight,0,0,spaceEndStart_new,M.yImgHeight,F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos, spaceEndStart_new, M.yImgHeight, pLcd);
+						break;
+					case Rotate_90:
+						LCD_RectangleBuff(pLcd,0,M.yImgHeight,spaceEndStart_new,0,0,M.yImgHeight,spaceEndStart_new,F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos, M.yImgHeight,spaceEndStart_new, pLcd);
+						break;
+					case Rotate_180:
+					default:
+						LCD_RectangleBuff(pLcd,0,M.yImgHeight,spaceEndStart_new,0,0,M.yImgHeight,spaceEndStart_new,F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos+windowWidth_next, M.yImgHeight,spaceEndStart_new, pLcd);
+						break;
+				}
+
+				LCD_CopyBuff2pLcdIndirect(F.rotate,M.posBuff, movableFontsBuffer, M.xImgWidth, M.yImgHeight, 0, windowWidth_next,0);
+				switch(F.rotate)
+				{	case Rotate_0:
+						LCD_DisplayBuff((uint32_t)F.xPos+spaceEndStart_new, (uint32_t)F.yPos, windowWidth_next, M.yImgHeight, pLcd);
+						break;
+					case Rotate_90:
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos+spaceEndStart_new, M.yImgHeight, windowWidth_next, pLcd);
+						break;
+					case Rotate_180:
+					default:
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos, M.yImgHeight, windowWidth_next, pLcd);
+						break;
+				}
+			}
+			else{
+				M.posWin=0;
+				LCD_CopyBuff2pLcdIndirect(F.rotate,M.posBuff, movableFontsBuffer, M.xImgWidth, M.yImgHeight, M.posWin, M.windowWidth,0);
+				switch(F.rotate)
+				{	case Rotate_0:
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos, M.windowWidth, M.yImgHeight, pLcd);
+						break;
+					case Rotate_90:
+					case Rotate_180:
+					default:
+						LCD_DisplayBuff((uint32_t)F.xPos, (uint32_t)F.yPos, M.yImgHeight, M.windowWidth, pLcd);
+						break;
+				}
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+StructTxtPxlLen LCD_StrMovV(int idVar, int rot, int posWin, int winWidth,int winHeight, int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth)
+{
+	StructTxtPxlLen temp;
+
+	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
+	{
+		int fontHeight= OnlyDigits==fullHight?LCD_GetFontHeight(fontID):LCD_GetFontHalfHeight(fontID);
+		if(fontHeight<0)
+			return StructTxtPxlLen_ZeroValue;
+		int pxlTxtLen = LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth);
+
+		int posMovBuff_copy = movableFontsBuffer_pos + fontHeight*pxlTxtLen;
+		if(posMovBuff_copy >= LCD_MOVABLE_FONTS_BUFF_SIZE)
+			return StructTxtPxlLen_ZeroValue;
+
+		int i=0,it=0,iH=0,j;
+		char bufTxt[winWidth/LCD_GetFontWidth(fontID,'1')];
+
+		FontVar[idVar].id=fontID;
+		FontVar[idVar].xPos=Xpos;
+		FontVar[idVar].yPos=Ypos;
+		FontVar[idVar].heightType=OnlyDigits;
+		FontVar[idVar].space=space;
+		FontVar[idVar].bkColor=bkColor;
+		FontVar[idVar].coeff=coeff;
+		FontVar[idVar].widthType=constWidth;
+		FontVar[idVar].rotate=rot;
+
+		FontVar[idVar].FontMov.xImgWidth=winWidth;
+		FontVar[idVar].FontMov.posWin=posWin;
+		FontVar[idVar].FontMov.windowWidth=winWidth;
+		FontVar[idVar].FontMov.windowHeight = winHeight;
+		FontVar[idVar].FontMov.spaceEndStart=fontHeight;
+		FontVar[idVar].FontMov.posBuff=movableFontsBuffer_pos;
+
+		do
+		{	if(iH>0){ if(txt[it]==' ') it++; }
+			i= LCD_GetStrLenForPxlWidth(fontID,&txt[it],winWidth,space,constWidth);
+			if(i==0) break;
+			for(j=0;j<i;++j)
+			{	if(j==sizeof(bufTxt)-1)
+					break;
+				bufTxt[j]=txt[it+j];
+			}
+			bufTxt[j]=0;
+			it+=i;
+			temp=LCD_DrawStr(movableFontsBuffer_pos, FontVar[idVar].FontMov.xImgWidth, fontHeight, fontID,0,0,bufTxt,movableFontsBuffer,OnlyDigits,space,bkColor,coeff,constWidth);
+
+			int diffWidth=winWidth-temp.inPixel;
+			if(diffWidth>0)
+				LCD_RectangleBuff(movableFontsBuffer,movableFontsBuffer_pos, FontVar[idVar].FontMov.xImgWidth,fontHeight, temp.inPixel,0, diffWidth,fontHeight, bkColor,bkColor,bkColor);
+
+			movableFontsBuffer_pos += fontHeight*FontVar[idVar].FontMov.xImgWidth;
+			iH++;
+		}while(movableFontsBuffer_pos + fontHeight*FontVar[idVar].FontMov.xImgWidth < LCD_MOVABLE_FONTS_BUFF_SIZE);
+
+		FontVar[idVar].FontMov.yImgHeight = fontHeight*iH;
+		int diffHeight = winHeight - FontVar[idVar].FontMov.yImgHeight;
+		LCD_CopyBuff2pLcd(rot,FontVar[idVar].FontMov.posBuff, movableFontsBuffer, FontVar[idVar].FontMov.xImgWidth,winHeight, posWin*FontVar[idVar].FontMov.xImgWidth, winWidth, Xpos,Ypos,0);
+
+		if(diffHeight>0)
+		{	switch(rot)
+			{
+			case Rotate_0:
+				LCD_RectangleBuff(pLcd,0, LCD_GetXSize(),LCD_GetYSize(), Xpos,Ypos+FontVar[idVar].FontMov.yImgHeight, winWidth,diffHeight, bkColor,bkColor,bkColor);
+				break;
+			case Rotate_90:
+				LCD_RectangleBuff(pLcd,0, LCD_GetXSize(),LCD_GetYSize(), Xpos,Ypos, diffHeight,winWidth, bkColor,bkColor,bkColor);
+				break;
+			case Rotate_180:
+				LCD_RectangleBuff(pLcd,0, LCD_GetXSize(),LCD_GetYSize(), Xpos+FontVar[idVar].FontMov.yImgHeight,Ypos, diffHeight,winWidth, bkColor,bkColor,bkColor);
+				break;
+			}
+		}
+		FontVar[idVar].xPos_prev = Xpos;
+		FontVar[idVar].yPos_prev = Ypos;
+		FontVar[idVar].widthPxl_prev = winWidth;
+		FontVar[idVar].heightPxl_prev = winHeight;
+
+		temp.inChar=0;
+		temp.inPixel=winWidth;
+		temp.height=winHeight;
+		if(rot>Rotate_0)
+			SwapUint16(&temp.inPixel,&temp.height);
+		return temp;
+	}
+	else return StructTxtPxlLen_ZeroValue;
+}
+
+StructTxtPxlLen LCD_StrChangeColorMovV(int idVar, int rot, int posWin, int winWidth,int winHeight, int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor, int maxVal, int constWidth)
+{
+	StructTxtPxlLen temp;
+
+	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
+	{
+		int fontHeight= OnlyDigits==fullHight?LCD_GetFontHeight(fontID):LCD_GetFontHalfHeight(fontID);
+		if(fontHeight<0)
+			return StructTxtPxlLen_ZeroValue;
+		int pxlTxtLen = LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth);
+
+		int posMovBuff_copy = movableFontsBuffer_pos + fontHeight*pxlTxtLen;
+		if(posMovBuff_copy >= LCD_MOVABLE_FONTS_BUFF_SIZE)
+			return StructTxtPxlLen_ZeroValue;
+
+		int i=0,it=0,iH=0,j;
+		char bufTxt[winWidth/LCD_GetFontWidth(fontID,'1')];
+
+		FontVar[idVar].id=fontID;
+		FontVar[idVar].xPos=Xpos;
+		FontVar[idVar].yPos=Ypos;
+		FontVar[idVar].heightType=OnlyDigits;
+		FontVar[idVar].space=space;
+		FontVar[idVar].bkColor=bkColor;
+		FontVar[idVar].coeff=maxVal;
+		FontVar[idVar].widthType=constWidth;
+		FontVar[idVar].rotate=rot;
+
+		FontVar[idVar].FontMov.xImgWidth=winWidth;
+		FontVar[idVar].FontMov.posWin=posWin;
+		FontVar[idVar].FontMov.windowWidth=winWidth;
+		FontVar[idVar].FontMov.windowHeight = winHeight;
+		FontVar[idVar].FontMov.spaceEndStart=fontHeight;
+		FontVar[idVar].FontMov.posBuff=movableFontsBuffer_pos;
+
+		do
+		{	if(iH>0){ if(txt[it]==' ') it++; }
+			i= LCD_GetStrLenForPxlWidth(fontID,&txt[it],winWidth,space,constWidth);
+			if(i==0) break;
+			for(j=0;j<i;++j)
+			{	if(j==sizeof(bufTxt)-1)
+					break;
+				bufTxt[j]=txt[it+j];
+			}
+			bufTxt[j]=0;
+			it+=i;
+			if(iH==2)
+				temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, FontVar[idVar].FontMov.xImgWidth, fontHeight, fontID,0,0,bufTxt,movableFontsBuffer,OnlyDigits,space,GRAY,fontColor,maxVal,constWidth);
+			else
+				temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, FontVar[idVar].FontMov.xImgWidth, fontHeight, fontID,0,0,bufTxt,movableFontsBuffer,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+
+			int diffWidth=winWidth-temp.inPixel;
+			if(diffWidth>0)
+				LCD_RectangleBuff(movableFontsBuffer,movableFontsBuffer_pos, FontVar[idVar].FontMov.xImgWidth,fontHeight, temp.inPixel,0, diffWidth,fontHeight, bkColor,bkColor,bkColor);
+
+			movableFontsBuffer_pos += fontHeight*FontVar[idVar].FontMov.xImgWidth;
+			iH++;
+		}while(movableFontsBuffer_pos + fontHeight*FontVar[idVar].FontMov.xImgWidth < LCD_MOVABLE_FONTS_BUFF_SIZE);
+
+		FontVar[idVar].FontMov.yImgHeight = fontHeight*iH;
+		int diffHeight = winHeight - FontVar[idVar].FontMov.yImgHeight;
+		LCD_CopyBuff2pLcd(rot,FontVar[idVar].FontMov.posBuff, movableFontsBuffer, FontVar[idVar].FontMov.xImgWidth,winHeight, posWin*FontVar[idVar].FontMov.xImgWidth, winWidth, Xpos,Ypos,0);
+
+		if(diffHeight>0)
+		{	switch(rot)
+			{
+			case Rotate_0:
+				LCD_RectangleBuff(pLcd,0, LCD_GetXSize(),LCD_GetYSize(), Xpos,Ypos+FontVar[idVar].FontMov.yImgHeight, winWidth,diffHeight, bkColor,bkColor,bkColor);
+				break;
+			case Rotate_90:
+				LCD_RectangleBuff(pLcd,0, LCD_GetXSize(),LCD_GetYSize(), Xpos,Ypos, diffHeight,winWidth, bkColor,bkColor,bkColor);
+				break;
+			case Rotate_180:
+				LCD_RectangleBuff(pLcd,0, LCD_GetXSize(),LCD_GetYSize(), Xpos+FontVar[idVar].FontMov.yImgHeight,Ypos, diffHeight,winWidth, bkColor,bkColor,bkColor);
+				break;
+			}
+		}
+		FontVar[idVar].xPos_prev = Xpos;
+		FontVar[idVar].yPos_prev = Ypos;
+		FontVar[idVar].widthPxl_prev = winWidth;
+		FontVar[idVar].heightPxl_prev = winHeight;
+
+		temp.inChar=0;
+		temp.inPixel=winWidth;
+		temp.height=winHeight;
+		if(rot>Rotate_0)
+			SwapUint16(&temp.inPixel,&temp.height);
+		return temp;
+	}
+	else return StructTxtPxlLen_ZeroValue;
+}
+
+int LCD_StrMovVIndirect(int idVar, int incrDecr)
+{
+	#define M	FontVar[idVar].FontMov
+	#define F	FontVar[idVar]
+
+	if(SearchFontIndex(FontID[F.id].size, FontID[F.id].style, FontID[F.id].bkColor, FontID[F.id].color)<0)
+		return -1;
+
+	if(M.windowHeight>M.yImgHeight) return 0;
+
+	if(M.posWin+incrDecr>=0)
+		M.posWin += incrDecr;
+
+	if(M.posWin+M.windowHeight <= M.yImgHeight)
+	{
+		LCD_CopyBuff2pLcdIndirect(F.rotate,M.posBuff, movableFontsBuffer, M.xImgWidth,M.windowHeight, M.posWin*M.xImgWidth, M.windowWidth,0);
+		switch(F.rotate)
+		{	case Rotate_0:
+				LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, M.windowWidth, M.windowHeight, pLcd);
+				break;
+			case Rotate_90:
+			case Rotate_180:
+			default:
+				LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, M.windowHeight, M.windowWidth, pLcd);
+				break;
+		}
+	}
+	else
+	{	int height_empty = M.posWin + M.windowHeight - M.yImgHeight;
+		int height_old = M.windowHeight-height_empty;
+
+		if(height_old>0)
+		{
+			LCD_CopyBuff2pLcdIndirect(F.rotate,M.posBuff, movableFontsBuffer, M.xImgWidth,height_old, M.posWin*M.xImgWidth, M.windowWidth,0);
+			switch(F.rotate)
+			{	case Rotate_0:
+					LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, M.windowWidth, height_old, pLcd);
+					break;
+				case Rotate_90:
+					LCD_DisplayBuff((uint32_t)F.xPos+height_empty,(uint32_t)F.yPos, height_old, M.windowWidth, pLcd);
+					break;
+				case Rotate_180:
+				default:
+					LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, height_old, M.windowWidth, pLcd);
+					break;
+			}
+
+			if(height_empty <= M.spaceEndStart)
+			{
+				switch(F.rotate)
+				{	case Rotate_0:
+						LCD_RectangleBuff(pLcd,0, M.windowWidth,height_empty ,0,0, M.windowWidth,height_empty, F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos+height_old, M.windowWidth,height_empty, pLcd);
+						break;
+					case Rotate_90:
+						LCD_RectangleBuff(pLcd,0, height_empty,M.windowWidth ,0,0, height_empty,M.windowWidth, F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, height_empty,M.windowWidth, pLcd);
+						break;
+					case Rotate_180:
+					default:
+						LCD_RectangleBuff(pLcd,0, height_empty,M.windowWidth ,0,0, height_empty,M.windowWidth, F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos+height_old,(uint32_t)F.yPos, height_empty,M.windowWidth, pLcd);
+						break;
+				}
+			}
+			else
+			{	int height_new = height_empty - M.spaceEndStart;
+				switch(F.rotate)
+				{	case Rotate_0:
+						LCD_RectangleBuff(pLcd,0, M.windowWidth,M.spaceEndStart, 0,0, M.windowWidth,M.spaceEndStart, F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)(F.yPos+height_old), M.windowWidth,M.spaceEndStart, pLcd);
+						break;
+					case Rotate_90:
+						LCD_RectangleBuff(pLcd,0, M.spaceEndStart,M.windowWidth, 0,0, M.spaceEndStart,M.windowWidth, F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos+height_new,(uint32_t)F.yPos, M.spaceEndStart,M.windowWidth, pLcd);
+						break;
+					case Rotate_180:
+						LCD_RectangleBuff(pLcd,0, M.spaceEndStart,M.windowWidth, 0,0, M.spaceEndStart,M.windowWidth, F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos+height_old,(uint32_t)F.yPos, M.spaceEndStart,M.windowWidth, pLcd);
+					default:
+						break;
+				}
+
+				LCD_CopyBuff2pLcdIndirect(F.rotate,M.posBuff, movableFontsBuffer, M.xImgWidth,height_new, 0, M.windowWidth,0);
+				switch(F.rotate)
+				{	case Rotate_0:
+						LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)(F.yPos+height_old+M.spaceEndStart), M.windowWidth,height_new, pLcd);
+						break;
+					case Rotate_90:
+						LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, height_new,M.windowWidth, pLcd);
+						break;
+					case Rotate_180:
+						LCD_DisplayBuff((uint32_t)(F.xPos+height_old+M.spaceEndStart),(uint32_t)F.yPos, height_new,M.windowWidth, pLcd);
+					default:
+						break;
+				}
+			}
+		}
+		else
+		{	int spaceEndStart_new = M.spaceEndStart + height_old;
+			if(spaceEndStart_new>0)
+			{
+				int height_new = M.windowHeight - spaceEndStart_new;
+				switch(F.rotate)
+				{	case Rotate_0:
+						LCD_RectangleBuff(pLcd,0, M.windowWidth,spaceEndStart_new ,0,0, M.windowWidth,spaceEndStart_new, F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, M.windowWidth,spaceEndStart_new, pLcd);
+						break;
+					case Rotate_90:
+						LCD_RectangleBuff(pLcd,0, spaceEndStart_new,M.windowWidth ,0,0, spaceEndStart_new,M.windowWidth, F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos+height_new,(uint32_t)F.yPos, spaceEndStart_new,M.windowWidth, pLcd);
+						break;
+					case Rotate_180:
+						LCD_RectangleBuff(pLcd,0, spaceEndStart_new,M.windowWidth ,0,0,spaceEndStart_new,M.windowWidth, F.bkColor,F.bkColor,F.bkColor);
+						LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, spaceEndStart_new,M.windowWidth, pLcd);
+					default:
+						break;
+				}
+
+				LCD_CopyBuff2pLcdIndirect(F.rotate,M.posBuff, movableFontsBuffer, M.xImgWidth,height_new, 0, M.windowWidth,0);
+				switch(F.rotate)
+				{	case Rotate_0:
+						LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)(F.yPos+spaceEndStart_new), M.windowWidth,height_new, pLcd);
+						break;
+					case Rotate_90:
+						LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, height_new,M.windowWidth, pLcd);
+						break;
+					case Rotate_180:
+						LCD_DisplayBuff((uint32_t)F.xPos+spaceEndStart_new,(uint32_t)F.yPos, height_new,M.windowWidth, pLcd);
+					default:
+						break;
+				}
+			}
+			else
+			{	M.posWin=0;
+				LCD_CopyBuff2pLcdIndirect(F.rotate,M.posBuff, movableFontsBuffer, M.xImgWidth,M.windowHeight, 0, M.windowWidth,0);
+				switch(F.rotate)
+				{	case Rotate_0:
+						LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, M.windowWidth, M.windowHeight, pLcd);
+						break;
+					case Rotate_90:
+					case Rotate_180:
+					default:
+						LCD_DisplayBuff((uint32_t)F.xPos,(uint32_t)F.yPos, M.windowHeight, M.windowWidth, pLcd);
+						break;
+				}
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+int LCD_GetWholeStrPxlWidth(int fontID, char *txt, int space, int constWidth){
+	int lenTxtInPixel=0;
+	int fontIndex=SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
+	if(fontIndex==-1)
+		return -1;
+	else
+	{
+		int len=strlen(txt);
+		if(constWidth)
+			LCD_Set_ConstWidthFonts(fontIndex);
+		for(int i=0;i<len;i++)
+			lenTxtInPixel += Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,fontID);
+		if(constWidth)
+			LCD_Reset_ConstWidthFonts(fontIndex);
+		return lenTxtInPixel;
+	}
+}
+int LCD_GetStrPxlWidth(int fontID, char *txt, int len, int space, int constWidth){
+	int lenTxtInPixel=0;
+	int fontIndex=SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
+	if(fontIndex==-1)
+		return -1;
+	else
+	{
+		if(constWidth)
+			LCD_Set_ConstWidthFonts(fontIndex);
+		for(int i=0;i<len;i++)
+			lenTxtInPixel += Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,fontID);
+		if(constWidth)
+			LCD_Reset_ConstWidthFonts(fontIndex);
+		return lenTxtInPixel;
+	}
+}
+int LCD_GetStrPxlWidth2(int fontID, char *txt, int len, int space, int constWidth){
+	int lenTxtInPixel=0;
+	int fontIndex=SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
+	if(fontIndex==-1)
+		return -1;
+	else
+	{
+		if(constWidth)
+			LCD_Set_ConstWidthFonts(fontIndex);
+		for(int i=0;i<len;i++)
+			lenTxtInPixel += Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space;
+		if(constWidth)
+			LCD_Reset_ConstWidthFonts(fontIndex);
+		return lenTxtInPixel;
+	}
+}
+int LCD_GetStrLenForPxlWidth(int fontID, char *txt, int lenInPxl, int space, int constWidth){
+	int fontIndex=SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
+	if(fontIndex==-1)
+		return -1;
+	else
+	{
+		int i,lenTxtInPixel=0;
+		int len=0,m=strlen(txt);
+
+		if(constWidth)
+			LCD_Set_ConstWidthFonts(fontIndex);
+		for(i=0;i<m;i++)
+		{	len=Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,fontID);
+			if(lenTxtInPixel+len>lenInPxl) break;
+			lenTxtInPixel += len;
+		}
+		if(constWidth)
+			LCD_Reset_ConstWidthFonts(fontIndex);
+
+		return i;
+	}
+}
+
+int LCD_GetFontWidth(int fontID, char font){
+	int fontIndex=SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
+	if(fontIndex==-1)
+		return -1;
+	else
+		return Font[fontIndex].fontsTabPos[ (int)font ][1];
+}
+
+int LCD_GetFontHeight(int fontID)
+{
+	int fontIndex=SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
+	if(fontIndex==-1)
+		return -1;
+	else
+		return Font[fontIndex].height;
+}
+
+int LCD_GetFontHalfHeight(int fontID)
+{
+	int fontIndex=SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
+	if(fontIndex==-1)
+		return -1;
+	else
+		return Font[fontIndex].heightHalf;
+}
+
+int CopyCharsTab(char *buf, int len, int offset, int fontSize)
+{
+	const char *pChar;
+	int i,j, lenChars;
+
+	switch(fontSize)
+	{
+	case FONT_72:
+	case FONT_72_bold:
+	case FONT_72_italics:
+	case FONT_130:
+	case FONT_130_bold:
+	case FONT_130_italics:
+		pChar=CharsTab_digits;
+		break;
+	default:
+		pChar=CharsTab_full;
+		break;
+	}
+
+	lenChars=strlen(pChar);
+	for(i=0;i<len;++i)
+	{
+		j=offset+i;
+		if(j<lenChars)
+			buf[i]=pChar[j];
 		else
 			break;
 	}
-	Test.txt[i]=0;
+	buf[i]=0;
 
-	if(i == Test.lenWin)
+	if(i==len)
 		return 0;
 	else
 		return 1;
 }
 
-static void FONTS_LCD_ResetParam(void)
+int LCD_SelectedSpaceBetweenFontsIncrDecr(uint8_t incrDecr, uint8_t fontStyle, uint8_t fontSize, char char1, char char2)
 {
-	Test.xFontsField=0;
-	Test.yFontsField=240;
+	for(int i=0;i<StructSpaceCount;i++)
+	{
+		if((fontStyle==space[i].fontStyle)&&(fontSize==space[i].fontSize)&&(char1==space[i].char1)&&(char2==space[i].char2))
+		{
+			if(incrDecr){
+				if(space[i].val<127)
+					space[i].val++;
+			}
+			else{
+				if(space[i].val>-127)
+					space[i].val--;
+			}
+			return space[i].val;
+		}
+	}
 
-	Test.bk[0]=R_PART(v.FONT_BKCOLOR_Fonts);
-	Test.bk[1]=G_PART(v.FONT_BKCOLOR_Fonts);
-	Test.bk[2]=B_PART(v.FONT_BKCOLOR_Fonts);
+	if(StructSpaceCount<MAX_SPACE_CORRECT)
+	{
+		space[StructSpaceCount].fontStyle=fontStyle;
+		space[StructSpaceCount].fontSize=fontSize;
+		space[StructSpaceCount].char1=char1;
+		space[StructSpaceCount].char2=char2;
 
-	Test.font[0]=R_PART(v.FONT_COLOR_Fonts);
-	Test.font[1]=G_PART(v.FONT_COLOR_Fonts);
-	Test.font[2]=B_PART(v.FONT_COLOR_Fonts);
+		if(incrDecr){
+			if(space[StructSpaceCount].val<127)
+				space[StructSpaceCount].val++;
+		}
+		else{
+			if(space[StructSpaceCount].val>-127)
+				space[StructSpaceCount].val--;
+		}
+		StructSpaceCount++;
+		return space[StructSpaceCount-1].val;
+	}
 
-	Test.step=1;
-	Test.coeff=255;
-	Test.coeff_prev[0]=255;		/* for RGB-RGB */
-	Test.coeff_prev[1]=0;		/* for RGB-White */
-
-	Test.type=RGB_RGB;
-	Test.speed=0;
-
-	Test.size=v.FONT_SIZE_Fonts;
-	Test.style=v.FONT_STYLE_Fonts;
-
-	//strcpy(Test.txt,"Rafa"ł" Markielowski");
-
-	Test.lenWin=mini_strlen(TEXT_TO_SHOW);
-	Test.offsWin=0;
-
-	Test.lenWin_prev=Test.lenWin;
-	Test.offsWin_prev=Test.offsWin;
-
-   Test.posCursor=0;
-	Test.normBoldItal=0;
-
-	Test.spaceCoursorY=0;
-	Test.heightCursor=1;
-	Test.spaceBetweenFonts=0;
-	Test.constWidth=0;
-
-	ChangeTxt();
+	return 0xFFFF;
 }
 
-static void LCD_LoadFontVar(void)
-{
-	if(TakeMutex(Semphr_cardSD,1000))
-	{
-		if(v.FONT_ID_Fonts == FILE_NAME(GetDefaultParam)(FONT_ID_Fonts))
-			LCD_DeleteFont(FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
-
-		StartMeasureTime(0);
-		switch(Test.type)
-		{
-		case RGB_RGB:
-		case Gray_Green:
-			v.FONT_ID_Fonts = LCD_LoadFont_DarkgrayGreen(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
-			break;
-		case RGB_White:
-			v.FONT_ID_Fonts = LCD_LoadFont_DarkgrayWhite(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
-			break;
-		case White_Black:
-			v.FONT_ID_Fonts = LCD_LoadFont_WhiteBlack(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
-			break;
+char* LCD_DisplayRemeberedSpacesBetweenFonts(int param, char* buff, int* maxArray){
+	char bufTemp[50];
+	switch(param){
+	default:
+	case 0:
+		Dbg(1,"\r\nSpacesBetweenFonts:");
+		for(int i=0; i<StructSpaceCount; i++)
+			DbgVar(1,50,"\r\n%d: %s %s %c %c  %d ",i+1,LCD_FontStyle2Str(bufTemp,space[i].fontStyle),LCD_FontSize2Str(bufTemp+20,space[i].fontSize),space[i].char1,space[i].char2,space[i].val);
+		Dbg(1,"\r\n");
+		return NULL;
+	case 1:
+		buff[0]=0;
+		int len=0,lenArray=0;	if(maxArray!=NULL) *maxArray=0;
+		for(int i=0; i<StructSpaceCount; i++){
+			lenArray = mini_snprintf(buff+len,100,"%d%c"_L_"%s "_L_"%s "_L_"'%c' "_L_"'%c' "_L_"%d"_E_,i+1,COMMON_SIGN,LCD_FontStyle2Str(bufTemp,space[i].fontStyle),LCD_FontSize2Str(bufTemp+20,space[i].fontSize),space[i].char1,space[i].char2,space[i].val);
+			len += lenArray;
+			if(maxArray!=NULL){  if(lenArray>*maxArray) *maxArray=lenArray;  }
 		}
-		Test.loadFontTime=StopMeasureTime(0,"");
-
-		if(v.FONT_ID_Fonts<0){
-			Dbg(1,"\r\nERROR_LoadFontVar ");
-			v.FONT_ID_Fonts=0;
-		}
-		DisplayFontsStructState();
-
+		return buff;
+}}
+void LCD_WriteSpacesBetweenFontsOnSDcard(void){
+	if(TakeMutex(Semphr_cardSD,1000)){
+		SDCardFileOpen(0,"Spaces_Between_Font.bin",FA_CREATE_ALWAYS|FA_WRITE);
+		SDCardFileWrite(0,(char*)LCD_GetStructSpaceCount(),1);
+		SDCardFileWrite(0,(char*)LCD_GetPtr2SpacesBetweenFontsStruct(),LCD_GetSpacesBetweenFontsStructSize());
+		SDCardFileClose(0);
 		GiveMutex(Semphr_cardSD);
 	}
 }
-
-static void AdjustMiddle_X(void){
-	LCD_SetStrVar_x(v.FONT_VAR_Fonts,POS_X_TXT);
+void LCD_ResetSpacesBetweenFonts(void){
+	LCD_StartInsertingSpacesBetweenFonts();
+	LCD_WriteSpacesBetweenFontsOnSDcard();
 }
-static void AdjustMiddle_Y(void){
-	LCD_SetStrVar_y(v.FONT_VAR_Fonts,POS_Y_TXT);
+void LCD_SetSpacesBetweenFonts(void){
+	if(1==ReadSpacesBetweenFontsFromSDcard())
+		LCD_StartInsertingSpacesBetweenFonts();
 }
 
-static void ChangeFontStyle(int8_t typeReq)
+uint16_t LCD_Ypos(StructTxtPxlLen structTemp, int cmd, int offs)
 {
-	if(typeReq > NONE_TYPE_REQ)
+	static uint16_t yPos=0;
+	switch(cmd)
 	{
-		if(Test.style == typeReq)
-			return;
-		else
-			Test.style = typeReq;
-	}
-	else
-	{
-		switch(Test.style)
-		{
-		case Arial:   			 Test.style=Times_New_Roman; break;
-		case Times_New_Roman: Test.style=Comic_Saens_MS;  break;
-		case Comic_Saens_MS:  Test.style=Arial; 			  break;
-		default:              Test.style=Arial;           break;
-		}
-	}
-
-	ClearCursorField();
-	LCD_LoadFontVar();
-	AdjustMiddle_X();
-	AdjustMiddle_Y();
-	Data2Refresh(FONTS);
-	Test.lenWin=lenStr.inChar;
-	SetCursor();
-	Data2Refresh(PARAM_LOAD_FONT_TIME);
-	Data2Refresh(PARAM_LEN_WINDOW);
-	Data2Refresh(PARAM_STYLE);
-	Data2Refresh(PARAM_SPEED);
-}
-
-static void Inc_lenWin(void){
-	Test.lenWin++;
-	if(ChangeTxt()){
-		Test.lenWin--;
-		ChangeTxt();
-	}
-	else{
-		lenTxt_prev=lenStr.inChar;
-		AdjustMiddle_X();
-		Data2Refresh(FONTS);
-		if(lenTxt_prev==lenStr.inChar)
-			Test.lenWin--;
-		else
-			Data2Refresh(PARAM_LEN_WINDOW);
-	}
-	ClearCursorField();
-	SetCursor();
-	Data2Refresh(PARAM_SPEED);
-}
-static void Dec_lenWin(void){
-	Test.lenWin<=1 ? 1 : Test.lenWin--;
-	ChangeTxt();
-	ClearCursorField();
-	AdjustMiddle_X();
-	Data2Refresh(FONTS);
-	Test.lenWin=lenStr.inChar;
-	SetCursor();
-	Data2Refresh(PARAM_LEN_WINDOW);
-	Data2Refresh(PARAM_SPEED);
-}
-
-static void Inc_offsWin(void){
-	Test.offsWin++;
-	if(ChangeTxt()){
-		Test.offsWin--;
-		ChangeTxt();
-	}
-	ClearCursorField();
-	AdjustMiddle_X();
-	Data2Refresh(FONTS);
-	Test.lenWin=lenStr.inChar;
-	SetCursor();
-	Data2Refresh(PARAM_LEN_WINDOW);
-	Data2Refresh(PARAM_OFFS_WINDOW);
-	Data2Refresh(PARAM_SPEED);
-}
-static void Dec_offsWin(void){
-	Test.offsWin<=0 ? 0 : Test.offsWin--;
-	ChangeTxt();
-	ClearCursorField();
-	AdjustMiddle_X();
-	Data2Refresh(FONTS);
-	Test.lenWin=lenStr.inChar;
-	SetCursor();
-	Data2Refresh(PARAM_LEN_WINDOW);
-	Data2Refresh(PARAM_OFFS_WINDOW);
-	Data2Refresh(PARAM_SPEED);
-}
-
-static void IncFontSize(int8_t typeReq)
-{
-	int sizeLimit;
-
-	if(typeReq > NONE_TYPE_REQ){
-		Test.size = typeReq;
-		if(0==(typeReq%3)) Test.normBoldItal = 0;
-		else if(0==((typeReq-1)%3)) Test.normBoldItal = 1;
-		else if(0==((typeReq-2)%3)) Test.normBoldItal = 2;
-	}
-	else
-		Test.size+=3;
-
-	switch(Test.normBoldItal)
-	{
+	case SetPos:
+		yPos=offs;
+		return yPos;
+	case GetPos:
+		return yPos+offs;
+	case IncPos:
 	default:
-	case 0:  sizeLimit=FONT_130; 			break;
-	case 1:  sizeLimit=FONT_130_bold; 	break;
-	case 2:  sizeLimit=FONT_130_italics; break;
+		return yPos+=structTemp.height+offs;
 	}
-	if(Test.size>sizeLimit){
-		Test.size=sizeLimit;
-		return;
-	}
-	ClearCursorField();
-	LCD_LoadFontVar();
-	if((Test.size==FONT_72)||(Test.size==FONT_72_bold)||(Test.size==FONT_72_italics)||
-	   (Test.size==FONT_130)||(Test.size==FONT_130_bold)||(Test.size==FONT_130_italics)){
-		Test.lenWin_prev=Test.lenWin;
-		Test.offsWin_prev=Test.offsWin;
-		Test.lenWin=8;
-		Test.offsWin=0;
-		ChangeTxt();
-	}
-	AdjustMiddle_X();
-	AdjustMiddle_Y();
-	Data2Refresh(FONTS);
-	Test.lenWin=lenStr.inChar;
-	SetCursor();
-	Data2Refresh(PARAM_LOAD_FONT_TIME);
-	Data2Refresh(PARAM_LEN_WINDOW);
-	Data2Refresh(PARAM_TYPE);
-	Data2Refresh(PARAM_SIZE);
-	Data2Refresh(PARAM_SPEED);
 }
-
-static void DecFontSize(void)
+uint16_t LCD_Xpos(StructTxtPxlLen structTemp, int cmd, int offs)
 {
-	int sizeLimit;
-	if((Test.size==FONT_72)||(Test.size==FONT_72_bold)||(Test.size==FONT_72_italics)||
-	   (Test.size==FONT_130)||(Test.size==FONT_130_bold)||(Test.size==FONT_130_italics)){
-		Test.lenWin=Test.lenWin_prev;
-		Test.offsWin=Test.offsWin_prev;
-	}
-	Test.size-=3;
-	switch(Test.normBoldItal)
+	static uint16_t xPos=0;
+	switch(cmd)
 	{
+	case SetPos:
+		xPos=offs;
+		return xPos;
+	case GetPos:
+		return xPos+offs;
+	case IncPos:
 	default:
-	case 0:  sizeLimit=FONT_8; 		  break;
-	case 1:  sizeLimit=FONT_8_bold; 	  break;
-	case 2:  sizeLimit=FONT_8_italics; break;
+		return xPos+=structTemp.inPixel+offs;
 	}
-	if(Test.size<sizeLimit) Test.size=sizeLimit;
-
-	ClearCursorField();
-	LCD_LoadFontVar();
-	ChangeTxt();
-	AdjustMiddle_X();
-	AdjustMiddle_Y();
-	Data2Refresh(FONTS);
-	Test.lenWin=lenStr.inChar;
-	SetCursor();
-	Data2Refresh(PARAM_LOAD_FONT_TIME);
-	Data2Refresh(PARAM_TYPE);
-	Data2Refresh(PARAM_SIZE);
-	Data2Refresh(PARAM_LEN_WINDOW);
-	Data2Refresh(PARAM_SPEED);
 }
 
-static void ChangeFontBoldItalNorm(int8_t typeReq)
+uint16_t LCD_posY(int nr, StructTxtPxlLen structTemp, int cmd, int offs)
 {
-	if(typeReq > NONE_TYPE_REQ)
-	{
-		if(Test.normBoldItal == typeReq)
-			return;
+	static uint16_t yPos[LCD_XY_POS_MAX_NUMBER_USE]={0};
 
-		if(typeReq > Test.normBoldItal)
-			Test.size += (typeReq-Test.normBoldItal);
-		else if(typeReq < Test.normBoldItal)
-			Test.size -= (Test.normBoldItal-typeReq);
-
-		Test.normBoldItal = typeReq;
-	}
-	else
-	{
-		if(Test.normBoldItal>1){
-			Test.normBoldItal=0;
-			Test.size-=2;
-		}
-		else{
-			Test.normBoldItal++;
-			Test.size++;
-		}
-	}
-
-	ClearCursorField();
-	LCD_LoadFontVar();
-	AdjustMiddle_X();
-	AdjustMiddle_Y();
-	Data2Refresh(FONTS);
-	Test.lenWin=lenStr.inChar;
-	SetCursor();
-	Data2Refresh(PARAM_LOAD_FONT_TIME);
-	Data2Refresh(PARAM_LEN_WINDOW);
-	Data2Refresh(PARAM_TYPE);
-	Data2Refresh(PARAM_SIZE);
-	Data2Refresh(PARAM_SPEED);
-}
-
-static void ReplaceLcdStrType(int8_t typeReq)
-{
-	int8_t testType=Test.type;
-	if(Test.type == typeReq)
-		return;
-
-	GOTO_ReplaceLcdStrType:
-	INCR_WRAP(Test.type,1, RGB_RGB, White_Black);
-	switch(Test.type)
-	{
-	case RGB_RGB:
-		Test.coeff=Test.coeff_prev[0];
-		break;
-	case RGB_White:
-		Test.coeff=Test.coeff_prev[1];
-		break;
-	case Gray_Green:
-	case White_Black:
-		if(testType==RGB_RGB){
-			Test.coeff_prev[0]=Test.coeff;
-			Test.coeff=0;
-		}
-		else if(testType==RGB_White){
-			Test.coeff_prev[1]=Test.coeff;
-			Test.coeff=0;
-		}
-		break;
-	}
-
-	if(typeReq > NONE_TYPE_REQ){
-		if(typeReq!=Test.type){
-			testType=Test.type;
-			goto GOTO_ReplaceLcdStrType;
-		}
-	}
-
-	ClearCursorField();
-	LCD_LoadFontVar();
-	AdjustMiddle_X();
-	AdjustMiddle_Y();
-	Data2Refresh(FONTS);
-	Test.lenWin=lenStr.inChar;
-	SetCursor();
-	Data2Refresh(PARAM_LOAD_FONT_TIME);
-	Data2Refresh(PARAM_LEN_WINDOW);
-	Data2Refresh(PARAM_TYPE);
-	Data2Refresh(PARAM_SIZE);
-	Data2Refresh(PARAM_SPEED);
-	Data2Refresh(PARAM_COEFF);
-}
-
-static void Inc_PosCursor(void){
-	if(Test.posCursor<Test.lenWin){
-		Test.posCursor++;
-		Data2Refresh(PARAM_POS_CURSOR);
-		SetCursor();
-	}
-}
-static void Dec_PosCursor(void){
-	if(Test.posCursor>0){
-		Test.posCursor--;
-		Data2Refresh(PARAM_POS_CURSOR);
-		SetCursor();
-	}
-}
-
-static void IncDec_SpaceBetweenFont(int incDec){
-	if(((LCD_GetStrVar_x(v.FONT_VAR_Fonts)+lenStr.inPixel>=LCD_GetXSize()-1)&&(1==incDec))||
-		((0==LCD_GetStrPxlWidth(v.FONT_ID_Fonts,Test.txt,Test.posCursor-1,Test.spaceBetweenFonts,Test.constWidth))&&(0==incDec)))
-		return;
-	if(Test.posCursor>1){
-		if(0xFFFF!=LCD_SelectedSpaceBetweenFontsIncrDecr(incDec, Test.style, Test.size, Test.txt[Test.posCursor-2], Test.txt[Test.posCursor-1])){
-			AdjustMiddle_X();
-			ClearCursorField();
-			Data2Refresh(FONTS);
-			Test.lenWin=lenStr.inChar;
-			SetCursor();
-			Data2Refresh(FONTS);		/* RefreshAllParam(); */
-		}
-	}
-}
-
-static void LCD_DrawMainFrame(figureShape shape, int directDisplay, uint8_t bold, uint16_t x,uint16_t y, uint16_t w,uint16_t h, int frameColor,int fillColor,int bkColor)// zastanowic czy nie dac to do BasicGraphic.c
-{
-	figureShape pShape[5] = {LCD_Rectangle, LCD_BoldRectangle, LCD_RoundRectangle, LCD_BoldRoundRectangle, LCD_LittleRoundRectangle};
-
-	if(shape==pShape[1] || shape==pShape[3])
-		frameColor = SetBold2Color(frameColor,bold);
-
-	if(shape==pShape[2] || shape==pShape[3])
-		Set_AACoeff_RoundFrameRectangle(0.55, 0.73);
-
-	if(IndDisp==directDisplay)
-		LCD_ShapeIndirect(x,y,shape,w,h,frameColor,fillColor,bkColor);
-	else
-		LCD_Shape(x,y,shape,w,h,frameColor,fillColor,bkColor);
-}
-
-/* ------------ FILE_NAME() functions ------------ */
-static int RR=0;
-
-int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, INIT_KEYBOARD_PARAM)
-{
-	KEYBOARD_SetGeneral(v.FONT_ID_Press, v.FONT_ID_Descr, 	v.FONT_COLOR_Descr,
-								  	  	  	  	  	 v.COLOR_MainFrame,  v.COLOR_FillMainFrame,
-													 v.COLOR_Frame, 		v.COLOR_FillFrame,
-													 v.COLOR_FramePress, v.COLOR_FillFramePress, v.COLOR_BkScreen);
-
-	actualKeyboardType = type;
-	if(KEYBOARD_StartUp(type, ARG_KEYBOARD_PARAM)) return 1;
-
-	switch((int)type)
-	{
-		case KEYBOARD_fontRGB:
-			KEYBOARD_KeyAllParamSet(3,2, "Rafa"ł"", ""ó"lka", "W"ł"ujek", "Misia", "Six", "Markielowski", RED,GREEN,BLUE,RED,GREEN,BLUE, DARKRED,DARKRED, LIGHTGREEN,LIGHTGREEN, DARKBLUE,DARKBLUE);
-			KEYBOARD_Buttons(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Red_plus, SL(LANG_nazwa_8));
-			break;
-
-		case KEYBOARD_bkRGB:
-			KEYBOARD_KeyAllParamSet(3,2, "R+","G+","B+","R-","G-","B-", RED,GREEN,BLUE,RED,GREEN,BLUE, WHITE,WHITE,WHITE,WHITE,WHITE,WHITE);
-			KEYBOARD_Buttons(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Red_plus, SL(LANG_nazwa_8));
-			break;
-
-		case KEYBOARD_sliderRGB:
-			KEYBOARD_KeyAllParamSet(1,3, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), RED,GREEN,BLUE);
-			KEYBOARD_ServiceSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY2_fontSliderR_left, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB);
-			break;
-
-		case KEYBOARD_sliderBkRGB:
-			static uint32_t param= COLOR_GRAY(0xA0);
-			if(EQUAL2_OR(forTouchIdx,Touch_FontColorMoveRight,Touch_BkColorMove)) param= COLOR_GRAY(0x60);
-			else if(forTouchIdx > 0)												  		 	 param= COLOR_GRAY(0x80);
-			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", param,param,param, RED,GREEN,BLUE);
-			KEYBOARD_ServiceSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY2_bkSliderR_left, SL(LANG_nazwa_6), (int*)&Test.bk[0], RefreshValRGB);
-			break;
-
-		case KEYBOARD_circleSliderRGB:
-			/* CIRCLE_errorDecision(0,_OFF); */
-			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), RED,DARKGREEN,BLUE);
-			KEYBOARD_ServiceCircleSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_fontCircleSliderR, KEY_Timer2, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB, (TIMER_ID)TIMER_Release);
-			/* CIRCLE_errorDecision(0,_ON); */
-			break;
-
-		case KEYBOARD_fontSize2:
-			KEYBOARD_KeyAllParamSet3(1,LCD_GetFontSizeMaxNmb(), COLOR_GRAY(0xDD), DARKRED, (char**)LCD_GetFontSizePtr());
-			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1, SL(LANG_CoeffKeyName), v.FONT_COLOR_Descr, 8, Test.size);
-			break;
-
-		case KEYBOARD_fontCoeff:
-			KEYBOARD_KeyAllParamSet(2,1, "+", "-", WHITE,WHITE, LIGHTCYAN,LIGHTCYAN);
-			KEYBOARD_SetGeneral(N,N,N, N,N, N,BrightIncr(v.COLOR_FillFrame,0xE), N,N,N);
-			KEYBOARD_Buttons(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Coeff_plus, SL(LANG_CoeffKeyName));
-			break;
-
-		case KEYBOARD_fontStyle:
-			KEYBOARD_KeyAllParamSet(3,1, "Arial", "Times_New_Roman", "Comic_Saens_MS", WHITE,WHITE,WHITE, DARKRED,DARKRED,DARKBLUE); // to tez jest w fonts_images ujednolicic !!!!
-			KEYBOARD_Select(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, NULL, Test.style);
-			break;
-
-		case KEYBOARD_fontType:
-			KEYBOARD_KeyAllParamSet(1,4, LCD_GetFontTypeStr(0), LCD_GetFontTypeStr(1), LCD_GetFontTypeStr(2), LCD_GetFontTypeStr(3), WHITE,WHITE,WHITE,WHITE, BLACK,BROWN,ORANGE,MYBLUE);  //nazwe te dac w jednym miescu !!!! bo sa i w font_images.c !!!
-			KEYBOARD_Select(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, NULL, Test.type);
-			break;
-
-		case KEYBOARD_fontSize:
-			KEYBOARD_ServiceSizeStyle(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, KEY_Size_plus, SL(LANG_nazwa_0), Test.normBoldItal);
-			break;
-
-		case KEYBOARD_LenOffsWin:
-			if(KEYBOARD_ServiceLenOffsWin(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_LenWin_plus,Touch_SpacesInfoUp, KEY_Timer, SL(LANG_WinInfo), SL(LANG_WinInfo2),SL(LANG_LenOffsWin1),SL(LANG_LenOffsWin2), v.FONT_COLOR_Descr,FILE_NAME(main), LoadNoDispScreen, (char**)ppMain, (TIMER_ID)TIMER_InfoWrite)){
-				SELECT_CURRENT_FONT(LenWin,Press, TXT_LENOFFS_WIN,255);
-			}
-			break;
-
-		case KEYBOARD_setTxt:
-			KEYBOARD__ServiceSetTxt(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Q, KEY_big, KEY_back, KEY_enter, v.FONT_COLOR_Descr);
-			break;
-
+	if(nr < LCD_XY_POS_MAX_NUMBER_USE){
+		switch(cmd){
+		case SetPos:
+			yPos[nr]=offs;
+			return yPos[nr];
+		case GetPos:
+			return yPos[nr]+offs;
+		case IncPos:
 		default:
-			break;
+			return yPos[nr]+=structTemp.height+offs;
+		}
+	}
+	return 0;
+}
+uint16_t LCD_posX(int nr, StructTxtPxlLen structTemp, int cmd, int offs)
+{
+	static uint16_t xPos[LCD_XY_POS_MAX_NUMBER_USE]={0};
+
+	if(nr < LCD_XY_POS_MAX_NUMBER_USE){
+		switch(cmd){
+		case SetPos:
+			xPos[nr]=offs;
+			return xPos[nr];
+		case GetPos:
+			return xPos[nr]+offs;
+		case IncPos:
+		default:
+			return xPos[nr]+=structTemp.inPixel+offs;
+		}
 	}
 	return 0;
 }
 
-//dla ROLL bez select a drugie pole touch to z select,
-
-
-static int BlockTouchForTime(int action){
-	static int _blokTouchForTime= 0;
-	switch(action){
-		case _ON:  { _blokTouchForTime= 1;	vTimerService(TIMER_BlockTouch,restart_time,noUse); break; }
-		case _OFF: { _blokTouchForTime= 0; break; }
-		case _GET: { break; }
-	}
-	return _blokTouchForTime;
-}
-static int CheckTouchForTime(uint16_t touchName){
-	return CONDITION(BlockTouchForTime(_GET),touchName,NoTouch);
-}
-
-static void CycleRefreshFunc(void){
-	if(vTimerService(TIMER_Cpu, check_restart_time,1000))
-		Data2Refresh(PARAM_CPU_USAGE);
-}
-
-static void BlockingFunc(void){		/* Call this function in long during while(1) */
-	CycleRefreshFunc();
-}
-
-static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create new thread vTaskTimer */
+uint16_t LCD_Ymiddle(int nr, int cmd, uint32_t val)
 {
-	if(vTimerService(TIMER_InfoWrite, check_stop_time, 2000)){
-		KEYBOARD_TYPE(actualKeyboardType, KEY_Timer);
-	}
-	if(vTimerService(TIMER_Release, check_stop_time, 100)){
-		KEYBOARD_TYPE(actualKeyboardType, KEY_Timer2);
-	}
-	if(vTimerService(TIMER_BlockTouch, check_stop_time, 500)){
-		BlockTouchForTime(_OFF);
-	}
-	CycleRefreshFunc();
-}
+	static uint16_t startPosY[LCD_XY_MIDDLE_MAX_NUMBER_USE]={0}, heightY[LCD_XY_MIDDLE_MAX_NUMBER_USE]={0};
 
-void FUNC_fontColorRGB(int k){ switch(k){
-  case -1: Test.step=1; return;
-	case 0: ChangeValRGB('f','R', 1); break;
-	case 1: ChangeValRGB('f','G', 1); break;
-	case 2: ChangeValRGB('f','B', 1); break;
-	case 3: ChangeValRGB('f','R',-1); break;
-	case 4: ChangeValRGB('f','G',-1); break;
-	case 5: ChangeValRGB('f','B',-1); break;}
-	Test.step=5;
-}
-void FUNC_bkFontColorRGB(int k){ switch(k){
-  case -1: Test.step=1; return;
-	case 0: ChangeValRGB('b','R', 1); break;
-	case 1: ChangeValRGB('b','G', 1); break;
-	case 2: ChangeValRGB('b','B', 1); break;
-	case 3: ChangeValRGB('b','R',-1); break;
-	case 4: ChangeValRGB('b','G',-1); break;
-	case 5: ChangeValRGB('b','B',-1); break;}
-	Test.step=5;
-}
-void FUNC_SliderFontRGB(int k){ switch(k){
-  case -1: Test.step=1;   return;
-  	case 1:case 4:case 7:  return;
-	case 0:case 9:  ChangeValRGB('f','R',-1); break;
-	case 2:case 10: ChangeValRGB('f','R', 1); break;
-	case 3:case 11: ChangeValRGB('f','G',-1); break;
-	case 5:case 12: ChangeValRGB('f','G', 1); break;
-	case 6:case 13: ChangeValRGB('f','B',-1); break;
-	case 8:case 14: ChangeValRGB('f','B', 1); break;}
-	Test.step=5;
-}
-void FUNC_SliderBkFontRGB(int k){ switch(k){
-  case -1: Test.step=1;   return;
-  	case 1:case 4:case 7:  return;
-	case 0:case 9:  ChangeValRGB('b','R',-1); break;
-	case 2:case 10: ChangeValRGB('b','R', 1); break;
-	case 3:case 11: ChangeValRGB('b','G',-1); break;
-	case 5:case 12: ChangeValRGB('b','G', 1); break;
-	case 6:case 13: ChangeValRGB('b','B',-1); break;
-	case 8:case 14: ChangeValRGB('b','B', 1); break;}
-	Test.step=5;
-}
-void FUNC_FontStyle(int k){ switch(k){
-  case -1: return;
-	case 0: ChangeFontStyle(Arial); 				break;
-	case 1: ChangeFontStyle(Times_New_Roman); break;
-	case 2: ChangeFontStyle(Comic_Saens_MS); 	break;}
-}
-void FUNC_FontType(int k){ switch(k){
-  case -1: return;
-	case 0: ReplaceLcdStrType(0); break;
-	case 1: ReplaceLcdStrType(1); break;
-	case 2: ReplaceLcdStrType(2); break;
-	case 3: ReplaceLcdStrType(3); break;}
-}
-void FUNC_FontSize(int k){ switch(k){
-  case -1: return;
-	case 0: IncFontSize(NONE_TYPE_REQ); break;
-	case 1: DecFontSize(); break;}
-}
-void FUNC_FontBoldItalNorm(int k){ switch(k){
-  case -1: return;
-	case 0: ChangeFontBoldItalNorm(0); break;
-	case 1: ChangeFontBoldItalNorm(1); break;
-	case 2: ChangeFontBoldItalNorm(2); break;}
-}
-void FUNC_FontCoeff(int k){ switch(k){
-  case -1: return;
-	case 0: IncCoeffRGB(); break;
-	case 1: DecCoeefRGB(); break;}
-}
-
-void FUNC_SliderBkFontFontRGB(int k){ switch(k){
-  case -1: Test.step=1;   return;
-  	case 1:case 4:case 7:case 10:case 13:case 16:  return;
-	case 0: ChangeValRGB('b','R',-1); break;
-	case 2: ChangeValRGB('b','R', 1); break;
-	case 3: ChangeValRGB('b','G',-1); break;
-	case 5: ChangeValRGB('b','G', 1); break;
-	case 6: ChangeValRGB('b','B',-1); break;
-	case 8: ChangeValRGB('b','B', 1); break;
-	case 9:  ChangeValRGB('f','R',-1); break;
-	case 11: ChangeValRGB('f','R', 1); break;
-	case 12: ChangeValRGB('f','G',-1); break;
-	case 14: ChangeValRGB('f','G', 1); break;
-	case 15: ChangeValRGB('f','B',-1); break;
-	case 17: ChangeValRGB('f','B', 1); break;}
-	Test.step=5;
-}
-void FUNC_FontLenOffs(int k){ switch(k){
-  case -1: return;
-	case 0: Inc_lenWin(); break;
-	case 1: Dec_lenWin(); break;
-	case 2: Inc_offsWin(); break;
-	case 3: Dec_offsWin(); break;
-	case 4: Dec_PosCursor(); break;
-	case 5: Inc_PosCursor(); break;
-	case 6: IncDec_SpaceBetweenFont(1); break;
-	case 7: IncDec_SpaceBetweenFont(0); break;
-	case 8: break;
-	case 9: LCD_WriteSpacesBetweenFontsOnSDcard(); break;
-	case 10:
-		LCD_ResetSpacesBetweenFonts();
-		AdjustMiddle_X();
-		ClearCursorField();
-		Test.posCursor=0;
-		Data2Refresh(FONTS);
-		break;
-}}
-
-void FILE_NAME(setTouch)(void)
-{/*
-	#define DESELECT_CURRENT_FONT(src,txt) \
-		LCD_SetStrVar_fontID		(v.FONT_VAR_##src, v.FONT_ID_##src);\
-		LCD_SetStrVar_fontColor	(v.FONT_VAR_##src, v.FONT_COLOR_##src);\
-		LCD_SetStrVar_bkColor	(v.FONT_VAR_##src, v.FONT_BKCOLOR_##src);\
-		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_##src, txt)
-
-	#define DESELECT_ALL_FONTS \
-		DESELECT_CURRENT_FONT(FontColor,	TXT_FONT_COLOR);\
-		DESELECT_CURRENT_FONT(BkColor,	TXT_BK_COLOR);\
-		DESELECT_CURRENT_FONT(FontType,	TXT_FONT_TYPE);\
-		DESELECT_CURRENT_FONT(FontSize,	TXT_FONT_SIZE);\
-		DESELECT_CURRENT_FONT(FontStyle,	TXT_FONT_STYLE)
-*/
-	#define CASE_TOUCH_STATE(state,touchPoint, src,dst, txt,coeff, touchX, touchX2) \
-		case touchPoint:\
-		if(NotServiceTouchAboveWhenWasClearedThis(touchX) & NotServiceTouchAboveWhenWasClearedThis(touchX2)){\
-			if(0==CHECK_TOUCH(state)){\
-				if(GET_TOUCH){ FILE_NAME(main)(LoadPartScreen,(char**)ppMain); CLR_ALL_TOUCH; }\
-				SELECT_CURRENT_FONT(src, dst, txt, coeff);\
-				SET_TOUCH(state);\
-				SetFunc();\
-			}\
-			else{\
-				FILE_NAME(main)(LoadPartScreen,(char**)ppMain);\
-				KEYBOARD_TYPE(KEYBOARD_none,0);\
-				CLR_TOUCH(state);\
-			}}
-
-	#define _KEYS_RELEASE_setTxt 			if(_WasStatePrev( Touch_Q, 				  Touch_enter)) 			KEYBOARD_TYPE( KEYBOARD_setTxt, 	   KEY_All_release)
-
-	static uint16_t statePrev=0, statePrev2=0;
-	uint16_t state, function=0;
-	XY_Touch_Struct pos;
-
-	void _SaveState (void){ statePrev =state; }
-	void _RstState	 (void){ statePrev =0; 		}
-	void _SaveState2(void){ statePrev2=state; }
-	void _RstState2 (void){ statePrev2=0; 		}
-
-	int _WasState(int point){
-		if(release==LCD_TOUCH_isPress() && point==statePrev){
-			statePrev = state;
-			return 1;
-		}
-		else return 0;
-	}
-	int _WasStateRange(int point1, int point2){
-		if(release==LCD_TOUCH_isPress() && IS_RANGE(statePrev,point1,point2)){
-			statePrev = state;
-			return 1;
-		}
-		else return 0;
-	}
-	int _WasStatePrev(int rangeMin,int rangeMax){
-		return (IS_RANGE(statePrev,rangeMin,rangeMax) && statePrev!=state);
-	}
-
-	void SetFunc(void){
-		function=1;
-	}
-	int IsFunc(void){
-		if(function){
-			function=0;
-			return 1;
-		}
-		return 0;
-	}
-
-	int NotServiceTouchAboveWhenWasClearedThis(TOUCH_POINTS touch){
-		return CONDITION(NoTouch==touch, 1, !CHECK_TOUCH(touch) && !_WasState(touch));
-	}
-	void _TouchService(TOUCH_POINTS touchStart,TOUCH_POINTS touchStop, KEYBOARD_TYPES keyboard, SELECT_PRESS_BLOCK releaseAll,SELECT_PRESS_BLOCK keyStart, TOUCH_FUNC *func){
-		if(IS_RANGE(state, touchStart, touchStop)){
-			int nr = state-touchStart;
-			if(releaseAll){  if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(keyboard,releaseAll);  }
-			if(func) func(nr);
-			if(KEY_Select_one==keyStart) nr=0;
-			KEYBOARD_TYPE_PARAM(keyboard,keyStart+nr,pos.x,pos.y,0,0,0); _SaveState();
-	}}
-	void _TouchEndService(TOUCH_POINTS touchStart,TOUCH_POINTS touchStop, KEYBOARD_TYPES keyboard, SELECT_PRESS_BLOCK releaseAll, TOUCH_FUNC *func){
-		if(_WasStateRange(touchStart, touchStop)){
-			KEYBOARD_TYPE(keyboard, releaseAll);
-			if(func) func(-1);
-	}}
-	void CreateKeyboard(KEYBOARD_TYPES keboard){
-		switch((int)keboard){
-			case KEYBOARD_fontRGB:	break;
-			case KEYBOARD_fontSize2:	FILE_NAME(keyboard)(KEYBOARD_fontSize2, KEY_Select_one, LCD_Rectangle,0, 610,50, KeysAutoSize,10, 0, state, Touch_FontSizeRoll,KeysDel);  break;
-	}}
-	void _RestoreSusspendedTouchsByAnotherClickItem(TOUCH_POINTS prev,TOUCH_POINTS prevStart,TOUCH_POINTS prevStop, 	TOUCH_POINTS not1,TOUCH_POINTS not2,TOUCH_POINTS not3,TOUCH_POINTS not4,TOUCH_POINTS not5,TOUCH_POINTS not6,TOUCH_POINTS not7,TOUCH_POINTS not8,TOUCH_POINTS not9,TOUCH_POINTS not10, 		TOUCH_POINTS unblock1,TOUCH_POINTS unblock2,TOUCH_POINTS unblock3,TOUCH_POINTS unblock4,TOUCH_POINTS unblock5,TOUCH_POINTS unblock6,TOUCH_POINTS unblock7,TOUCH_POINTS unblock8,TOUCH_POINTS unblock9,TOUCH_POINTS unblock10){
-		if(state){
-			if((prev==statePrev2 || IS_RANGE(statePrev2,prevStart,prevStop)) && (prev!=state && !IS_RANGE(state,prevStart,prevStop)) && (not1!=state && not2!=state && not3!=state && not4!=state && not5!=state && not6!=state && not7!=state && not8!=state && not9!=state && not10!=state)){
-				LCD_TOUCH_RestoreSusspendedTouchs2(unblock1,unblock2,unblock3,unblock4,unblock5,unblock6,unblock7,unblock8,unblock9,unblock10);
-				statePrev2=0;
-	}}}
-
-	state = LCD_TOUCH_GetTypeAndPosition(&pos);
-													/*if prevTouch is this... and actualTouch is not this...*/				/*and yet actualTouch not this...*/							/*then unblock touches this...*/
-	_RestoreSusspendedTouchsByAnotherClickItem(Touch_FontSize2,Touch_size_plus,Touch_size_italic,	Touch_FontStyle,Touch_FontType,Touch_FontSize,_ZEROS7,	Touch_FontLenOffsWin,Touch_FontCoeff,_ZEROS8);		/* depended on _SaveState2() */
-
-	/*	----- Service press specific Keys for Keyboard ----- */
-	_TouchService(Touch_fontRp, Touch_fontBm, KEYBOARD_fontRGB, KEY_All_release, KEY_Red_plus, FUNC_fontColorRGB);
-	_TouchService(Touch_bkRp, Touch_bkBm, 	   KEYBOARD_bkRGB,   KEY_All_release, KEY_Red_plus, FUNC_bkFontColorRGB);
-
-	_TouchService(Touch2_bkSliderR_left, Touch2_bkSliderB_right, 		KEYBOARD_sliderBkRGB, 	KEY_All_release, KEY2_bkSliderR_left, 	 FUNC_SliderBkFontRGB);
-	_TouchService(Touch2_fontSliderR_left, Touch2_fontSliderB_right,	KEYBOARD_sliderRGB, 		KEY_All_release, KEY2_fontSliderR_left, FUNC_SliderFontRGB);
-
-	_TouchService(Touch_style1, Touch_style3,	 KEYBOARD_fontStyle, 0, KEY_Select_one, FUNC_FontStyle);
-	_TouchService(Touch_type1, Touch_type4,	 KEYBOARD_fontType,  0, KEY_Select_one, FUNC_FontType);
-
-	_TouchService(Touch_size_plus, Touch_size_minus,	 KEYBOARD_fontSize,  KEY_Select_one,  KEY_Size_plus,	 FUNC_FontSize);
-	_TouchService(Touch_size_norm, Touch_size_italic,	 KEYBOARD_fontSize,  0, 				  KEY_Select_one,  FUNC_FontBoldItalNorm);
-	_TouchService(Touch_coeff_plus, Touch_coeff_minus,	 KEYBOARD_fontCoeff, KEY_All_release, KEY_Coeff_plus,  FUNC_FontCoeff);
-
-	_TouchService(Touch_fontCircleSliderR, Touch_CircleSlider3D,	KEYBOARD_circleSliderRGB, 		KEY_All_release, KEY_fontCircleSliderR, NULL);
-
-	_TouchService(Touch_LenWin_plus, Touch_ResetSpaces, 	 	KEYBOARD_LenOffsWin, KEY_All_release, KEY_LenWin_plus,  FUNC_FontLenOffs);
-	_TouchService(Touch_SpacesInfoUp, Touch_SpacesInfoTest,	KEYBOARD_LenOffsWin, KEY_NO_RELEASE,  KEY_InfoSpacesUp, NULL);
-
-
-	switch(state)
-	{
-		/*	----- Initiation new Keyboard ----- */
-		CASE_TOUCH_STATE(state,Touch_FontColor, FontColor,Press, TXT_FONT_COLOR,252,CheckTouchForTime(Touch_FontColorMoveRight),CheckTouchForTime(Touch_FontColorMoveLeft));		/* 'FontColor','Press' are suffix`s for elements of 'SCREEN_FONTS_SET_PARAMETERS' MACRO  */
-			if(IsFunc())
-				FILE_NAME(keyboard)(KEYBOARD_fontRGB, KEY_All_release, LCD_RoundRectangle,0, 230,160, KeysAutoSize,12, 10, state, Touch_fontRp,KeysDel);
-			/* DisplayTouchPosXY(state,pos,"Touch_FontColor"); */
-			break;
-
-		CASE_TOUCH_STATE(state,Touch_FontColor2, FontColor,Press, TXT_FONT_COLOR,252,NoTouch,NoTouch);
-			if(IsFunc())
-				FILE_NAME(keyboard)(KEYBOARD_sliderRGB, KEY_All_release, LCD_RoundRectangle,0, 10,160, 180,39, 16, state, Touch2_fontSliderR_left,KeysDel);
-			break;
-
-		CASE_TOUCH_STATE(state,Touch_BkColor, BkColor,Press, TXT_BK_COLOR,252,CheckTouchForTime(Touch_BkColorMove),NoTouch);
-			if(IsFunc())
-				FILE_NAME(keyboard)(KEYBOARD_bkRGB, KEY_All_release, LCD_RoundRectangle,0, 400,160, KeysAutoSize,12, 4, state, Touch_bkRp,KeysDel);
-			break;
-
-		CASE_TOUCH_STATE(state,Touch_BkColor2, BkColor,Press, TXT_BK_COLOR,252,NoTouch,NoTouch);
-			if(IsFunc())
-				FILE_NAME(keyboard)(KEYBOARD_sliderBkRGB, KEY_All_release, LCD_RoundRectangle,0, 10,160, 35,170, 16, state, Touch2_bkSliderR_left,KeysDel);
-			break;
-
-		CASE_TOUCH_STATE(state,Touch_FontColorMoveRight, FontColor,Press, TXT_FONT_COLOR,252,NoTouch,NoTouch);
-			if(IsFunc()){
-				FILE_NAME(keyboard)(KEYBOARD_sliderRGB, 	KEY_All_release, LCD_RoundRectangle,0,  50,160, 180,30, 16, state, Touch2_fontSliderR_left, KeysDel);
-				//structSize temp = KEYBOARD_GetSize();
-				FILE_NAME(keyboard)(KEYBOARD_sliderBkRGB, KEY_All_release, LCD_RoundRectangle,0, 550,160, 30,180, 16, state, Touch2_bkSliderR_left,   KeysNotDel);
-			}
-			else _SaveState();  //dac np funkcje nazew i wsrodku to ' _SaveState();'
-			BlockTouchForTime(_ON);
-			break;
-
-		CASE_TOUCH_STATE(state,Touch_FontColorMoveLeft, FontColor,Press, TXT_FONT_COLOR,252,NoTouch,NoTouch);  //pogrupowac po kolei od kolejnosci !!!!!
-			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_circleSliderRGB, 	KEY_All_release, LCD_RoundRectangle,0,  350,170, 100,100, 16, state, Touch_fontCircleSliderR, KeysDel);  }
-								//LCDTOUCH_ActiveOnly(state,Touch_BkColor,Touch_FontColor,0,0,0,0,0,0,0,Touch_fontCircleSliderR,Touch_CircleSliderStyle); }
-			else{  _SaveState(); /*LCD_TOUCH_RestoreAllSusspendedTouchs();*/ }
-			BlockTouchForTime(_ON);
-			break;
-
-		CASE_TOUCH_STATE(state,Touch_BkColorMove, BkColor,Press, TXT_BK_COLOR,252,NoTouch,NoTouch);
-			if(IsFunc()){
-				FILE_NAME(keyboard)(KEYBOARD_sliderRGB, 	KEY_All_release, LCD_RoundRectangle,0,  50,160, 180,39, 16, state, Touch2_fontSliderR_left, KeysDel);
-				FILE_NAME(keyboard)(KEYBOARD_sliderBkRGB, KEY_All_release, LCD_RoundRectangle,0, 550,160, 35,170, 16, state, Touch2_bkSliderR_left,   KeysNotDel);
-			}
-			else _SaveState();  //dac np funkcje nazew i wsrodku to ' _SaveState();'
-			BlockTouchForTime(_ON);
-			break;
-
-		CASE_TOUCH_STATE(state,Touch_FontLenOffsWin, LenWin,Press, TXT_LENOFFS_WIN,252,NoTouch,NoTouch);
-			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_LenOffsWin, KEY_All_release, LCD_RoundRectangle,0, 0,0, KeysAutoSize,8, 10, state, Touch_LenWin_plus,KeysDel);
-								LCDTOUCH_ActiveOnly(state,0,0,0,0,0,0,0,0,0,Touch_LenWin_plus,Touch_ResetSpaces); }
-			else{
-				ClearCursorField();
-				Test.posCursor=0;
-				LCD_TOUCH_RestoreAllSusspendedTouchs();
-			}
-			break;
-
-		CASE_TOUCH_STATE(state,Touch_FontCoeff, Coeff,Press, TXT_COEFF,255,NoTouch,NoTouch);
-			if(IsFunc())
-				FILE_NAME(keyboard)(KEYBOARD_fontCoeff, KEY_All_release, LCD_RoundRectangle,0, 400,205, KeysAutoSize,10, 10, state, Touch_coeff_plus,KeysDel);
-			break;
-
-		CASE_TOUCH_STATE(state,Touch_FontStyle2, FontStyle,Press, TXT_FONT_STYLE,252,NoTouch,NoTouch);
-			if(IsFunc())
-				FILE_NAME(keyboard)(KEYBOARD_fontStyle, KEY_Select_one, LCD_Rectangle,0, 200,160, KeysAutoSize,10, 0, state, Touch_style1,KeysDel);
-			break;
-
-		CASE_TOUCH_STATE(state,Touch_FontType2, FontType,Press, TXT_FONT_TYPE,252,NoTouch,NoTouch);
-			if(IsFunc())
-				FILE_NAME(keyboard)(KEYBOARD_fontType, KEY_Select_one, LCD_Rectangle,0, 400,160, KeysAutoSize,10, 0, state, Touch_type1,KeysDel);
-			break;
-
-		CASE_TOUCH_STATE(state,Touch_FontSize2, FontSize,Press, TXT_FONT_SIZE,252,NoTouch,NoTouch);
-			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_fontSize, KEY_Select_one, LCD_RoundRectangle,0, 614,200, KeysAutoSize,10/*80,40*/, 10, state, Touch_size_plus,KeysDel);
-								LCD_TOUCH_SusspendTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,_ZEROS8); _SaveState2(); }
-			else{ LCD_TOUCH_RestoreSusspendedTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,_ZEROS8); _RstState2(); }
-			break;
-
-		CASE_TOUCH_STATE(state,Touch_FontSizeMove, FontSize,Press, TXT_FONT_SIZE,252,NoTouch,NoTouch);
-			if(IsFunc()) CreateKeyboard(KEYBOARD_fontSize2);
-			else 			_SaveState();
-			BlockTouchForTime(_ON);
-			break;
-
-		/*	----- Touch parameter text and go to action ----- */
-		case Touch_SetTxt:
-			FILE_NAME(keyboard)(KEYBOARD_setTxt,KEY_All_release,LCD_RoundRectangle,0,15,15,KeysAutoSize,10,10,state,Touch_Q,KeysDel);
-			LCDTOUCH_ActiveOnly(0,0,0,0,0,0,0,0,0,0,Touch_Q,Touch_enter);
-			break;
-
-		case Touch_FontStyle:
-			ChangeFontStyle(NONE_TYPE_REQ);
-			if(CHECK_TOUCH(Touch_FontStyle2))
-				KEYBOARD_TYPE( KEYBOARD_fontStyle, KEY_Select_one );
-			break;
-
-		case Touch_FontType:
-			ReplaceLcdStrType(NONE_TYPE_REQ);
-			if(CHECK_TOUCH(Touch_FontType2))
-				KEYBOARD_TYPE( KEYBOARD_fontType, KEY_Select_one );
-			break;
-
-		case Touch_FontSize:
-			if(NotServiceTouchAboveWhenWasClearedThis(CheckTouchForTime(Touch_FontSizeMove))){		/* When 'Touch_FontSizeMove' was cleared then not service for release 'Touch_FontSize' */
-				ChangeFontBoldItalNorm(NONE_TYPE_REQ);
-				if(CHECK_TOUCH(Touch_FontSize2)) 	KEYBOARD_TYPE(KEYBOARD_fontSize, KEY_Select_one);
-				if(CHECK_TOUCH(Touch_FontSizeMove))	CreateKeyboard(KEYBOARD_fontSize2);
-			}
-			break;
-
-		case Touch_FontSizeRoll:
-			if(LCDTOUCH_IsScrollPress(ROLL_1, state, &pos, TIMER_Scroll))
-				KEYBOARD_TYPE( KEYBOARD_fontSize2, KEY_Select_one);
-			_SaveState();
-			break;
-
-		case Touch_MainFramesType:
-			if(ppMain[0]==(int*)FRAMES_GROUP_separat)	*ppMain=(int*)FRAMES_GROUP_combined;
-			else													*ppMain=(int*)FRAMES_GROUP_separat;
-			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
-			break;
-
+	if(nr < LCD_XY_MIDDLE_MAX_NUMBER_USE){
+		switch(cmd){
+		case SetPos:
+			startPosY[nr]= val;
+			heightY[nr]= (val>>16);
+			return startPosY[nr];
+		case GetPos:
 		default:
-			if(IS_RANGE(state,Touch_Q,Touch_enter)){
-				if(Touch_exit==state){
-					LCD_TOUCH_RestoreAllSusspendedTouchs();
-					FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
-					KEYBOARD_TYPE(KEYBOARD_none,0);
-				}
-				else{	_KEYS_RELEASE_setTxt;	KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_Q+(state-Touch_Q));  _SaveState(); }
-				break;
-			}
-
-			/* ----- Service release specific Keys for Keyboard ----- */
-			_TouchEndService(Touch_fontRp, Touch_fontBm, KEYBOARD_fontRGB, KEY_All_release, FUNC_fontColorRGB);
-			_TouchEndService(Touch_bkRp, Touch_bkBm, 	   KEYBOARD_bkRGB,   KEY_All_release, FUNC_bkFontColorRGB);
-
-			_TouchEndService(Touch2_bkSliderR_left, Touch2_bkSliderB_right,  		KEYBOARD_sliderBkRGB,   KEY_All_release, FUNC_SliderBkFontRGB);
-			_TouchEndService(Touch2_fontSliderR_left, Touch2_fontSliderB_right, 	KEYBOARD_sliderRGB, 		KEY_All_release, FUNC_SliderFontRGB);
-
-			_TouchEndService(Touch_size_plus, Touch_size_minus, 	KEYBOARD_fontSize, 	KEY_Select_one,  FUNC_FontSize);
-			_TouchEndService(Touch_coeff_plus, Touch_coeff_minus, KEYBOARD_fontCoeff, 	KEY_All_release, FUNC_FontSize);
-
-			/* _TouchEndService(Touch_fontCircleSliderR, Touch_CircleSliderStyle, 	KEYBOARD_circleSliderRGB, 		KEY_All_release, NULL); */		/* For circle slider is not needed */
-
-			_TouchEndService(Touch_LenWin_plus, Touch_ResetSpaces, KEYBOARD_LenOffsWin, 	KEY_All_release, FUNC_FontLenOffs);
-
-
-			if(_WasStateRange(Touch_Q,Touch_enter))
-				KEYBOARD_TYPE( KEYBOARD_setTxt, KEY_All_release );
-
-#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
-			if(_WasState(Touch_FontStyle) ||
-				_WasState(Touch_style1) ||
-				_WasState(Touch_style2) ||
-				_WasState(Touch_style3))
-				SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontStyle,1,LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontStyle,TXT_FONT_STYLE));
-#endif
-
-#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
-			if(_WasState(Touch_FontType) ||
-				_WasState(Touch_type1) ||
-				_WasState(Touch_type2) ||
-				_WasState(Touch_type3) ||
-				_WasState(Touch_type4))
-				SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontType,1,LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontType,TXT_FONT_TYPE));
-#endif
-
-#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
-			if(_WasState(Touch_FontSize) ||
-				_WasState(Touch_size_norm) ||
-				_WasState(Touch_size_bold) ||
-				_WasState(Touch_size_italic))
-				SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontSize,1,LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontSize,TXT_FONT_SIZE));
-#endif
-
-			if(_WasState(Touch_FontSizeRoll)){
-				if(END_FREEROLL__NOSEL != (temp = LCDTOUCH_IsScrollRelease(ROLL_1, FUNC1_SET( FILE_NAME(keyboard),KEYBOARD_fontSize2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), BlockingFunc, TIMER_Scroll)))
-					IncFontSize(temp);
-			}
-
-			/* Not needed */
-/*			if(_WasState(Touch_FontSizeMove));
-			if(_WasState(Touch_FontColorMoveRight));
-			if(_WasState(Touch_FontColorMoveLeft));
-			if(_WasState(Touch_BkColorMove));
-*/
-			break;
+			int temp = MIDDLE(startPosY[nr],heightY[nr],LCD_GetFontHeight(val));
+			return temp < 0 ? 0:temp;
+		}
 	}
+	return 0;
+}
+uint16_t LCD_Xmiddle(int nr, int cmd, uint32_t param, char *txt, int space, int constWidth)
+{
+	static uint16_t startPosX[LCD_XY_MIDDLE_MAX_NUMBER_USE]={0}, widthX[LCD_XY_MIDDLE_MAX_NUMBER_USE]={0};
 
-	FILE_NAME(timer)();
-
-/*	LCDTOUCH_testFunc(); */
+	if(nr < LCD_XY_MIDDLE_MAX_NUMBER_USE){
+		switch(cmd){
+		case SetPos:
+			startPosX[nr]= param;
+			widthX[nr]= (param>>16);
+			return startPosX[nr];
+		case GetPos:
+		default:
+			int len=LCD_GetWholeStrPxlWidth(param,txt,space,constWidth);
+			int temp = MIDDLE(startPosX[nr],widthX[nr],len);
+			return temp < 0 ? 0:temp;
+		}
+	}
+	return 0;
+}
+uint32_t SetPosAndWidth(uint16_t pos, uint16_t width){
+	return ((uint32_t)pos&0x0000FFFF)|width<<16;
 }
 
-static void* MainFuncRefresh(void *p1,void *p2){
-	FILE_NAME(main)(LoadUserScreen,(char**)ppMain);
-	return NULL;
+void SCREEN_ResetAllParameters(void)
+{
+	LCD_AllRefreshScreenClear();
+	LCD_ResetStrMovBuffPos();
+	LCD_DeleteAllFontAndImages();
 }
 
-static USER_GRAPH_PARAM testGraph = {.par.scaleX=1.5, .par.scaleY=46.0, .funcType=Func_sin, .grad.bkType=Grad_Ystrip, .corr45degAA=1};
+uint32_t LCD_LoadFont_DependOnColors(int fontSize, int fontStyle, uint32_t bkColor, uint32_t fontColor, uint32_t fontID)
+{
+	if		 (bkColor==MYGRAY && fontColor == WHITE)
+		return LCD_LoadFont_DarkgrayWhite (fontSize, fontStyle, fontID);
+	else if(bkColor==MYGRAY  && fontColor == MYGREEN)
+		return LCD_LoadFont_DarkgrayGreen (fontSize, fontStyle, fontID);
+	else if(bkColor==WHITE  && fontColor == BLACK)
+		return LCD_LoadFont_WhiteBlack	 (fontSize, fontStyle, fontID);
+	else
+		return LCD_LoadFont_ChangeColor	 (fontSize, fontStyle, fontID);
+}
 
-void FILE_NAME(debugRcvStr)(void)
-{if(v.DEBUG_ON){
+StructTxtPxlLen LCD_StrDependOnColors(int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth)
+{
+	StructTxtPxlLen lenStr;
+	if((bkColor==MYGRAY && fontColor == WHITE) ||
+		(bkColor==MYGRAY && fontColor == MYGREEN) ||
+		(bkColor==WHITE  && fontColor == BLACK))
+		lenStr=LCD_Str(fontID,Xpos,Ypos,txt, OnlyDigits,space,bkColor,0,constWidth);
+	else
+		lenStr=LCD_StrChangeColor(fontID,Xpos,Ypos,txt, OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+	return lenStr;
+}
+StructTxtPxlLen LCD_StrDependOnColorsMidd(int fontID, int Xpos, int Ypos, u16 width,u16 height, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth){
+	u16 x = MIDDLE(Xpos, width, LCD_GetWholeStrPxlWidth(fontID&0x0000FFFF,txt,space,constWidth));
+	u16 y = MIDDLE(Ypos, height, LCD_GetFontHeight(fontID&0x0000FFFF));
+	return LCD_StrDependOnColors(fontID,x,y,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+}
+StructTxtPxlLen LCD_StrDependOnColorsWindowMidd(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, u16 width,u16 height, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth){
+	u16 x = MIDDLE(Xpos, width, LCD_GetWholeStrPxlWidth(fontID&0x0000FFFF,txt,space,constWidth));
+	u16 y = MIDDLE(Ypos, height, LCD_GetFontHeight(fontID&0x0000FFFF));
+	return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,x,y,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+}
 
+StructTxtPxlLen LCD_StrDependOnColorsIndirect(int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth)
+{
+	StructTxtPxlLen lenStr;
+	if((bkColor==MYGRAY && fontColor == WHITE) ||
+		(bkColor==MYGRAY && fontColor == MYGREEN) ||
+		(bkColor==WHITE  && fontColor == BLACK))
+		lenStr=LCD_StrIndirect(fontID,Xpos,Ypos,txt, OnlyDigits,space,bkColor,0,constWidth);
+	else
+		lenStr=LCD_StrChangeColorIndirect(fontID,Xpos,Ypos,txt, OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+	return lenStr;
+}
+StructTxtPxlLen LCD_StrDependOnColorsMiddIndirect(int fontID, int Xpos, int Ypos, u16 width,u16 height, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth){
+	u16 x = MIDDLE(Xpos, width, LCD_GetWholeStrPxlWidth(fontID&0x0000FFFF,txt,space,constWidth));
+	u16 y = MIDDLE(Ypos, height, LCD_GetFontHeight(fontID&0x0000FFFF));
+	return LCD_StrDependOnColorsIndirect(fontID,x,y,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+}
 
-
-	if(DEBUG_RcvStr("abc"))
-		FILE_NAME(printInfo)();
-
-
-	/* ----- Debug Test For Touch Resolution ----- */
-	else if(DEBUG_RcvStr("resolution"))
-		TOUCH_SetDefaultResolution();
-
-	_DBG_PARAM_NOWRAP("r1",TOUCH_GetPtr2Resolution(),_uint8,_Incr,_Uint8(1),_Uint8(15),"Touch Resolution: ",NULL)
-	_DBG_PARAM_NOWRAP("r2",TOUCH_GetPtr2Resolution(),_uint8,_Decr,_Uint8(1),_Uint8(1), "Touch Resolution: ",NULL)
-	/* ----- END Debug Test For Touch Resolution ----- */
-
-
-	/* ----- Debug Test GRAPH ----- */
-	_DBG3_PARAM_NOWRAP("a","A","z","Z",&testGraph.par.scaleX,_float,_Float(0.1),_Float( 1.5),_Float( 20.0),_Float(1.0),"Test Graph scaleX: ",MainFuncRefresh)
-	_DBG3_PARAM_NOWRAP("s","S","x","X",&testGraph.par.scaleY,_float,_Float(1.0),_Float(10.0),_Float(100.0),_Float(1.0),"Test Graph scaleY: ",MainFuncRefresh)
-
-	_DBG_PARAM_NOWRAP("d",&testGraph.funcType,_uint8,_Incr,_Uint8(1),_Uint8(Func_lines6),"Test Graph funcType: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("c",&testGraph.funcType,_uint8,_Decr,_Uint8(1),_Uint8(Func_sin),	 "Test Graph funcType: ",MainFuncRefresh)
-
-	_DBG_PARAM_NOWRAP("f",&testGraph.AAoutCoeff,_float,_Incr,_Float(0.1),_Float(1.0),"Test Graph AA out: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("v",&testGraph.AAoutCoeff,_float,_Decr,_Float(0.1),_Float(0.0),"Test Graph AA out: ",MainFuncRefresh)
-
-	_DBG_PARAM_NOWRAP("g",&testGraph.AAinCoeff,_float,_Incr,_Float(0.1),_Float(1.0),"Test Graph AA in: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("b",&testGraph.AAinCoeff,_float,_Decr,_Float(0.1),_Float(0.0),"Test Graph AA in: ",MainFuncRefresh)
-
-	_DBG_PARAM_WRAP("y",&testGraph.corr45degAA,_int,_Wrap,_Int(1), _Int(0),_Int(1), "Test Graph AA 45deg: ",MainFuncRefresh)
-
-	_DBG_PARAM_WRAP("q",&testGraph.grad.bkType,_int,_Wrap,_Int(1), _Int(Grad_YmaxYmin),_Int(Grad_Ycolor), "Test Graph grad type: ",MainFuncRefresh)
-
-	/* ----- END Test GRAPH ------- */
-
-
-	else if(DEBUG_RcvStr("p"))
-	{
-		DbgVar(1,100,Clr_ Mag_"\r\nStart: %s -> CPU: %d \r\n"_X, GET_CODE_FUNCTION, osGetCPUUsage());
-		DisplayCoeffCalibration();
+StructTxtPxlLen LCD_StrDependOnColorsVar(int idVar, int fontID, uint32_t fontColor, uint32_t bkColor, uint32_t bkScreenColor, int Xpos, int Ypos, char *txt, int OnlyDigits, int space,int maxVal, int constWidth)
+{
+	StructTxtPxlLen lenStr;
+	if((bkColor==MYGRAY && fontColor == WHITE) ||
+		(bkColor==MYGRAY && fontColor == MYGREEN) ||
+		(bkColor==WHITE  && fontColor == BLACK)){
+		lenStr=LCD_StrVar(idVar,fontID,Xpos,Ypos,txt, OnlyDigits,space,bkColor,0,constWidth,bkScreenColor);
+		if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1)) FontVar[idVar].fontColor = fontColor;
 	}
-	else if(DEBUG_RcvStr("s\x0D"))
+	else
+		lenStr=LCD_StrChangeColorVar(idVar,fontID,Xpos,Ypos,txt, OnlyDigits,space,bkColor,fontColor,maxVal,constWidth,bkScreenColor);
+	return lenStr;
+}
+
+
+#define MAX_NUMBER_DESCR	12
+#define _STR_DESCR_PARAMS_INIT(nr) 	int fontID##nr, uint32_t fontColor##nr, uint32_t bkColor##nr, int interspace##nr, int directionDescr##nr, char *txt##nr, int OnlyDigits##nr, int space##nr,int maxVal##nr, int constWidth##nr
+#define _STR_DESCR_PARAMS(nr) 		fontID##nr, fontColor##nr, bkColor##nr, interspace##nr, directionDescr##nr, txt##nr, OnlyDigits##nr, space##nr, maxVal##nr, constWidth##nr
+
+static StructFieldPos __DescrParamFunction(int noDisp, int Xpos, int Ypos, StructTxtPxlLen len, int height_main, int heightHalf_main, _STR_DESCR_PARAMS_INIT())
+{
+	StructFieldPos field = {0};
+
+	int width_descr 	= LCD_GetWholeStrPxlWidth(fontID, txt, space, constWidth);
+	int height_descr 	= LCD_GetFontHeight(fontID);
+	int heightHalf_descr = LCD_GetFontHalfHeight(fontID);
+
+	int Y_descr = 0, X_descr = 0;
+	int Y_descr_correct = 0;	/* for 'Right_up'  'Left_up' */
+
+	switch(directionDescr)
 	{
-		SCREEN_Fonts_funcSet(FONT_COLOR_LoadFontTime, BLACK);
-		SCREEN_Fonts_funcSet(COLOR_FramePress, BLACK);
+	case Under_center:
+	default:
+		LCD_Xmiddle(0,SetPos,SetPosAndWidth(Xpos,len.inPixel),NULL,0,0);
+		X_descr = LCD_Xmiddle(0,GetPos,fontID,txt,space,constWidth);
+		Y_descr = Ypos + len.height + interspace;
+		break;
+
+	case Under_left:
+		X_descr = interspace >> 16;
+		Y_descr = Ypos + len.height + (interspace & 0x0000FFFF);
+		break;
+
+	case Under_right:
+		X_descr = interspace >> 16;
+		Y_descr = Ypos + len.height + (interspace & 0x0000FFFF);
+		break;
+
+	case Above_center:
+   	LCD_Xmiddle(0,SetPos,SetPosAndWidth(Xpos,len.inPixel),NULL,0,0);
+      X_descr = LCD_Xmiddle(0,GetPos,fontID,txt,space,constWidth);
+      Y_descr = Ypos - interspace - height_descr;
+		break;
+
+	case Above_left:
+		X_descr = interspace >> 16;
+		Y_descr = Ypos - (interspace & 0x0000FFFF) - height_descr;
+		break;
+
+	case Above_right:
+		X_descr = interspace >> 16;
+		Y_descr = Ypos - (interspace & 0x0000FFFF) - height_descr;
+		break;
+
+	case Left_down:
+      X_descr = Xpos - interspace - width_descr;
+      Y_descr = Ypos + (heightHalf_main - heightHalf_descr);
+		break;
+
+	case Left_mid:
+      LCD_Ymiddle(0,SetPos,SetPosAndWidth(Ypos,height_main));
+      X_descr = Xpos - interspace - width_descr;
+      Y_descr = LCD_Ymiddle(0,GetPos,fontID);
+		break;
+
+	case Left_up:
+		X_descr = Xpos - interspace - width_descr;
+      Y_descr = Ypos + ABS(height_main-heightHalf_main) - ABS(height_descr-heightHalf_descr);
+		Y_descr += Y_descr_correct;
+		break;
+
+	case Right_down:
+      X_descr = Xpos + len.inPixel + interspace;
+      Y_descr = Ypos + (heightHalf_main - heightHalf_descr);
+		break;
+
+	case Right_mid:
+      LCD_Ymiddle(0,SetPos,SetPosAndWidth(Ypos,height_main));
+      X_descr = Xpos + len.inPixel + interspace;
+      Y_descr = LCD_Ymiddle(0,GetPos,fontID);
+		break;
+
+	case Right_up:
+      X_descr = Xpos + len.inPixel + interspace;
+      Y_descr = Ypos + ABS(height_main-heightHalf_main) - ABS(height_descr-heightHalf_descr);
+		Y_descr += Y_descr_correct;
+		break;
 	}
 
-
-	else if(DEBUG_RcvStr("6"))
-	{
-		if(TOOGLE(RR))
-		{
-			FILE_NAME(keyboard)(KEYBOARD_fontRGB, KEY_All_release, LCD_RoundRectangle,0,  10,160, KeysAutoSize,12, 4, Touch_FontColor, Touch_fontRp, KeysDel);
-			FILE_NAME(keyboard)(KEYBOARD_bkRGB,   KEY_All_release, LCD_RoundRectangle,0, 600,160, KeysAutoSize,12, 4, Touch_BkColor, 	Touch_bkRp,	  KeysNotDel);
-
-//			FILE_NAME(keyboard)(KEYBOARD_sliderRGB, 	KEY_All_release, LCD_RoundRectangle,0, 50,160, 39,140, 16, Touch_FontColor2, Touch2_fontSliderR_left, KeysDel);
-//			FILE_NAME(keyboard)(KEYBOARD_sliderBkRGB, KEY_All_release, LCD_RoundRectangle,0, 550,160, 39,140, 16, Touch_BkColor2,   Touch2_bkSliderR_left, KeysNotDel);
+	if(0 == noDisp){
+		if((bkColor==MYGRAY && fontColor == WHITE) ||
+			(bkColor==MYGRAY && fontColor == MYGREEN) ||
+			(bkColor==WHITE  && fontColor == BLACK)){
+			LCD_Str(fontID, X_descr, Y_descr, txt, OnlyDigits, space,bkColor, 0, constWidth);
 		}
 		else
+			LCD_StrChangeColor(fontID, X_descr, Y_descr, txt, OnlyDigits, space, bkColor, fontColor,maxVal, constWidth);
+	}
+
+	(Xpos > X_descr) ? (field.x = X_descr) : (field.x = Xpos);
+	(Ypos > Y_descr) ? (field.y = Y_descr) : (field.y = Ypos);
+
+	(Xpos + len.inPixel < X_descr + width_descr)  ? (field.width  = X_descr + width_descr)  : (field.width  = Xpos + len.inPixel);
+	(Ypos + len.height  < Y_descr + height_descr) ? (field.height = Y_descr + height_descr) : (field.height = Ypos + len.height);
+
+	return field;
+}
+
+static StructFieldPos LCD_StrDescrVar_array(int noDisp, int idVar,int fontID,  int Xpos, int Ypos,char *txt, int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth, uint32_t bkScreenColor, \
+		_STR_DESCR_PARAMS_INIT(1),_STR_DESCR_PARAMS_INIT(2),_STR_DESCR_PARAMS_INIT(3), _STR_DESCR_PARAMS_INIT(4), _STR_DESCR_PARAMS_INIT(5), _STR_DESCR_PARAMS_INIT(6), \
+		_STR_DESCR_PARAMS_INIT(7),_STR_DESCR_PARAMS_INIT(8),_STR_DESCR_PARAMS_INIT(9),_STR_DESCR_PARAMS_INIT(10),_STR_DESCR_PARAMS_INIT(11),_STR_DESCR_PARAMS_INIT(12) )
+{
+	StructTxtPxlLen len = {0};
+	StructFieldPos field = {0}, field2 = {0};
+
+	void _FieldCorrect(void){
+		if(field2.x < field.x) field.x = field2.x;
+		if(field2.y < field.y) field.y = field2.y;
+		if(field2.width  > field.width)  field.width  = field2.width;
+		if(field2.height > field.height) field.height = field2.height;
+	}
+
+	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
+	{
+		if(noDisp){
+			len.inPixel = LCD_GetWholeStrPxlWidth(fontID, txt, space, constWidth);
+			if(halfHight == OnlyDigits)	len.height = LCD_GetFontHalfHeight(fontID);
+			else									len.height = LCD_GetFontHeight(fontID);
+		}
+		else
+			len = LCD_StrVar(idVar,fontID, Xpos, Ypos,txt,OnlyDigits,space,bkColor,coeff,constWidth,bkScreenColor);
+
+		field.len = len;
+		field.x = Xpos;	field2.x = Xpos;
+		field.y = Ypos;	field2.y = Ypos;
+		field.width = Xpos + len.inPixel;
+		field.height = Ypos + len.height;
+
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(1));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(2));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(3));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(4));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(5));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(6));	_FieldCorrect(); if(-1 == fontID)  return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(7));	_FieldCorrect(); if(-1 == fontID)  return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(8));	_FieldCorrect(); if(-1 == fontID)  return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(9));	_FieldCorrect(); if(-1 == fontID)  return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(10)); _FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(11)); _FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(12)); _FieldCorrect(); if(-1 == fontID) return field;
+	}																																				/* MAX_NUMBER_DESCR */
+	field.width -= field.x;
+	field.height -= field.y;
+	return field;
+}
+
+static StructFieldPos LCD_StrChangeColorDescrVar_array(int noDisp, int idVar,int fontID, int Xpos,int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t bkScreenColor, \
+		_STR_DESCR_PARAMS_INIT(1),_STR_DESCR_PARAMS_INIT(2),_STR_DESCR_PARAMS_INIT(3), _STR_DESCR_PARAMS_INIT(4), _STR_DESCR_PARAMS_INIT(5), _STR_DESCR_PARAMS_INIT(6), \
+		_STR_DESCR_PARAMS_INIT(7),_STR_DESCR_PARAMS_INIT(8),_STR_DESCR_PARAMS_INIT(9),_STR_DESCR_PARAMS_INIT(10),_STR_DESCR_PARAMS_INIT(11),_STR_DESCR_PARAMS_INIT(12) )
+{
+	StructTxtPxlLen len = {0};
+	StructFieldPos field = {0}, field2 = {0};
+
+	void _FieldCorrect(void){
+		if(field2.x < field.x) field.x = field2.x;
+		if(field2.y < field.y) field.y = field2.y;
+		if(field2.width  > field.width)  field.width  = field2.width;
+		if(field2.height > field.height) field.height = field2.height;
+	}
+
+	if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1))
+	{
+		if(noDisp){
+			len.inPixel = LCD_GetWholeStrPxlWidth(fontID, txt, space, constWidth);
+			if(halfHight == OnlyDigits)	len.height = LCD_GetFontHalfHeight(fontID);
+			else									len.height = LCD_GetFontHeight(fontID);
+		}
+		else
+			len = LCD_StrChangeColorVar(idVar,fontID, Xpos, Ypos, txt, OnlyDigits, space, bkColor, fontColor,maxVal, constWidth, bkScreenColor);
+
+		field.len = len;
+		field.x = Xpos;	field2.x = Xpos;
+		field.y = Ypos;	field2.y = Ypos;
+		field.width = Xpos + len.inPixel;
+		field.height = Ypos + len.height;
+
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(1));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(2));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(3));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(4));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(5));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(6));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(7));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(8));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(9));	_FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(10)); _FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(11)); _FieldCorrect(); if(-1 == fontID) return field;
+		field2 = __DescrParamFunction(noDisp,Xpos,Ypos, len, LCD_GetFontHeight(fontID), LCD_GetFontHalfHeight(fontID),_STR_DESCR_PARAMS(12)); _FieldCorrect(); if(-1 == fontID) return field;
+	}																																				/* MAX_NUMBER_DESCR */
+	field.width -= field.x;
+	field.height -= field.y;
+	return field;
+}
+
+StructFieldPos LCD_StrDependOnColorsDescrVar_array(int noDisp, int idVar,int fontID, uint32_t fontColor, uint32_t bkColor, uint32_t bkScreenColor, int Xpos, int Ypos, char *txt, int OnlyDigits, int space,int maxVal, int constWidth, \
+		_STR_DESCR_PARAMS_INIT(1),_STR_DESCR_PARAMS_INIT(2),_STR_DESCR_PARAMS_INIT(3), _STR_DESCR_PARAMS_INIT(4), _STR_DESCR_PARAMS_INIT(5), _STR_DESCR_PARAMS_INIT(6), \
+		_STR_DESCR_PARAMS_INIT(7),_STR_DESCR_PARAMS_INIT(8),_STR_DESCR_PARAMS_INIT(9),_STR_DESCR_PARAMS_INIT(10),_STR_DESCR_PARAMS_INIT(11),_STR_DESCR_PARAMS_INIT(12) )
+{
+	StructFieldPos field = {0};
+	if((bkColor==MYGRAY && fontColor == WHITE) ||
+		(bkColor==MYGRAY && fontColor == MYGREEN) ||
+		(bkColor==WHITE  && fontColor == BLACK)){
+		field=LCD_StrDescrVar_array(noDisp,idVar,fontID,Xpos,Ypos,txt, OnlyDigits,space,bkColor,0,constWidth,bkScreenColor, \
+				_STR_DESCR_PARAMS(1),_STR_DESCR_PARAMS(2),_STR_DESCR_PARAMS(3), _STR_DESCR_PARAMS(4), _STR_DESCR_PARAMS(5), _STR_DESCR_PARAMS(6), \
+				_STR_DESCR_PARAMS(7),_STR_DESCR_PARAMS(8),_STR_DESCR_PARAMS(9),_STR_DESCR_PARAMS(10),_STR_DESCR_PARAMS(11),_STR_DESCR_PARAMS(12) );
+		if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1)) FontVar[idVar].fontColor = fontColor;
+	}
+	else
+		field=LCD_StrChangeColorDescrVar_array(noDisp,idVar,fontID,Xpos,Ypos,txt, OnlyDigits,space,bkColor,fontColor,maxVal,constWidth,bkScreenColor, \
+				_STR_DESCR_PARAMS(1),_STR_DESCR_PARAMS(2),_STR_DESCR_PARAMS(3), _STR_DESCR_PARAMS(4), _STR_DESCR_PARAMS(5), _STR_DESCR_PARAMS(6), \
+				_STR_DESCR_PARAMS(7),_STR_DESCR_PARAMS(8),_STR_DESCR_PARAMS(9),_STR_DESCR_PARAMS(10),_STR_DESCR_PARAMS(11),_STR_DESCR_PARAMS(12) );
+	return field;
+}
+
+StructFieldPos LCD_StrDependOnColorsDescrVar_array_xyCorrect(int noDisp, int idVar,int fontID, uint32_t fontColor, uint32_t bkColor, uint32_t bkScreenColor, int Xpos, int Ypos, char *txt, int OnlyDigits, int space,int maxVal, int constWidth, \
+		_STR_DESCR_PARAMS_INIT(1),_STR_DESCR_PARAMS_INIT(2),_STR_DESCR_PARAMS_INIT(3), _STR_DESCR_PARAMS_INIT(4), _STR_DESCR_PARAMS_INIT(5), _STR_DESCR_PARAMS_INIT(6), \
+		_STR_DESCR_PARAMS_INIT(7),_STR_DESCR_PARAMS_INIT(8),_STR_DESCR_PARAMS_INIT(9),_STR_DESCR_PARAMS_INIT(10),_STR_DESCR_PARAMS_INIT(11),_STR_DESCR_PARAMS_INIT(12) )
+{
+	#define _AAAAA(nr)	if(-1<fontID##nr && IS_RANGE(directionDescr##nr,Above_center,Above_right)){ Ypos += LCD_GetFontHeight(fontID##nr)+(interspace##nr&0x0000FFFF); goto _End_Ypos_Correct; }
+	#define _BBBBB(nr)	if(-1<fontID##nr && IS_RANGE(directionDescr##nr,Left_down,Left_up)){	Xpos+=(LCD_GetWholeStrPxlWidth(fontID##nr,txt##nr,space##nr,constWidth##nr)+(interspace##nr&0x0000FFFF)); goto _End_Xpos_Correct; }
+
+	_AAAAA(1)	_AAAAA(2)	_AAAAA(3)_AAAAA(4)	_AAAAA(5)	_AAAAA(6)	_AAAAA(7)	_AAAAA(8)	_AAAAA(9)	_AAAAA(10)	_AAAAA(11)	_AAAAA(12)
+
+	_End_Ypos_Correct:
+	_BBBBB(1)	_BBBBB(2)	_BBBBB(3)_BBBBB(4)	_BBBBB(5)	_BBBBB(6)	_BBBBB(7)	_BBBBB(8)	_BBBBB(9)	_BBBBB(10)	_BBBBB(11)	_BBBBB(12)
+
+	_End_Xpos_Correct:
+	return LCD_StrDependOnColorsDescrVar_array(noDisp, idVar,fontID,fontColor,bkColor,bkScreenColor, Xpos,Ypos,txt,OnlyDigits,space,maxVal,constWidth, \
+			_STR_DESCR_PARAMS(1),_STR_DESCR_PARAMS(2),_STR_DESCR_PARAMS(3), _STR_DESCR_PARAMS(4), _STR_DESCR_PARAMS(5), _STR_DESCR_PARAMS(6), \
+			_STR_DESCR_PARAMS(7),_STR_DESCR_PARAMS(8),_STR_DESCR_PARAMS(9),_STR_DESCR_PARAMS(10),_STR_DESCR_PARAMS(11),_STR_DESCR_PARAMS(12) );
+
+	#undef _AAAAA
+	#undef _BBBBB
+}
+
+StructTxtPxlLen LCD_StrDependOnColorsDescrVar(int idVar,int fontID, uint32_t fontColor, uint32_t bkColor, uint32_t bkScreenColor, int Xpos, int Ypos, char *txt, int OnlyDigits, int space,int maxVal, int constWidth, \
+																			int fontID2, uint32_t fontColor2, uint32_t bkColor2, int interspace, int directionDescr, char *txt2, int OnlyDigits2, int space2,int maxVal2, int constWidth2)
+{
+	StructTxtPxlLen lenStr;
+	if((bkColor==MYGRAY && fontColor == WHITE) ||
+		(bkColor==MYGRAY && fontColor == MYGREEN) ||
+		(bkColor==WHITE  && fontColor == BLACK)){
+		lenStr=LCD_StrDescrVar(idVar,fontID,Xpos,Ypos,txt, OnlyDigits,space,bkColor,0,constWidth,bkScreenColor, \
+											  fontID2,interspace,directionDescr,txt2, OnlyDigits2,space2,bkColor2,fontColor2,maxVal2,constWidth2);
+		if(IS_RANGE(idVar,0,MAX_OPEN_FONTS_VAR_SIMULTANEOUSLY-1)) FontVar[idVar].fontColor = fontColor;
+	}
+	else
+		lenStr=LCD_StrChangeColorDescrVar(idVar,fontID,Xpos,Ypos,txt, OnlyDigits,space,bkColor,fontColor,maxVal,constWidth,bkScreenColor, \
+															 fontID2,interspace,directionDescr,txt2, OnlyDigits2,space2,bkColor2,fontColor2,maxVal2,constWidth2);
+	return lenStr;
+}
+
+StructTxtPxlLen LCD_StrDependOnColorsVarIndirect(int idVar, char *txt){
+	StructTxtPxlLen temp;
+	temp = LCD_StrDependOnColorsIndirect( FontVar[idVar].id|(idVar<<16)/*(FontVar[idVar].bkRoundRect ? FontVar[idVar].id|(idVar<<16) : FontVar[idVar].id)*/, FontVar[idVar].xPos,FontVar[idVar].yPos,txt,FontVar[idVar].heightType,FontVar[idVar].space,FontVar[idVar].bkColor,FontVar[idVar].fontColor,FontVar[idVar].coeff,FontVar[idVar].widthType);
+	if((temp.height==0)&&(temp.inChar==0)&&(temp.inPixel==0))
+		return temp;
+	LCD_DimensionBkCorrect(idVar,temp,pLcd);
+	return temp;
+}
+
+StructTxtPxlLen LCD_StrDependOnColorsWindow(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
+{
+	StructTxtPxlLen lenStr;
+	if((bkColor==MYGRAY && fontColor == WHITE) ||
+		(bkColor==MYGRAY && fontColor == MYGREEN) ||
+		(bkColor==WHITE  && fontColor == BLACK))
+		lenStr=LCD_StrWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,0,constWidth);
+	else
+		lenStr=LCD_StrChangeColorWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+	return lenStr;
+}
+
+uint32_t SetLenTxt2Y(int posY, uint16_t lenTxt){
+	return ((posY&0xFFFF) | lenTxt<<16);
+}
+
+char*  LCD_LIST_TXT_example(char* buf, int* nmbLines){
+	INIT(len,0); INIT(maxLines,2507);	INIT(lenArray,0);
+	buf[0]=0;
+	LOOP_FOR(i,maxLines){
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_L_"_"_E_,i+1,COMMON_SIGN, "Agnieszka",	"ASD", "ab","cd",	GET_CODE_LINE);  				len+=lenArray; i++;
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_L_"_"_E_,i+1,COMMON_SIGN, GET_TIME_COMPILATION,	"Markiel",		 "x", "cd",	GET_CODE_LINE);  				len+=lenArray; i++;
+		lenArray= mini_snprintf(buf+len,200,"%d%c"_L_"%s "_L_"%s "_L_"'%s' "_L_"'%s' "_L_"%d"_L_"_"_E_,i+1,COMMON_SIGN, getName(SetLenTxt2Y),	GET_DATE_COMPILATION,	 "ab","f",	GET_CODE_LINE);  	len+=lenArray;
+	}
+	if(NULL != nmbLines) *nmbLines=maxLines;
+	return buf;
+}
+
+uint16_t LCD_LIST_TXT_nmbStripsInLine(GET_SET act, char* bufTxt, int* lenBufTxt){
+	static int 		 lenWholeTxt= 0;
+	static uint16_t nmbrStrips	= 0;
+	switch((int)act){
+	case _CALC:
+		lenWholeTxt= strlen(bufTxt);
+		nmbrStrips = 0;
+		for(int i=0; i<lenWholeTxt; i++){	  	if(*(bufTxt+i)==*_L_)  nmbrStrips++;						/* end of line _E_[0] */
+													 else if(*(bufTxt+i)==*_E_){ nmbrStrips++; break; }	}		/* _L_[0] */
+		if(NULL!=lenBufTxt) *lenBufTxt=lenWholeTxt;
+		return nmbrStrips;
+	case _GET:
+	default:
+		if(NULL!=lenBufTxt) *lenBufTxt=lenWholeTxt;
+		return nmbrStrips;
+	}
+}
+
+int LCD_LIST_TXT_len(char* bufTxt, TEXT_ARRANGEMENT arangType, int fontID,int space,int constWidth, LIST_TXT* pParam, uint32_t* tab,int* sizeTab,int heightTxtWin)
+{
+	if(0==bufTxt[0] || NULL==pParam|| NULL==tab|| NULL==sizeTab) return 0;
+
+	int nmbrAllLines=0, lenWholeTxt=0;
+	uint16_t lenMaxWholeLine=0;  	/* value depended on 'arangType' */
+	int nmbrStrips = LCD_LIST_TXT_nmbStripsInLine(_CALC,bufTxt,&lenWholeTxt);		if(nmbrStrips > MAX_STRIP_LISTtxtWIN) nmbrStrips=MAX_STRIP_LISTtxtWIN;
+	uint16_t *lenActStrip = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
+	uint16_t *lenMaxStrip_= NULL;
+	int nmbrWholeLinesInWin=0, countLines=0;
+
+	nmbrWholeLinesInWin = heightTxtWin/LCD_GetFontHeight(fontID);
+	*sizeTab=1;
+	tab[0]=0;
+
+	LOOP_FOR(n,nmbrStrips){ *(lenActStrip+n)=0; }
+
+	if(TxtInRow==arangType){
+		lenMaxStrip_=(uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
+		LOOP_FOR(n,nmbrStrips){ *(lenMaxStrip_+n)=0; }
+	}
+
+	for(int i=0,strip=0,lenWholeLine=0; i<lenWholeTxt; i++)
+	{	if(*(bufTxt+i)==*_E_)
+		{	switch((int)arangType){
+			 case TxtInSeq:
+				 LOOP_FOR(n,nmbrStrips) lenWholeLine+=lenActStrip[n];
+				if(lenWholeLine>lenMaxWholeLine) lenMaxWholeLine=lenWholeLine;
+				lenWholeLine=0;
+				break;
+			 case TxtInRow:
+				 LOOP_FOR(n,nmbrStrips){ if(lenActStrip[n]>lenMaxStrip_[n]) lenMaxStrip_[n]=lenActStrip[n]; }
+				break;
+			}
+			LOOP_FOR(n,nmbrStrips) lenActStrip[n]=0;
+			strip=0;
+
+			if((*sizeTab) < MAX_SCREENS_FOR_LCD_LIST){
+				if(nmbrWholeLinesInWin==countLines+1){
+					tab[(*sizeTab)] = i+1;
+					(*sizeTab)++;
+					countLines=0;
+				}
+				else countLines++;
+			}
+			nmbrAllLines++;
+		}
+		else if(*(bufTxt+i)==*_L_){
+			if(strip<nmbrStrips-1) strip++;
+		}
+		else lenActStrip[strip]+=LCD_GetStrPxlWidth2(fontID,bufTxt+i,1,space,constWidth);
+	}
+	if(TxtInRow==arangType){  LOOP_FOR(n,nmbrStrips) lenMaxWholeLine+=lenMaxStrip_[n];  }
+
+	vPortFree(lenActStrip);
+	if(TxtInRow==arangType) vPortFree(lenMaxStrip_);
+
+	pParam->nmbrAllLines 	= nmbrAllLines;
+	pParam->lenWholeTxt 		= lenWholeTxt;
+	pParam->nmbrStrips 		= nmbrStrips;
+	pParam->lenMaxWholeLine = lenMaxWholeLine;
+	if(TxtInRow==arangType){ LOOP_FOR(n,nmbrStrips){ pParam->lenMaxStrip[n]=lenMaxStrip_[n];} }
+	pParam->pTxt = bufTxt;
+
+	return nmbrWholeLinesInWin;
+}
+
+uint16_t LCD_ListTxtWin(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt,int offs,int seltab, int OnlyDigits, int space, uint32_t bkColor,uint32_t bkColorSel, uint32_t fontColor,uint8_t maxVal, int constWidth, uint32_t fontColorTab[], TEXT_ARRANGEMENT txtSeqRow, int spaceForUpDn, LIST_TXT pParam)
+{
+	StructTxtPxlLen len={0};
+	if(0==txt[0]) return len.inChar;
+
+	int lenTxt=0, nrLine=0, j=0,i=0, strip=0;
+	char *ptr=txt+offs;
+	int WholeLenTxt=0;
+	uint16_t *lenMaxLine=NULL;
+	int nmbrStrips = pParam.nmbrStrips;
+	WholeLenTxt = pParam.lenWholeTxt - offs;
+
+	if(TxtInRow==txtSeqRow){
+		lenMaxLine = (uint16_t*)pvPortMalloc(nmbrStrips*sizeof(uint16_t));
+		LOOP_FOR(n,nmbrStrips){ *(lenMaxLine+n)=pParam.lenMaxStrip[n]; }
+	}
+
+	StructTxtPxlLen _Txt(void){
+		uint32_t color = CONDITION(NULL==fontColorTab, fontColor, fontColorTab[strip]);
+		uint16_t calcPosX=0;
+		if(TxtInRow==txtSeqRow){	for(int n=0; n<strip; n++) calcPosX+=lenMaxLine[n];	}
+		else 						  {	calcPosX= lenTxt; }
+		return LCD_StrDependOnColorsWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos+calcPosX,SetLenTxt2Y(Ypos+nrLine*len.height,j), ptr, OnlyDigits,space,CONDITION(nrLine==seltab,bkColorSel,bkColor),color,maxVal,CONDITION(0==strip,ConstWidth,constWidth));
+	}
+
+	int _ReturnFunc(void){	 if(TxtInRow==txtSeqRow) vPortFree(lenMaxLine);	 len.height=nrLine;	return len.inChar; }
+
+	strip=0; j=0;
+	for(i=0; i<WholeLenTxt; i++)
+	{
+		if(*(txt+offs+i)==*_E_)		/* end of line _E_[0] */
 		{
-			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
-			KEYBOARD_TYPE(KEYBOARD_none,0);
+			j++;	 len =_Txt();	 j=0;
+			ptr=(txt+offs+i+1);
+			lenTxt=0;
+			strip=0;
+			nrLine++;
+			if((nrLine+1)*len.height > BkpSizeY-Ypos-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
 		}
-	}
-
-	//- Zrobic szablon na TEST SHAPE -------!!!!
-	else if(DEBUG_RcvStr("7")){
-		*ppMain=(int*)FRAMES_GROUP_separat;
-		FILE_NAME(main)(LoadUserScreen,(char**)ppMain);
-	}
-	//- Zrobic szablon na TEST SHAPE -------!!!!
-
-
-	else if(DEBUG_RcvStr("1"))
-	{
-		Dbg(1,"test");
-		FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
-	}
-
-
-}}
-
-static void LoadFonts(int startFontID, int endFontID){
-	if(TakeMutex(Semphr_cardSD,1000))
-	{
-		#define OMITTED_FONTS	1	/*this define delete for another screens*/
-		#define A(x)	 *((int*)((int*)(&v)+x))
-
-		int d = endFontID-startFontID + 1 + OMITTED_FONTS;
-		int j=0;
-
-		for(int i=startFontID; i<=endFontID; ++i){
-			*((int*)((int*)(&v)+i)) = LCD_LoadFont_DependOnColors( A(j),A(j+d),A(j+3*d),A(j+2*d), FILE_NAME(GetDefaultParam)(i));
-			j++;
+		else if(*(txt+offs+i)==*_L_)		/* _L_[0] */
+		{
+			j++;	 len =_Txt();	 j=0;
+			ptr=(txt+offs+i+1);
+			lenTxt+=len.inPixel;
+			if(strip < nmbrStrips-1) strip++;
+			if((nrLine+1)*len.height > BkpSizeY-Ypos-spaceForUpDn){ len.inChar=i+1;  return _ReturnFunc(); }
 		}
-
-		GiveMutex(Semphr_cardSD);
-		#undef OMITTED_FONTS
-		#undef A
-	}
-/*
-	v.FONT_ID_Title 	 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Title),	  	FILE_NAME(GetDefaultParam)(FONT_ID_Title));
-	v.FONT_ID_FontColor		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(FontColor),	FILE_NAME(GetDefaultParam)(FONT_ID_FontColor));
-	v.FONT_ID_BkColor 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(BkColor),  	FILE_NAME(GetDefaultParam)(FONT_ID_BkColor));
-	v.FONT_ID_FontType 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(FontType), 	FILE_NAME(GetDefaultParam)(FONT_ID_FontType));
-	v.FONT_ID_FontSize 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(FontSize), 	FILE_NAME(GetDefaultParam)(FONT_ID_FontSize));
-	v.FONT_ID_FontStyle  	= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(FontStyle),	FILE_NAME(GetDefaultParam)(FONT_ID_FontStyle));
-
-	v.FONT_ID_Coeff 			= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Coeff), 		 FILE_NAME(GetDefaultParam)(FONT_ID_Coeff));
-	v.FONT_ID_LenWin 			= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(LenWin), 		 FILE_NAME(GetDefaultParam)(FONT_ID_LenWin));
-	v.FONT_ID_OffsWin 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(OffsWin), 	 FILE_NAME(GetDefaultParam)(FONT_ID_OffsWin));
-	v.FONT_ID_LoadFontTime 	= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(LoadFontTime),FILE_NAME(GetDefaultParam)(FONT_ID_LoadFontTime));
-	v.FONT_ID_PosCursor 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(PosCursor), 	 FILE_NAME(GetDefaultParam)(FONT_ID_PosCursor));
-	v.FONT_ID_CPUusage 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(CPUusage), 	 FILE_NAME(GetDefaultParam)(FONT_ID_CPUusage));
-	v.FONT_ID_Speed 			= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Speed), 		 FILE_NAME(GetDefaultParam)(FONT_ID_Speed));
-	v.FONT_ID_Press 			= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Press), 		 FILE_NAME(GetDefaultParam)(FONT_ID_Press));
-*/
-}
-
-static StructTxtPxlLen ELEMENT_fontRGB(StructFieldPos *field, int xPos,int yPos, int argNmb)
-{
-	#define _TXT_R(x)		 SL(LANG_nazwa_3)
-	#define _TXT_G(x)		 SL(LANG_nazwa_4)
-	#define _TXT_B(x)		 SL(LANG_nazwa_5)
-	#define _TXT_LEFT(x)	 SL(LANG_nazwa_2)
-
-	StructTxtPxlLen lenStr = {0};
-	StructFieldPos fieldTouch = {0};
-
-	int spaceMain_width 		= LCD_GetWholeStrPxlWidth(v.FONT_ID_FontColor," ",0,ConstWidth);
-	int digit3main_width 	= LCD_GetWholeStrPxlWidth(v.FONT_ID_FontColor,INT2STR(Test.font[0]),0,ConstWidth);
-	int xPos_main 				= xPos + LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,_TXT_LEFT(0),0,NoConstWidth) + 4;
-
-	int _GetWidth(char *txt){ return LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,txt,0,ConstWidth); }
-
-	int xPos_under_left 		= MIDDLE( xPos_main+spaceMain_width, digit3main_width, _GetWidth(_TXT_R(0)) );
-	int xPos_under_right 	= MIDDLE( xPos_main + 3*spaceMain_width + 2*digit3main_width, digit3main_width, _GetWidth(_TXT_B(0)) );
-
-	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(FontColor), xPos, yPos, TXT_FONT_COLOR, fullHight, 0,250, ConstWidth, \
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	 			 Above_left, 	SL(LANG_nazwa_1), fullHight, 0,250, NoConstWidth,\
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 								 Left_mid, 		_TXT_LEFT(0), fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4|(xPos_under_left<<16),  Under_left,	_TXT_R(20), fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, RGB2INT(60,247,68), v.FONT_BKCOLOR_Descr, 4, 								 Under_center, _TXT_G(40), fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, RGB2INT(51,90,245), v.FONT_BKCOLOR_Descr, 4|(xPos_under_right<<16), Under_right,	_TXT_B(60), fullHight, 0,250, NoConstWidth,\
-		LCD_STR_DESCR_PARAM_NUMBER(5) );
-
-	LCD_SetBkFontShape(v.FONT_VAR_FontColor,BK_LittleRound);
-
-	fieldTouch 			= *field;
-	fieldTouch.width 	= fieldTouch.width/3;
-	fieldTouch.x 		= fieldTouch.x + fieldTouch.width;
-
-#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
-	if(LoadWholeScreen==argNmb)	SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT, Touch_FontColor, press, v.FONT_VAR_FontColor,0, field->len);
-#else
-	if(LoadWholeScreen==argNmb){	SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontColor,  	 		LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontColor,0, *field);
-											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		    Touch_FontColor2, 	 		LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontColor,1, *field);
-											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_MOVE_RIGHT, 		    	 Touch_FontColorMoveRight, press, 								  v.FONT_VAR_FontColor,2, fieldTouch);
-											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_MOVE_LEFT, 		    	 	 Touch_FontColorMoveLeft,  press, 								  v.FONT_VAR_FontColor,3, fieldTouch);
-	}
-#endif
-
-	lenStr.inPixel = field->width;
-	lenStr.height 	= field->height;
-	return lenStr;
-
-	#undef _TXT_R
-	#undef _TXT_G
-	#undef _TXT_B
-	#undef _TXT_LEFT
-}
-
-static StructTxtPxlLen ELEMENT_fontBkRGB(StructFieldPos *field, int xPos,int yPos, int argNmb)
-{
-	#define _TXT_R(x)		 SL(LANG_nazwa_3)
-	#define _TXT_G(x)		 SL(LANG_nazwa_4)
-	#define _TXT_B(x)		 SL(LANG_nazwa_5)
-	#define _TXT_LEFT(x)	 SL(LANG_nazwa_7)
-
-	StructTxtPxlLen lenStr = {0};
-	StructFieldPos fieldTouch = {0};
-
-	int spaceMain_width 		= LCD_GetWholeStrPxlWidth(v.FONT_ID_BkColor," ",0,ConstWidth);
-	int digit3main_width 	= LCD_GetWholeStrPxlWidth(v.FONT_ID_BkColor,INT2STR(Test.bk[0]),0,ConstWidth);
-	int xPos_main 				= xPos + LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,_TXT_LEFT(0),0,NoConstWidth) + 4;
-
-	int _GetWidth(char *txt){ return LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,txt,0,ConstWidth); }
-
-	int xPos_under_left 		= MIDDLE( xPos_main+spaceMain_width, digit3main_width, _GetWidth(_TXT_R(0)) );
-	int xPos_under_right 	= MIDDLE( xPos_main + 3*spaceMain_width + 2*digit3main_width, digit3main_width, _GetWidth(_TXT_B(0)) );
-
-	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(BkColor), xPos, yPos, TXT_BK_COLOR, fullHight, 0,250, ConstWidth, \
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	 			 Above_left,   SL(LANG_nazwa_6), fullHight, 0,250, NoConstWidth,\
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 								 Left_mid, 		_TXT_LEFT(0), fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4|(xPos_under_left<<16),  Under_left,	_TXT_R(20), fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, RGB2INT(60,247,68), v.FONT_BKCOLOR_Descr, 4, 								 Under_center, _TXT_G(40), fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, RGB2INT(51,90,245), v.FONT_BKCOLOR_Descr, 4|(xPos_under_right<<16), Under_right,	_TXT_B(60), fullHight, 0,250, NoConstWidth,\
-		LCD_STR_DESCR_PARAM_NUMBER(5) );
-
-	LCD_SetBkFontShape(v.FONT_VAR_BkColor,BK_LittleRound);
-
-	fieldTouch 			= *field;
-	fieldTouch.width 	= fieldTouch.width/3;
-	fieldTouch.x 		= fieldTouch.x + fieldTouch.width;
-
-#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
-	if(LoadWholeScreen==argNmb)	SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT, Touch_BkColor, press, v.FONT_VAR_BkColor,0, field->len);
-#else
-	if(LoadWholeScreen==argNmb){	SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_BkColor,  	  LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_BkColor,0, *field);
-											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		    Touch_BkColor2, 	  LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_BkColor,1, *field);
-											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_MOVE_RIGHT, 		    	 Touch_BkColorMove, press, 								 v.FONT_VAR_BkColor,2, fieldTouch);
-	}
-#endif
-
-	lenStr.inPixel = field->width;
-	lenStr.height 	= field->height;
-	return lenStr;
-
-	#undef _TXT_R
-	#undef _TXT_G
-	#undef _TXT_B
-	#undef _TXT_LEFT
-}
-
-static StructTxtPxlLen ELEMENT_fontLenOffsWin(StructFieldPos *field, int xPos,int yPos, int argNmb)
-{
-	StructTxtPxlLen lenStr = {0};
-
-	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(LenWin), xPos, yPos, TXT_LENOFFS_WIN, fullHight, 0,250, ConstWidth, \
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Above_left,  SL(LANG_LenOffsWin3), fullHight, 0,250, NoConstWidth,\
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 					Left_mid, 	  "8.",  fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Under_left,  SL(LANG_LenOffsWin4), fullHight, 0,250, NoConstWidth, \
-		LCD_STR_DESCR_PARAM_NUMBER(3) );
-
-	LCD_SetBkFontShape(v.FONT_VAR_LenWin,BK_LittleRound);
-
-	if(LoadWholeScreen==argNmb)	SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT, Touch_FontLenOffsWin, press, v.FONT_VAR_LenWin,0, *field);
-
-	lenStr.inPixel = field->width;
-	lenStr.height 	= field->height;
-
-	return lenStr;
-}
-
-static StructTxtPxlLen ELEMENT_fontCoeff(StructFieldPos *field, int xPos,int yPos, int argNmb)
-{
-	StructTxtPxlLen lenStr = {0};
-	int interSp= 4, heightTriang= 10;
-
-	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(Coeff), xPos, yPos, TXT_COEFF, fullHight, 0,250, ConstWidth, \
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, interSp|(xPos<<16),	Above_left,   SL(LANG_FontCoeffAbove), fullHight, 0,250, NoConstWidth,\
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, interSp, 					Left_mid, 	  SL(LANG_FontCoeffLeft),  fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, interSp, 					Under_center, SL(LANG_FontCoeffUnder), fullHight, 0,250, NoConstWidth, \
-		LCD_STR_DESCR_PARAM_NUMBER(3) );
-
-	LCD_SimpleTriangle(0,LCD_X, xPos+field->width-interSp, yPos+LCD_GetFontHeight(v.FONT_ID_Descr)+interSp+heightTriang-1, heightTriang,heightTriang, v.FONT_COLOR_Descr, v.FONT_COLOR_Descr, v.COLOR_BkScreen, Up);
-	LCD_SimpleTriangle(0,LCD_X, xPos+field->width-interSp, yPos+LCD_GetFontHeight(v.FONT_ID_Descr)+interSp+heightTriang+6, heightTriang,heightTriang, v.FONT_COLOR_Descr, v.FONT_COLOR_Descr, v.COLOR_BkScreen, Down);
-
-	LCD_SetBkFontShape(v.FONT_VAR_Coeff,BK_LittleRound);
-
-	if(LoadWholeScreen==argNmb)	SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT, Touch_FontCoeff, press, v.FONT_VAR_Coeff,0, *field);
-
-	lenStr.inPixel = field->width;
-	lenStr.height 	= field->height;
-
-	return lenStr;
-}
-
-static StructTxtPxlLen ELEMENT_fontType(StructFieldPos *field, int xPos,int yPos, int argNmb)
-{
-	StructTxtPxlLen lenStr = {0};
-
-	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(FontType), xPos, yPos, TXT_FONT_TYPE, fullHight, 0,255, NoConstWidth, \
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16), Above_left,   SL(LANG_FontTypeAbove), fullHight, 0,250, NoConstWidth,\
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 				 Left_mid, 		SL(LANG_FontTypeLeft), 	fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4|(xPos<<16), Under_left,	SL(LANG_FontTypeUnder), fullHight, 0,250, NoConstWidth, \
-		LCD_STR_DESCR_PARAM_NUMBER(3) );
-
-	LCD_SetBkFontShape(v.FONT_VAR_FontType,BK_LittleRound);
-
-#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
-	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontType,  LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontType,0, field->len);
-										  SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_WITH_HOLD, 		  	 Touch_FontType2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontType,1, field->len); }
-#else
-	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontType,  LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontType,0, *field);
-										  SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		   Touch_FontType2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontType,1, *field); }
-#endif
-
-	lenStr.inPixel = field->width;
-	lenStr.height 	= field->height;
-
-	return lenStr;
-}
-
-static StructTxtPxlLen ELEMENT_fontSize(StructFieldPos *field, int xPos,int yPos, int argNmb)
-{
-	StructTxtPxlLen lenStr = {0};
-	StructFieldPos fieldTouch = {0};
-	int interSp= 4;
-
-	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(FontSize), xPos, yPos, TXT_FONT_SIZE, fullHight, 0,255, NoConstWidth, \
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, interSp|(xPos<<16), Above_left,   SL(LANG_FontSizeAbove), fullHight, 0,250, NoConstWidth,\
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, interSp, 				 Left_mid, 		SL(LANG_FontSizeLeft),  fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, RGB2INT(186,130,50),v.FONT_BKCOLOR_Descr, interSp|(xPos<<16), Under_left,	SL(LANG_FontSizeUnder), fullHight, 0,250, NoConstWidth, \
-		LCD_STR_DESCR_PARAM_NUMBER(3) );
-
-	LCD_SetBkFontShape(v.FONT_VAR_FontSize,BK_LittleRound);
-
-	fieldTouch 			= *field;
-	fieldTouch.width 	= fieldTouch.width/3;
-	fieldTouch.x 		= fieldTouch.x + fieldTouch.width;
-
-#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
-	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontSize, LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontSize,0, field->len);
-										  SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_WITH_HOLD, 		  Touch_FontSize2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontSize,1, field->len); }
-#else
-	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontSize,  	  LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontSize,0, *field);
-										  SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		   Touch_FontSize2, 	  LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontSize,1, *field);
-										  SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_MOVE_RIGHT, 		    	   Touch_FontSizeMove, press, 								 v.FONT_VAR_FontSize,2, fieldTouch); }
-#endif
-
-	lenStr.inPixel = field->width;
-	lenStr.height 	= field->height;
-
-	return lenStr;
-}
-
-static StructTxtPxlLen ELEMENT_fontStyle(StructFieldPos *field, int xPos,int yPos, int argNmb)
-{
-	StructTxtPxlLen lenStr = {0};
-	StructFieldPos field_copy = {0};
-
-	StructFieldPos _Function_FontStyleElement(int noDisp, char *txt){
-		return LCD_StrDependOnColorsDescrVar_array_xyCorrect(noDisp,STR_FONT_PARAM2(FontStyle), xPos, yPos, txt, fullHight, 0,255, NoConstWidth, \
-			v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16), Above_left,   SL(LANG_FontStyleAbove), fullHight, 0,250, NoConstWidth,\
-			v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 				 Left_mid, 		SL(LANG_FontStyleLeft),  fullHight, 0,250, NoConstWidth, \
-			v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4|(xPos<<16), Under_left,	SL(LANG_FontStyleUnder), fullHight, 0,250, NoConstWidth, \
-			LCD_STR_DESCR_PARAM_NUMBER(3) );
+		else j++;
 	}
 
-	*field = _Function_FontStyleElement(1," "LONGEST_TXT_FONTSTYLE" ");		field_copy = *field;		/* To adjust frame width to the longest possible mainTxt */
-	*field = _Function_FontStyleElement(0,TXT_FONT_STYLE);
+	len.height=nrLine;
+	len.inChar=0;
+	return _ReturnFunc();
+}
 
-	field->width = field_copy.width;
-	field->height = field_copy.height;
+int LCD_LIST_TXT_sel(int nrLine, int iTab, int linesWin){
+	int temp = nrLine-iTab*linesWin;
+	if(IS_RANGE(temp,0,linesWin))
+		return temp;
+	else
+		return -1;
+}
 
-	LCD_SetBkFontShape(v.FONT_VAR_FontStyle,BK_LittleRound);
-
-#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
-	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontStyle, LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontStyle,0, field->len);
-										  SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_WITH_HOLD, 		  Touch_FontStyle2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontStyle,1, field->len); }
-#else
-	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontStyle, LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontStyle,0, *field);
-										  SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		  	 Touch_FontStyle2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontStyle,1, *field); }
-#endif
-
-	lenStr.inPixel = field->width;
-	lenStr.height 	= field->height;
-
+StructTxtPxlLen LCD_StrDependOnColorsWindowIndirect(uint32_t posBuff, int Xwin, int Ywin,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,uint8_t maxVal, int constWidth)
+{
+	StructTxtPxlLen lenStr;
+	if((bkColor==MYGRAY && fontColor == WHITE) ||
+		(bkColor==MYGRAY && fontColor == MYGREEN) ||
+		(bkColor==WHITE  && fontColor == BLACK))
+		lenStr=LCD_StrWindowIndirect(posBuff,Xwin,Ywin,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,0,constWidth);
+	else
+		lenStr=LCD_StrChangeColorWindowIndirect(posBuff,Xwin,Ywin,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 	return lenStr;
 }
-
-static StructTxtPxlLen ELEMENT_fontTime(StructFieldPos *field, int xPos,int yPos, int argNmb)
-{
-	StructTxtPxlLen lenStr = {0};
-
-	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(LoadFontTime), xPos, yPos, TXT_TIMESPEED, fullHight, 0,250, ConstWidth, \
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Above_left,  SL(LANG_TimeSpeed1), fullHight, 0,250, NoConstWidth,\
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 					Left_mid, 	  "7.",  fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Under_left,  SL(LANG_TimeSpeed2), fullHight, 0,250, NoConstWidth, \
-		LCD_STR_DESCR_PARAM_NUMBER(3) );
-
-	LCD_SetBkFontShape(v.FONT_VAR_LenWin,BK_LittleRound);
-
-	lenStr.inPixel = field->width;
-	lenStr.height 	= field->height;
-
-	return lenStr;
+StructTxtPxlLen LCD_StrDependOnColorsWindowMiddIndirect(u32 posBuff, int Xwin,int Ywin, u32 BkpSizeX, u32 BkpSizeY,int fontID, char *txt, int OnlyDigits, int space, u32 bkColor, u32 fontColor, u8 maxVal, int constWidth){
+	u16 x = MIDDLE(0, BkpSizeX, LCD_GetWholeStrPxlWidth(fontID&0x0000FFFF,txt,space,constWidth));
+	u16 y = MIDDLE(0, BkpSizeY, LCD_GetFontHeight(fontID&0x0000FFFF));
+	return LCD_StrDependOnColorsWindowIndirect(posBuff,Xwin,Ywin,BkpSizeX,BkpSizeY,fontID,x,y,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 }
 
-static void FRAMES_GROUP_combined(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY, int bold)
+StructTxtPxlLen LCD_StrDependOnColorsParam(LCD_STR_PARAM p){		/* Backup size default: LCD_X , LCD_y */
+	return LCD_StrDependOnColors(p.fontId, p.txt.pos.x, p.txt.pos.y, p.str, p.onlyDig, p.spac, p.bkCol, p.fontCol, p.maxV, p.constW);
+}
+StructTxtPxlLen LCD_StrDependOnColorsIndirectParam(LCD_STR_PARAM p){		/* Backup size default: LCD_X , LCD_y */
+	return LCD_StrDependOnColorsIndirect(p.fontId, p.txt.pos.x, p.txt.pos.y, p.str, p.onlyDig, p.spac, p.bkCol, p.fontCol, p.maxV, p.constW);
+}
+StructTxtPxlLen LCD_StrDependOnColorsWindowParam(LCD_STR_PARAM p){
+	return LCD_StrDependOnColorsWindow(0, p.win.size.w, p.win.size.h, p.fontId, p.txt.pos.x, p.txt.pos.y, p.str, p.onlyDig, p.spac, p.bkCol, p.fontCol, p.maxV, p.constW);
+}
+StructTxtPxlLen LCD_StrDependOnColorsWindowIndirectParam(LCD_STR_PARAM p){
+	return LCD_StrDependOnColorsWindowIndirect(0, p.win.pos.x, p.win.pos.y, p.win.size.w, p.win.size.h, p.fontId, p.txt.pos.x, p.txt.pos.y, p.str, p.onlyDig, p.spac, p.bkCol, p.fontCol, p.maxV, p.constW);
+}
+LCD_STR_PARAM LCD_SetStrDescrParam(int xWin,int yWin, int wWin,int hWin, int xStr,int yStr, int wStr,int hStr, int fontID,char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth)
 {
-	#define _LINES_COLOR		COLOR_GRAY(0x77)
-	#define _FILL_COLOR		v.COLOR_FillMainFrame
-
-	#define	_Element(name,cmdX,offsX,cmdY,offsY)		lenStr=ELEMENT_##name(&field, LCD_Xpos(lenStr,cmdX,offsX), LCD_Ypos(lenStr,cmdY,offsY), argNmb);
-	#define	_LineH(width,cmdX,offsX,cmdY,offsY)		 LCD_LineH(LCD_X,LCD_Xpos(lenStr,cmdX,offsX)-2, LCD_Ypos(lenStr,cmdY,offsY), width+4, _LINES_COLOR, bold );
-	#define	_LineV(width,cmdX,offsX,cmdY,offsY)		 LCD_LineV(LCD_X,LCD_Xpos(lenStr,cmdX,offsX), LCD_Ypos(lenStr,cmdY,offsY)-2, width+4, _LINES_COLOR, bold );
-
-	StructFieldPos field={0}, field1={0};
-	uint16_t tab[4]={0};
-	int X_start=0;
-
-	FILE_NAME(funcSet)(FONT_BKCOLOR_Descr, 		_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_FontColor, 	_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_BkColor, 		_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_FontType, 	_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_FontSize, 	_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_FontStyle, 	_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_Coeff, 		_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_LenWin, 		_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_LoadFontTime, _FILL_COLOR);
-
-	_Element(fontRGB,SetPos,X_start=startOffsX,SetPos,startOffsY)		/* _LineV(field.height,GetPos,-startOffsX/2-1,GetPos,0) */	field1=field;
-	_Element(fontBkRGB,GetPos,0,IncPos,offsY)									/* _LineV(field.height,GetPos,-startOffsX/2-1,GetPos,0) */
-	tab[0]=field1.width;
-	tab[1]=field.width;
-	MAXVAL(tab,2,0,tab[3])
-	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
-
-	_Element(fontType,SetPos,X_start+=tab[3]+offsX,SetPos,startOffsY)		_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)	field1=field;
-	_Element(fontSize,GetPos,0,IncPos,offsY)										_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)
-	tab[0]=field1.width;
-	tab[1]=field.width;
-	MAXVAL(tab,2,0,tab[3])
-	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
-
-	_Element(fontStyle,SetPos,X_start+=tab[3]+offsX,SetPos,startOffsY)	_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)	field1=field;
-	_Element(fontTime,GetPos,0,IncPos,offsY)										_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)
-	tab[0]=field1.width;
-	tab[1]=field.width;
-	MAXVAL(tab,2,0,tab[3])
-	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
-
-	int offsX_temp = 0;
-	_Element(fontLenOffsWin,SetPos,X_start+=tab[3]+offsX,SetPos,startOffsY)	_LineV(field.height,GetPos,-offsX/2-1,				 GetPos,0)	field1=field;
-	_Element(fontCoeff,GetPos,0-offsX_temp,IncPos,offsY)							_LineV(field.height,GetPos,-offsX/2-1-offsX_temp,GetPos,0)
-	tab[0]=field1.width;
-	tab[1]=field.width;
-	MAXVAL(tab,2,0,tab[3])
-	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
-
-	#undef _Element
-	#undef _LineH
-	#undef _LineV
-	#undef _FILL_COLOR
-	#undef _LINES_COLOR
+	LCD_STR_PARAM	strParam = {.win.pos={xWin,yWin}, .win.size={wWin,hWin}, .txt.pos={xStr,yStr}, .txt.size={wStr,hStr}, .fontId=fontID, .onlyDig=OnlyDigits, .spac=space, .bkCol=bkColor, .fontCol=fontColor, .maxV=maxVal, .constW=constWidth};
+	LOOP_FOR(i,MAX_TXT_SIZE__LCD_STR_PARAM){
+		strParam.str[i]=txt[i];
+		if(txt[i]==0) break;
+	}
+	return strParam;
 }
 
-static int FRAME_bold2Space(uint8_t bold, uint8_t space){
-	return ((uint32_t)bold&0x000000FF)|(uint32_t)space<<8;
+void LCD_SetNewTxt(LCD_STR_PARAM* p, char* newTxt){
+	LOOP_FOR(i,MAX_TXT_SIZE__LCD_STR_PARAM){
+		p->str[i]=newTxt[i];
+		if(newTxt[i]==0) break;
+	}
+	p->txt.size.w=LCD_GetWholeStrPxlWidth(p->fontId, p->str, p->spac, p->constW);
+	p->txt.size.h=LCD_GetFontHeight(p->fontId);
+	p->txtLen=strlen(p->str);
 }
+LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int idVar, int Xpos, int Ypos, char *txt, uint32_t fontColor, uint32_t bkColor, int OnlyDigits, int space,int maxVal, int constWidth, u32 shadeColor, u8 deep, DIRECTIONS dir)
+{																						/*	NO_TXT_ARGS	*/																																																											/*	NO_TXT_SHADOW	*/	 /*	TXT_SHADOW() */
+	StructTxtPxlLen temp={0};		int i,_x,_y, sx,sy, bkX,bkY;  uint8_t bkShape;
+	LCD_STR_PARAM	strParam = {.win.pos={Xwin,Ywin}, .win.size={BkpSizeX,BkpSizeY}, .txt.pos={Xpos,Ypos}, .txt.size={LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth),LCD_GetFontHeight(fontID)}, .txtLen=strlen(txt), .fontId=fontID, .fontVar=idVar, .onlyDig=OnlyDigits, .spac=space, .bkCol=bkColor, .fontCol=fontColor, .maxV=maxVal, .constW=constWidth, .shadow.shadeColor=shadeColor, .shadow.deep=deep, .shadow.dir=dir};
+	LOOP_FOR(i,MAX_TXT_SIZE__LCD_STR_PARAM){
+		strParam.str[i]=txt[i];
+		if(txt[i]==0) break;
+	}
 
-static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY, int boldFrame)		/* Parameters ..Offs.. is counted from STR (not from FRAME) */
-{
-	#define _FRAME_COLOR		v.COLOR_Frame
-	#define _FILL_COLOR		v.COLOR_FillFrame
-																									 /* LCD_BoldRoundRectangle */
-	#define _Rectan LCD_Shape(field.x-fontsFrameSpace, field.y-fontsFrameSpace, LCD_RoundRectangle, field.width+2*fontsFrameSpace, field.height+2*fontsFrameSpace, SetBold2Color(_FRAME_COLOR,bold), _FILL_COLOR, v.COLOR_FillMainFrame)
+	void _CopyCurrentParam(void){
+		strParam.txt.size.w = temp.inPixel;
+		strParam.txt.size.h = temp.height;
+		strParam.txtLen = temp.inChar;
+	}
+	void _PosDirFunc(void){
+		switch((int)dir){ 				case RightDown: _x=Xpos; 								  _y=Ypos; 	  								sx= 1, sy= 1; break;
+												case RightUp:	 _x=Xpos; 								  _y=Ypos + deep; 						sx= 1, sy=-1; break;
+												case LeftDown:  _x=Xpos + deep;						  _y=Ypos; 	  								sx=-1, sy= 1; break;
+												case LeftUp: 	 _x=Xpos + deep; 						  _y=Ypos + deep; 						sx=-1, sy=-1; break;	 }
+	}
+	void _PosDirStructFunc(void){
+		switch((int)p->shadow.dir){ 	case RightDown: _x=p->txt.pos.x; 					  _y=p->txt.pos.y; 	  				   sx= 1, sy= 1; break;
+												case RightUp:	 _x=p->txt.pos.x; 					  _y=p->txt.pos.y + p->shadow.deep; sx= 1, sy=-1; break;
+												case LeftDown:  _x=p->txt.pos.x + p->shadow.deep; _y=p->txt.pos.y; 	  					sx=-1, sy= 1; break;
+												case LeftUp: 	 _x=p->txt.pos.x + p->shadow.deep; _y=p->txt.pos.y + p->shadow.deep; sx=-1, sy=-1; break;	 }
+	}
+	StructTxtPxlLen _ShadowFunc(void){
+		_PosDirFunc();
+		bkShape=LCD_GetStrVar_bkRoundRect(idVar);
+		LCD_SetBkFontShape(idVar, BK_None);
+		temp= LCD_StrDependOnColorsWindow(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x,	 	  _y,		  txt,OnlyDigits,space,bkColor,	 shadeColor,maxVal,constWidth);
+		for(i=1; i<deep; ++i)
+			LCD_StrDependOnColorsWindow	(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,shadeColor,shadeColor,maxVal,constWidth);
+		LCD_StrDependOnColorsWindow		(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,shadeColor,fontColor, maxVal,constWidth);
+		LCD_SetBkFontShape(idVar,bkShape);
+		return temp;
+	}
+	StructTxtPxlLen _ShadowStructFunc(void){
+		_PosDirStructFunc();
+		bkShape=LCD_GetStrVar_bkRoundRect(p->fontVar);
+		LCD_SetBkFontShape(p->fontVar, BK_None);
+		temp= LCD_StrDependOnColorsWindow(0, bkX,bkY, FONT_ID_VAR(p->fontId,p->fontVar), _x,	 	_y, 	 	p->str, p->onlyDig, p->spac, p->bkCol,					p->shadow.shadeColor, p->maxV, p->constW);
+		for(i=1; i < p->shadow.deep; ++i)
+			LCD_StrDependOnColorsWindow	(0, bkX,bkY, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, p->shadow.shadeColor,	p->shadow.shadeColor, p->maxV, p->constW);
+		LCD_StrDependOnColorsWindow		(0, bkX,bkY, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, 			  				 p->maxV, p->constW);
+		LCD_SetBkFontShape(p->fontVar,bkShape);
+		return temp;
+	}
 
-	#define _Element(name,nrX,cmdX,Xoffs,nrY,cmdY,Yoffs)	\
-			lenStr=ELEMENT_##name(&field, LCD_posX(nrX,lenStr,cmdX,Xoffs), LCD_posY(nrY,lenStr,cmdY,Yoffs), argNmb); \
-			_Rectan; \
-			lenStr=ELEMENT_##name(&field, LCD_posX(nrX,lenStr,GetPos,0), 	LCD_posY(nrY,lenStr,GetPos,0), 	argNmb); \
-			LCD_posY(nrY,lenStr,IncPos,offsY);
+	switch((int)act){
+		case Display:  case DisplayIndirect:
+			bkX = CONDITION(BkpSizeX==0, strParam.txt.size.w+deep, BkpSizeX);
+			bkY = CONDITION(BkpSizeY==0, strParam.txt.size.h+deep, BkpSizeY);
+			break;
+		case DisplayViaStruct:  case DisplayIndirectViaStruct:
+			bkX = CONDITION(p->win.size.w==0, p->txt.size.w+p->shadow.deep, p->win.size.w);
+			bkY = CONDITION(p->win.size.h==0, p->txt.size.h+p->shadow.deep, p->win.size.h);
+			break;
+		default:
+			bkX=0; bkY=0;
+			break;
+	}
 
-	StructFieldPos field={0};
-	uint8_t fontsFrameSpace = boldFrame >>8;
-	int bold = boldFrame&0x000000FF;
-
-	FILE_NAME(funcSet)(FONT_BKCOLOR_Descr, 		_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_FontColor, 	_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_BkColor, 		_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_FontType, 	_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_FontSize, 	_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_FontStyle,	_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_Coeff, 		_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_LenWin, 		_FILL_COLOR);
-	FILE_NAME(funcSet)(FONT_BKCOLOR_LoadFontTime, _FILL_COLOR);
-
-	_Element(fontRGB,0,SetPos,startOffsX,0,SetPos,startOffsY) 	_Element(fontType,0,IncPos,offsX,1,SetPos,startOffsY)  _Element(fontStyle,0,IncPos,offsX,2,SetPos,startOffsY)  _Element(fontLenOffsWin,0,IncPos,offsX,3,SetPos,startOffsY)
-	_Element(fontBkRGB,0,SetPos,startOffsX,0,GetPos,0) 		 	_Element(fontSize,0,IncPos,offsX,1,GetPos,0)				 _Element(fontTime,0,IncPos,offsX,2,GetPos,0)				_Element(fontCoeff,0,IncPos,offsX,3,GetPos,0)
-
-	#undef _Element
-	#undef _Rectan
-	#undef _FRAME_COLOR
-	#undef _FILL_COLOR
-}
-
-void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Touch left dac mozliwosc wspolczynnik zmiany
-{
-	if(NULL == argVal)
-		argVal = (char**)ppMain;
-
-	LCD_Clear(v.COLOR_BkScreen);
-
-	if(LoadWholeScreen == argNmb)
+	switch((int)act)
 	{
-		SCREEN_ResetAllParameters();
-		LCD_TOUCH_DeleteAllSetTouch();
-		FONTS_LCD_ResetParam();
+		case noDisplay:
+			if(NULL!=p) *p=strParam;
+			return strParam;
 
-		DbgVar(v.DEBUG_ON,100, "%s" Cya_"\r\nStart: %s\r\n"_X, CONDITION(USE_DBG_CLR,Clr_,""), GET_CODE_FUNCTION);
+		case Display:
+			if(deep) temp=_ShadowFunc();
+			else 		temp=LCD_StrDependOnColorsWindow(0,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+			_CopyCurrentParam();
+			if(NULL!=p) *p=strParam;
+			return strParam;
 
-		LoadFonts(FONT_ID_Title, FONT_ID_Press);
-		LCD_LoadFontVar();
+		case DisplayIndirect:
+			LCD_RectangleBuff(pLcd,0, bkX,bkY ,0,0, bkX,bkY, bkColor,bkColor,bkColor);
+			if(deep) temp=_ShadowFunc();
+			else		temp=LCD_StrDependOnColorsWindow(0, bkX,bkY, fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+			_CopyCurrentParam();
+			if(NULL!=p) *p=strParam;
+			LCD_DisplayBuff((u32)Xwin,(u32)Ywin, bkX,bkY, pLcd+0);
+			return strParam;
 
-		LCDTOUCH_Set(LCD_X-FV(SetVal,0,LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,SL(LANG_MainFrameType),0,NoConstWidth)+5), \
-						 LCD_Y-FV(SetVal,1,LCD_GetFontHeight(v.FONT_ID_Descr)+5), \
-						 	 	 FV(GetVal,0,NoUse),\
-								 FV(GetVal,1,NoUse), ID_TOUCH_POINT,Touch_MainFramesType,press);
+		case DisplayViaStruct:
+			if(NULL!=p){
+				if(p->shadow.deep) temp=_ShadowStructFunc();
+				else					 temp=LCD_StrDependOnColorsWindow(0, p->win.size.w, p->win.size.h, p->fontId, p->txt.pos.x, p->txt.pos.y, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, p->maxV, p->constW);
+				strParam=*p;
+				_CopyCurrentParam();
+				return strParam;
+			}
+			else return LCD_STR_PARAM_Zero;
 
-		LCD_Ymiddle(ID_MIDDLE_TXT,SetPos, SetPosAndWidth(Test.yFontsField,240) );
-		LCD_Xmiddle(ID_MIDDLE_TXT,SetPos, SetPosAndWidth(Test.xFontsField,LCD_GetXSize()),NULL,0,NoConstWidth);
-		LCD_SetBkFontShape(v.FONT_VAR_Fonts,BK_Rectangle);
+		case DisplayIndirectViaStruct:
+			if(NULL!=p){
+				LCD_RectangleBuff(pLcd,0, bkX,bkY ,0,0, bkX,bkY, p->bkCol, p->bkCol, p->bkCol);
+				if(p->shadow.deep) temp=_ShadowStructFunc();
+				else					 temp=LCD_StrDependOnColorsWindow(0, bkX,bkY, p->fontId, p->txt.pos.x, p->txt.pos.y, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, p->maxV, p->constW);
+				strParam=*p;
+				_CopyCurrentParam();
+				LCD_DisplayBuff((u32)p->win.pos.x, (u32)p->win.pos.y, bkX,bkY, pLcd+0);
+				return strParam;
+			}
+			else return LCD_STR_PARAM_Zero;
 
-		vTimerService(TIMER_Cpu,start_time,noUse);
+		default:
+			return LCD_STR_PARAM_Zero;
 	}
-	/*FILE_NAME(printInfo)();*/
-
-	INIT(endSetFrame,195);
-	LCD_DrawMainFrame(LCD_RoundRectangle,NoIndDisp,0, 0,0, LCD_X,endSetFrame,SHAPE_PARAM(MainFrame,FillMainFrame,BkScreen));
-
-	if		 (*(argVal+0)==(char*)FRAMES_GROUP_combined)
-		FRAMES_GROUP_combined(argNmb,15,15,25,25,1);
-	else if(*(argVal+0)==(char*)FRAMES_GROUP_separat)
-		FRAMES_GROUP_separat(argNmb,15,15,25,25,FRAME_bold2Space(0,6));
-
-
-	LCD_StrDependOnColorsVar(STR_FONT_PARAM(CPUusage,FillMainFrame),0,420,TXT_CPU_USAGE,halfHight,0,255,ConstWidth);
-	LCD_StrDependOnColors(v.FONT_ID_Descr, LCD_X-FV(GetVal,0,NoUse), LCD_Y-FV(GetVal,1,NoUse), SL(LANG_MainFrameType), fullHight,0, v.COLOR_FillFrame, v.FONT_COLOR_Descr, 255, NoConstWidth);
-
-	if(LoadUserScreen == argNmb){
-
-	}
-
-	StartMeasureTime_us();
-	 if(Test.type==RGB_RGB) lenStr= LCD_StrChangeColorVar(v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, RGB_BK, RGB_FONT,																		  Test.coeff, Test.constWidth, v.COLOR_BkScreen);
-	 else  						lenStr= LCD_StrVar			  (v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, argNmb==0 ? v.COLOR_BkScreen : LCD_GetStrVar_bkColor(v.FONT_VAR_Fonts), Test.coeff, Test.constWidth, v.COLOR_BkScreen);
-	Test.speed=StopMeasureTime_us("");
-
-/*
-	LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen, v.FONT_ID_Descr);
-	LCDEXAMPLE_GradientCircleButtonAndSlider(v.FONT_ID_Title,v.FONT_VAR_Title,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
-	LCDEXAMPLE_LcdTxt(v.FONT_ID_Fonts,v.FONT_VAR_Fonts,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
-*/
-
-
-
-
-
-
-	StartMeasureTime_us();
-
-
-//-----CHART  opt 1 --------    //LCD_STR_PARAM txt dla tekstu wskaznika xy !!!! jako arg dla GRAPH_GetSamplesAndDraw() i LCD_Chart() !!!!
-
-	if(testGraph.grad.bkType == 0){
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, 		WHITE,WHITE, 70*LCD_X-0, 140*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE),  GRAD_COEFF(1.0,0.0),testGraph.corr45degAA );
-		//GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(50,340, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), 	/*GRAD_None*/GRAD_YmaxYmin(MYGREEN), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA );
-	}
-	else if(testGraph.grad.bkType == 1){
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 140*LCD_X-0), GRAD_Ystrip(GREEN,51),GRAD_COEFF(1.0,0.0),testGraph.corr45degAA );
-		//GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(50,340, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,	 WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0), 	 GRAD_Ystrip(MYGREEN,51),GRAD_COEFF(1.0,0.0),testGraph.corr45degAA );
-
-	}
-	else if(testGraph.grad.bkType == 2){
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(50,250, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY/*|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 0*LCD_X-0), GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA );
-		//GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(50,340, -170,170), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,	 WHITE,WHITE, 0*LCD_X-0, 0*LCD_X-0),  GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA );
-	}
-
-
-//#define MEM_1		NR_MEM(2000000,0)
-//#define MEM_2		NR_MEM(4000000,1)
-//#define MEM_3_IND		NR_MEM(5500000,2)
-//
-//
-////-----CHART  common --------
-//	GRAPH_GetSamples(NR_MEM(2000000,0), XYPOS_YMIN_YMAX( 50,250, -170,170), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
-//	GRAPH_GetSamples(NR_MEM(4000000,1), XYPOS_YMIN_YMAX(300,250, -170,170), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin1));
-//	GRAPH_GetSamples(MEM_3_IND, 			XYPOS_YMIN_YMAX(  0,120, -120,10), POINTS_STEP_XYSCALE(240,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin1));
-//
-//	USER_GRAPH_PARAM par1, par2, par3;					 							/* LINE_AACOLOR(WHITE,0,0) */
-//	par1 = LCD_Chart(ToStructAndReturn, NR_MEM(2000000,0), WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 40*LCD_X-0, 80*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA);
-//	par3 = LCD_Chart(ToStructAndReturn, NR_MEM(4000000,1), WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 40*LCD_X-0, 80*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA);
-//
-//	int widthBk = GRAPH_GetNmbrPoints(MEM_3_IND);
-//	par2 = LCD_Chart(ToStructAndReturn, MEM_3_IND, XY_WIN(540,210), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*widthBk-0, 0*widthBk-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA);
-//
-//
-////-----CHART  opt 1 --------
-//	LCD_Chart(0, MEM_3,				 LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA);
-//	LCD_Chart(0, NR_MEM(4000000,1),LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA);
-//	LCD_Chart(0, NR_MEM(2000000,0),LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA);
-//
-////-----CHART  opt 2 --------
-//	LCDSHAPE_Chart(0,par1);
-//	LCDSHAPE_Chart(0,par3);
-//
-////-----CHART  opt 3 --------
-//	LCDSHAPE_Chart_Indirect(par2);
-
-
-
-
-
-
-	StopMeasureTime_us("Time GRAPH:");
-
-	LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);
-
-	//ZROBIC CIRCLE zmienna grubosc DRAWLINE !!!!!!!!!!!! z AA z 0.0 na 0.5 np!!!!
-	//ZROBIC cieniowanie pol i text 3d na nim jak w biletcie automatu na muzeum naradowe
-	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
-	if(LoadNoDispScreen != argNmb) LCD_Show();
-
-
-
-
-//ROBIMY :  1. LISTVIEW  tabelko z lista   2. klawiature i koniec !!!
-	//GRAPH ZADANIA  : delikatna siateczka, okienko XY, wskaznik pionowy
-	//pobawic sie w selektywna optymalizacje
-
-	//ATTENTION IN FUTURE   tylko w jednej funkcji umieszczamy zmienne odswiezane reularnie i ta funkcja idzie do jakiegos watku !!!!!
-
 }
 
-#undef POS_X_TXT
-#undef POS_Y_TXT
-#undef TEXT_TO_SHOW
-#undef ID_MIDDLE_TXT
-#undef POS_X_TXT
-#undef POS_Y_TXT
-#undef TXT_FONT_COLOR
-#undef TXT_BK_COLOR
-#undef TXT_FONT_TYPE
-#undef TXT_FONT_SIZE
-#undef TXT_FONT_STYLE
-#undef TXT_COEFF
-#undef TXT_LEN_WIN
-#undef TXT_OFFS_WIN
-#undef TXT_LENOFFS_WIN
-#undef TXT_TIMESPEED
-#undef TXT_CPU_USAGE
-#undef RGB_FONT
-#undef RGB_BK
-#undef CHECK_TOUCH
-#undef SET_TOUCH
-#undef CLR_TOUCH
-#undef CLR_ALL_TOUCH
-#undef GET_TOUCH
-#undef NONE_TYPE_REQ
-#undef MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY
-#undef SELECT_CURRENT_FONT
+LCD_STR_PARAM LCD_TxtVar(LCD_STR_PARAM *p, char *txt){
+	if(NULL!=txt) LCD_SetNewTxt(p,txt);
+	return LCD_Txt(DisplayViaStruct, p, NO_TXT_ARGS);
+}
+LCD_STR_PARAM LCD_TxtVarInd(LCD_STR_PARAM *p, char *txt){
+	if(NULL!=txt) LCD_SetNewTxt(p,txt);
+	return LCD_Txt(DisplayIndirectViaStruct, p, NO_TXT_ARGS);
+}
 
-//w harfoult interrup ddacv mozliwosc odczyti linijki kodu poprzedniego !!!!
-//Zrobic szablon nowego okna -pliku LCD !!!! aby latwo wystartowac !!!
-//ZROBIC animacje ze samo sie klioka i chmurka z info ze przytrzymac na 2 sekundy ....
-//ZROBIC AUTOMATYCZNE testy wszystkich mozliwosci !!!!!!! taki interfejs testowy
-//tu W **arcv PRZEKAZ TEXT !!!!!! dla fonts !!!
-//tester po uart czy eth zeby samo ekran klikalo i ustawialo !!!! taka setup animacja
