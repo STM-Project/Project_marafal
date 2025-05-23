@@ -649,14 +649,116 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 	return -1;
 }
 
+
+
 static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)
 {
 
+//	typedef enum{
+//		bk   = 0x80,
+//		font = 0x40,
+//		AA   = 0xC0
+//	}COLOR_TYPE;
+//
+//
+//
+//
+//	u32 tabColor[500]={0}, ind=0;
+//	char *pbmp1;
+//	int shiftX=0;
+//	uint8_t foColor[3] = {FontID[fontID].color&0xFF, (FontID[fontID].color>>8)&0xFF, (FontID[fontID].color>>16)&0xFF};
+//	uint8_t bkColor[3] = {FontID[fontID].bkColor&0xFF, (FontID[fontID].bkColor>>8)&0xFF, (FontID[fontID].bkColor>>16)&0xFF};
+//	char bufTemp[30],bufTemp2[30],bufTemp3[30];
+//
+//	int  /*__attribute__ ((optimize("-Ofast")))*/ _IfNewColorThenSetToTab(u32 color){
+//		for(int i=0; i<ind; i++){
+//			if(tabColor[i]==color) return 0;
+//		}
+//		if(ind < STRUCT_TAB_SIZE(tabColor)){ tabColor[ind++]= color;  return 1;  }
+//		else										  { 								  return -1; }
+//	}
+//
+//	int _GetIndexToTabColor(u32 color){
+//		for(int i=0; i < ind; i++){
+//			if(tabColor[i]==color)
+//				return i;
+//		}
+//		return -1;
+//	}
+//
+//	u32 __wskBK=0;
+//	u32 __wskFont=0;
+//	u32 __wskAA=0;
+//
+//	u32 start_bk=0, _licz_bk=0;
+//	u32 start_fo=0, _licz_fo=0;
+//	u32 start_aa=0, _licz_aa=0;
+//
+//
+//	for(int i=0; i < width; i++)
+//	{
+//			pbmp1=pbmp+3*shiftX;
+//			for(int j=0; j < height; j++)
+//			{
+//				if((*(pbmp1+0)==bkColor[0])&&(*(pbmp1+1)==bkColor[1])&&(*(pbmp1+2)==bkColor[2]))
+//				{
+//					start_bk=1;
+//					if(start_fo==1){ start_fo=0;  _licz_fo++;  }
+//					if(start_aa==1){ start_aa=0;  _licz_aa++;  }
+//
+//					__wskBK++;
+//				}
+//				else if((*(pbmp1+0)==foColor[0])&&(*(pbmp1+1)==foColor[1])&&(*(pbmp1+2)==foColor[2]))
+//				{
+//					start_fo=1;
+//					if(start_bk==1){ start_bk=0;  _licz_bk++;  }
+//					if(start_aa==1){ start_aa=0;  _licz_aa++;  }
+//
+//					__wskFont++;
+//				}
+//				else
+//				{
+//					start_aa=1;
+//					if(start_fo==1){ start_fo=0;  _licz_fo++;  }
+//					if(start_bk==1){ start_bk=0;  _licz_bk++;  }
+//
+//
+//					_IfNewColorThenSetToTab( RGB2INT(*(pbmp1+2),*(pbmp1+1),*(pbmp1+0)) );
+//					__wskAA++;
+//				}
+//
+//				pbmp1 -= width * bytesPerPxl;
+//
+//			}
+//			shiftX++;
+//	}
+//
 
+
+	if(FR_OK!=SDCardFileOpen(2,"Fonts/BackGround_darkGray/Color_green/Arial/font_10.bmp",FA_READ)){
+		asm("nop");
+	}
+	if(0 > SDCardFileRead(2,GETVAL_ptr(1000000),2000000)){
+		asm("nop");
+	}
+	if(FR_OK!=SDCardFileClose(2)){
+		asm("nop");
+	}
+
+
+	if(FR_OK!=SDCardFileOpen(2,"Test.bmp",FA_WRITE)){
+		asm("nop");
+	}
+	if(0 > SDCardFileWrite(2,GETVAL_ptr(1000000),1000000)){
+		asm("nop");
+	}
+	if(FR_OK!=SDCardFileClose(2)){
+		asm("nop");
+	}
 
 }
 
-static void  /*__attribute__ ((optimize("-Ofast")))*/ FONTS_InfoFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)
+static void FONTS_InfoFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)
 {
   /*
 	--- Fonts Info --------
@@ -707,7 +809,7 @@ static void  /*__attribute__ ((optimize("-Ofast")))*/ FONTS_InfoFileBMP(char *pb
 		uint8_t bkColor[3] = {FontID[fontID].bkColor&0xFF, (FontID[fontID].bkColor>>8)&0xFF, (FontID[fontID].bkColor>>16)&0xFF};
 		char bufTemp[30],bufTemp2[30],bufTemp3[30];
 
-		int  /* __attribute__ ((optimize("-Ofast")))*/ _IfNewColorThenSetToTab(u32 color){
+		int  /*__attribute__ ((optimize("-Ofast")))*/ _IfNewColorThenSetToTab(u32 color){
 			for(int i=0; i<ind; i++){
 				if(tabColor[i]==color) return 0;
 			}
@@ -838,7 +940,14 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 
 	//--------------- TEST ------------------------------------------
 
+static int dddd=0;
 
+	if(dddd==0)
+	{
+		dddd=1;
+
+		FONTS_BMPLoad(pbmp, width, height, fontID, bit_pixel);
+	}
 
 
 	FONTS_InfoFileBMP(pbmp, width, height, fontID, bit_pixel);
