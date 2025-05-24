@@ -649,112 +649,196 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 	return -1;
 }
 
-
+char  TTTTT[100000]={1};
 
 static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)
 {
 
-//	typedef enum{
-//		bk   = 0x80,
-//		font = 0x40,
-//		AA   = 0xC0
-//	}COLOR_TYPE;
+	#define IS_BKCOLOR(p)	((*((p)+0)==bkColor[0])&&(*((p)+1)==bkColor[1])&&(*((p)+2)==bkColor[2]))
+	#define IS_FONTCOLOR(p)	((*((p)+0)==foColor[0])&&(*((p)+1)==foColor[1])&&(*((p)+2)==foColor[2]))
+	#define GET_COLOR(p) 	RGB2INT(*((p)+2),*((p)+1),*((p)+0))
+
+	typedef enum{
+		no,
+		bk = 0x80,
+		fo = 0x40,
+		AA = 0xC0
+	}COLOR_TYPE;
+
+
+	u32 cntBk=0;
+	u32 cntFo=0;
+
+	u32 tabColor[500]={0}, ind=0;
+	char *pbmp1;
+	int shiftX=0;
+	uint8_t foColor[3] = {FontID[fontID].color&0xFF, (FontID[fontID].color>>8)&0xFF, (FontID[fontID].color>>16)&0xFF};
+	uint8_t bkColor[3] = {FontID[fontID].bkColor&0xFF, (FontID[fontID].bkColor>>8)&0xFF, (FontID[fontID].bkColor>>16)&0xFF};
+
+
+
+	u32 start_bk=0, _licz_bk=0;
+	u32 start_fo=0, _licz_fo=0;
+	u32 start_aa=0, _licz_aa=0;
+	int ig=0;
+
+	void _Init(void){
+
+	}
+
+	int OPTIMIZE_FAST _IfNewColorThenSetToTab(u32 color){
+		for(int i=0; i<ind; i++){
+			if(tabColor[i]==color) return 0;
+		}
+		if(ind < STRUCT_TAB_SIZE(tabColor)){ tabColor[ind++]= color;  return 1;  }
+		else										  { 								  return -1; }
+	}
+
+	int _GetIndexToTab(u32 color){
+		for(int i=0; i < ind; i++){
+			if(tabColor[i]==color)
+				return i; }
+		return -1;
+	}
+
+	void _SetDataToOut(COLOR_TYPE type, u32 value){
+		enum BYTES{
+			maxByte0 = 63,
+			maxByte1 = 255,
+			sumBytes = maxByte0 + maxByte1,
+		};
+		if(IS_RANGE(value,sumBytes,0xFFFF)){
+			TTTTT[ig++] = type|maxByte0;		/* byte0 */
+			TTTTT[ig++] = maxByte1;	/* byte1 */
+			TTTTT[ig++] = SHIFT_RIGHT(value-(sumBytes),0,FF);		/* byte2 */
+			TTTTT[ig++] = SHIFT_RIGHT(value-(sumBytes),8,FF);		/* byte3*/
+			/* value = byte0 + byte1 + byte2 + 256*byte3 */
+		}
+		if(IS_RANGE(value,maxByte0,sumBytes-1)){
+			TTTTT[ig++] = type|maxByte0;		/* byte0 */
+			TTTTT[ig++] = SHIFT_RIGHT(value-maxByte0,0,FF);	/* byte1 */
+			/* value = byte0 + byte1 */
+		}
+		if(IS_RANGE(value,1,maxByte0-1)){
+			TTTTT[ig++] = type|value;		/* byte0 */
+			/* value = byte0 */
+	}}
+
+	void _SetTabColorAA(void){
+		shiftX=0;
+		for(int i=0; i < width; i++){
+			pbmp1=pbmp+3*shiftX;
+			for(int j=0; j < height; j++){
+				if		 (IS_BKCOLOR(pbmp1));
+				else if(IS_FONTCOLOR(pbmp1));
+				else
+					_IfNewColorThenSetToTab( RGB2INT(*(pbmp1+2),*(pbmp1+1),*(pbmp1+0)) );
+				pbmp1 -= width * bytesPerPxl;
+			}
+			shiftX++;
+	}}
+
+	void _StartCountColor(COLOR_TYPE type){
+		switch((int)type){
+		case bk:
+			if(start_bk==0){ start_bk=1; cntBk=0; }
+			cntBk++;
+			break;
+		case fo:
+			if(start_fo==0){ start_fo=1; cntFo=0; }
+			cntFo++;
+			break;
+		}
+	}
+
+	void _StopCountColor(COLOR_TYPE type){
+		switch((int)type){
+		case bk:
+			if(start_bk==1){ start_bk=0; _SetDataToOut(bk,cntBk); }
+			break;
+		case fo:
+			if(start_fo==1){ start_fo=0; _SetDataToOut(fo,cntFo); }
+			break;
+		}
+	}
+
+	_Init();
+	_SetTabColorAA();
+
+	shiftX=0;
+	for(int i=0; i < width; i++)
+	{
+		pbmp1=pbmp+3*shiftX;
+		for(int j=0; j < height; j++)
+		{
+			if(IS_BKCOLOR(pbmp1)){
+				_StartCountColor(bk);
+				_StopCountColor(fo);
+			}
+			else if(IS_FONTCOLOR(pbmp1)){
+				_StartCountColor(fo);
+				_StopCountColor(bk);
+			}
+			else	/* IS_AACOLOR */
+			{
+				_SetDataToOut(AA, _GetIndexToTab(GET_COLOR(pbmp1)));
+				_StopCountColor(bk);
+				_StopCountColor(fo);
+
+			}
+			pbmp1 -= width * bytesPerPxl;
+		}
+		shiftX++;
+	}
+	_StopCountColor(bk);
+	_StopCountColor(fo);
+
+	int readSize=0, writeSize=0;
+	if(FR_OK!=SDCardFileOpen(0,"Test.cff",FA_CREATE_ALWAYS|FA_WRITE))		/* compress font file */
+		asm("nop");
+	//SCB_CleanDCache_by_Addr((u32*)GETVAL_ptr(1000000), readSize);
+	writeSize = SDCardFileWrite(0, TTTTT, ig);
+	if(0 > writeSize){
+		asm("nop");
+	}
+	if(FR_OK!=SDCardFileClose(0)){
+		asm("nop");
+	}
+
+
+
+//	int readSize=0, writeSize=0;
+//		if(FR_OK!=SDCardFileOpen(2,"Fonts/BackGround_darkGray/Color_green/Arial/font_10.bmp",FA_READ))
+//			asm("nop");
+//		readSize = SDCardFileRead(2,GETVAL_ptr(1000000),2000000);
+//		if(0 > readSize)
+//			asm("nop");
+//		if(FR_OK!=SDCardFileClose(2))
+//			asm("nop");
 //
 //
 //
 //
-//	u32 tabColor[500]={0}, ind=0;
-//	char *pbmp1;
-//	int shiftX=0;
-//	uint8_t foColor[3] = {FontID[fontID].color&0xFF, (FontID[fontID].color>>8)&0xFF, (FontID[fontID].color>>16)&0xFF};
-//	uint8_t bkColor[3] = {FontID[fontID].bkColor&0xFF, (FontID[fontID].bkColor>>8)&0xFF, (FontID[fontID].bkColor>>16)&0xFF};
-//	char bufTemp[30],bufTemp2[30],bufTemp3[30];
-//
-//	int  /*__attribute__ ((optimize("-Ofast")))*/ _IfNewColorThenSetToTab(u32 color){
-//		for(int i=0; i<ind; i++){
-//			if(tabColor[i]==color) return 0;
+//		if(FR_OK!=SDCardFileOpen(0,"Test1.bmp",FA_CREATE_ALWAYS|FA_WRITE))
+//			asm("nop");
+//		//SCB_CleanDCache_by_Addr((u32*)GETVAL_ptr(1000000), readSize);
+//		LOOP_FOR(i,readSize){
+//			TTTTT[i] = *(GETVAL_ptr(1000000)+i);
 //		}
-//		if(ind < STRUCT_TAB_SIZE(tabColor)){ tabColor[ind++]= color;  return 1;  }
-//		else										  { 								  return -1; }
-//	}
-//
-//	int _GetIndexToTabColor(u32 color){
-//		for(int i=0; i < ind; i++){
-//			if(tabColor[i]==color)
-//				return i;
+//		writeSize = SDCardFileWrite(0, TTTTT, readSize);
+//		if(0 > writeSize){
+//			asm("nop");
 //		}
-//		return -1;
-//	}
-//
-//	u32 __wskBK=0;
-//	u32 __wskFont=0;
-//	u32 __wskAA=0;
-//
-//	u32 start_bk=0, _licz_bk=0;
-//	u32 start_fo=0, _licz_fo=0;
-//	u32 start_aa=0, _licz_aa=0;
-//
-//
-//	for(int i=0; i < width; i++)
-//	{
-//			pbmp1=pbmp+3*shiftX;
-//			for(int j=0; j < height; j++)
-//			{
-//				if((*(pbmp1+0)==bkColor[0])&&(*(pbmp1+1)==bkColor[1])&&(*(pbmp1+2)==bkColor[2]))
-//				{
-//					start_bk=1;
-//					if(start_fo==1){ start_fo=0;  _licz_fo++;  }
-//					if(start_aa==1){ start_aa=0;  _licz_aa++;  }
-//
-//					__wskBK++;
-//				}
-//				else if((*(pbmp1+0)==foColor[0])&&(*(pbmp1+1)==foColor[1])&&(*(pbmp1+2)==foColor[2]))
-//				{
-//					start_fo=1;
-//					if(start_bk==1){ start_bk=0;  _licz_bk++;  }
-//					if(start_aa==1){ start_aa=0;  _licz_aa++;  }
-//
-//					__wskFont++;
-//				}
-//				else
-//				{
-//					start_aa=1;
-//					if(start_fo==1){ start_fo=0;  _licz_fo++;  }
-//					if(start_bk==1){ start_bk=0;  _licz_bk++;  }
-//
-//
-//					_IfNewColorThenSetToTab( RGB2INT(*(pbmp1+2),*(pbmp1+1),*(pbmp1+0)) );
-//					__wskAA++;
-//				}
-//
-//				pbmp1 -= width * bytesPerPxl;
-//
-//			}
-//			shiftX++;
-//	}
-//
+//		if(FR_OK!=SDCardFileClose(0)){
+//			asm("nop");
+//		}
 
 
-	if(FR_OK!=SDCardFileOpen(2,"Fonts/BackGround_darkGray/Color_green/Arial/font_10.bmp",FA_READ)){
-		asm("nop");
-	}
-	if(0 > SDCardFileRead(2,GETVAL_ptr(1000000),2000000)){
-		asm("nop");
-	}
-	if(FR_OK!=SDCardFileClose(2)){
-		asm("nop");
-	}
 
 
-	if(FR_OK!=SDCardFileOpen(2,"Test.bmp",FA_WRITE)){
-		asm("nop");
-	}
-	if(0 > SDCardFileWrite(2,GETVAL_ptr(1000000),1000000)){
-		asm("nop");
-	}
-	if(FR_OK!=SDCardFileClose(2)){
-		asm("nop");
-	}
+	#undef IS_BKCOLOR
+	#undef IS_FONTCOLOR
+	#undef GET_COLOR
 
 }
 
@@ -794,13 +878,17 @@ static void FONTS_InfoFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID,
 
 
 		typedef enum{
+			no,
 			bk   = 0x80,
-			font = 0x40,
-			AA   = 0xC0
+			fo = 0x40,
+			AA = 0xC0
 		}COLOR_TYPE;
 
 
-
+		u8 start=0;
+		u32 cntBk=0;
+		u32 cntFo=0;
+		//SET_bit(allBits,bitNr);
 
 		u32 tabColor[500]={0}, ind=0;
 		char *pbmp1;
@@ -809,7 +897,7 @@ static void FONTS_InfoFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID,
 		uint8_t bkColor[3] = {FontID[fontID].bkColor&0xFF, (FontID[fontID].bkColor>>8)&0xFF, (FontID[fontID].bkColor>>16)&0xFF};
 		char bufTemp[30],bufTemp2[30],bufTemp3[30];
 
-		int  /*__attribute__ ((optimize("-Ofast")))*/ _IfNewColorThenSetToTab(u32 color){
+		int _IfNewColorThenSetToTab(u32 color){
 			for(int i=0; i<ind; i++){
 				if(tabColor[i]==color) return 0;
 			}
@@ -817,7 +905,7 @@ static void FONTS_InfoFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID,
 			else										  { 								  return -1; }
 		}
 
-		int _GetIndexToTabColor(u32 color){
+		int _GetIndexToTab(u32 color){
 			for(int i=0; i < ind; i++){
 				if(tabColor[i]==color)
 					return i;
@@ -861,7 +949,6 @@ static void FONTS_InfoFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID,
 						if(start_fo==1){ start_fo=0;  _licz_fo++;  }
 						if(start_bk==1){ start_bk=0;  _licz_bk++;  }
 
-
 						_IfNewColorThenSetToTab( RGB2INT(*(pbmp1+2),*(pbmp1+1),*(pbmp1+0)) );
 						__wskAA++;
 					}
@@ -871,6 +958,11 @@ static void FONTS_InfoFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID,
 				}
 				shiftX++;
 		}
+
+		if(start_bk==1){ start_bk=0;  _licz_bk++;  }
+		if(start_fo==1){ start_fo=0;  _licz_fo++;  }
+		if(start_aa==1){ start_aa=0;  _licz_aa++;  }
+
 
 		DbgVar(1,100,"\r\n111: BK: %s    Font: %s    AA: %s (%d) ",DispLongNmb(__wskBK,bufTemp), DispLongNmb(__wskFont,bufTemp2), DispLongNmb(__wskAA,bufTemp3), ind);
 		DbgVar(1,100,"\r\n222: BK: %s    Font: %s    AA: %s \r\n",DispLongNmb(_licz_bk,bufTemp), DispLongNmb(_licz_fo,bufTemp2), DispLongNmb(_licz_aa,bufTemp3));

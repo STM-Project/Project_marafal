@@ -36,7 +36,7 @@ int SDCardFileRead(uint8_t id, char *buff, uint32_t size)
 	FRESULT result=f_read(&myFile[id], buff, size, (void *)&bytesRead);
 	if(FR_OK!=result)
 	{
-		ERROR_SDcardOpen((int)result);
+		ERROR_SDcardRead((int)result);
 		_result=result*(-1);
 	}
 	else
