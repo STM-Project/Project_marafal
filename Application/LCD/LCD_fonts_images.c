@@ -649,7 +649,8 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 	return -1;
 }
 
-char  TTTTT[100000]={1};
+char  TTTTT[100000]={0};
+uint32_t fontID_ttt=0;
 
 static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)
 {
@@ -657,6 +658,7 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 	#define IS_BKCOLOR(p)	((*((p)+0)==bkColor[0])&&(*((p)+1)==bkColor[1])&&(*((p)+2)==bkColor[2]))
 	#define IS_FONTCOLOR(p)	((*((p)+0)==foColor[0])&&(*((p)+1)==foColor[1])&&(*((p)+2)==foColor[2]))
 	#define GET_COLOR(p) 	RGB2INT(*((p)+2),*((p)+1),*((p)+0))
+	#define TAB_OUT(nr) 		TTTTT[(nr)]
 
 	typedef enum{
 		no,
@@ -665,21 +667,20 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 		AA = 0xC0
 	}COLOR_TYPE;
 
+	//int sizeAllChars = sizeof(CharsTab_full);
 
 	u32 cntBk=0;
 	u32 cntFo=0;
 
-	u32 tabColor[500]={0}, ind=0;
+	u32 tabColor[500]={0}, ind = 2 + 4*MAX_CHARS;
 	char *pbmp1;
 	int shiftX=0;
 	uint8_t foColor[3] = {FontID[fontID].color&0xFF, (FontID[fontID].color>>8)&0xFF, (FontID[fontID].color>>16)&0xFF};
 	uint8_t bkColor[3] = {FontID[fontID].bkColor&0xFF, (FontID[fontID].bkColor>>8)&0xFF, (FontID[fontID].bkColor>>16)&0xFF};
 
 
-
-	u32 start_bk=0, _licz_bk=0;
-	u32 start_fo=0, _licz_fo=0;
-	u32 start_aa=0, _licz_aa=0;
+	u32 start_bk=0;
+	u32 start_fo=0;
 	int ig=0;
 
 	void _Init(void){
@@ -708,19 +709,19 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 			sumBytes = maxByte0 + maxByte1,
 		};
 		if(IS_RANGE(value,sumBytes,0xFFFF)){
-			TTTTT[ig++] = type|maxByte0;		/* byte0 */
-			TTTTT[ig++] = maxByte1;	/* byte1 */
-			TTTTT[ig++] = SHIFT_RIGHT(value-(sumBytes),0,FF);		/* byte2 */
-			TTTTT[ig++] = SHIFT_RIGHT(value-(sumBytes),8,FF);		/* byte3*/
+			TAB_OUT(ig++) = type|maxByte0;	/* byte0 */
+			TAB_OUT(ig++) = maxByte1;			/* byte1 */
+			TAB_OUT(ig++) = SHIFT_RIGHT(value-(sumBytes),0,FF);		/* byte2 */
+			TAB_OUT(ig++) = SHIFT_RIGHT(value-(sumBytes),8,FF);		/* byte3*/
 			/* value = byte0 + byte1 + byte2 + 256*byte3 */
 		}
 		if(IS_RANGE(value,maxByte0,sumBytes-1)){
-			TTTTT[ig++] = type|maxByte0;		/* byte0 */
-			TTTTT[ig++] = SHIFT_RIGHT(value-maxByte0,0,FF);	/* byte1 */
+			TAB_OUT(ig++) = type|maxByte0;							/* byte0 */
+			TAB_OUT(ig++) = SHIFT_RIGHT(value-maxByte0,0,FF);	/* byte1 */
 			/* value = byte0 + byte1 */
 		}
 		if(IS_RANGE(value,1,maxByte0-1)){
-			TTTTT[ig++] = type|value;		/* byte0 */
+			TAB_OUT(ig++) = type|value;		/* byte0 */
 			/* value = byte0 */
 	}}
 
@@ -732,11 +733,20 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 				if		 (IS_BKCOLOR(pbmp1));
 				else if(IS_FONTCOLOR(pbmp1));
 				else
-					_IfNewColorThenSetToTab( RGB2INT(*(pbmp1+2),*(pbmp1+1),*(pbmp1+0)) );
+					_IfNewColorThenSetToTab(GET_COLOR(pbmp1));
 				pbmp1 -= width * bytesPerPxl;
 			}
 			shiftX++;
-	}}
+		}
+		u16 size = 3*ind;
+		TAB_OUT(ig++) = SHIFT_RIGHT(size,0,FF);
+		TAB_OUT(ig++) = SHIFT_RIGHT(size,8,FF);
+		LOOP_FOR(i,ind){
+			TAB_OUT(ig++) = SHIFT_RIGHT(tabColor[i],0,FF);
+			TAB_OUT(ig++) = SHIFT_RIGHT(tabColor[i],8,FF);
+			TAB_OUT(ig++) = SHIFT_RIGHT(tabColor[i],16,FF);
+		}
+	}
 
 	void _StartCountColor(COLOR_TYPE type){
 		switch((int)type){
@@ -762,13 +772,31 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 		}
 	}
 
+	int _IsFontPxlInLineH(void){
+		LOOP_FOR(i,height){
+			if(!IS_BKCOLOR(pbmp1)) return 1;
+		}
+		return 0;
+	}
+
 	_Init();
 	_SetTabColorAA();
 
-	shiftX=0;
+	shiftX=0; int cntFontLineH=0;
 	for(int i=0; i < width; i++)
 	{
 		pbmp1=pbmp+3*shiftX;
+
+		if(cntBk >= height){
+			if(_IsFontPxlInLineH()==1){
+				TAB_OUT(ig++) = SHIFT_RIGHT(i,0,FF);
+				TAB_OUT(ig++) = SHIFT_RIGHT(i,8,FF);
+				TAB_OUT(ig++) = SHIFT_RIGHT(i,16,FF);
+				cntFontLineH++;
+				// TU dla tego 'i' mamy start dla chars !!!!
+			}
+		}
+
 		for(int j=0; j < height; j++)
 		{
 			if(IS_BKCOLOR(pbmp1)){
@@ -793,17 +821,24 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 	_StopCountColor(bk);
 	_StopCountColor(fo);
 
-	int readSize=0, writeSize=0;
-	if(FR_OK!=SDCardFileOpen(0,"Test.cff",FA_CREATE_ALWAYS|FA_WRITE))		/* compress font file */
-		asm("nop");
-	//SCB_CleanDCache_by_Addr((u32*)GETVAL_ptr(1000000), readSize);
-	writeSize = SDCardFileWrite(0, TTTTT, ig);
-	if(0 > writeSize){
-		asm("nop");
-	}
-	if(FR_OK!=SDCardFileClose(0)){
-		asm("nop");
-	}
+
+	fontID_ttt = fontID;
+
+
+
+
+
+//	int readSize=0, writeSize=0;
+//	if(FR_OK!=SDCardFileOpen(0,"Test.cff",FA_CREATE_ALWAYS|FA_WRITE))		/* compress font file */
+//		asm("nop");
+//	//SCB_CleanDCache_by_Addr((u32*)GETVAL_ptr(1000000), readSize);
+//	writeSize = SDCardFileWrite(0, TTTTT, ig);
+//	if(0 > writeSize){
+//		asm("nop");
+//	}
+//	if(FR_OK!=SDCardFileClose(0)){
+//		asm("nop");
+//	}
 
 
 
