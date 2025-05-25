@@ -714,6 +714,7 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 	u32 start_bk=0;
 	u32 start_fo=0;
 	u32 ig=0, igtemp=0;
+	int countFonts=0;
 	int temp=0;
 
 	void _Init(void){
@@ -821,37 +822,39 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 		return 0;
 	}
 
+	void _IfFontLineThenSetCharsTab(void){
+		if(start_bk==1 && cntBk >= height){
+			if(_IsFontPxlInLineH()==1){
+				igtemp = 2 + 4*countFonts;
+				_SetCharsTabToOut(&igtemp, CharsTab_full[countFonts], ig);
+				countFonts++;
+	}}}
+
 	_Init();
 	_SetTabColorAA();
 
-	shiftX=0; int countFonts=0;
+	shiftX=0;
 	for(int i=0; i < width; i++)
 	{
 		pbmp1=pbmp+3*shiftX;
 
-		if(cntBk >= height){
-			if(_IsFontPxlInLineH()==1){
-				igtemp = 2 + 4*countFonts;
-				_SetCharsTabToOut(&igtemp, CharsTab_full[countFonts], i);
-				countFonts++;
-			}
-		}
+		_IfFontLineThenSetCharsTab();
 
 		for(int j=0; j < height; j++)
 		{
 			if(IS_BKCOLOR(pbmp1)){
-				_StartCountColor(bk);
 				_StopCountColor(fo);
+				_StartCountColor(bk);
 			}
 			else if(IS_FONTCOLOR(pbmp1)){
-				_StartCountColor(fo);
 				_StopCountColor(bk);
+				_StartCountColor(fo);
 			}
 			else	/* IS_AACOLOR */
 			{
-				_SetDataToOut(&ig,AA, _GetIndexToTab(GET_COLOR(pbmp1)));
 				_StopCountColor(bk);
 				_StopCountColor(fo);
+				_SetDataToOut(&ig,AA, _GetIndexToTab(GET_COLOR(pbmp1)));
 
 			}
 			pbmp1 -= width * bytesPerPxl;
