@@ -53,7 +53,7 @@ typedef uint8_t u8;
 #define SET_IN_RANGE(val,min,max) (((val)<(min))?(min):(((val)>(max))?(max):(val)))
 #define SET_NEW_RANGE(val,min,max,newMin,newMax) (((val)<(min))?(newMin):(((val)>(max))?(newMax):(val)))
 
-#define STRUCT_TAB_SIZE(_struct) (sizeof(_struct) / sizeof(&_struct[0]))
+#define STRUCT_TAB_SIZE(_struct) (sizeof(_struct) / sizeof(&_struct[0]))		/* if every element of table or structure is regular */
 
 #define SET_bit(allBits,bitNr)	((allBits) |=   1<<(bitNr))
 #define RST_bit(allBits,bitNr)	((allBits) &= ~(1<<(bitNr)))
