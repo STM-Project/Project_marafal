@@ -655,7 +655,7 @@ uint32_t fontID_ttt=0;
 //zrobic optymalizacje tej funkcji !!!!!
 static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)	/* OPTIMIZE_FAST */
 {
-/*
+ /*
 	--- FontID Table --------
 	Table Size (2B)
 	(char) Font[0]
@@ -683,14 +683,14 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 														if byte0==63 to next 2 bytes         if byte1==255 to next 2 bytes
 	 3 info:	 	Bit7|Bit6 (AA)			  nrTabColor dla tego coloru			    (alt.:  nr= byte0(63) + byte1)					(alt.:  nr= byte0(63) + byte1(255) + (byte2 + 256*byte3))
 
-*/
+ */
 
 
 
 
 	#define TAB_AA_COLOR_SIZE	500
-	#define SIZE_FONT_STRUCT			(sizeof(Font) 	 / MAX_OPEN_FONTS_SIMULTANEOUSLY)			/*  static FONTS_SETTING Font[MAX_OPEN_FONTS_SIMULTANEOUSLY]  */
-	#define SIZE_FONTID_STRUCT			(sizeof(FontID) / MAX_OPEN_FONTS_SIMULTANEOUSLY)			/*  static ID_FONT FontID[MAX_OPEN_FONTS_SIMULTANEOUSLY] 	  */
+	#define SIZE_FONT_STRUCT			(sizeof(Font) 	 / MAX_OPEN_FONTS_SIMULTANEOUSLY)			/*  static FONTS_SETTING Font	 [MAX_OPEN_FONTS_SIMULTANEOUSLY]  */
+	#define SIZE_FONTID_STRUCT			(sizeof(FontID) / MAX_OPEN_FONTS_SIMULTANEOUSLY)			/*  static ID_FONT 		 FontID[MAX_OPEN_FONTS_SIMULTANEOUSLY]  */
 
 	#define SIZE_FONTID_TAB		(2 + SIZE_FONT_STRUCT + SIZE_FONTID_STRUCT)
 	#define SIZE_CHARS_TAB		(2 + 4 * MAX_CHARS)
@@ -709,10 +709,13 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 	#define GET_COLOR(p) 	RGB2INT(*((p)+2),*((p)+1),*((p)+0))
 	#define TAB_OUT(nr) 		TTTTT[(nr)]
 
-	#define CharPtr_TO_FONT		((char*)(&Font[0]))
-	#define CharPtr_TO_FONTID	((char*)(&FontID[0]))
+	int fontIndx = SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
 
-	//int ttttttt = ADDR_CHARS_TAB;
+	#define CharPtr_TO_FONT		((char*)(&Font[fontIndx]))
+	#define CharPtr_TO_FONTID	((char*)(&FontID[fontID]))
+
+	#define ADDR_FONT_STRUCT		( ADDR_FONTID_TAB + 2 )
+	#define ADDR_FONTID_STRUCT		( ADDR_FONT_STRUCT + SIZE_FONT_STRUCT )
 
 	typedef enum{
 		no,
@@ -841,8 +844,8 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 		return 0;
 	}
 
-	void _IfFontLineThenSetCharsTab(void){
-		if(start_bk==1 && cntBk >= height){
+	void _IfFontLineThenSetCharsTab(int ix){
+		if(start_bk==1 && (ix==0 || cntBk >= height)){
 			if(_IsFontPxlInLineH()==1){
 				u32 addrChar = 2 + 4*countFonts;
 
@@ -865,7 +868,7 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 		{
 			pbmp1=pbmp+3*shiftX;
 
-			_IfFontLineThenSetCharsTab();
+			_IfFontLineThenSetCharsTab(i);
 
 			LOOP_FOR(j,height)
 			{
@@ -906,7 +909,46 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 
 	fontID_ttt = fontID;
 
+//	void _CompareTwoStruct(){
+//		char *ptr1 = (char*)(&Font[12]);
+//		char *ptr2 = (char*)(&pFont);
+//		for(int i = 0; i<yyyyy ;++i){
+//			if(*(ptr1+i) != *(ptr2+i))
+//				break;
+//		}
+//	}
 
+	int _CompareTwoStruct(void *struct1, void *struct2, int structSize){  //dac do common.c !!!!!
+		char *ptr1 = (char*)(struct1);
+		char *ptr2 = (char*)(struct2);
+		for(int i = 0; i<structSize ;++i){
+			if(*(ptr1+i) != *(ptr2+i))
+				return 1;
+		}
+		return 0;
+	}
+
+
+	FONTS_SETTING Font_temp = *((FONTS_SETTING*)( &TAB_OUT( ADDR_FONT_STRUCT 	) ));
+	ID_FONT 		FontID_temp = *((ID_FONT*)		  ( &TAB_OUT( ADDR_FONTID_STRUCT ) ));
+
+
+
+	if(_CompareTwoStruct(&Font[fontIndx], &Font_temp, SIZE_FONT_STRUCT)){
+		asm("nop");
+	}
+
+	if(_CompareTwoStruct(&FontID[fontID], &FontID_temp, SIZE_FONTID_STRUCT)){
+		asm("nop");
+	}
+
+
+
+//	FONTS_SETTING Font_temp = ;
+//
+//	int _CheckPrope(){
+//		if()
+//	}
 
 
 
