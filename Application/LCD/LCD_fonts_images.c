@@ -649,7 +649,7 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 	return -1;
 }
 
-char  TTTTT[25000]={0};
+ALIGN_32BYTES(char  TTTTT[25000])={0};
 uint32_t fontID_ttt=0;
 
 //zrobic optymalizacje tej funkcji !!!!!
@@ -845,7 +845,7 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 	}
 
 	void _IfFontLineThenSetCharsTab(int ix){
-		if(start_bk==1 && (ix==0 || cntBk >= height)){
+		if( (start_bk==1 && cntBk >= height) || ix==0){
 			if(_IsFontPxlInLineH()==1){
 				u32 addrChar = 2 + 4*countFonts;
 
@@ -928,19 +928,28 @@ static void FONTS_BMPLoad(char *pbmp, u16 width,u16 height, uint32_t fontID, int
 		return 0;
 	}
 
+	typedef struct{
+		FONTS_SETTING Font_temp;
+		ID_FONT 		FontID_temp;
+	}XXXXX;
 
-	FONTS_SETTING Font_temp = *((FONTS_SETTING*)( &TAB_OUT( ADDR_FONT_STRUCT 	) ));
-	ID_FONT 		FontID_temp = *((ID_FONT*)		  ( &TAB_OUT( ADDR_FONTID_STRUCT ) ));
+	XXXXX SSSSSS = *((XXXXX*)( &TAB_OUT( ADDR_FONT_STRUCT 	) ));
+
+//	FONTS_SETTING Font_temp = *((FONTS_SETTING*)( &TAB_OUT( ADDR_FONT_STRUCT 	) ));
+//	ID_FONT 		FontID_temp = *((ID_FONT*)		  ( &TAB_OUT( ADDR_FONTID_STRUCT ) ));  /* call hardfault jesli 2082  a jesli 2084 to nie  */
 
 
 
-	if(_CompareTwoStruct(&Font[fontIndx], &Font_temp, SIZE_FONT_STRUCT)){
-		asm("nop");
-	}
 
-	if(_CompareTwoStruct(&FontID[fontID], &FontID_temp, SIZE_FONTID_STRUCT)){
-		asm("nop");
-	}
+	asm("nop");
+
+//	if(_CompareTwoStruct(&Font[fontIndx], &Font_temp, SIZE_FONT_STRUCT)){
+//		asm("nop");
+//	}
+//
+//	if(_CompareTwoStruct(&FontID[fontID], &FontID_temp, SIZE_FONTID_STRUCT)){
+//		asm("nop");
+//	}
 
 
 
