@@ -145,3 +145,14 @@ struct_MATH CALCULATE_MinMaxAvr(GET_SET operType, int nr, void *value, DATA_TYPE
 	#undef _CALC_MIN_MAX_AVR
 	#undef _OPERAT
 }
+
+int COMPARE_2Struct(void *struct1, void *struct2, int structSize){
+	char *ptr1 = (char*)(struct1);
+	char *ptr2 = (char*)(struct2);
+	for(int i = 0; i<structSize ;++i){
+		if(*(ptr1+i) != *(ptr2+i))
+			return 1;
+	}
+	return 0;
+}
+
