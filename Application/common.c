@@ -146,13 +146,38 @@ struct_MATH CALCULATE_MinMaxAvr(GET_SET operType, int nr, void *value, DATA_TYPE
 	#undef _OPERAT
 }
 
-int COMPARE_2Struct(void *struct1, void *struct2, int structSize){
-	char *ptr1 = (char*)(struct1);
-	char *ptr2 = (char*)(struct2);
-	for(int i = 0; i<structSize ;++i){
-		if(*(ptr1+i) != *(ptr2+i))
-			return 1;
+int COMPARE_2Struct(void *struct1, void *struct2, int structSize, DATA_TYPE dataType)
+{
+	#define _OPERAT(typData)\
+		typData *ptr1##typData = (typData*)(struct1);\
+		typData *ptr2##typData = (typData*)(struct2);\
+		for(int i = 0; i<structSize; ++i){\
+			if(*(ptr1##typData+i) != *(ptr2##typData+i))\
+				return 1;\
+		}\
+		return 0;
+
+	switch((int)dataType){
+		case _int:		_OPERAT(int); 	 	 break;
+		case _int8:		_OPERAT(int8_t);   break;
+		case _int16:	_OPERAT(int16_t);  break;
+		case _int32:	_OPERAT(int32_t);  break;
+		case _uint8:	_OPERAT(uint8_t);  break;
+		case _uint16:	_OPERAT(uint16_t); break;
+		case _uint32:	_OPERAT(uint32_t); break;
+		case _char:		_OPERAT(char);   	 break;
+		case _float:	_OPERAT(float);    break;
+		case _double:	_OPERAT(double);   break;
+		default: return 0;
 	}
-	return 0;
+//	char *ptr1 = (char*)(struct1);
+//	char *ptr2 = (char*)(struct2);
+//	for(int i = 0; i<structSize ;++i){
+//		if(*(ptr1+i) != *(ptr2+i))
+//			return 1;
+//	}
+//	return 0;
+
+	#undef _OPERAT
 }
 

@@ -665,7 +665,7 @@ static void FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontI
 	(char) Font[0]
 	(char) FontID[0]
 
-	--- Chars Table --------
+	--- Chars Table --------	( This Table is omitted, because in struct_FONT.fontsTabPos[(int)Char]][0] is Chars Table )
 	Table Size (2B)
 	char1:  ASCII (1B),  address (3B)
 	char2:  ASCII (1B),  address (3B)
@@ -693,7 +693,7 @@ static void FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontI
 	#define SIZE_FONTID_STRUCT			(sizeof(FontID) / MAX_OPEN_FONTS_SIMULTANEOUSLY)			/*  static ID_FONT 		 FontID[MAX_OPEN_FONTS_SIMULTANEOUSLY]  */
 
 	#define SIZE_FONTID_TAB		(2 + SIZE_FONT_STRUCT + SIZE_FONTID_STRUCT)
-	#define SIZE_CHARS_TAB		(2 + 4 * MAX_CHARS)
+	#define SIZE_CHARS_TAB		( 0 )  /* (2 + 4 * MAX_CHARS) */			/* Chars Tab is omitted, because in struct_FONT.fontsTabPos[(int)Char]][0] is Chars Tab */
 	#define SIZE_AA_TAB			(2 + 3 * TAB_AA_COLOR_SIZE)
 
 	#define ADDR_FONTID_TAB		( 0 )
@@ -762,13 +762,14 @@ static void FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontI
 		LOOP_FOR(i, SIZE_FONT_STRUCT)	 {	  TAB_OUT( ADDR_FONTID_TAB + ii++ ) = *(temp1+i);	}
 		LOOP_FOR(i, SIZE_FONTID_STRUCT){	  TAB_OUT( ADDR_FONTID_TAB + ii++ ) = *(temp2+i);	}
 	}
-
+ /*
 	void _SetCharsTabToOut(u32 *indx, char charSign, u32 value){
-		TAB_OUT( ADDR_CHARS_TAB+(*indx)++ ) = charSign;		/* byte0 */
-		TAB_OUT( ADDR_CHARS_TAB+(*indx)++ ) = SHIFT_RIGHT(value,0,FF);		/* byte1 */
-		TAB_OUT( ADDR_CHARS_TAB+(*indx)++ ) = SHIFT_RIGHT(value,8,FF);		/* byte2 */
-		TAB_OUT( ADDR_CHARS_TAB+(*indx)++ ) = SHIFT_RIGHT(value,16,FF);		/* byte3 */
+		TAB_OUT( ADDR_CHARS_TAB+(*indx)++ ) = charSign;
+		TAB_OUT( ADDR_CHARS_TAB+(*indx)++ ) = SHIFT_RIGHT(value,0,FF);
+		TAB_OUT( ADDR_CHARS_TAB+(*indx)++ ) = SHIFT_RIGHT(value,8,FF);
+		TAB_OUT( ADDR_CHARS_TAB+(*indx)++ ) = SHIFT_RIGHT(value,16,FF);
 	}
+ */
 
 	void _SetColorAATabToOut(void){
 		shiftX=0, iTab=0;
@@ -850,17 +851,18 @@ static void FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontI
 	void _IfFontLineThenSetCharsTab(int ix){
 		if( (start_bk==1 && cntBk >= height) || ix==0){
 			if(_IsFontPxlInLineH()==1){
-				u32 addrChar = 2 + 4*countFonts;
 
+//				if(CharsTab_full[countFonts] == '9'){
+//					asm("nop");
+//				}
+//				if(CharsTab_full[countFonts] == '0'){
+//					asm("nop");
+//				}
 
-				if(CharsTab_full[countFonts] == '9'){
-					asm("nop");
-				}
-				if(CharsTab_full[countFonts] == '0'){
-					asm("nop");
-				}
+			/*	u32 addrChar = 2 + 4*countFonts;
+			 	_SetCharsTabToOut(&addrChar, CharsTab_full[countFonts], SIZE_HEADER+iData); */
 
-				_SetCharsTabToOut(&addrChar, CharsTab_full[countFonts], SIZE_HEADER+iData);			struct_FONT.fontsTabPos[ (int)CharsTab_full[countFonts] ][0] = SIZE_HEADER+iData;
+				struct_FONT.fontsTabPos[ (int)CharsTab_full[countFonts] ][0] = SIZE_HEADER+iData;
 				countFonts++;
 	}}}
 
@@ -901,9 +903,9 @@ static void FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontI
 
 
 	_Init();
-	_SetFontIDTabToOut();  // to na koncu wywolac !!!
 	_SetColorAATabToOut();
-	_SetCharsAndDataTabToOut();
+	_SetCharsAndDataTabToOut();	/* Chars Tab is omitted */
+	_SetFontIDTabToOut();  // to na koncu wywolac !!!
 
 	sizeFile = SIZE_HEADER + iData;
 
@@ -912,31 +914,43 @@ static void FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontI
 
 
 
+
 	STRUCT_FONT Font_writeToBuff = { struct_FONT, struct_FONTID };
 
 
 	STRUCT_FONT Font_readFromBuff = *((STRUCT_FONT*)( &TAB_OUT( ADDR_FONT_STRUCT )));
 
+	int aaaa1 = sizeof(Font_writeToBuff);
+	int aaaa2 = sizeof(Font_readFromBuff);
+
 /*
 	FONTS_SETTING Font_temp = *((FONTS_SETTING*)( &TAB_OUT( ADDR_FONT_STRUCT 	) ));
-	ID_FONT 		FontID_temp = *((ID_FONT*)		  ( &TAB_OUT( ADDR_FONTID_STRUCT ) ));			--- 'ADDR_FONTID_STRUCT' must be multiple of 4 otherwise hard fault occur ---
+	ID_FONT 		FontID_temp = *((ID_FONT*)		  ( &TAB_OUT( ADDR_FONTID_STRUCT ) ));			--- 'ADDR_FONTID_STRUCT' must be multiple of 4 otherwise hard fault occurs ---
 */
 
+	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _int8)){  // w funkcji dach arg jako typ np _char  _int ....
+		asm("nop");
+	}
+	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _uint8)){  // w funkcji dach arg jako typ np _char  _int ....
+		asm("nop");
+	}
 
-
-	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff))){
+	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _int)){  // w funkcji dach arg jako typ np _char  _int ....
+		asm("nop");
+	}
+	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _char)){  // w funkcji dach arg jako typ np _char  _int ....
 		asm("nop");
 	}
 
 	Font_readFromBuff.font.fontsTabPos[189][1]=1;
 
-	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff))){
+	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _char)){
 		asm("nop");
 	}
 
 
 	struct_FONT.fontSdramLenght = sizeFile;
-	//struct_FONT.fontsTabPos[ (int)pChar[j] ][0] =    // Xpos Char
+
 
 
 

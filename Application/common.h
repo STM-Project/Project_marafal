@@ -172,6 +172,7 @@ typedef enum{
 	_uint8,
 	_uint16,
 	_uint32,
+	_char,
 	_float,
 	_double,
 }DATA_TYPE;
@@ -295,7 +296,7 @@ int FV(VARIABLE_ACTIONS type, int nrMem, int val);							/* global access to mem
 int FV2(char* descr, VARIABLE_ACTIONS type, int nrMem, int val);
 
 struct_MATH CALCULATE_MinMaxAvr (GET_SET operType, int nr, void *value, DATA_TYPE dataType);
-int 			COMPARE_2Struct	  (void *struct1, void *struct2, int structSize);
+int 			COMPARE_2Struct	  (void *struct1, void *struct2, int structSize, DATA_TYPE dataType);
 
 
 
