@@ -32,6 +32,7 @@
 #define LCD_XY_POS_MAX_NUMBER_USE	50
 
 #define COMMON_SIGN	'.'
+#define ALIGN_OFFS	4
 
 LIST_TXT 		 LIST_TXT_Zero			 = {0};
 StructTxtPxlLen StructTxtPxlLen_Zero = {0};
@@ -657,7 +658,7 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 ALIGN_32BYTES(char  TTTTT[25000])={0};
 
 //zrobic optymalizacje tej funkcji !!!!!
-static void FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)	/* OPTIMIZE_FAST */
+static int FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)	/* OPTIMIZE_FAST */
 {
  /* 											File Format Scheme
 	--- FontID Table --------
@@ -728,7 +729,7 @@ static void FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontI
 	u32 start_bk =0, cntBk =0;
 	u32 start_fo =0, cntFo =0;
 	u32 tabAAColor[TAB_AA_COLOR_SIZE] = {0}, 	iTab =0, 	 iData =0, sizeFile =0;
-	int shiftX =0, 	countFonts =0;
+	int shiftX =0, 	countFonts =0,		writeToSDresult =0;
 
 	int fontIndx = SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
 	char *pbmp1	 = pbmp;
@@ -770,6 +771,18 @@ static void FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontI
 		TAB_OUT( ADDR_CHARS_TAB+(*indx)++ ) = SHIFT_RIGHT(value,16,FF);
 	}
  */
+	int _TestWriteReadOutTab(void)
+	{
+		STRUCT_FONT Font_writeToBuff  = { struct_FONT, struct_FONTID };
+		_SetFontIDTabToOut();
+		STRUCT_FONT Font_readFromBuff = *((STRUCT_FONT*)( &TAB_OUT( ADDR_FONT_STRUCT )));
+		/*
+			 FONTS_SETTING Font_temp = *((FONTS_SETTING*)( &TAB_OUT( ADDR_FONT_STRUCT 	) ));
+			 ID_FONT 	 FontID_temp = *((ID_FONT*)		( &TAB_OUT( ADDR_FONTID_STRUCT ) ));		--- 'ADDR_FONTID_STRUCT' must be multiple of 4 otherwise hard fault occurs ---
+		*/
+		if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _char)){		Dbg(1,"\r\nStructures are NOT equal !!!");  return 1;		}
+		else																													 {		Dbg(1,"\r\nStructures are equal :) ");  	  return 0;		}
+	}
 
 	void _SetColorAATabToOut(void){
 		shiftX=0, iTab=0;
@@ -852,17 +865,10 @@ static void FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontI
 		if( (start_bk==1 && cntBk >= height) || ix==0){
 			if(_IsFontPxlInLineH()==1){
 
-//				if(CharsTab_full[countFonts] == '9'){
-//					asm("nop");
-//				}
-//				if(CharsTab_full[countFonts] == '0'){
-//					asm("nop");
-//				}
-
 			/*	u32 addrChar = 2 + 4*countFonts;
 			 	_SetCharsTabToOut(&addrChar, CharsTab_full[countFonts], SIZE_HEADER+iData); */
 
-				struct_FONT.fontsTabPos[ (int)CharsTab_full[countFonts] ][0] = SIZE_HEADER+iData;
+				struct_FONT.fontsTabPos[ (int)CharsTab_full[countFonts] ][0] = SIZE_HEADER + iData;
 				countFonts++;
 	}}}
 
@@ -898,58 +904,58 @@ static void FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontI
 		}
 		_StopCountColor(bk);
 		_StopCountColor(fo);
+
+		sizeFile = SIZE_HEADER + iData;
+		ALIGN_TO_32BIT(sizeFile);
+		struct_FONT.fontSdramLenght = sizeFile;
 	}
 
 
-
 	_Init();
+	_TestWriteReadOutTab();
 	_SetColorAATabToOut();
 	_SetCharsAndDataTabToOut();	/* Chars Tab is omitted */
-	_SetFontIDTabToOut();  // to na koncu wywolac !!!
-
-	sizeFile = SIZE_HEADER + iData;
-
+	_SetFontIDTabToOut();
 
 	DbgVar(1,100,"\r\nCountFonts:  (%d) 		whole file: (%d = %d + %d)\r\n",countFonts, sizeFile,SIZE_HEADER,iData );
 
 
 
 
-	STRUCT_FONT Font_writeToBuff = { struct_FONT, struct_FONTID };
+	if(FR_OK!=SDCardFileOpen(0,"Test.cff",FA_CREATE_ALWAYS|FA_WRITE))		/* compress font file */
+		return 1;
+	if(0 > (writeToSDresult = SDCardFileWrite(0, TTTTT, sizeFile)))
+		return 1;
+	if(FR_OK!=SDCardFileClose(0))
+		return 1;
 
 
-	STRUCT_FONT Font_readFromBuff = *((STRUCT_FONT*)( &TAB_OUT( ADDR_FONT_STRUCT )));
-
-	int aaaa1 = sizeof(Font_writeToBuff);
-	int aaaa2 = sizeof(Font_readFromBuff);
-
-/*
-	FONTS_SETTING Font_temp = *((FONTS_SETTING*)( &TAB_OUT( ADDR_FONT_STRUCT 	) ));
-	ID_FONT 		FontID_temp = *((ID_FONT*)		  ( &TAB_OUT( ADDR_FONTID_STRUCT ) ));			--- 'ADDR_FONTID_STRUCT' must be multiple of 4 otherwise hard fault occurs ---
-*/
-
-	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _int8)){  // w funkcji dach arg jako typ np _char  _int ....
-		asm("nop");
-	}
-	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _uint8)){  // w funkcji dach arg jako typ np _char  _int ....
-		asm("nop");
-	}
-
-	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _int)){  // w funkcji dach arg jako typ np _char  _int ....
-		asm("nop");
-	}
-	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _char)){  // w funkcji dach arg jako typ np _char  _int ....
-		asm("nop");
-	}
-
-	Font_readFromBuff.font.fontsTabPos[189][1]=1;
-
-	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _char)){
-		asm("nop");
-	}
 
 
-	struct_FONT.fontSdramLenght = sizeFile;
+
+
+
+
+	int readSize=0, writeSize=0;
+		if(FR_OK!=SDCardFileOpen(2,"Fonts/BackGround_darkGray/Color_green/Arial/font_10.bmp",FA_READ))
+			asm("nop");
+		readSize = SDCardFileRead(2,GETVAL_ptr(1000000),2000000);
+		if(0 > readSize)
+			asm("nop");
+		if(FR_OK!=SDCardFileClose(2))
+			asm("nop");
+
+
+
+
+		if(FR_OK!=SDCardFileOpen(0,"Test1.bmp",FA_CREATE_ALWAYS|FA_WRITE))
+			asm("nop");
+		writeSize = SDCardFileWrite(0, GETVAL_ptr(1000000), readSize);
+		if(0 > writeSize)
+			asm("nop");
+		if(FR_OK!=SDCardFileClose(0))
+			asm("nop");
+
 
 
 
@@ -1906,55 +1912,55 @@ static int ReadSpacesBetweenFontsFromSDcard(void){
 /* ------------ Global Declarations ------------ */
 
 int SETVAL_char(uint32_t nrVal, char val){
-	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal ){
-		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal] = val;
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal ){
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal] = val;
 		return 1;
 	}
 	return 0;
 }
 int SETVAL_str(uint32_t nrVal, char* val, uint32_t len){
-	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal + len ){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + len ){
 		for(int i=0; i<len; i++)
-			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + i] = *(val+i);
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + i] = *(val+i);
 		return 1;
 	}
 	return 0;
 }
 int SETVAL_int16(uint32_t nrVal, uint16_t val){
-	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal+1 ){
-		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal]   = val>>8;
-		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+1] = val;
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal+1 ){
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal]   = val>>8;
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal+1] = val;
 		return 1;
 	}
 	return 0;
 }
 int SETVAL_int32(uint32_t nrVal, uint32_t val){
-	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal+3 ){
-		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal]   = val>>24;
-		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+1] = val>>16;
-		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+2] = val>>8;
-		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+3] = val;
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal+3 ){
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal]   = val>>24;
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal+1] = val>>16;
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal+2] = val>>8;
+		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal+3] = val;
 		return 1;
 	}
 	return 0;
 }
 int SETVAL_array16(uint32_t nrVal, uint16_t* val, uint32_t len){
-	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal + 2*len ){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + 2*len ){
 		for(int i=0,j=0; i<len; i++){
-			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j++] = *(val+i)>>8;
-			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j++] = *(val+i);
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + j++] = *(val+i)>>8;
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + j++] = *(val+i);
 		}
 		return 1;
 	}
 	return 0;
 }
 int SETVAL_array32(uint32_t nrVal, uint32_t* val, uint32_t len){
-	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal + 4*len ){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + 4*len ){
 		for(int i=0,j=0; i<len; i++){
-			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j++] = *(val+i)>>24;
-			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j++] = *(val+i)>>16;
-			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j++] = *(val+i)>>8;
-			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j++] = *(val+i);
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + j++] = *(val+i)>>24;
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + j++] = *(val+i)>>16;
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + j++] = *(val+i)>>8;
+			fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + j++] = *(val+i);
 		}
 		return 1;
 	}
@@ -1962,37 +1968,37 @@ int SETVAL_array32(uint32_t nrVal, uint32_t* val, uint32_t len){
 }
 
 char* GETVAL_ptr(uint32_t nrVal){
-	return &fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal];
+	return &fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal];
 }
 uint32_t GETVAL_freeMemSize(uint32_t offs){
-	return MAX_FONTS_AND_IMAGES_MEMORY_SIZE - (CounterBusyBytesForFontsImages+1 + offs);
+	return MAX_FONTS_AND_IMAGES_MEMORY_SIZE - (CounterBusyBytesForFontsImages + ALIGN_OFFS + offs);
 }
 char GETVAL_char(uint32_t nrVal){
-	return fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal];
+	return fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal];
 }
 int GETVAL_str(uint32_t nrVal, char* val, uint32_t len){
-	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal + len ){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + len ){
 		for(int i=0; i<len; i++)
-			*(val+i) = fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + i];
+			*(val+i) = fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + i];
 		return 1;
 	}
 	return 0;
 }
 uint16_t GETVAL_int16(uint32_t nrVal){
-	return fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal]<<8
-		  | fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+1];
+	return fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+ + ALIGN_OFFS + nrVal]<<8
+		  | fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal+1];
 }
 uint32_t GETVAL_int32(uint32_t nrVal){
-	return fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal]  <<24
-		  | fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+1]<<16
-		  | fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+2]<<8
-		  | fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal+3];
+	return fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal]  <<24
+		  | fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal+1]<<16
+		  | fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal+2]<<8
+		  | fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal+3];
 }
 int GETVAL_array16(uint32_t nrVal, uint16_t* val, uint32_t len){
-	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal + 2*len ){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+ + ALIGN_OFFS + nrVal + 2*len ){
 		for(int i=0,j=0; i<len; i++){
-			*(val+i) = fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j]<<8
-						| fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j+1];
+			*(val+i) = fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + j]<<8
+						| fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + j+1];
 			j+=2;
 		}
 		return 1;
@@ -2000,12 +2006,12 @@ int GETVAL_array16(uint32_t nrVal, uint16_t* val, uint32_t len){
 	return 0;
 }
 int GETVAL_array32(uint32_t nrVal, uint32_t* val, uint32_t len){
-	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages+1 + nrVal + 4*len ){
+	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + 4*len ){
 		for(int i=0,j=0; i<len; i++){
-			*(val+i) = fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j]	 <<24
-						| fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j+1]<<16
-						| fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j+2]<<8
-						| fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages+1 + nrVal + j+3];
+			*(val+i) = fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + j]	 <<24
+						| fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + j+1]<<16
+						| fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + j+2]<<8
+						| fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal + j+3];
 			j+=4;
 		}
 		return 1;
