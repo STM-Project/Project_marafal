@@ -143,6 +143,8 @@ typedef uint8_t u8;
 #define OPTIMIZE_FAST	__attribute__ ((optimize("-Ofast")))
 #define OPTIMIZE_SIZE	__attribute__ ((optimize("-Os")))
 
+#define ALIGN_TO_32BIT(val)		while(((val)%4)!=0) (val)++;
+
 __STATIC_FORCEINLINE uint32_t __get_LR(void){	register uint32_t result;		__ASM volatile ("MOV %0, lr\n" : "=r" (result) );		return(result);	}
 __STATIC_FORCEINLINE uint32_t __get_R0(void){	register uint32_t result;		__ASM volatile ("MOV %0, r0\n" : "=r" (result) );		return(result);	}
 __STATIC_FORCEINLINE uint32_t __get_R1(void){	register uint32_t result;		__ASM volatile ("MOV %0, r1\n" : "=r" (result) );		return(result);	}
