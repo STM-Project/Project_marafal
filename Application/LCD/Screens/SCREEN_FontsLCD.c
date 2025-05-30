@@ -2372,6 +2372,8 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
+	LCD_CreateFileCFFfromBMP(FONT_24_bold,Arial,DARKGRAY,MYGREEN,fontID_17);
+
 
 
 	StopMeasureTime_us("Time GRAPH:");
