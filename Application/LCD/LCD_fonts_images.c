@@ -149,6 +149,9 @@ typedef struct{
 static ID_FONT FontID[MAX_OPEN_FONTS_SIMULTANEOUSLY];
 
 typedef struct{
+	int widthFile;
+	int heightFile;
+	int bytesPerPxl;
 	uint32_t fontSizeToIndex;
 	uint32_t fontStyleToIndex;
 	uint32_t fontBkColorToIndex;
@@ -658,7 +661,7 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 ALIGN_32BYTES(char  TTTTT[25000])={0};
 
 //zrobic optymalizacje tej funkcji !!!!!
-static int FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)	/* OPTIMIZE_FAST */
+static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)	/* OPTIMIZE_FAST */
 {
  /* 											File Format Scheme
 	--- FontID Table --------
@@ -737,14 +740,16 @@ static int FONTS_CreateFileBMP(char *pbmp, u16 width,u16 height, uint32_t fontID
 	uint8_t foColor[3] = {FontID[fontID].color&0xFF, 	(FontID[fontID].color>>8)&0xFF, 	 (FontID[fontID].color>>16)&0xFF	 };
 	uint8_t bkColor[3] = {FontID[fontID].bkColor&0xFF, (FontID[fontID].bkColor>>8)&0xFF, (FontID[fontID].bkColor>>16)&0xFF};
 
-	void _Init(void){ ; }
+	void _Init(void){
+		struct_FONT.pointerToMemoryFont = NULL;
+	}
 
 	int _IfNewColorThenSetToTab(u32 color){
 		for(int i=0; i<iTab; i++){
 			if(tabAAColor[i]==color) return 0;
 		}
 		if(iTab < TAB_AA_COLOR_SIZE-1){ tabAAColor[iTab++]= color;  return  1; }
-		else									{ 								  	 return -1; }
+		else									{ 								  	 	return -1; }
 	}
 
 	int _GetIndexToTab(u32 color){
@@ -1140,9 +1145,74 @@ static void SearchCurrentFont_TablePos(char *pbmp, int fontIndex, uint32_t fontI
 		}
 	}
 	Font[fontIndex].fontsTabPos[(int)' '][0] = shiftXpos;
+}
 
 
-	//--------------- TEST ------------------------------------------
+static void SearchCurrentFont_TablePos_forCreatingFileCFF(char *pbmp, int fontIndex, uint32_t fontID)
+{
+	const char *pChar;
+	uint8_t fontSize=ReturnFontSize(fontIndex);
+
+	switch(fontSize)
+	{
+	case FONT_72:
+	case FONT_72_bold:
+	case FONT_72_italics:
+	case FONT_130:
+	case FONT_130_bold:
+	case FONT_130_italics:
+		pChar=CharsTab_digits;
+		break;
+	default:
+		pChar=CharsTab_full;
+		break;
+	}
+
+	int j, lenTab=strlen(pChar);
+	uint32_t shiftXpos=0, index = 0, width = 0, height = 0, bit_pixel = 0;
+	uint8_t backGround[3];
+
+	/* Get bitmap data address offset */
+	index = pbmp[10] + (pbmp[11] << 8) + (pbmp[12] << 16)  + (pbmp[13] << 24);
+
+	/* Read bitmap width */
+	width = pbmp[18] + (pbmp[19] << 8) + (pbmp[20] << 16)  + (pbmp[21] << 24);  		/* 'width' must be multiple of 4 */
+
+	/* Read bitmap height */
+	height = pbmp[22] + (pbmp[23] << 8) + (pbmp[24] << 16)  + (pbmp[25] << 24);
+
+	/* Read bit/pixel */
+	bit_pixel = pbmp[28] + (pbmp[29] << 8);
+	bit_pixel/=8;
+
+	pbmp += (index + (width * height * bit_pixel));
+	pbmp -= width*bit_pixel;
+
+	backGround[0]=pbmp[0];
+	backGround[1]=pbmp[1];
+	backGround[2]=pbmp[2];
+
+	Font[fontIndex].height=height;
+
+	for(j=0; j < lenTab; j++)
+	{
+		SearchFontsField(pbmp,width,height,bit_pixel,&shiftXpos,backGround);
+		if(pChar[j]=='.')  SetFontHeightHalf(fontIndex, CountHalfHeightForDot(pbmp,width,height,bit_pixel,shiftXpos,backGround)+2);
+		Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1] = CountCharLenght(pbmp,width,height,bit_pixel,&shiftXpos,backGround);
+		Font[fontIndex].fontsTabPos[ (int)pChar[j] ][0] = shiftXpos;
+		shiftXpos += (Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1]+1);
+		if(j==0){
+			Font[fontIndex].fontsTabPos[(int)' '   ][1] = (2*Font[fontIndex].fontsTabPos[ (int)pChar[j] ][1])/3; 		/* sign pixel width of 'space' is calculated as 2/3 first sign pixel width of tab[] */
+			Font[fontIndex].fontsTabPos[(int)_L_[0]][1] = 0;
+			Font[fontIndex].fontsTabPos[(int)_E_[0]][1] = 0;
+		}
+	}
+	Font[fontIndex].fontsTabPos[(int)' '][0] = shiftXpos;
+	Font[fontIndex].widthFile 	 = width;
+	Font[fontIndex].heightFile  = height;
+	Font[fontIndex].bytesPerPxl = bit_pixel;
+
+
 
 static int dddd=0;
 
@@ -1150,16 +1220,15 @@ static int dddd=0;
 	{
 		dddd=1;
 
-		FONTS_CreateFileBMP(pbmp, width, height, fontID, bit_pixel);
+		FONTS_CreateFileCFFfromBMP(pbmp, width, height, fontID, bit_pixel);
 	}
 
 
 	FONTS_InfoFileBMP(pbmp, width, height, fontID, bit_pixel);
 
-
-
-//--------------- END TEST ------------------------------------------
 }
+
+
 
 static void LCD_Set_ConstWidthFonts(int fontIndex)
 {
@@ -2324,6 +2393,85 @@ int LCD_LoadFont(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t
 	else
 		return -7;
 }
+
+
+//-------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------
+
+int LCD_CreateFileCFFfromBMP(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor, uint32_t fontID)
+{
+	int fontIndex = fontID;
+	uint32_t fontFileSize;
+
+//	resultSearch=SearchFontIndex(fontSize,fontStyle,backgroundColor,fontColor);
+//	if(-1!=resultSearch)
+//		return LCD_GetFontID(fontSize,fontStyle,backgroundColor,fontColor);
+//
+//	int fontIndex=LoadFontIndex(fontSize,fontStyle,backgroundColor,fontColor);
+//	if(-1==fontIndex)
+//		return -2;
+	char fileOpenName[100]="Fonts/";
+
+	int _backgroundColor;
+	switch(backgroundColor){ default:
+	case DARKGRAY:  _backgroundColor=0; break;
+	case BLACK: 	 _backgroundColor=1; break;
+	case BROWN: 	 _backgroundColor=2; break;
+	case WHITE: 	 _backgroundColor=3; break;
+	}
+	strncat(fileOpenName,BkColorFontFilePath[_backgroundColor],strlen(BkColorFontFilePath[_backgroundColor]));
+
+	int _fontColor;
+	switch(fontColor){ default:
+	 case WHITE: 	 _fontColor=0; break;
+	 case MYBLUE: 	 _fontColor=1; break;
+	 case MYRED: 	 _fontColor=2; break;
+	 case MYGREEN:  _fontColor=3; break;
+	 case BLACK: 	 _fontColor=4; break;
+	}
+	strncat(fileOpenName,ColorFontFilePath[_fontColor],strlen(ColorFontFilePath[_fontColor]));
+	strncat(fileOpenName,StyleFontFilePath[fontStyle],strlen(StyleFontFilePath[fontStyle]));
+	strncat(fileOpenName,TxtFontSize[fontSize],strlen(TxtFontSize[fontSize]));
+	strncat(fileOpenName,TxtBMP,strlen(TxtBMP));
+
+	if(FR_OK!=SDCardFileInfo(fileOpenName,&fontFileSize))
+		return -3;
+
+	while((fontFileSize%4)!=0)
+		fontFileSize++;
+
+	if(true==DynamicFontMemoryAllocation( fontFileSize, fontIndex) )
+	{
+		if(FR_OK!=SDCardFileOpen(1,fileOpenName,FA_READ))
+			return -4;
+		if(0 > SDCardFileRead(1,Font[fontIndex].pointerToMemoryFont,MAX_FONTS_AND_IMAGES_MEMORY_SIZE))
+			return -5;
+		if(FR_OK!=SDCardFileClose(1))
+			return -6;
+
+		if(fontID < MAX_OPEN_FONTS_SIMULTANEOUSLY)
+		{
+			FontID[fontID].size = fontSize;
+			FontID[fontID].style = fontStyle;
+			FontID[fontID].bkColor = backgroundColor;
+			FontID[fontID].color = fontColor;
+
+			SearchCurrentFont_TablePos_forCreatingFileCFF(Font[fontIndex].pointerToMemoryFont, fontIndex, fontID);
+			return fontID;
+		}
+		else
+			return -8;
+	}
+	else
+		return -7;
+}
+
+//-------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------
+
+
 
 int LCD_LoadFont_WhiteBlack(int fontSize, int fontStyle, uint32_t fontID){
 	return LCD_LoadFont(fontSize,fontStyle,WHITE,BLACK,fontID);
