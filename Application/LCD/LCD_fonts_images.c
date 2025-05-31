@@ -658,7 +658,7 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 	return -1;
 }
 
-ALIGN_32BYTES(char  TTTTT[25000])={0};
+ALIGN_32BYTES(char  TTTTT[250000])={0};
 
 //zrobic optymalizacje tej funkcji !!!!!
 static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)	/* OPTIMIZE_FAST */
@@ -922,7 +922,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 	_SetCharsAndDataTabToOut();	/* Chars Tab is omitted */
 	_SetFontIDTabToOut();
 
-	DbgVar(1,100,"\r\nCountFonts:  (%d) 		whole file: (%d = %d + %d)\r\n",countFonts, sizeFile,SIZE_HEADER,iData );
+	DbgVar(1,100,"\r\nCountFonts:  (%d) 		whole file: (%d)   =   header (%d)   +   data (%d)\r\n",countFonts, sizeFile,SIZE_HEADER,iData );
 
 
 
@@ -942,7 +942,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 
 
 	int readSize=0, writeSize=0;
-		if(FR_OK!=SDCardFileOpen(2,"Fonts/BackGround_darkGray/Color_green/Arial/font_10.bmp",FA_READ))
+		if(FR_OK!=SDCardFileOpen(2,"Fonts/BackGround_darkGray/Color_green/Arial/font_48_bold.bmp",FA_READ))
 			asm("nop");
 		readSize = SDCardFileRead(2,GETVAL_ptr(1000000),2000000);
 		if(0 > readSize)
@@ -1213,18 +1213,14 @@ static void SearchCurrentFont_TablePos_forCreatingFileCFF(char *pbmp, int fontIn
 	Font[fontIndex].bytesPerPxl = bit_pixel;
 
 
-
-static int dddd=0;
-
-	if(dddd==0)
-	{
-		dddd=1;
-
-		FONTS_CreateFileCFFfromBMP(pbmp, width, height, fontID, bit_pixel);
-	}
-
-
 	FONTS_InfoFileBMP(pbmp, width, height, fontID, bit_pixel);
+
+
+	FONTS_CreateFileCFFfromBMP(pbmp, width, height, fontID, bit_pixel);
+
+
+
+
 
 }
 
@@ -2401,7 +2397,7 @@ int LCD_LoadFont(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t
 
 int LCD_CreateFileCFFfromBMP(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor, uint32_t fontID)
 {
-	int fontIndex = fontID;
+	int fontIndex = fontID,		_backgroundColor;
 	uint32_t fontFileSize;
 
 //	resultSearch=SearchFontIndex(fontSize,fontStyle,backgroundColor,fontColor);
@@ -2413,7 +2409,11 @@ int LCD_CreateFileCFFfromBMP(int fontSize, int fontStyle, uint32_t backgroundCol
 //		return -2;
 	char fileOpenName[100]="Fonts/";
 
-	int _backgroundColor;
+	Font[fontIndex].fontSizeToIndex 	 	= fontSize+1;
+	Font[fontIndex].fontStyleToIndex 	= fontStyle;
+	Font[fontIndex].fontBkColorToIndex 	= backgroundColor;
+	Font[fontIndex].fontColorToIndex 	= fontColor;
+
 	switch(backgroundColor){ default:
 	case DARKGRAY:  _backgroundColor=0; break;
 	case BLACK: 	 _backgroundColor=1; break;

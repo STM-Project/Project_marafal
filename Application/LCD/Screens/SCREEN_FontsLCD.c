@@ -2258,6 +2258,17 @@ static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int 
 
 void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Touch left dac mozliwosc wspolczynnik zmiany
 {
+
+
+	static onlyOne = 0;
+
+	if(onlyOne==0){
+		onlyOne = 1;
+		LCD_CreateFileCFFfromBMP(FONT_48_bold,Comic_Saens_MS,DARKGRAY,MYGREEN,fontID_1);
+	}
+
+
+
 	if(NULL == argVal)
 		argVal = (char**)ppMain;
 
@@ -2372,7 +2383,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
-	LCD_CreateFileCFFfromBMP(FONT_24_bold,Arial,DARKGRAY,MYGREEN,fontID_17);
+
 
 
 

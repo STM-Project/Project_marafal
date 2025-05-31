@@ -317,6 +317,7 @@ char *LCD_FontType2Str(char *buffTemp, int id, int idAlt);
 void DisplayFontsStructState(void);
 void InfoForImagesFonts(void);
 
+int LCD_CreateFileCFFfromBMP(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor, uint32_t fontID);
 int LCD_LoadFont(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor, uint32_t fontID);
 int LCD_LoadFont_WhiteBlack(int fontSize, int fontStyle, uint32_t fontID);
 int LCD_LoadFont_DarkgrayGreen(int fontSize, int fontStyle, uint32_t fontID);
