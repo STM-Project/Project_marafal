@@ -2260,13 +2260,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 {
 
 
-	static onlyOne = 0;
-
-	if(onlyOne==0){
-		onlyOne = 1;
-		LCD_CreateFileCFFfromBMP(FONT_48_bold,Comic_Saens_MS,DARKGRAY,MYGREEN,fontID_1);
-	}
-
+	static int onlyOne = 0;
 
 
 	if(NULL == argVal)
@@ -2279,6 +2273,23 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 		SCREEN_ResetAllParameters();
 		LCD_TOUCH_DeleteAllSetTouch();
 		FONTS_LCD_ResetParam();
+
+
+
+
+
+		if(onlyOne==0){
+			onlyOne = 1;
+			LCD_CreateFileCFFfromBMP(FONT_24_bold,Comic_Saens_MS,DARKGRAY,MYGREEN,fontID_1);
+		}
+
+
+
+
+
+
+
+
 
 		DbgVar(v.DEBUG_ON,100, "%s" Cya_"\r\nStart: %s\r\n"_X, CONDITION(USE_DBG_CLR,Clr_,""), GET_CODE_FUNCTION);
 

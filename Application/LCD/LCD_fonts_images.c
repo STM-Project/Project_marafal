@@ -658,7 +658,8 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 	return -1;
 }
 
-ALIGN_32BYTES(char  TTTTT[250000])={0};
+//ALIGN_32BYTES(char  TTTTT[50000])={0};
+char  TTTTT[50000]={0};
 
 //zrobic optymalizacje tej funkcji !!!!!
 static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl)	/* OPTIMIZE_FAST */
@@ -728,6 +729,12 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 		fo = 0x40,
 		AA = 0xC0
 	}COLOR_TYPE;
+
+	enum BYTES{
+		maxByte0 = 63,
+		maxByte1 = 255,
+		sumBytes = maxByte0 + maxByte1,
+	};
 
 	u32 start_bk =0, cntBk =0;
 	u32 start_fo =0, cntFo =0;
@@ -811,11 +818,6 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 	}
 
 	void _SetDataToOut(u32 *indx, COLOR_TYPE type, u32 value){
-		enum BYTES{
-			maxByte0 = 63,
-			maxByte1 = 255,
-			sumBytes = maxByte0 + maxByte1,
-		};
 		if(IS_RANGE(value,sumBytes,0xFFFF)){
 			TAB_OUT( ADDR_DATA_TAB+(*indx)++ ) = type|maxByte0;	/* byte0 */
 			TAB_OUT( ADDR_DATA_TAB+(*indx)++ ) = maxByte1;			/* byte1 */
@@ -927,39 +929,135 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 
 
 
-	if(FR_OK!=SDCardFileOpen(0,"Test.cff",FA_CREATE_ALWAYS|FA_WRITE))		/* compress font file */
-		return 1;
-	if(0 > (writeToSDresult = SDCardFileWrite(0, TTTTT, sizeFile)))
-		return 1;
-	if(FR_OK!=SDCardFileClose(0))
-		return 1;
+//	if(FR_OK!=SDCardFileOpen(0,"Test.cff",FA_CREATE_ALWAYS|FA_WRITE))		/* compress font file */
+//		return 1;
+//	if(0 > (writeToSDresult = SDCardFileWrite(0, TTTTT, sizeFile)))
+//		return 1;
+//	if(FR_OK!=SDCardFileClose(0))
+//		return 1;
 
 
-
-
-
-
-
+	memset(TTTTT,0, 50000);
 
 	int readSize=0, writeSize=0;
-		if(FR_OK!=SDCardFileOpen(2,"Fonts/BackGround_darkGray/Color_green/Arial/font_48_bold.bmp",FA_READ))
-			asm("nop");
-		readSize = SDCardFileRead(2,GETVAL_ptr(1000000),2000000);
-		if(0 > readSize)
-			asm("nop");
-		if(FR_OK!=SDCardFileClose(2))
-			asm("nop");
+	if(FR_OK!=SDCardFileOpen(2,"Test.cff",FA_READ))
+		return 1;
+	readSize = SDCardFileRead(2,TTTTT,2000000);
+	if(0 > readSize)
+		return 1;
+	if(FR_OK!=SDCardFileClose(2))
+		return 1;
+
+	STRUCT_FONT Font_writeToBuff  = { struct_FONT, struct_FONTID };
+	STRUCT_FONT Font_readFromBuff = *((STRUCT_FONT*)( TTTTT+2 ));
+
+	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _char))
+	{
+		Dbg(1,"\r\nStructures are NOT equal !!!"); /* return 1;	*/
+	}
+	else
+	{
+		Dbg(1,"\r\nStructures are equal :) ");  	 /* return 0;	*/
+	}
 
 
+	int __SSSSSSS(int *pAddr, COLOR_TYPE *type){
+		int retVal = 0;
+		u8 byte0 = MASK(TTTTT[*pAddr+0],3F);
+		u8 byte1 = MASK(TTTTT[*pAddr+1],FF);
+		*type = MASK( TTTTT[*pAddr+0],C0 );
+
+		if(*type!=bk && *type!=fo && *type!=AA){
+			asm("nop");
+		}
+
+		if ( byte0 == maxByte0 ){
+			if( byte1 == maxByte1 ){
+				retVal = maxByte0 + maxByte1 + TTTTT[*pAddr+2] + 256*TTTTT[*pAddr+3];
+				*pAddr += 4;
+			}
+			else{
+				retVal = maxByte0 + byte1;
+				*pAddr += 2;
+			}
+		}
+		else{
+			retVal = byte0;
+			*pAddr += 1;
+		}
+
+		while(retVal > struct_FONT.heightFile - 1){
+			retVal = retVal - struct_FONT.heightFile;
+		}
+		return retVal;
+	}
 
 
-		if(FR_OK!=SDCardFileOpen(0,"Test1.bmp",FA_CREATE_ALWAYS|FA_WRITE))
-			asm("nop");
-		writeSize = SDCardFileWrite(0, GETVAL_ptr(1000000), readSize);
-		if(0 > writeSize)
-			asm("nop");
-		if(FR_OK!=SDCardFileClose(0))
-			asm("nop");
+	char charA = 0x41;
+	shiftX = struct_FONT.fontsTabPos[ (int)charA ][0];
+  int zzzz=0;
+  COLOR_TYPE type = 0;
+
+  zzzz = __SSSSSSS(&shiftX,&type);
+
+//	if ( MASK(TTTTT[shiftX+0],3F) == maxByte0 ){
+//	 if( MASK(TTTTT[shiftX+1],FF) == maxByte1 ) zzzz = maxByte0 + maxByte1 + TTTTT[shiftX+2] + 256*TTTTT[shiftX+3];
+//	 else													  zzzz = maxByte0 + maxByte1;
+//	}
+//	else zzzz = maxByte0;
+//
+//	while(zzzz > struct_FONT.heightFile - 1){
+//		zzzz = zzzz - struct_FONT.heightFile;
+//	}
+
+
+	LOOP_FOR(i, struct_FONT.fontsTabPos[ (int)charA ][1]){
+
+		LOOP_FOR(j, struct_FONT.heightFile){
+
+
+			if(zzzz>0){
+				if(type == bk)
+					pLcd[(350+j)*LCD_GetXSize()+10+i] = struct_FONT.fontBkColorToIndex;
+				else if(type == fo)
+					pLcd[(350+j)*LCD_GetXSize()+10+i] = struct_FONT.fontColorToIndex;
+
+
+				zzzz--;
+				if(zzzz < 1){
+					zzzz = __SSSSSSS(&shiftX,&type);
+				}
+
+			}
+//			else{
+//				zzzz = __SSSSSSS(&shiftX,&type);
+//				goto ggggdsff;
+//			}
+
+
+		}
+
+	}
+
+  asm("nop");
+
+
+//	int readSize=0, writeSize=0;
+//		if(FR_OK!=SDCardFileOpen(2,"Fonts/BackGround_darkGray/Color_green/Arial/font_48_bold.bmp",FA_READ))
+//			asm("nop");
+//		readSize = SDCardFileRead(2,GETVAL_ptr(1000000),2000000);
+//		if(0 > readSize)
+//			asm("nop");
+//		if(FR_OK!=SDCardFileClose(2))
+//			asm("nop");
+//
+//		if(FR_OK!=SDCardFileOpen(0,"Test1.bmp",FA_CREATE_ALWAYS|FA_WRITE))
+//			asm("nop");
+//		writeSize = SDCardFileWrite(0, GETVAL_ptr(1000000), readSize);
+//		if(0 > writeSize)
+//			asm("nop");
+//		if(FR_OK!=SDCardFileClose(0))
+//			asm("nop");
 
 
 
