@@ -967,7 +967,10 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 		u8 byte1 = MASK(TTTTT[*pAddr+1],FF);
 		*type = MASK( TTTTT[*pAddr+0],C0 );
 
-		if(*type!=bk && *type!=fo && *type!=AA){
+		if(*type==bk || *type==fo || *type==AA){
+			asm("nop");
+		}
+		else{
 			asm("nop");
 		}
 
