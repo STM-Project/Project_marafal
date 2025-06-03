@@ -875,8 +875,8 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 			/*	u32 addrChar = 2 + 4*countFonts;
 			 	_SetCharsTabToOut(&addrChar, CharsTab_full[countFonts], SIZE_HEADER+iData); */
 
-				struct_FONT.fontsTabPos[ (int)CharsTab_full[countFonts] ][0] = SIZE_HEADER + iData;
-				countFonts++;
+				struct_FONT.fontsTabPos[ (int)CharsTab_full[countFonts++] ][0] = SIZE_HEADER + iData;
+				if(start_bk==1 && cntBk >= height) cntBk=0;
 	}}}
 
 	void _SetCharsAndDataTabToOut(void){
@@ -935,12 +935,12 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 
 
 
-//	if(FR_OK!=SDCardFileOpen(0,"Test.cff",FA_CREATE_ALWAYS|FA_WRITE))		/* compress font file */
-//		return 1;
-//	if(0 > (writeToSDresult = SDCardFileWrite(0, TTTTT, sizeFile)))
-//		return 1;
-//	if(FR_OK!=SDCardFileClose(0))
-//		return 1;
+	if(FR_OK!=SDCardFileOpen(0,"Test.cff",FA_CREATE_ALWAYS|FA_WRITE))		/* compress font file */
+		return 1;
+	if(0 > (writeToSDresult = SDCardFileWrite(0, TTTTT, sizeFile)))
+		return 1;
+	if(FR_OK!=SDCardFileClose(0))
+		return 1;
 
 	//###################################################################
 	//###################################################################
@@ -999,14 +999,14 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 			*pAddr += 1;
 		}
 
-		while(retVal > struct_FONT.heightFile - 1){
-			retVal = retVal - struct_FONT.heightFile;
-		}
+//		while(retVal > struct_FONT.heightFile - 1){
+//			retVal = retVal - struct_FONT.heightFile;
+//		}
 		return retVal;
 	}
 
 
-	char charA = 'A';
+	char charA = 'X';
 	shiftX = struct_FONT.fontsTabPos[ (int)charA ][0];
   int zzzz=0;
   COLOR_TYPE type = 0;
