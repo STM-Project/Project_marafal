@@ -1043,11 +1043,11 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 
  int dalej = 0;
 
- LOOP_INIT(hh,65,86){  shiftX = struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][0];			zzzz = 0;
+ LOOP_INIT(hh,0,36){  shiftX = struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][0];			zzzz = 0;
 
 	LOOP_FOR(i, struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][1]){
 
-		LOOP_FOR(j, struct_FONT.heightFile - 1){   ///###########  UWAGA przechylanie czcionki metoda !!!!!!!!!  dac :   LOOP_FOR(j, struct_FONT.heightFile-1)  !!!!!!!!!!!!!!!!!
+		LOOP_FOR(j, struct_FONT.heightFile){   ///###########  UWAGA przechylanie czcionki metoda !!!!!!!!!  dac :   LOOP_FOR(j, struct_FONT.heightFile-1)  !!!!!!!!!!!!!!!!!
 
 			if(zzzz == 0){
 				zzzz = __SSSSSSS(&shiftX,&type);
@@ -1056,11 +1056,11 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 
 				if(type == bk)
 				{
-					pLcd[(370+j)*LCD_GetXSize()+5+dalej+i] = struct_FONT.fontBkColorToIndex;
+					pLcd[(390+j)*LCD_GetXSize()+5+dalej+i] = struct_FONT.fontBkColorToIndex;
 				}
 				else if(type == fo)
 				{
-					pLcd[(370+j)*LCD_GetXSize()+5+dalej+i] = struct_FONT.fontColorToIndex;
+					pLcd[(390+j)*LCD_GetXSize()+5+dalej+i] = struct_FONT.fontColorToIndex;
 				}
 				else if(type == AA)
 				{
@@ -1068,7 +1068,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 					colorG = TAB_OUT( ADDR_AA_TAB + 2 + 3*zzzz+1);
 					colorR = TAB_OUT( ADDR_AA_TAB + 2 + 3*zzzz+2);
 
-					pLcd[(370+j)*LCD_GetXSize()+5+dalej+i] = RGB2INT(colorR,colorG,colorB);
+					pLcd[(390+j)*LCD_GetXSize()+5+dalej+i] = RGB2INT(colorR,colorG,colorB);
 					zzzz = 1;
 				}
 				else
