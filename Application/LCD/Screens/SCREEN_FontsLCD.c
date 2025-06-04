@@ -2280,7 +2280,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 		if(onlyOne==0){
 			onlyOne = 1;
-			LCD_CreateFileCFFfromBMP(FONT_24,Arial,DARKGRAY,MYGREEN,fontID_1);
+			LCD_CreateFileCFFfromBMP(FONT_48,Comic_Saens_MS,DARKGRAY,MYGREEN,fontID_1);
 		}
 
 

@@ -875,7 +875,17 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 			/*	u32 addrChar = 2 + 4*countFonts;
 			 	_SetCharsTabToOut(&addrChar, CharsTab_full[countFonts], SIZE_HEADER+iData); */
 
+
+				u32 retVal=cntBk;
+				while(retVal > height - 1){
+					retVal = retVal - height;
+				}
+				_SetDataToOut(&iData,bk,retVal);
+
+
+
 				struct_FONT.fontsTabPos[ (int)CharsTab_full[countFonts++] ][0] = SIZE_HEADER + iData;
+
 				if(start_bk==1 && cntBk >= height) cntBk=0;
 	}}}
 
@@ -930,7 +940,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 	_SetCharsAndDataTabToOut();	/* Chars Tab is omitted */
 	_SetFontIDTabToOut();
 
-	DbgVar(1,100,"\r\nCountFonts:  (%d) 		whole file: (%d)   =   header (%d)   +   data (%d)\r\n",countFonts, sizeFile,SIZE_HEADER,iData );
+	DbgVar(1,100,"\r\nCountFonts: (%d)      whole file: (%d) = header (%d) + data (%d)\r\n",countFonts, sizeFile,SIZE_HEADER,iData );
 
 
 
@@ -1006,7 +1016,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 	}
 
 
-	char charA = 'A';
+	char charA = '+';
 	shiftX = struct_FONT.fontsTabPos[ (int)charA ][0];
   int zzzz=0;
   COLOR_TYPE type = 0;
@@ -1027,22 +1037,30 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
  u8 colorG = 0;
  u8 colorB = 0;
 
- int fff = struct_FONT.fontsTabPos[ (int)charA ][1];
-
+ //int fff = struct_FONT.fontsTabPos[ (int)charA ][1];
+ int wskEnd=0, BK_count=0, BK_count_MAX=0;
  zzzz = 0;
-	LOOP_FOR(i, struct_FONT.fontsTabPos[ (int)charA ][1]){
 
-		LOOP_FOR(j, struct_FONT.heightFile){
+ int dalej = 0;
+
+ LOOP_INIT(hh,65,86){  shiftX = struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][0];			zzzz = 0;
+
+	LOOP_FOR(i, struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][1]){
+
+		LOOP_FOR(j, struct_FONT.heightFile - 1){   ///###########  UWAGA przechylanie czcionki metoda !!!!!!!!!  dac :   LOOP_FOR(j, struct_FONT.heightFile-1)  !!!!!!!!!!!!!!!!!
 
 			if(zzzz == 0){
 				zzzz = __SSSSSSS(&shiftX,&type);
 			}
 
-				if(type == bk){
-					pLcd[(350+j)*LCD_GetXSize()+750+i] = struct_FONT.fontBkColorToIndex;
+
+				if(type == bk)
+				{
+					pLcd[(370+j)*LCD_GetXSize()+5+dalej+i] = struct_FONT.fontBkColorToIndex;
 				}
-				else if(type == fo){
-					pLcd[(350+j)*LCD_GetXSize()+750+i] = struct_FONT.fontColorToIndex;
+				else if(type == fo)
+				{
+					pLcd[(370+j)*LCD_GetXSize()+5+dalej+i] = struct_FONT.fontColorToIndex;
 				}
 				else if(type == AA)
 				{
@@ -1050,7 +1068,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 					colorG = TAB_OUT( ADDR_AA_TAB + 2 + 3*zzzz+1);
 					colorR = TAB_OUT( ADDR_AA_TAB + 2 + 3*zzzz+2);
 
-					pLcd[(350+j)*LCD_GetXSize()+750+i] = RGB2INT(colorR,colorG,colorB);
+					pLcd[(370+j)*LCD_GetXSize()+5+dalej+i] = RGB2INT(colorR,colorG,colorB);
 					zzzz = 1;
 				}
 				else
@@ -1065,10 +1083,11 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 
 
 
-
 		}
 
 	}
+	dalej += struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][1] + 3;
+ }
 
   asm("nop");
 
