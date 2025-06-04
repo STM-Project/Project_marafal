@@ -798,7 +798,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 
 	void _SetColorAATabToOut(void){
 		shiftX=0, iTab=0;
-		LOOP_FOR(i,width){	pbmp1=pbmp+3*shiftX;
+		LOOP_FOR(i,width){	pbmp1=pbmp+3*shiftX;  ///  !!!! pbmp1 = pbmp + (bytesPerPxl * shiftX);   !!!!!!!!!!!!!!!!!!!!!!!!!!!
 			LOOP_FOR(j,height){
 				if(!IS_BKCOLOR(pbmp1) && !IS_FOCOLOR(pbmp1))
 					_IfNewColorThenSetToTab(GET_COLOR(pbmp1));
@@ -830,7 +830,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 			TAB_OUT( ADDR_DATA_TAB+(*indx)++ ) = SHIFT_RIGHT(value-maxByte0,0,FF);	/* byte1 */
 			/* value = byte0 + byte1 */
 		}
-		if(IS_RANGE(value,1,maxByte0-1)){
+		if(IS_RANGE(value,0,maxByte0-1)){
 			TAB_OUT( ADDR_DATA_TAB+(*indx)++ ) = type|value;		/* byte0 */
 			/* value = byte0 */
 	}}
@@ -884,7 +884,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 		shiftX=0;
 		LOOP_FOR(i,width)
 		{
-			pbmp1=pbmp+3*shiftX;
+			pbmp1 = pbmp + bytesPerPxl*shiftX;
 
 			_IfFontLineThenSetCharsTab(i);
 
@@ -1006,7 +1006,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 	}
 
 
-	char charA = 'X';
+	char charA = 'A';
 	shiftX = struct_FONT.fontsTabPos[ (int)charA ][0];
   int zzzz=0;
   COLOR_TYPE type = 0;
@@ -1027,6 +1027,8 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
  u8 colorG = 0;
  u8 colorB = 0;
 
+ int fff = struct_FONT.fontsTabPos[ (int)charA ][1];
+
  zzzz = 0;
 	LOOP_FOR(i, struct_FONT.fontsTabPos[ (int)charA ][1]){
 
@@ -1037,10 +1039,10 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 			}
 
 				if(type == bk){
-					pLcd[(350+j)*LCD_GetXSize()+10+i] = struct_FONT.fontBkColorToIndex;
+					pLcd[(350+j)*LCD_GetXSize()+750+i] = struct_FONT.fontBkColorToIndex;
 				}
 				else if(type == fo){
-					pLcd[(350+j)*LCD_GetXSize()+10+i] = struct_FONT.fontColorToIndex;
+					pLcd[(350+j)*LCD_GetXSize()+750+i] = struct_FONT.fontColorToIndex;
 				}
 				else if(type == AA)
 				{
@@ -1048,8 +1050,12 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 					colorG = TAB_OUT( ADDR_AA_TAB + 2 + 3*zzzz+1);
 					colorR = TAB_OUT( ADDR_AA_TAB + 2 + 3*zzzz+2);
 
-					pLcd[(350+j)*LCD_GetXSize()+10+i] = RGB2INT(colorR,colorG,colorB);
+					pLcd[(350+j)*LCD_GetXSize()+750+i] = RGB2INT(colorR,colorG,colorB);
 					zzzz = 1;
+				}
+				else
+				{
+					asm("nop");
 				}
 
 
