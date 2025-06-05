@@ -875,17 +875,13 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 			/*	u32 addrChar = 2 + 4*countFonts;
 			 	_SetCharsTabToOut(&addrChar, CharsTab_full[countFonts], SIZE_HEADER+iData); */
 
-
 				u32 retVal=cntBk;
 				while(retVal > height - 1){
 					retVal = retVal - height;
 				}
 				_SetDataToOut(&iData,bk,retVal);
 
-
-
 				struct_FONT.fontsTabPos[ (int)CharsTab_full[countFonts++] ][0] = SIZE_HEADER + iData;
-
 				if(start_bk==1 && cntBk >= height) cntBk=0;
 	}}}
 
@@ -968,77 +964,76 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 	if(FR_OK!=SDCardFileClose(2))
 		return 1;
 
-	STRUCT_FONT Font_writeToBuff  = { struct_FONT, struct_FONTID };
-	STRUCT_FONT Font_readFromBuff = *((STRUCT_FONT*)( TTTTT+2 ));
+//	STRUCT_FONT Font_writeToBuff  = { struct_FONT, struct_FONTID };
+//	STRUCT_FONT Font_readFromBuff = *((STRUCT_FONT*)( TTTTT+2 ));
+//
+//	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _char))
+//	{
+//		Dbg(1,"\r\nStructures are NOT equal !!!"); /* return 1;	*/
+//	}
+//	else
+//	{
+//		Dbg(1,"\r\nStructures are equal :) ");  	 /* return 0;	*/
+//	}
 
-	if(COMPARE_2Struct(&Font_writeToBuff, &Font_readFromBuff, sizeof(Font_writeToBuff), _char))
-	{
-		Dbg(1,"\r\nStructures are NOT equal !!!"); /* return 1;	*/
-	}
-	else
-	{
-		Dbg(1,"\r\nStructures are equal :) ");  	 /* return 0;	*/
-	}
 
-
-	int __SSSSSSS(int *pAddr, COLOR_TYPE *type){
+	int _GetDataFromInput(char *inputBuff, int *pAddr, COLOR_TYPE *type){
 		int retVal = 0;
-		u8 byte0 = MASK(TTTTT[*pAddr+0],3F);
-		u8 byte1 = MASK(TTTTT[*pAddr+1],FF);
-		*type = MASK( TTTTT[*pAddr+0],C0 );
-
-		if(*type==bk || *type==fo || *type==AA){
-			asm("nop");
-		}
-		else{
-			asm("nop");
-		}
+		u8 byte0 = MASK(inputBuff[*pAddr+0],3F);
+		u8 byte1 = MASK(inputBuff[*pAddr+1],FF);
+		*type 	= MASK(inputBuff[*pAddr+0],C0);
 
 		if ( byte0 == maxByte0 ){
-			if( byte1 == maxByte1 ){
-				retVal = maxByte0 + maxByte1 + TTTTT[*pAddr+2] + 256*TTTTT[*pAddr+3];
-				*pAddr += 4;
-			}
-			else{
-				retVal = maxByte0 + byte1;
-				*pAddr += 2;
-			}
+			if( byte1 == maxByte1 ){	retVal = maxByte0 + maxByte1 + inputBuff[*pAddr+2] + 256*inputBuff[*pAddr+3];		*pAddr += 4; }
+			else						  {	retVal = maxByte0 + byte1;																			*pAddr += 2; }
 		}
-		else{
-			retVal = byte0;
-			*pAddr += 1;
-		}
-
-//		while(retVal > struct_FONT.heightFile - 1){
-//			retVal = retVal - struct_FONT.heightFile;
-//		}
+		else{  retVal = byte0;   *pAddr += 1;  }
 		return retVal;
 	}
 
 
-	char charA = '+';
-	shiftX = struct_FONT.fontsTabPos[ (int)charA ][0];
+
+	void _DispTxt(int fontID, char *pFileCFF,u32 *outBuff, char *pTxt, u16 winX,u16 winY, u16 winW,u16 winH, u16 x,u16 y, u32 bkColor,u32 foColor, int space,int constWidth, int OnlyDigits)
+	{
+		int data=0, posReadFileCFF=0, posTxtX=0;
+		u8 colorR=0, colorG=0, colorB=0;
+		COLOR_TYPE type=0;
+		int len = strlen(pTxt);
+		int fontIndx = SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
+
+		LOOP_INIT(h,0,len){		posReadFileCFF = Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][0];		data=0;
+			LOOP_FOR(i, Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][1]){
+				LOOP_FOR(j, Font[fontIndx].heightFile){
+
+					if(data == 0)	data = _GetDataFromInput(pFileCFF,&posReadFileCFF,&type);
+					switch((int)type){
+						case bk:	 outBuff[(y+j)*winW+x+posTxtX+i] = Font[fontIndx].fontBkColorToIndex;	break;
+						case fo:	 outBuff[(y+j)*winW+x+posTxtX+i] = Font[fontIndx].fontColorToIndex;		break;
+						case AA:
+							colorB = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+0];
+							colorG = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+1];
+							colorR = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+2];
+
+							outBuff[(y+j)*winW+x+posTxtX+i] = RGB2INT( colorR,colorG,colorB );
+							data = 1;
+					}
+					if(data > 0) data--;
+			}}
+			posTxtX += Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][1] + space;
+		 }
+	}
+
+
+	_DispTxt(fontID, TTTTT, pLcd, "Hello World!", 0,0, LCD_GetXSize(),LCD_GetYSize(), 390,5, BLUE,ORANGE, 0,0, 0);
+
+
   int zzzz=0;
   COLOR_TYPE type = 0;
-
-
-
-//	if ( MASK(TTTTT[shiftX+0],3F) == maxByte0 ){
-//	 if( MASK(TTTTT[shiftX+1],FF) == maxByte1 ) zzzz = maxByte0 + maxByte1 + TTTTT[shiftX+2] + 256*TTTTT[shiftX+3];
-//	 else													  zzzz = maxByte0 + maxByte1;
-//	}
-//	else zzzz = maxByte0;
-//
-//	while(zzzz > struct_FONT.heightFile - 1){
-//		zzzz = zzzz - struct_FONT.heightFile;
-//	}
 
  u8 colorR = 0;
  u8 colorG = 0;
  u8 colorB = 0;
 
- //int fff = struct_FONT.fontsTabPos[ (int)charA ][1];
- int wskEnd=0, BK_count=0, BK_count_MAX=0;
  zzzz = 0;
 
  int dalej = 0;
@@ -1050,7 +1045,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 		LOOP_FOR(j, struct_FONT.heightFile){   ///###########  UWAGA przechylanie czcionki metoda !!!!!!!!!  dac :   LOOP_FOR(j, struct_FONT.heightFile-1)  !!!!!!!!!!!!!!!!!
 
 			if(zzzz == 0){
-				zzzz = __SSSSSSS(&shiftX,&type);
+				zzzz = _GetDataFromInput(TTTTT,&shiftX,&type);
 			}
 
 
@@ -1071,25 +1066,16 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 					pLcd[(390+j)*LCD_GetXSize()+5+dalej+i] = RGB2INT(colorR,colorG,colorB);
 					zzzz = 1;
 				}
-				else
-				{
-					asm("nop");
-				}
-
 
 				if(zzzz > 0)
 					zzzz--;
-
-
-
-
 		}
 
 	}
 	dalej += struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][1] + 3;
  }
 
-  asm("nop");
+
 
 
 //	int readSize=0, writeSize=0;
@@ -1401,18 +1387,18 @@ static void LCD_Set_ConstWidthFonts(int fontIndex)
 		if(RealizeWidthConst(pChar[j]))
 		{
 			if(Font[fontIndex].fontsTabPos[(int) pChar[j]][1] > maxWidth)
-				maxWidth=Font[fontIndex].fontsTabPos[(int) pChar[j]][1];
+				maxWidth = Font[fontIndex].fontsTabPos[(int) pChar[j]][1];
 		}
 	}
 	for(j=0;j < lenTab;j++)
 	{
 		if(RealizeWidthConst(pChar[j]))
 		{
-			fontsTabPos_temp[(int) pChar[j]][0]=Font[fontIndex].fontsTabPos[(int) pChar[j]][0];
-			fontsTabPos_temp[(int) pChar[j]][1]=Font[fontIndex].fontsTabPos[(int) pChar[j]][1];
+			fontsTabPos_temp[(int) pChar[j]][0] = Font[fontIndex].fontsTabPos[(int) pChar[j]][0];
+			fontsTabPos_temp[(int) pChar[j]][1] = Font[fontIndex].fontsTabPos[(int) pChar[j]][1];
 
-			Font[fontIndex].fontsTabPos[(int) pChar[j]][0]-=(maxWidth - Font[fontIndex].fontsTabPos[(int) pChar[j]][1]) / 2;
-			Font[fontIndex].fontsTabPos[(int) pChar[j]][1]=maxWidth;
+			Font[fontIndex].fontsTabPos[(int) pChar[j]][0] -= (maxWidth - Font[fontIndex].fontsTabPos[(int) pChar[j]][1]) / 2;
+			Font[fontIndex].fontsTabPos[(int) pChar[j]][1]  = maxWidth;
 		}
 	}
 	fontsTabPos_temp[(int) ' '][1]=Font[fontIndex].fontsTabPos[(int) ' '][1];
