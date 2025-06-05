@@ -1024,56 +1024,56 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 	}
 
 
-	_DispTxt(fontID, TTTTT, pLcd, "Hello World!", 0,0, LCD_GetXSize(),LCD_GetYSize(), 390,5, BLUE,ORANGE, 0,0, 0);
+	_DispTxt(fontID, TTTTT, pLcd, "Hello World!", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,390, BLUE,ORANGE, 3,0, 0);
 
 
-  int zzzz=0;
-  COLOR_TYPE type = 0;
-
- u8 colorR = 0;
- u8 colorG = 0;
- u8 colorB = 0;
-
- zzzz = 0;
-
- int dalej = 0;
-
- LOOP_INIT(hh,0,36){  shiftX = struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][0];			zzzz = 0;
-
-	LOOP_FOR(i, struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][1]){
-
-		LOOP_FOR(j, struct_FONT.heightFile){   ///###########  UWAGA przechylanie czcionki metoda !!!!!!!!!  dac :   LOOP_FOR(j, struct_FONT.heightFile-1)  !!!!!!!!!!!!!!!!!
-
-			if(zzzz == 0){
-				zzzz = _GetDataFromInput(TTTTT,&shiftX,&type);
-			}
-
-
-				if(type == bk)
-				{
-					pLcd[(390+j)*LCD_GetXSize()+5+dalej+i] = struct_FONT.fontBkColorToIndex;
-				}
-				else if(type == fo)
-				{
-					pLcd[(390+j)*LCD_GetXSize()+5+dalej+i] = struct_FONT.fontColorToIndex;
-				}
-				else if(type == AA)
-				{
-					colorB = TAB_OUT( ADDR_AA_TAB + 2 + 3*zzzz+0);
-					colorG = TAB_OUT( ADDR_AA_TAB + 2 + 3*zzzz+1);
-					colorR = TAB_OUT( ADDR_AA_TAB + 2 + 3*zzzz+2);
-
-					pLcd[(390+j)*LCD_GetXSize()+5+dalej+i] = RGB2INT(colorR,colorG,colorB);
-					zzzz = 1;
-				}
-
-				if(zzzz > 0)
-					zzzz--;
-		}
-
-	}
-	dalej += struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][1] + 3;
- }
+//  int zzzz=0;
+//  COLOR_TYPE type = 0;
+//
+// u8 colorR = 0;
+// u8 colorG = 0;
+// u8 colorB = 0;
+//
+// zzzz = 0;
+//
+// int dalej = 0;
+//
+// LOOP_INIT(hh,0,36){  shiftX = struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][0];			zzzz = 0;
+//
+//	LOOP_FOR(i, struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][1]){
+//
+//		LOOP_FOR(j, struct_FONT.heightFile){   ///###########  UWAGA przechylanie czcionki metoda !!!!!!!!!  dac :   LOOP_FOR(j, struct_FONT.heightFile-1)  !!!!!!!!!!!!!!!!!
+//
+//			if(zzzz == 0){
+//				zzzz = _GetDataFromInput(TTTTT,&shiftX,&type);
+//			}
+//
+//
+//				if(type == bk)
+//				{
+//					pLcd[(390+j)*LCD_GetXSize()+5+dalej+i] = struct_FONT.fontBkColorToIndex;
+//				}
+//				else if(type == fo)
+//				{
+//					pLcd[(390+j)*LCD_GetXSize()+5+dalej+i] = struct_FONT.fontColorToIndex;
+//				}
+//				else if(type == AA)
+//				{
+//					colorB = TAB_OUT( ADDR_AA_TAB + 2 + 3*zzzz+0);
+//					colorG = TAB_OUT( ADDR_AA_TAB + 2 + 3*zzzz+1);
+//					colorR = TAB_OUT( ADDR_AA_TAB + 2 + 3*zzzz+2);
+//
+//					pLcd[(390+j)*LCD_GetXSize()+5+dalej+i] = RGB2INT(colorR,colorG,colorB);
+//					zzzz = 1;
+//				}
+//
+//				if(zzzz > 0)
+//					zzzz--;
+//		}
+//
+//	}
+//	dalej += struct_FONT.fontsTabPos[ (int)CharsTab_full[hh] ][1] + 3;
+// }
 
 
 
