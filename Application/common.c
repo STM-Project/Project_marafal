@@ -170,14 +170,6 @@ int COMPARE_2Struct(void *struct1, void *struct2, int structSize, DATA_TYPE data
 		case _double:	_OPERAT(double);   break;
 		default: return 0;
 	}
-//	char *ptr1 = (char*)(struct1);
-//	char *ptr2 = (char*)(struct2);
-//	for(int i = 0; i<structSize ;++i){
-//		if(*(ptr1+i) != *(ptr2+i))
-//			return 1;
-//	}
-//	return 0;
-
 	#undef _OPERAT
 }
 
