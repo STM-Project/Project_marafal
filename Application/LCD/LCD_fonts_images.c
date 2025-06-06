@@ -705,7 +705,7 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 
 static int LCD_CopyFontFileCFFfromSD(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor, uint32_t fontID)
 {
-	int resultSearch;
+	int resultSearch;			u32 addrFont=0;
 	uint32_t fontFileSize;
 
 	resultSearch=SearchFontIndex(fontSize,fontStyle,backgroundColor,fontColor);
@@ -739,7 +739,7 @@ static int LCD_CopyFontFileCFFfromSD(int fontSize, int fontStyle, uint32_t backg
 	strncat(fileOpenName,TxtFontSize[fontSize],strlen(TxtFontSize[fontSize]));
 	strncat(fileOpenName,TxtCFF,strlen(TxtCFF));
 
-	if(FR_OK!=SDCardFileInfo(fileOpenName,&fontFileSize))
+	if(FR_OK!=SDCardFileInfo("TTeesstt.cff"/*fileOpenName*/,&fontFileSize))
 		return -3;
 
 	while((fontFileSize%4)!=0)
@@ -747,9 +747,9 @@ static int LCD_CopyFontFileCFFfromSD(int fontSize, int fontStyle, uint32_t backg
 
 	if(true==DynamicFontMemoryAllocation( fontFileSize, fontIndex) )
 	{
-		if(FR_OK!=SDCardFileOpen(1,fileOpenName,FA_READ))
+		if(FR_OK!=SDCardFileOpen(1,"TTeesstt.cff"/*fileOpenName*/,FA_READ))
 			return -4;
-		if(0 > SDCardFileRead(1,Font[fontIndex].pointerToMemoryFont,MAX_FONTS_AND_IMAGES_MEMORY_SIZE))
+		if(0 > SDCardFileRead(1, Font[fontIndex].pointerToMemoryFont, MAX_FONTS_AND_IMAGES_MEMORY_SIZE))
 			return -5;
 		if(FR_OK!=SDCardFileClose(1))
 			return -6;
@@ -760,6 +760,13 @@ static int LCD_CopyFontFileCFFfromSD(int fontSize, int fontStyle, uint32_t backg
 			FontID[fontID].style 	= fontStyle;
 			FontID[fontID].bkColor 	= backgroundColor;
 			FontID[fontID].color 	= fontColor;
+
+			FONTS_SETTING Font_temp;
+
+			addrFont = (u32)Font[fontIndex].pointerToMemoryFont;
+			Font[fontIndex] = *((FONTS_SETTING*)( Font[fontIndex].pointerToMemoryFont + 2 ));
+
+			Font[fontIndex].pointerToMemoryFont = (char*)addrFont;
 
 			return fontID;
 		}
@@ -792,8 +799,8 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
  /* 											File CCF Format Scheme
 	--- FontID Table --------
 	Table Size (2B)
-	(char) Font[0]					( Font[] is not used, may by deleted in the future )
-	(char) FontID[0]
+	(char) Font[0]
+	(char) FontID[0]				( FontID[] is not used, may by deleted in the future )
 
 	--- Chars Table --------	( This Table is omitted, because in struct_FONT.fontsTabPos[(int)Char]][0] is Chars Table )
 	Table Size (2B)
@@ -1026,13 +1033,13 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 	_Init();
 /* _TestWriteReadOutTab(); */
 	_SetColorAATabToOut();
-	if(res==_SetCharsAndDataTabToOut()) return res;		/* Chars Tab is omitted */
+	if((res=_SetCharsAndDataTabToOut())<0) return res;		/* Chars Tab is omitted */
 	_SetFontIDTabToOut();
 
 	DbgVar(1,100,"\r\nCountFonts: (%d)      whole file: (%d) = header (%d) + data (%d)\r\n",countFonts, sizeFile,SIZE_HEADER,iData );
 
 	if(TakeMutex(Semphr_cardSD,1000)){
-		if(FR_OK!=SDCardFileOpen(0,newFileNameToCreate,FA_CREATE_ALWAYS|FA_WRITE))		/* compress font file */
+		if(FR_OK!=SDCardFileOpen(0,"TTeesstt.cff"/*newFileNameToCreate*/,FA_CREATE_ALWAYS|FA_WRITE))		/* compress font file */
 			return -11;
 		if(0 > (writeToSDresult = SDCardFileWrite(0, pTAB_OUT, sizeFile)))
 			return -12;
@@ -1728,7 +1735,7 @@ static int SearchCurrentFont_TablePos_forCreatingFileCFF(char *pbmp, int fontInd
 			Font[fontIndex].fontsTabPos[(int)_E_[0]][1] = 0;
 		}
 	}
-	Font[fontIndex].fontsTabPos[(int)' '][0] = shiftXpos;
+	Font[fontIndex].fontsTabPos[(int)' '][0] = shiftXpos;  //TO nie POTRZEBNE bo spacja to bk !!!!!!!!!!!!!!
 	Font[fontIndex].widthFile 	 = width;
 	Font[fontIndex].heightFile  = height;
 	Font[fontIndex].bytesPerPxl = bit_pixel;
@@ -2909,7 +2916,7 @@ int LCD_CreateFileCFFfromBMP(int fontSize, int fontStyle, uint32_t backgroundCol
 {
 	int fontIndex = fontID,		_backgroundColor;
 	uint32_t fontFileSize;
-	char fileOpenName[100]="Fonts/";
+	char fileOpenName[100]="Fonts/", newFileName[100]="Fonts/";
 
 	Font[fontIndex].fontSizeToIndex 	 	= fontSize+1;
 	Font[fontIndex].fontStyleToIndex 	= fontStyle;
@@ -2937,6 +2944,11 @@ int LCD_CreateFileCFFfromBMP(int fontSize, int fontStyle, uint32_t backgroundCol
 	strncat(fileOpenName,TxtFontSize[fontSize],strlen(TxtFontSize[fontSize]));
 	strncat(fileOpenName,TxtBMP,strlen(TxtBMP));
 
+	strncat(newFileName,ColorFontFilePath[_fontColor],strlen(ColorFontFilePath[_fontColor]));
+	strncat(newFileName,StyleFontFilePath[fontStyle],strlen(StyleFontFilePath[fontStyle]));
+	strncat(newFileName,TxtFontSize[fontSize],strlen(TxtFontSize[fontSize]));
+	strncat(newFileName,TxtCFF,strlen(TxtCFF));
+
 	if(FR_OK!=SDCardFileInfo(fileOpenName,&fontFileSize))
 		return -3;
 
@@ -2959,7 +2971,7 @@ int LCD_CreateFileCFFfromBMP(int fontSize, int fontStyle, uint32_t backgroundCol
 			FontID[fontID].bkColor = backgroundColor;
 			FontID[fontID].color = fontColor;
 
-			int result = SearchCurrentFont_TablePos_forCreatingFileCFF(Font[fontIndex].pointerToMemoryFont, fontIndex, fontID, fileOpenName);
+			int result = SearchCurrentFont_TablePos_forCreatingFileCFF(Font[fontIndex].pointerToMemoryFont, fontIndex, fontID, newFileName);
 			if(result < 0) return result;
 			else				return fontID;
 		}
@@ -4581,7 +4593,7 @@ int LCD_DisplayTxt(int fontID)
 		return retVal;
 	}
 
-	void _DispTxt(u32 posBuff, int fontID,u32 *outBuff, char *pTxt, u16 winX,u16 winY, u16 winW,u16 winH, u16 x,u16 y, u32 bkColor,u32 foColor, int space,int constWidth, int OnlyDigits, int coeff)
+	int _DispTxt(u32 posBuff, int fontID,u32 *outBuff, char *pTxt, u16 winX,u16 winY, u16 winW,u16 winH, u16 x,u16 y, u32 bkColor,u32 foColor, int space,int constWidth, int OnlyDigits, int coeff)
 	{
 		int data=0, posReadFileCFF=0, posTxtX=0;
 		u8 colorR=0, colorG=0, colorB=0;
@@ -4590,33 +4602,40 @@ int LCD_DisplayTxt(int fontID)
 		int fontIndx = SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
 		if(fontIndx==-1)
 			return -1;
-
 		char *pFileCFF = Font[fontIndx].pointerToMemoryFont;
 
 		LOOP_INIT(h,0,len){		posReadFileCFF = Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][0];		data=0;
 			LOOP_FOR(i, Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][1]){
 				LOOP_FOR(j, Font[fontIndx].heightFile){
 
-					if(data == 0)	data = _GetDataFromInput(pFileCFF,&posReadFileCFF,&type);
-					switch((int)type){
-						case bk:	 outBuff[posBuff+(y+j)*winW+x+posTxtX+i] = Font[fontIndx].fontBkColorToIndex;	break;
-						case fo:	 outBuff[posBuff+(y+j)*winW+x+posTxtX+i] = Font[fontIndx].fontColorToIndex;	break;
-						case AA:
-							colorB = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+0];
-							colorG = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+1];
-							colorR = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+2];
+					if(pTxt[h]==' '){
 
-							outBuff[posBuff+(y+j)*winW+x+posTxtX+i] = RGB2INT( colorR,colorG,colorB );
-							data = 1;
 					}
-					if(data > 0) data--;
+					else
+					{
+						if(data == 0)	data = _GetDataFromInput(pFileCFF,&posReadFileCFF,&type);
+						switch((int)type){
+							case bk:	 outBuff[posBuff+(y+j)*winW+x+posTxtX+i] = Font[fontIndx].fontBkColorToIndex;	break;
+							case fo:	 outBuff[posBuff+(y+j)*winW+x+posTxtX+i] = Font[fontIndx].fontColorToIndex;	break;
+							case AA:
+								colorB = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+0];
+								colorG = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+1];
+								colorR = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+2];
+
+								outBuff[posBuff+(y+j)*winW+x+posTxtX+i] = RGB2INT( colorR,colorG,colorB );
+								data = 1;
+						}
+						if(data > 0) data--;
+					}
+
+
 			}}
 			posTxtX += Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][1] + space;
 		 }
+		return 0;
 	}
 
-	_DispTxt(0,fontID, pLcd, "Hello World!", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,390, BLUE,ORANGE, 3,0, 0,0);
-	return 0;
+	return _DispTxt(0,fontID, pLcd, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"   SEX?", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,390, BLUE,ORANGE, 0,0, 0,0);
 }
 
 StructTxtPxlLen LCD_StrDependOnColors(int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth)
