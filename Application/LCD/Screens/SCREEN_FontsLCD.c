@@ -2278,29 +2278,33 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
   //----------- TEST -----------------------------------------
 
+
+		///Zrobic test creat nwe plik.cff !!!!!!!!!!!
 		if(onlyOne==0){
 			onlyOne = 1;
-//			if( LCD_CreateFileCFFfromBMP(FONT_36, Arial, DARKGRAY, MYGREEN, fontID_1) < 0)
+//			if( LCD_CreateFileCFFfromBMP(FONT_22_bold, Arial, DARKGRAY, MYGREEN, fontID_1) < 0)
 //			{
 //				_NOP;
 //			}
 
 			LCD_Clear(v.COLOR_BkScreen);
 
+
+
+
+			if( LCD_LoadFontFromFileCFF(FONT_22_bold, Arial, RED, BLUE, fontID_1) < 0)
+			{
+				_NOP;
+			}
+
+			if( LCD_DisplayTxt(fontID_1) < 0)
+			{
+				_NOP;
+			}
+
 			SCREEN_ResetAllParameters();
 			LCD_TOUCH_DeleteAllSetTouch();
 			FONTS_LCD_ResetParam();
-
-
-			if( LCD_LoadFontFromFileCFF(FONT_36, Arial, RED, BLUE, fontID_17) < 0)
-			{
-				_NOP;
-			}
-
-			if( LCD_DisplayTxt(fontID_17) < 0)
-			{
-				_NOP;
-			}
 
 		}
 

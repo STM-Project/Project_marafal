@@ -285,7 +285,7 @@ typedef struct
 static Struct_SpaceCorrect space[MAX_SPACE_CORRECT];
 static uint8_t StructSpaceCount=0;
 
-static uint32_t CounterBusyBytesForFontsImages=0;
+uint32_t CounterBusyBytesForFontsImages=0;
 
 extern uint32_t pLcd[];
 
@@ -761,11 +761,8 @@ static int LCD_CopyFontFileCFFfromSD(int fontSize, int fontStyle, uint32_t backg
 			FontID[fontID].bkColor 	= backgroundColor;
 			FontID[fontID].color 	= fontColor;
 
-			FONTS_SETTING Font_temp;
-
 			addrFont = (u32)Font[fontIndex].pointerToMemoryFont;
 			Font[fontIndex] = *((FONTS_SETTING*)( Font[fontIndex].pointerToMemoryFont + 2 ));
-
 			Font[fontIndex].pointerToMemoryFont = (char*)addrFont;
 
 			return fontID;
@@ -792,7 +789,7 @@ static int LCD_LoadFontCFF_ChangeColor(int fontSize, int fontStyle, uint32_t fon
 
 
 //ALIGN_32BYTES(char  TTTTT[50000])={0};
-/*SDRAM*/ char  TTTTT[50000]={0};  //sprobuij dac SDRAM a pozniej jako   za pomoca  :  DynamicFontMemoryAllocation()
+//SDRAM char  TTTTT[50000]={0};  //sprobuij dac SDRAM a pozniej jako   za pomoca  :  DynamicFontMemoryAllocation()
 
 static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl, char *newFileNameToCreate)
 {
@@ -828,7 +825,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 	#define IS_BKCOLOR(p)	((*((p)+0)==bkColor[0])&&(*((p)+1)==bkColor[1])&&(*((p)+2)==bkColor[2]))
 	#define IS_FOCOLOR(p)	((*((p)+0)==foColor[0])&&(*((p)+1)==foColor[1])&&(*((p)+2)==foColor[2]))
 	#define GET_COLOR(p) 	RGB2INT(*((p)+2),*((p)+1),*((p)+0))
-	#define TAB_OUT(nr) 		TTTTT[(nr)]
+	#define TAB_OUT(nr) 		fontsImagesMemoryBuffer[CounterBusyBytesForFontsImages + ALIGN_OFFS + nr]//TTTTT[(nr)]
 	#define pTAB_OUT 			&TAB_OUT(0)
 
 	#define ADDR_FONT_STRUCT		( ADDR_FONTID_TAB + 2 )
