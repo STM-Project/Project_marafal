@@ -4592,8 +4592,9 @@ int LCD_DisplayTxt(int fontID)
 
 	int _DispTxt(u32 posBuff, int fontID,u32 *outBuff, char *pTxt, u16 winX,u16 winY, u16 winW,u16 winH, u16 x,u16 y, u32 bkColor,u32 foColor, int space,int constWidth, int OnlyDigits, int coeff)
 	{
-		int data=0, posReadFileCFF=0, posTxtX=0;
+		int data=0, posReadFileCFF=0, posTxtX=0, posTemp=0;
 		u8 colorR=0, colorG=0, colorB=0;
+		u32 currColor=0, readBkColor=0;
 		COLOR_TYPE type=0;
 		int len = strlen(pTxt);
 		int fontIndx = SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
@@ -4604,22 +4605,35 @@ int LCD_DisplayTxt(int fontID)
 		LOOP_INIT(h,0,len){		posReadFileCFF = Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][0];		data=0;
 			LOOP_FOR(i, Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][1]){
 				LOOP_FOR(j, Font[fontIndx].heightFile){
-
+					posTemp = posBuff+(y+j)*winW+x+posTxtX+i;
 					if(pTxt[h]==' '){
-
+						if(bkColor!=0) outBuff[posTemp] = bkColor;
 					}
 					else
 					{
 						if(data == 0)	data = _GetDataFromInput(pFileCFF,&posReadFileCFF,&type);
 						switch((int)type){
-							case bk:	 outBuff[posBuff+(y+j)*winW+x+posTxtX+i] = Font[fontIndx].fontBkColorToIndex;	break;
-							case fo:	 outBuff[posBuff+(y+j)*winW+x+posTxtX+i] = Font[fontIndx].fontColorToIndex;	break;
+							case bk:	 if(bkColor!=0) outBuff[posTemp] = bkColor; /*Font[fontIndx].fontBkColorToIndex;*/	break;
+							case fo:	 					 outBuff[posTemp] = foColor; /*Font[fontIndx].fontColorToIndex*/;		break;
 							case AA:
 								colorB = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+0];
 								colorG = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+1];
 								colorR = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+2];
 
-								outBuff[posBuff+(y+j)*winW+x+posTxtX+i] = RGB2INT( colorR,colorG,colorB );
+
+
+
+
+								currColor = RGB2INT( colorR,colorG,colorB );
+								readBkColor = CONDITION( bkColor==0, outBuff[posTemp], bkColor );
+								outBuff[posTemp] = GetTransitionColor( foColor&0x00FFFFFF, readBkColor&0x00FFFFFF, GetTransitionCoeff(FontID[fontID].color, FontID[fontID].bkColor, currColor) );
+
+
+
+
+
+
+								//outBuff[posTemp] = RGB2INT( colorR,colorG,colorB );
 								data = 1;
 						}
 						if(data > 0) data--;
@@ -4632,7 +4646,7 @@ int LCD_DisplayTxt(int fontID)
 		return 0;
 	}
 
-	return _DispTxt(0,fontID, pLcd, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"   SEX?", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,390, BLUE,ORANGE, 0,0, 0,0);
+	return _DispTxt(0,fontID, pLcd, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"   SEX?", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,390, BLUE,0/*ORANGE*/, 0,0, 0,0);
 }
 
 StructTxtPxlLen LCD_StrDependOnColors(int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth)
