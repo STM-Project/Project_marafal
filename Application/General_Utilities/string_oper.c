@@ -1,333 +1,116 @@
 /*
- * string_oper.c
+ * sd_card.c
  *
- *  Created on: 07.05.2021
- *      Author: RafalMar
+ *  Created on: 03.04.2021
+ *      Author: Elektronika RM
  */
-#include "stm32f7xx_hal.h"
-#include "string_oper.h"
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include "double_float.h"
-#include "common.h"
 
-#define SIZE_STRBUFF		200
-#define SIZE_STRBUFF_OUT	150
+#include "errors_service.h"
+#include "sd_card.h"
+#include "fatfs.h"
 
-static char strBuff[SIZE_STRBUFF]={0};
-static char strBuffOut[SIZE_STRBUFF_OUT]={0};
-static int idx=0;
+#define MAX_OPEN_FILE   10
 
-char* Int2Str(int value, char freeSign, int maxDigits, int plusMinus)
+static FIL myFile[MAX_OPEN_FILE];
+
+void SDCard_Init(void)
 {
-	int i=10,k=1,j,idx_copy;
-	int absolutValue;
-	char sign;
-
-	idx_copy=idx;
-
-	int _IsSign(void)
-	{
-		if(value<0)
-		{
-			switch(plusMinus)
-			{
-			case Sign_plusMinus:
-			case Sign_minus:
-				return 1;
-			}
-		}
-		else if(value>0)
-		{
-			switch(plusMinus)
-			{
-			case Sign_plusMinus:
-			case Sign_plus:
-				return 1;
-			}
-		}
-		return 0;
-	}
-
-	if(value<0){
-		absolutValue=-value;
-		sign='-';
-	}
-	else{
-		absolutValue=value;
-		sign='+';
-	}
-
-	while(1)
-	{
-		if(absolutValue<i)
-		{
-		   if(k<maxDigits)
-			{
-		   	if(idx+maxDigits >= SIZE_STRBUFF){
-		   		idx=0;
-		   		idx_copy=0;
-		   	}
-
-		   	if(Sign_none!=plusMinus)
-		   	{
-			   	if(Space==freeSign)
-			   		strBuff[idx++]=Space;
-			   	else
-			   	{
-			   		if(1==_IsSign())
-			   			strBuff[idx++]=sign;
-			   		else
-			   			strBuff[idx++]=Space;
-			   	}
-		   	}
-
-		   	if(None!=freeSign)
-		   	{
-			   	j=maxDigits-k;
-			   	memset(&strBuff[idx],freeSign,j);
-			   	idx+=j;
-		   	}
-
-		   	if(Space==freeSign)
-		   	{
-		   		if(1==_IsSign())
-		   			strBuff[idx-1]=sign;
-		   	}
-			}
-		   else
-		   {
-		   	if(idx+k >= SIZE_STRBUFF){
-		   		idx=0;
-		   		idx_copy=0;
-		   	}
-
-		   	if(Sign_none!=plusMinus)
-		   	{
-		   		if(1==_IsSign())
-		   			strBuff[idx++]=sign;
-		   		else
-		   			strBuff[idx++]=Space;
-		   	}
-		   }
-			itoa(absolutValue,&strBuff[idx],10);
-			idx+=k;
-			break;
-		}
-		else
-		{
-			i*=10;
-			k++;
-		}
-	}
-	strBuff[idx++]=0;
-	return strBuff+idx_copy;
+	FRESULT result=f_mount(&SDFatFS, (TCHAR const*) SDPath, 1);
+	if(FR_OK!=result)
+		ERROR_SDcardMount((int)result);
 }
 
-char* Float2Str(float value, char freeSign, int maxDigits, int plusMinus, int dec_digits)
+int SDCardFileOpen(uint8_t id, char *fileName, uint8_t accessMode)
 {
-	int i=10,k=1,j,idx_copy;
-	float absolutValue;
-	char sign;
-
-	idx_copy=idx;
-
-	int _IsSign(void)
-	{
-		if(value<0)
-		{
-			switch(plusMinus)
-			{
-			case Sign_plusMinus:
-			case Sign_minus:
-				return 1;
-			}
-		}
-		else if(value>0)
-		{
-			switch(plusMinus)
-			{
-			case Sign_plusMinus:
-			case Sign_plus:
-				return 1;
-			}
-		}
-		return 0;
-	}
-
-	if(value<0){
-		absolutValue=-value;
-		sign='-';
-	}
-	else{
-		absolutValue=value;
-		sign='+';
-	}
-
-	while(1)
-	{
-		if(absolutValue<i)
-		{
-		   if(k<maxDigits)
-			{
-		   	if(idx+maxDigits+dec_digits+1 >= SIZE_STRBUFF){
-		   		idx=0;
-		   		idx_copy=0;
-		   	}
-
-		   	if(Sign_none!=plusMinus)
-		   	{
-		   		if(Space==freeSign)
-			   		strBuff[idx++]=Space;
-			   	else
-			   	{
-			   		if(1==_IsSign())
-			   			strBuff[idx++]=sign;
-			   		else
-			   			strBuff[idx++]=Space;
-			   	}
-		   	}
-
-		   	if(None!=freeSign)
-		   	{
-			   	j=maxDigits-k;
-			   	memset(&strBuff[idx],freeSign,j);
-			   	idx+=j;
-		   	}
-
-		   	if(Space==freeSign)
-		   	{
-		   		if(1==_IsSign())
-		   			strBuff[idx-1]=sign;
-		   	}
-			}
-		   else
-		   {
-		   	if(idx+k+dec_digits+1 >= SIZE_STRBUFF){
-		   		idx=0;
-		   		idx_copy=0;
-		   	}
-
-		   	if(Sign_none!=plusMinus)
-		   	{
-		   		if(1==_IsSign())
-		   			strBuff[idx++]=sign;
-		   		else
-		   			strBuff[idx++]=Space;
-		   	}
-		   }
-			float2stri(&strBuff[idx], absolutValue,dec_digits);
-			idx+=k+dec_digits+1;
-			break;
-		}
-		else
-		{
-			i*=10;
-			k++;
-		}
-	}
-	strBuff[idx++]=0;
-	return strBuff+idx_copy;
+	FRESULT result=f_open(&myFile[id], fileName, accessMode);
+	if(FR_OK!=result)
+		ERROR_SDcardOpen((int)result);
+	return result;
 }
 
-char* StrAll(int nmbStr, ...)
+int SDCardFileRead(uint8_t id, char *buff, uint32_t size)
 {
-	int i,len,lenOut;
-	char *ptr;
-	va_list va;
+	int _result;
+	uint32_t bytesRead;
 
-	va_start(va,0);
-	strBuffOut[0]=0;
-
-	for(i=0;i<nmbStr;++i)
+	FRESULT result=f_read(&myFile[id], buff, size, (void *)&bytesRead);
+	if(FR_OK!=result)
 	{
-		ptr=va_arg(va,char*);
-		len=strlen(ptr);
-		lenOut=strlen(strBuffOut);
-
-		if(lenOut+len>=SIZE_STRBUFF_OUT){
-			strncat(strBuffOut,ptr,SIZE_STRBUFF_OUT-lenOut-1);
-			break;
-		}
-		else
-			strncat(strBuffOut,ptr,len);
+		ERROR_SDcardRead((int)result);
+		_result=result*(-1);
 	}
-
-	va_end(va);
-	return strBuffOut;
+	else
+		_result=bytesRead;
+	return _result;
 }
 
-void SwapUint16(uint16_t *a, uint16_t *b)
+int SDCardFileWrite(uint8_t id, char *buff, uint32_t size)
 {
-	uint16_t a_temp=*a;
-	uint16_t b_temp=*b;
-	*a=b_temp;
-	*b=a_temp;
+	int _result;
+	uint32_t bytesWritten;
+
+	FRESULT result=f_write(&myFile[id], buff, size, (void *)&bytesWritten);			/* buffer file write, physical file write (buffer to SD) only after f_close() */
+	/* f_sync(); */		/* physical file write */
+	if(FR_OK!=result)
+	{
+		ERROR_SDcardWrite((int)result);
+		_result=result*(-1);
+	}
+	else
+		_result=bytesWritten;
+	return _result;
 }
 
-int STRING_GetTheLongestTxt(int nmb, char **txt)
+int SDCardFileClose(uint8_t id)
 {
-	int maxLen=0, maxLen_temp=0, itMaxLen=0;
-
-	for(int i=0; i<nmb; ++i){
-		maxLen_temp = strlen(*txt++);
-		if(maxLen_temp > maxLen){
-			maxLen = maxLen_temp;
-			itMaxLen = i;
-		}
-	}
-	return itMaxLen;
+	FRESULT result=f_close(&myFile[id]);
+	if(FR_OK!=result)
+		ERROR_SDcardClose((int)result);
+	return result;
 }
 
-int STRING_CmpTxt(char* src, char* dst){
-	for(int i=0; i<strlen(dst); ++i){
-		if(src[i]!=dst[i])
-			return 0;
-	}
-	return 1;
+int SDCardFilePosition(uint8_t id, uint32_t offset)  // Warunek: wsk >= 4 !!!
+{//	while((wsk%4)!=0)  //wyr�wnanie do 4bajt�w dla odczytu SDRAM
+	//		wsk--;
+	FRESULT result=f_lseek(&myFile[id], offset);
+	if(FR_OK!=result)
+		ERROR_SDcardLseek((int)result);
+	return result;
 }
 
-char* DispLongNmb(uint32_t nmb, char* bufStr){
-	static char buf[30]={0};
-	char *ptr=NULL;
-	int i=0, n=0;
-	uint32_t nmb_ = nmb;
-	uint32_t nBillion  = nmb_/_BILLION;
-	uint32_t nMillion  = (nmb_ = CONDITION(nBillion, nmb_-nBillion *_BILLION, nmb_)) / _MILLION;
-	uint32_t nThousand = (nmb_ = CONDITION(nMillion, nmb_-nMillion *_MILLION, nmb_)) / _THOUSAND;
-	uint32_t nUnity 	 = (nmb_ = CONDITION(nThousand,nmb_-nThousand*_THOUSAND,nmb_));
+int SDCardOpenFileSize(uint8_t id)
+{
+	return f_size(&myFile[id]);			/* f_size(&MyFile[id]) only after f_open */
+}
 
-	buf[0]= None;
-	if(nBillion){
-		n = CONDITION(nBillion<10,1,CONDITION(IS_RANGE(nBillion,10,99),2,CONDITION(nBillion>99,3,0)));
-		ptr = Int2Str(nBillion,Space,n,Sign_none);
-		for(int j=0;j<n;++j) buf[i++]=*(ptr+j);
-		buf[i++] = Space;	}
+int SDCardFileInfo(char *name, uint32_t *fileSize)
+{
+	FILINFO plikInfo;
+	FRESULT result=f_stat(name, &plikInfo);
+	if(FR_OK!=result)
+		ERROR_SDcardInfo((int)result);
+	else
+		*fileSize=plikInfo.fsize;
+	return result;
+}
 
-	if(nBillion|nMillion){
-		if(nBillion) n=3;
-		else			 n= CONDITION(nMillion<10,1,CONDITION(IS_RANGE(nMillion,10,99),2,CONDITION(nMillion>99,3,0)));
-		ptr = Int2Str(nMillion,CONDITION(nBillion,Zero,Space),n,Sign_none);
-		for(int j=0;j<n;++j) buf[i++]=*(ptr+j);
-		buf[i++] = Space;	}
+int SDCard_FileReadClose(uint8_t id, char *fileName, char *pReadBuff, int maxSize)
+{
+	uint32_t len;
+	int result;
 
-	if(nBillion|nMillion|nThousand){
-		if(nBillion|nMillion) n=3;
-		else			 			 n= CONDITION(nThousand<10,1,CONDITION(IS_RANGE(nThousand,10,99),2,CONDITION(nThousand>99,3,0)));
-		ptr = Int2Str(nThousand,CONDITION(nBillion|nMillion,Zero,Space),n,Sign_none);
-		for(int j=0;j<n;++j) buf[i++]=*(ptr+j);
-		buf[i++] = Space;	}
+	result=SDCardFileOpen(0,fileName,FA_READ);
+	if(FR_OK!=result)
+		return result*(-1);
 
-	if(nBillion|nMillion|nThousand) n=3;
-	else			 			 			  n= CONDITION(nUnity<10,1,CONDITION(IS_RANGE(nUnity,10,99),2,CONDITION(nUnity>99,3,0)));
-	ptr = Int2Str(nUnity,CONDITION(nBillion|nMillion|nThousand,Zero,Space),n,Sign_none);
-	for(int j=0;j<n;++j) buf[i++]=*(ptr+j);
-	buf[i++]= None;
+	result=SDCardFileRead(0, pReadBuff, maxSize);
+	if(0>result)
+		return result;
+	len=result;
 
-	if(NULL != bufStr){
-		for(int j=0; j<strlen(buf)+1; ++j) *(bufStr+j)=buf[j];
-		return bufStr;
-	}
-	else return buf;
+	result=SDCardFileClose(0);
+	if(FR_OK!=result)
+		return result*(-1);
+
+   return len;
 }
