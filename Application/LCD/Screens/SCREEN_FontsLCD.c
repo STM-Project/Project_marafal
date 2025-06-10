@@ -2282,25 +2282,65 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 		///Zrobic test creat nwe plik.cff !!!!!!!!!!!
 		if(onlyOne==0){
 			onlyOne = 1;
-//			if( LCD_CreateFileCFFfromBMP(FONT_22_bold, Arial, DARKGRAY, MYGREEN, fontID_1) < 0)
-//			{
-//				_NOP;
-//			}
+
+
+
+
+			StartMeasureTime_us();  // z optyamlizacja fast i normalnie
+
+			if( LCD_CreateFileCFFfromBMP(FONT_18_bold, Arial, RGB_RGB) < 0)
+				_NOP;
+
+			SCREEN_ResetAllParameters();
+			LCD_TOUCH_DeleteAllSetTouch();
+			FONTS_LCD_ResetParam();
+
+			if( LCD_CreateFileCFFfromBMP(FONT_20_bold, Arial, RGB_RGB) < 0)
+				_NOP;
+
+			SCREEN_ResetAllParameters();
+			LCD_TOUCH_DeleteAllSetTouch();
+			FONTS_LCD_ResetParam();
+
+			if( LCD_CreateFileCFFfromBMP(FONT_22_bold, Arial, RGB_RGB) < 0)
+				_NOP;
+
+
+			SCREEN_ResetAllParameters();
+			LCD_TOUCH_DeleteAllSetTouch();
+			FONTS_LCD_ResetParam();
+
+			StopMeasureTime_us("Time CreateFileCFFfromBMP():");
+
+
+
+
 
 			LCD_Clear(v.COLOR_BkScreen);
 
+			SCREEN_ResetAllParameters();
+			LCD_TOUCH_DeleteAllSetTouch();
+			FONTS_LCD_ResetParam();
 
 
-
-			if( LCD_LoadFontFromFileCFF(FONT_22_bold, Arial, RED, BLUE, fontID_1) < 0)
-			{
+			if( LCD_LoadFontFromFileCFF(FONT_18_bold, Arial, RGB_RGB, fontID_1) < 0)
 				_NOP;
-			}
 
-			if( LCD_DisplayTxt(fontID_1) < 0)
-			{
+			if( LCD_LoadFontFromFileCFF(FONT_20_bold, Arial, RGB_RGB, fontID_2) < 0)
 				_NOP;
-			}
+
+			if( LCD_LoadFontFromFileCFF(FONT_22_bold, Arial, RGB_RGB, fontID_3) < 0)
+				_NOP;
+
+
+
+
+			if( LCD_DisplayTxt(0,fontID_1, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,210, 0,GREEN, 0,0, 0,0) < 0)
+				_NOP;
+			if( LCD_DisplayTxt(0,fontID_2, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,240, 0,DARKBLUE, 0,0, 0,0) < 0)
+				_NOP;
+			if( LCD_DisplayTxt(0,fontID_3, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,390, DARKYELLOW,WHITE, 0,0, 0,0) < 0)
+				_NOP;
 
 			SCREEN_ResetAllParameters();
 			LCD_TOUCH_DeleteAllSetTouch();
