@@ -160,10 +160,11 @@ static const char *TxtFontSize[]={
 
 static const char *TxtBMP = ".bmp";
 static const char *TxtCFF = ".cff";
-
+/*
 static uint32_t buffChangeColorIN[MAX_SIZE_CHANGECOLOR_BUFF]={0};
 static uint32_t buffChangeColorOUT[MAX_SIZE_CHANGECOLOR_BUFF]={0};
 static int idxChangeColorBuff=0;
+*/
 static int fontsTabPos_temp[MAX_CHARS][POSITION_AND_WIDTH];
 static StructTxtPxlLen StructTxtPxlLen_ZeroValue={0,0,0};
 
@@ -472,7 +473,7 @@ static void CorrectFloatRange(float *data, float rangeDown, float rangeUp)
 	else if(*data<rangeDown)
 		*data=rangeDown;
 }
-
+/*
 static void CalculateFontCoeff(uint32_t colorIn_1, uint32_t colorIn_2, uint32_t colorOut_1, uint32_t colorOut_2,uint8_t maxVal)
 {
 	uint32_t R,G,B;
@@ -544,7 +545,7 @@ static uint32_t GetCalculatedRGB(uint8_t red, uint8_t green, uint8_t blue)
    }
 	return temp;
 }
-
+*/
 static int LoadFontIndex(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor)
 {
     int i;
@@ -1662,11 +1663,11 @@ static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t wi
 	}
 	else LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,NewBkColor);
 
-	idxChangeColorBuff=0;
-   for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
-   	buffChangeColorIN[i]=0;
-   	buffChangeColorOUT[i]=0;
-   }
+//	idxChangeColorBuff=0;
+//   for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
+//   	buffChangeColorIN[i]=0;
+//   	buffChangeColorOUT[i]=0;
+//   }
 
 	for(n=0;n<lenTxt;++n)
 	{
@@ -1778,11 +1779,11 @@ static StructTxtPxlLen LCD_DrawStrChangeColorIndirectToBuffAndDisplay(uint32_t p
 	}
 	else LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,NewBkColor);
 
-	idxChangeColorBuff=0;
-   for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
-   	buffChangeColorIN[i]=0;
-   	buffChangeColorOUT[i]=0;
-   }
+//	idxChangeColorBuff=0;
+//   for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
+//   	buffChangeColorIN[i]=0;
+//   	buffChangeColorOUT[i]=0;
+//   }
 
 	for(n=0;n<lenTxt;++n)
 	{
@@ -2367,12 +2368,16 @@ int LCD_LoadFont(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t
 }
 
 int LCD_CreateFileCFFfromAllFilesBMP(void){
+	int res=0;
 	LOOP_INIT		(type,1, STRUCT_TAB_SIZE(TxtFontType) ){
 		LOOP_FOR		(style, 	STRUCT_TAB_SIZE(TxtFontStyle)){
 			LOOP_FOR	(size, 	STRUCT_TAB_SIZE(TxtFontSize) ){
-
-					if( 0 > LCD_CreateFileCFFfromBMP(size, style, type))
-						return -1;
+				LCD_DeleteAllFontAndImages();
+				if( 0 > (res=LCD_CreateFileCFFfromBMP(size, style, type))){
+					DbgVar(1,100,"\r\nERROR Creating File CFF result for type(%d) style(%d) size(%d): %d ", type,style,size, res);
+					return res;
+				}
+				else Dbg(1,".");
 	}}}
 	return 0;
 }
