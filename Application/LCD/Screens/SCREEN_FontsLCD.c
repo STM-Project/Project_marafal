@@ -2278,12 +2278,15 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
   //----------- TEST -----------------------------------------
 
-
+//zamow plytke z easterm 1.27 i tranzystoey RFdobre, pret ferrytowy mniejszy  rezonat 100MHz generatory....  pierscienie ferrytowe
+//zrob mahanie portami z maksymalna szybkoscia
 
 		if(onlyOne==0){
 			onlyOne = 1;
 
 			//LCD_CreateFileCFFfromAllFilesBMP();
+
+			LCD_CkeckAllFontFilesCFF();
 
 
 //			StartMeasureTime_us();  // z optyamlizacja fast i normalnie

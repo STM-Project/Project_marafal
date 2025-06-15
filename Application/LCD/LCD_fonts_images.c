@@ -1669,6 +1669,9 @@ static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t wi
 //   	buffChangeColorOUT[i]=0;
 //   }
 
+
+	//LCD_DisplayTxt(posBuff, id, txt, unUsed,unUsed,  windowX,windowY, X,Y, NewBkColor,NewFontColor, space,constWidth, OnlyDigits, unUsed);
+
 	for(n=0;n<lenTxt;++n)
 	{
 		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
@@ -2308,7 +2311,7 @@ int LCD_LoadFont(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t
 		return -7;
 }
 
-/* OPTIMIZE_FAST */ int LCD_CreateFileCFFfromBMP(int fontSize, int fontStyle, FONTS_TYPES fontColorType)
+int LCD_CreateFileCFFfromBMP(int fontSize, int fontStyle, FONTS_TYPES fontColorType)
 {
 	int fontID = 0;
 	int fontIndex=fontID,	_backgroundColor=0, _fontColor=0;
@@ -2382,7 +2385,50 @@ int LCD_CreateFileCFFfromAllFilesBMP(void){
 	return 0;
 }
 
-int LCD_LoadFontFromFileCFF(int fontSize, int fontStyle, FONTS_TYPES fontColorType, uint32_t fontID)
+int LCD_CkeckAllFontFilesCFF(void){
+	int res=0; 		u32 sizeOfAllFiles=0, maxSize=0, minSize=0xFFFFFFFF;		 char bufTemp[20],bufTemp2[20],bufTemp3[20];
+	LOOP_INIT		(type,1, STRUCT_TAB_SIZE(TxtFontType) ){
+		LOOP_FOR		(style, 	STRUCT_TAB_SIZE(TxtFontStyle)){
+			LOOP_FOR	(size, 	STRUCT_TAB_SIZE(TxtFontSize) ){
+				if( 0 > (res=LCD_GetSizeOfFontFileCFF(size, style,type))){
+					DbgVar(1,100,"\r\nERROR of file CFF:  type(%d) style(%d) size(%d) ", type,style,size);
+					return res;
+				}
+				else{	 sizeOfAllFiles+=res;		if(res>maxSize) maxSize=res;		if(res<minSize) minSize=res; 	Dbg(1,".");	 }
+	}}}
+	DbgVar(1,200,"\r\nAll of files CFF was checked,    size of all files: %s     min size:(%s)  max size(%s)", DispLongNmb(sizeOfAllFiles,bufTemp), DispLongNmb(minSize,bufTemp2), DispLongNmb(maxSize,bufTemp3));
+	return sizeOfAllFiles;
+}
+
+int LCD_GetSizeOfFontFileCFF(int fontSize, int fontStyle, FONTS_TYPES fontColorType)
+{
+	u32 fontFileSize=0;
+	int _backgroundColor=0, _fontColor=0;
+	char fileOpenName[100]="Fonts/";
+
+	switch((int)fontColorType){
+		case RGB_RGB:				_backgroundColor=0;	_fontColor=3;		break;
+		case Gray_Green:			_backgroundColor=0;	_fontColor=3;		break;
+		case RGB_White:			_backgroundColor=0;	_fontColor=0;		break;
+		case White_Black:			_backgroundColor=3;	_fontColor=4;		break;
+	}
+
+	strcat(fileOpenName,BkColorFontFilePath[_backgroundColor]);
+	strcat(fileOpenName,ColorFontFilePath[_fontColor]);
+	strcat(fileOpenName,StyleFontFilePath[fontStyle]);
+	strcat(fileOpenName,TxtFontSize[fontSize]);
+	strcat(fileOpenName,TxtCFF);
+
+	if(FR_OK!=SDCardFileInfo(fileOpenName,&fontFileSize))
+		return -3;
+
+	while((fontFileSize%4)!=0)
+		fontFileSize++;
+
+	return fontFileSize;
+}
+
+/* OPTIMIZE_FAST */ int LCD_LoadFontFromFileCFF(int fontSize, int fontStyle, FONTS_TYPES fontColorType, uint32_t fontID)
 {
 	int resultSearch, fontIndex;			u32 addrFont=0, fontFileSize;
 	int _backgroundColor=0, _fontColor=0;
@@ -4068,7 +4114,7 @@ int LCD_DisplayTxt(u32 posBuff, int fontID, char *pTxt, u16 winX,u16 winY, u16 w
 				{
 					if(data == 0)	data = _GetDataFromInput(pFileCFF,&posReadFileCFF,&type);
 
-					if(FontID[fontID].bkColor != bkColor && FontID[fontID].color == foColor	&& coeff != 0)
+					if(FontID[fontID].bkColor != bkColor && FontID[fontID].color == foColor	&& coeff != 0)			/*	only change bkColor */
 					{
 						switch((int)type){
 							case bk:
@@ -4096,7 +4142,7 @@ int LCD_DisplayTxt(u32 posBuff, int fontID, char *pTxt, u16 winX,u16 winY, u16 w
 								break;
 						}
 					}
-					else
+					else			/* change bkColor and fonrtColor */
 					{
 						switch((int)type){
 							case bk:	 if(bkColor!=0) outBuff[posTemp] = bkColor; /* Font[fontIndx].fontBkColorToIndex; */	break;
@@ -4121,7 +4167,7 @@ int LCD_DisplayTxt(u32 posBuff, int fontID, char *pTxt, u16 winX,u16 winY, u16 w
 					if(data > 0) data--;
 				}
 		}}
-		posTxtX += Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][1] + space;
+		posTxtX += Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][1] +  + RealizeSpaceCorrect(pTxt[h],fontID);
 	 }
 	return 0;
 }

@@ -213,10 +213,10 @@ void MEMEXAMPLE_MemoryFunc(void)
 	retFlag = SETVAL_array16(0, buff16, lenBuff);
 	retFlag = SETVAL_array32(0, buff32, lenBuff);
 
-	_USED(freeMemorySize);
-	_USED(retFlag);
-	_USED(pChar);
-	_USED(vChar);
+	_NOT_USED(freeMemorySize);
+	_NOT_USED(retFlag);
+	_NOT_USED(pChar);
+	_NOT_USED(vChar);
 }
 
 void DBGEXAMPLE_Graph(void)

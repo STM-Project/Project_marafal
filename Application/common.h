@@ -138,7 +138,7 @@ typedef uint8_t u8;
 #define TABU_2SPACE 		"	  "
 
 #define _DESCR(txt,var)		var
-#define _USED(var)	var=var
+#define _NOT_USED(var)	var=var
 
 #define OPTIMIZE_FAST	__attribute__ ((optimize("-Ofast")))
 #define OPTIMIZE_SIZE	__attribute__ ((optimize("-Os")))
