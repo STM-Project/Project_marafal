@@ -1873,6 +1873,31 @@ static void LoadFonts(int startFontID, int endFontID){
 			j++;
 		}
 
+
+
+
+
+
+		j=0;
+		for(int i=startFontID; i<=endFontID; ++i){
+
+			if		 (A(j+3*d)==MYGRAY && A(j+2*d) == WHITE)
+			/*	*((int*)((int*)(&v)+i)) = */LCD_LoadFontFromFileCFF(A(j),A(j+d), 	RGB_White, 		fontID_17 + 1 + FILE_NAME(GetDefaultParam)(i));
+			else if(A(j+3*d)==MYGRAY  && A(j+2*d) == MYGREEN)
+				/*		*((int*)((int*)(&v)+i)) = */LCD_LoadFontFromFileCFF(A(j),A(j+d), 	Gray_Green, 	fontID_17 + 1 + FILE_NAME(GetDefaultParam)(i));
+			else if(A(j+3*d)==WHITE  && A(j+2*d) == BLACK)
+				/*		*((int*)((int*)(&v)+i)) = */LCD_LoadFontFromFileCFF(A(j),A(j+d), 	White_Black, 	fontID_17 + 1 + FILE_NAME(GetDefaultParam)(i));
+			else
+				/*		*((int*)((int*)(&v)+i)) = */LCD_LoadFontFromFileCFF(A(j),A(j+d), 	Gray_Green, 	fontID_17 + 1 + FILE_NAME(GetDefaultParam)(i));
+			j++;
+		}
+
+
+
+
+
+
+
 		GiveMutex(Semphr_cardSD);
 		#undef OMITTED_FONTS
 		#undef A
@@ -2283,84 +2308,83 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 		if(onlyOne==0){
 			onlyOne = 1;
-
-			//LCD_CreateFileCFFfromAllFilesBMP();
-
-			LCD_CkeckAllFontFilesCFF();
-
-
-//			StartMeasureTime_us();  // z optyamlizacja fast i normalnie
 //
-			if( LCD_CreateFileCFFfromBMP(FONT_18_bold, Arial, RGB_RGB) < 0)
-				_NOP;
-
-			SCREEN_ResetAllParameters();
-			LCD_TOUCH_DeleteAllSetTouch();
-			FONTS_LCD_ResetParam();
-
-			if( LCD_CreateFileCFFfromBMP(FONT_20_bold, Arial, RGB_RGB) < 0)
-				_NOP;
-
-			SCREEN_ResetAllParameters();
-			LCD_TOUCH_DeleteAllSetTouch();
-			FONTS_LCD_ResetParam();
-
-			if( LCD_CreateFileCFFfromBMP(FONT_22_bold, Arial, RGB_RGB) < 0)
-				_NOP;
-
-
-			SCREEN_ResetAllParameters();
-			LCD_TOUCH_DeleteAllSetTouch();
-			FONTS_LCD_ResetParam();
+//		/*	LCD_CreateFileCFFfromAllFilesBMP(); */
+//		/*	LCD_CkeckAllFontFilesCFF(); 			*/
 //
-//			StopMeasureTime_us("Time CreateFileCFFfromBMP():");
-
-
-
-
-
-			LCD_Clear(v.COLOR_BkScreen);
-
-			SCREEN_ResetAllParameters();
-			LCD_TOUCH_DeleteAllSetTouch();
-			FONTS_LCD_ResetParam();
-
-
-			if( LCD_LoadFontFromFileCFF(FONT_24, Times_New_Roman, RGB_RGB, fontID_1) < 0)
-				_NOP;
-
-			if( LCD_LoadFontFromFileCFF(FONT_20, Arial, RGB_White, fontID_2) < 0)
-				_NOP;
-
-			if( LCD_LoadFontFromFileCFF(FONT_26_bold, Arial, White_Black, fontID_3) < 0)
-				_NOP;
-
-
-
-
-			if( LCD_DisplayTxt(0,fontID_1, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,210, 0x606060,YELLOW, 0,0, 0,0) < 0)
-				_NOP;
-			if( LCD_DisplayTxt(0,fontID_1, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,240, 0xFF222222,MYGREEN, 0,0, 0,-10) < 0)
-				_NOP;
-
-
-			if( LCD_DisplayTxt(0,fontID_2, "+123956 Rafa"ł" Markielowski", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,280, RED,BLUE, 0,0, 0,0) < 0)
-				_NOP;
-			if( LCD_DisplayTxt(0,fontID_2, "+123956 Rafa"ł" Markielowski", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,320, 0xFF00FF40,WHITE, 0,0, 0, -20) < 0)  //sac ze jezeli orignal np DARKGRAY, WHITE to nic nie zmieniaj !!!
-				_NOP;
-
-
-			if( LCD_DisplayTxt(0,fontID_3, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,360, RED,BLUE, 0,0, 0,0) < 0)
-				_NOP;
-			if( LCD_DisplayTxt(0,fontID_3, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,400, RED,BLACK, 0,0, 0, 1) < 0)
-				_NOP;
-
-
-
-
-			SCREEN_ResetAllParameters();
-			LCD_TOUCH_DeleteAllSetTouch();
-			FONTS_LCD_ResetParam();
+//
+////			StartMeasureTime_us();  // z optyamlizacja fast i normalnie
+////
+//			if( LCD_CreateFileCFFfromBMP(FONT_18_bold, Arial, RGB_RGB) < 0)
+//				_NOP;
+//
+//			SCREEN_ResetAllParameters();
+//			LCD_TOUCH_DeleteAllSetTouch();
+//			FONTS_LCD_ResetParam();
+//
+//			if( LCD_CreateFileCFFfromBMP(FONT_20_bold, Arial, RGB_RGB) < 0)
+//				_NOP;
+//
+//			SCREEN_ResetAllParameters();
+//			LCD_TOUCH_DeleteAllSetTouch();
+//			FONTS_LCD_ResetParam();
+//
+//			if( LCD_CreateFileCFFfromBMP(FONT_22_bold, Arial, RGB_RGB) < 0)
+//				_NOP;
+//
+//
+//			SCREEN_ResetAllParameters();
+//			LCD_TOUCH_DeleteAllSetTouch();
+//			FONTS_LCD_ResetParam();
+////
+////			StopMeasureTime_us("Time CreateFileCFFfromBMP():");
+//
+//
+//
+//
+//
+//			LCD_Clear(v.COLOR_BkScreen);
+//
+//			SCREEN_ResetAllParameters();
+//			LCD_TOUCH_DeleteAllSetTouch();
+//			FONTS_LCD_ResetParam();
+//
+//
+//			if( LCD_LoadFontFromFileCFF(FONT_24, Times_New_Roman, RGB_RGB, fontID_1) < 0)
+//				_NOP;
+//
+//			if( LCD_LoadFontFromFileCFF(FONT_20, Arial, RGB_White, fontID_2) < 0)
+//				_NOP;
+//
+//			if( LCD_LoadFontFromFileCFF(FONT_26_bold, Arial, White_Black, fontID_3) < 0)
+//				_NOP;
+//
+//
+//
+//
+//			if( LCD_DisplayTxt(0,fontID_1, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,210, 0x606060,YELLOW, 0,0, 0,0) < 0)
+//				_NOP;
+//			if( LCD_DisplayTxt(0,fontID_1, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,240, 0xFF222222,MYGREEN, 0,0, 0,-10) < 0)
+//				_NOP;
+//
+//
+//			if( LCD_DisplayTxt(0,fontID_2, "+123956 Rafa"ł" Markielowski", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,280, RED,BLUE, 0,0, 0,0) < 0)
+//				_NOP;
+//			if( LCD_DisplayTxt(0,fontID_2, "+123956 Rafa"ł" Markielowski", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,320, 0xFF00FF40,WHITE, 0,0, 0, -20) < 0)  //sac ze jezeli orignal np DARKGRAY, WHITE to nic nie zmieniaj !!!
+//				_NOP;
+//
+//
+//			if( LCD_DisplayTxt(0,fontID_3, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,360, RED,BLUE, 0,0, 0,0) < 0)
+//				_NOP;
+//			if( LCD_DisplayTxt(0,fontID_3, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,400, RED,BLACK, 0,0, 0, 1) < 0)
+//				_NOP;
+//
+//
+//
+//
+//			SCREEN_ResetAllParameters();
+//			LCD_TOUCH_DeleteAllSetTouch();
+//			FONTS_LCD_ResetParam();
 
 		}
 
