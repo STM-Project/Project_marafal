@@ -4052,6 +4052,12 @@ int LCD_DisplayTxt(u32 posBuff, int fontID, char *pTxt, u16 winX,u16 winY, u16 w
 		return retVal;
 	}
 
+
+
+	posTemp = posBuff+(y+0)*winW+x+posTxtX+0;
+	LCD_RectangleBuff(pLcd+posTemp,posBuff,   winW,winH,   0,0,   500, Font[fontIndx].height,   bkColor,bkColor,bkColor);
+
+
 	LOOP_INIT(h,0,len){		posReadFileCFF = Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][0];		data=0;
 		LOOP_FOR(i, Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][1]){
 			LOOP_FOR(j, Font[fontIndx].heightFile){
@@ -4069,11 +4075,13 @@ int LCD_DisplayTxt(u32 posBuff, int fontID, char *pTxt, u16 winX,u16 winY, u16 w
 								break;
 							case fo:
 							case AA:
-								colorB = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+0];
-								colorG = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+1];
-								colorR = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+2];
-
-								outBuff[posTemp] = RGB2INT( colorR,colorG,colorB );
+								if(AA==type){
+									colorB = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+0];
+									colorG = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+1];
+									colorR = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+2];
+									outBuff[posTemp] = RGB2INT( colorR,colorG,colorB );
+								}
+								else outBuff[posTemp] = foColor;
 								Y_bkColor= COLOR_TO_Y(bkColor)+coeff;
 
 								if(coeff>0){
@@ -4084,7 +4092,8 @@ int LCD_DisplayTxt(u32 posBuff, int fontID, char *pTxt, u16 winX,u16 winY, u16 w
 									if(COLOR_TO_Y( outBuff[posTemp] ) > Y_bkColor)
 										outBuff[posTemp]= bkColor;
 								}
-								data = 1;
+								if(AA==type) data = 1;
+								break;
 						}
 					}
 					else
@@ -4106,6 +4115,7 @@ int LCD_DisplayTxt(u32 posBuff, int fontID, char *pTxt, u16 winX,u16 winY, u16 w
 									outBuff[posTemp] = GetTransitionColor( foColor&0x00FFFFFF, readBkColor&0x00FFFFFF, GetTransitionCoeff(FontID[fontID].color, FontID[fontID].bkColor, currColor) );
 								}
 								data = 1;
+								break;
 						}
 					}
 					if(data > 0) data--;

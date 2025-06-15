@@ -49,7 +49,8 @@ int SDCardFileWrite(uint8_t id, char *buff, uint32_t size)
 	int _result;
 	uint32_t bytesWritten;
 
-	FRESULT result=f_write(&myFile[id], buff, size, (void *)&bytesWritten);
+	FRESULT result=f_write(&myFile[id], buff, size, (void *)&bytesWritten);			/* buffer file write, physical file write (buffer to SD) only after f_close() */
+	/* f_sync(); */		/* physical file write */
 	if(FR_OK!=result)
 	{
 		ERROR_SDcardWrite((int)result);
