@@ -19,7 +19,7 @@
 #define MAX_FONTS_AND_IMAGES_MEMORY_SIZE	0x600000
 #define LCD_MOVABLE_FONTS_BUFF_SIZE		LCD_BUFF_XSIZE * LCD_BUFF_YSIZE
 
-#define MAX_OPEN_FONTS_SIMULTANEOUSLY	 17 + 17
+#define MAX_OPEN_FONTS_SIMULTANEOUSLY	 17 + 17			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #define MAX_CHARS		256
 #define POSITION_AND_WIDTH		2
 
@@ -2435,6 +2435,13 @@ int LCD_GetSizeOfFontFileCFF(int fontSize, int fontStyle, FONTS_TYPES fontColorT
 	int  backgroundColor=0,  fontColor=0;
 	char fileOpenName[100]="Fonts/";
 
+	switch((int)fontColorType){
+		case RGB_RGB:				backgroundColor = DARKGRAY, fontColor = MYGREEN, 	_backgroundColor=0;	_fontColor=3;		break;
+		case Gray_Green:			backgroundColor = DARKGRAY, fontColor = MYGREEN, 	_backgroundColor=0;	_fontColor=3;		break;
+		case RGB_White:			backgroundColor = DARKGRAY, fontColor = WHITE, 		_backgroundColor=0;	_fontColor=0;		break;
+		case White_Black:			backgroundColor = WHITE, 	 fontColor = BLACK, 		_backgroundColor=3;	_fontColor=4;		break;
+	}
+
 	resultSearch=SearchFontIndex(fontSize,fontStyle,backgroundColor,fontColor);
 	if(-1!=resultSearch)
 		return LCD_GetFontID(fontSize,fontStyle,backgroundColor,fontColor);
@@ -2442,13 +2449,6 @@ int LCD_GetSizeOfFontFileCFF(int fontSize, int fontStyle, FONTS_TYPES fontColorT
 	fontIndex=LoadFontIndex(fontSize,fontStyle,backgroundColor,fontColor);
 	if(-1==fontIndex)
 		return -2;
-
-	switch((int)fontColorType){
-		case RGB_RGB:				backgroundColor = DARKGRAY, fontColor = MYGREEN, 	_backgroundColor=0;	_fontColor=3;		break;
-		case Gray_Green:			backgroundColor = DARKGRAY, fontColor = MYGREEN, 	_backgroundColor=0;	_fontColor=3;		break;
-		case RGB_White:			backgroundColor = DARKGRAY, fontColor = WHITE, 		_backgroundColor=0;	_fontColor=0;		break;
-		case White_Black:			backgroundColor = WHITE, 	 fontColor = BLACK, 		_backgroundColor=3;	_fontColor=4;		break;
-	}
 
 	strcat(fileOpenName,BkColorFontFilePath[_backgroundColor]);
 	strcat(fileOpenName,ColorFontFilePath[_fontColor]);
@@ -2490,12 +2490,15 @@ int LCD_GetSizeOfFontFileCFF(int fontSize, int fontStyle, FONTS_TYPES fontColorT
 }
 
 int LCD_LoadFont_WhiteBlack(int fontSize, int fontStyle, uint32_t fontID){
+	LCD_LoadFontFromFileCFF(FONT_8, fontStyle, White_Black, fontID_17+fontID);
 	return LCD_LoadFont(fontSize,fontStyle,WHITE,BLACK,fontID);
 }
 int LCD_LoadFont_DarkgrayGreen(int fontSize, int fontStyle, uint32_t fontID){
+	LCD_LoadFontFromFileCFF(FONT_8, fontStyle, Gray_Green, fontID_17+fontID);
 	return LCD_LoadFont(fontSize,fontStyle,DARKGRAY,MYGREEN,fontID);
 }
 int LCD_LoadFont_DarkgrayWhite(int fontSize, int fontStyle, uint32_t fontID){
+	LCD_LoadFontFromFileCFF(FONT_8, fontStyle, RGB_White, fontID_17+fontID);
 	return LCD_LoadFont(fontSize,fontStyle,DARKGRAY,WHITE,fontID);
 }
 int LCD_LoadFont_ChangeColor(int fontSize, int fontStyle, uint32_t fontID){
@@ -4100,8 +4103,8 @@ int LCD_DisplayTxt(u32 posBuff, int fontID, char *pTxt, u16 winX,u16 winY, u16 w
 
 
 
-	posTemp = posBuff+(y+0)*winW+x+posTxtX+0;
-	LCD_RectangleBuff(pLcd+posTemp,posBuff,   winW,winH,   0,0,   500, Font[fontIndx].height,   bkColor,bkColor,bkColor);
+//	posTemp = posBuff+(y+0)*winW+x+posTxtX+0;
+//	LCD_RectangleBuff(pLcd+posTemp,posBuff,   winW,winH,   0,0,   500, Font[fontIndx].height,   bkColor,bkColor,bkColor);
 
 
 	LOOP_INIT(h,0,len){		posReadFileCFF = Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][0];		data=0;

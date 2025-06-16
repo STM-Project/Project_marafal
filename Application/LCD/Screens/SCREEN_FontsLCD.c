@@ -1873,31 +1873,6 @@ static void LoadFonts(int startFontID, int endFontID){
 			j++;
 		}
 
-
-
-
-
-
-		j=0;
-		for(int i=startFontID; i<=endFontID; ++i){
-
-			if		 (A(j+3*d)==MYGRAY && A(j+2*d) == WHITE)
-			/*	*((int*)((int*)(&v)+i)) = */LCD_LoadFontFromFileCFF(A(j),A(j+d), 	RGB_White, 		fontID_17 + 1 + FILE_NAME(GetDefaultParam)(i));
-			else if(A(j+3*d)==MYGRAY  && A(j+2*d) == MYGREEN)
-				/*		*((int*)((int*)(&v)+i)) = */LCD_LoadFontFromFileCFF(A(j),A(j+d), 	Gray_Green, 	fontID_17 + 1 + FILE_NAME(GetDefaultParam)(i));
-			else if(A(j+3*d)==WHITE  && A(j+2*d) == BLACK)
-				/*		*((int*)((int*)(&v)+i)) = */LCD_LoadFontFromFileCFF(A(j),A(j+d), 	White_Black, 	fontID_17 + 1 + FILE_NAME(GetDefaultParam)(i));
-			else
-				/*		*((int*)((int*)(&v)+i)) = */LCD_LoadFontFromFileCFF(A(j),A(j+d), 	Gray_Green, 	fontID_17 + 1 + FILE_NAME(GetDefaultParam)(i));
-			j++;
-		}
-
-
-
-
-
-
-
 		GiveMutex(Semphr_cardSD);
 		#undef OMITTED_FONTS
 		#undef A
