@@ -2337,22 +2337,24 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 //
 //
 //
-//			if( LCD_DisplayTxt(0,fontID_1, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,210, 0x606060,YELLOW, 0,0, 0,0) < 0)
-//				_NOP;
-//			if( LCD_DisplayTxt(0,fontID_1, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,240, 0xFF222222,MYGREEN, 0,0, 0,-10) < 0)
-//				_NOP;
+//			LCD_DisplayTxt(0,0,fontID_1, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,210, 0x606060,YELLOW, 0,0, 0,0);
+//
+//			LCD_DisplayTxt(0,0,fontID_1, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,240, 0xFF222222,MYGREEN, 0,0, 0,-10);
 //
 //
-//			if( LCD_DisplayTxt(0,fontID_2, "+123956 Rafa"ł" Markielowski", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,280, RED,BLUE, 0,0, 0,0) < 0)
-//				_NOP;
-//			if( LCD_DisplayTxt(0,fontID_2, "+123956 Rafa"ł" Markielowski", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,320, 0xFF00FF40,WHITE, 0,0, 0, -20) < 0)  //sac ze jezeli orignal np DARKGRAY, WHITE to nic nie zmieniaj !!!
-//				_NOP;
+//
+//			LCD_DisplayTxt(0,0,fontID_2, "+123956 Rafa"ł" Markielowski", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,280, RED,BLUE, 0,0, 0,0);;
+//
+//			LCD_DisplayTxt(0,0,fontID_2, "+123956 Rafa"ł" Markielowski", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,320, 0xFF00FF40,WHITE, 0,0, 0, -20);  //sac ze jezeli orignal np DARKGRAY, WHITE to nic nie zmieniaj !!!
 //
 //
-//			if( LCD_DisplayTxt(0,fontID_3, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,360, RED,BLUE, 0,0, 0,0) < 0)
-//				_NOP;
-//			if( LCD_DisplayTxt(0,fontID_3, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,400, RED,BLACK, 0,0, 0, 1) < 0)
-//				_NOP;
+//
+//			LCD_DisplayTxt(0,0,fontID_3, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,360, RED,BLUE, 0,0, 0,0);
+//
+//			LCD_DisplayTxt(0,0,fontID_3, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,400, RED,BLACK, 0,0, 0, 1);
+//
+//
+//			LCD_Show(); while(1);
 //
 //
 //
@@ -2373,6 +2375,21 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 		LoadFonts(FONT_ID_Title, FONT_ID_Press);
 		LCD_LoadFontVar();
+
+
+
+
+
+		StructTxtPxlLen sssss = LCD_DisplayTxt(0,0,fontID_1, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,10, 0xFF606060,YELLOW, 0,0, halfHight,0);
+		LCD_DisplayTxt(0,0,fontID_2, "11 Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,60, 0xFF606060,YELLOW, 0,0, halfHight,0);
+		LCD_DisplayTxt(0,0,fontID_9, "22 Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,120, 0xFF606060,YELLOW, 0,0, halfHight,0);
+		LCD_DisplayTxt(0,0,fontID_14, "33 Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,200, 0xFF606060,YELLOW, 0,0, halfHight,0);
+		LCD_DisplayTxt(0,0,fontID_16, "55 Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,300, 0xFF606060,YELLOW, 0,0, halfHight,0);
+
+		LCD_Show(); while(1);
+
+
+
 
 		LCDTOUCH_Set(LCD_X-FV(SetVal,0,LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,SL(LANG_MainFrameType),0,NoConstWidth)+5), \
 						 LCD_Y-FV(SetVal,1,LCD_GetFontHeight(v.FONT_ID_Descr)+5), \
