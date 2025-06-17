@@ -19,7 +19,7 @@
 #define MAX_FONTS_AND_IMAGES_MEMORY_SIZE	0x600000
 #define LCD_MOVABLE_FONTS_BUFF_SIZE		LCD_BUFF_XSIZE * LCD_BUFF_YSIZE
 
-#define MAX_OPEN_FONTS_SIMULTANEOUSLY	 17 + 17			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#define MAX_OPEN_FONTS_SIMULTANEOUSLY	 17
 #define MAX_CHARS		256
 #define POSITION_AND_WIDTH		2
 
@@ -1351,486 +1351,495 @@ static void LCD_RoundRectangleBuff(uint32_t *buff, uint32_t posBuff, uint32_t Bk
 
 static StructTxtPxlLen LCD_DrawStrToBuff(uint32_t posBuff,uint32_t windowX,uint32_t windowY,int id, int X, int Y_, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth)
 {
-	StructTxtPxlLen structTemp={0,0,0};
-	int idVar = id>>16;
-	id=id&0x0000FFFF;
-	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
-	if(fontIndex==-1)
-		return structTemp;
-	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
-	int i,j,n,o,temp,lenTxt,lenTxtInPixel=0;
-	int posX=X, posY=Y_&0xFFFF, Y=Y_&0xFFFF;
-	char *pbmp;
-	uint32_t index=0, width=0, height=0, bit_pixel=0;
-	uint32_t backGround;
-	uint32_t pos, pos2, xi;
-	uint32_t Y_bkColor;
+	return LCD_DisplayTxt(posBuff,0, id, txt, 0,0, windowX,windowY, X,Y_, bkColor, FontID[id>>16].color, space,constWidth, OnlyDigits, coeff);
 
-	if(constWidth)
-		LCD_Set_ConstWidthFonts(fontIndex);
-
-	/* Get bitmap data address offset */
-	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
-	/* Read bitmap width */
-	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
-	/* Read bitmap height */
-	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
-	/* Read bit/pixel */
-	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
-	bit_pixel/=8;
-
-	fontsBuffer += (index + (width * height * bit_pixel));
-	fontsBuffer -= width*bit_pixel;
-
-	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];
-
-	if(OnlyDigits==halfHight)
-		height=Font[fontIndex].heightHalf;
-
-	if(0==(Y_>>16)) j=strlen(txt);
-	else				 j=Y_>>16;
-
-	for(i=0;i<j;i++)
-	{
-		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
-		if(posX+lenTxtInPixel+temp <= windowX)
-			lenTxtInPixel += temp;
-		else break;
-	}
-	lenTxt=i;
-
-	if(bkColor)
-	{
-		if(id==LCD_GetStrVar_fontID(idVar))
-		{
-			switch(LCD_GetStrVar_bkRoundRect(idVar))
-			{
-			case BK_Rectangle:
-				LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,bkColor);
-				break;
-			case BK_Round:
-				LCD_RoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
-				break;
-			case BK_LittleRound:
-				LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
-				break;
-			case BK_None:
-				break;
-			}
-		}
-		else LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,bkColor);
-
-		Y_bkColor= COLOR_TO_Y(bkColor)+coeff;
-	}
-
-	for(n=0;n<lenTxt;++n)
-	{
-		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
-		pos2= posBuff+(windowX*posY + posX);
-		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
-
-		for(j=0; j < height; ++j)
-		{
-			if(Y+j>=windowY)
-				break;
-			pos=pos2+windowX*j;
-			o=0;
-			for(i=0; i<xi; ++i)
-			{
-				if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
-				{
-					LcdBuffer[pos+i]= *((uint32_t*)(pbmp+o));
-
-					if(coeff!=0)
-					{
-						if(coeff>0)
-						{
-							if(COLOR_TO_Y(LcdBuffer[pos+i]) < Y_bkColor)
-								LcdBuffer[pos+i]= bkColor;
-						}
-						else
-						{
-							if(COLOR_TO_Y(LcdBuffer[pos+i]) > Y_bkColor)
-								LcdBuffer[pos+i]= bkColor;
-						}
-					}
-				}
-				o+=3;
-			}
-			pbmp -= width*bit_pixel;
-		}
-		posX += xi;
-		posX += space + RealizeSpaceCorrect(txt+n,id);
-	}
-
-	if(constWidth)
-		LCD_Reset_ConstWidthFonts(fontIndex);
-
-	structTemp.inChar=lenTxt;
-	structTemp.inPixel=lenTxtInPixel;
-	structTemp.height=j;
-	return structTemp;
+//	StructTxtPxlLen structTemp={0,0,0};
+//	int idVar = id>>16;
+//	id=id&0x0000FFFF;
+//	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
+//	if(fontIndex==-1)
+//		return structTemp;
+//	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
+//	int i,j,n,o,temp,lenTxt,lenTxtInPixel=0;
+//	int posX=X, posY=Y_&0xFFFF, Y=Y_&0xFFFF;
+//	char *pbmp;
+//	uint32_t index=0, width=0, height=0, bit_pixel=0;
+//	uint32_t backGround;
+//	uint32_t pos, pos2, xi;
+//	uint32_t Y_bkColor;
+//
+//	if(constWidth)
+//		LCD_Set_ConstWidthFonts(fontIndex);
+//
+//	/* Get bitmap data address offset */
+//	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
+//	/* Read bitmap width */
+//	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
+//	/* Read bitmap height */
+//	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
+//	/* Read bit/pixel */
+//	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
+//	bit_pixel/=8;
+//
+//	fontsBuffer += (index + (width * height * bit_pixel));
+//	fontsBuffer -= width*bit_pixel;
+//
+//	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];
+//
+//	if(OnlyDigits==halfHight)
+//		height=Font[fontIndex].heightHalf;
+//
+//	if(0==(Y_>>16)) j=strlen(txt);
+//	else				 j=Y_>>16;
+//
+//	for(i=0;i<j;i++)
+//	{
+//		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
+//		if(posX+lenTxtInPixel+temp <= windowX)
+//			lenTxtInPixel += temp;
+//		else break;
+//	}
+//	lenTxt=i;
+//
+//	if(bkColor)
+//	{
+//		if(id==LCD_GetStrVar_fontID(idVar))
+//		{
+//			switch(LCD_GetStrVar_bkRoundRect(idVar))
+//			{
+//			case BK_Rectangle:
+//				LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,bkColor);
+//				break;
+//			case BK_Round:
+//				LCD_RoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+//				break;
+//			case BK_LittleRound:
+//				LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+//				break;
+//			case BK_None:
+//				break;
+//			}
+//		}
+//		else LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel, Y+height>windowY?windowY-Y:height, bkColor,bkColor,bkColor);
+//
+//		Y_bkColor= COLOR_TO_Y(bkColor)+coeff;
+//	}
+//
+//	for(n=0;n<lenTxt;++n)
+//	{
+//		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
+//		pos2= posBuff+(windowX*posY + posX);
+//		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
+//
+//		for(j=0; j < height; ++j)
+//		{
+//			if(Y+j>=windowY)
+//				break;
+//			pos=pos2+windowX*j;
+//			o=0;
+//			for(i=0; i<xi; ++i)
+//			{
+//				if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
+//				{
+//					LcdBuffer[pos+i]= *((uint32_t*)(pbmp+o));
+//
+//					if(coeff!=0)
+//					{
+//						if(coeff>0)
+//						{
+//							if(COLOR_TO_Y(LcdBuffer[pos+i]) < Y_bkColor)
+//								LcdBuffer[pos+i]= bkColor;
+//						}
+//						else
+//						{
+//							if(COLOR_TO_Y(LcdBuffer[pos+i]) > Y_bkColor)
+//								LcdBuffer[pos+i]= bkColor;
+//						}
+//					}
+//				}
+//				o+=3;
+//			}
+//			pbmp -= width*bit_pixel;
+//		}
+//		posX += xi;
+//		posX += space + RealizeSpaceCorrect(txt+n,id);
+//	}
+//
+//	if(constWidth)
+//		LCD_Reset_ConstWidthFonts(fontIndex);
+//
+//	structTemp.inChar=lenTxt;
+//	structTemp.inPixel=lenTxtInPixel;
+//	structTemp.height=j;
+//	return structTemp;
 }
 
 static StructTxtPxlLen LCD_DrawStrIndirectToBuffAndDisplay(uint32_t posBuff, int displayOn, uint32_t maxSizeX, uint32_t maxSizeY, int id, int X, int Y, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth)
 {
-	StructTxtPxlLen structTemp={0,0,0};
-	int idVar = id>>16;
-	id=id&0x0000FFFF;
-	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
-	if(fontIndex==-1)
-		return structTemp;
-	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
-	int i,j,n,o,lenTxt,temp,lenTxtInPixel=0;
-	int posX=0;
-	char *pbmp;
-	uint32_t index=0, width=0, height=0, bit_pixel=0;
-	uint32_t backGround;
-	uint32_t pos, pos2, xi;
-	uint32_t Y_bkColor;
+	return LCD_DisplayTxt(posBuff,displayOn, id, txt, 0,0, maxSizeX,maxSizeY, X,Y, bkColor, FontID[id>>16].color, space,constWidth, OnlyDigits, coeff);
 
-	if(constWidth)
-		LCD_Set_ConstWidthFonts(fontIndex);
-
-	/* Get bitmap data address offset */
-	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
-	/* Read bitmap width */
-	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
-	/* Read bitmap height */
-	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
-	/* Read bit/pixel */
-	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
-	bit_pixel/=8;
-
-	fontsBuffer += (index + (width * height * bit_pixel));
-	fontsBuffer -= width*bit_pixel;
-
-	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];
-
-	if(OnlyDigits==halfHight)
-		height=Font[fontIndex].heightHalf;
-
-	j=strlen(txt);
-	for(i=0;i<j;i++)
-	{
-		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
-		if(X+lenTxtInPixel+temp <= maxSizeX)
-			lenTxtInPixel += temp;
-		else break;
-	}
-	lenTxt=i;
-
-	if(bkColor)
-	{
-		if(id==LCD_GetStrVar_fontID(idVar))
-		{
-			switch(LCD_GetStrVar_bkRoundRect(idVar))
-			{
-			case BK_Rectangle:
-				LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,bkColor);
-				break;
-			case BK_Round:
-				LCD_RoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
-				break;
-			case BK_LittleRound:
-				LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
-				break;
-			case BK_None:
-				break;
-			}
-		}
-		else LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,bkColor);
-
-		Y_bkColor= COLOR_TO_Y(bkColor)+coeff;
-	}
-
-	for(n=0;n<lenTxt;++n)
-	{
-		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
-		pos2= posBuff+posX;
-		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
-
-		for(j=0; j < height; ++j)
-		{
-			if(Y+j>=maxSizeY)
-				break;
-			pos=pos2+lenTxtInPixel*j;
-			o=0;
-			for(i=0; i<xi; ++i)
-			{
-				if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
-				{
-					LcdBuffer[pos+i]= *((uint32_t*)(pbmp+o));
-
-					if(coeff!=0)
-					{
-						if(coeff>0)
-						{
-							if(COLOR_TO_Y(LcdBuffer[pos+i]) < Y_bkColor)
-								LcdBuffer[pos+i]= bkColor;
-						}
-						else
-						{
-							if(COLOR_TO_Y(LcdBuffer[pos+i]) > Y_bkColor)
-								LcdBuffer[pos+i]= bkColor;
-						}
-					}
-				}
-				o+=3;
-			}
-			pbmp -= width*bit_pixel;
-		}
-		posX += xi;
-		posX += space + RealizeSpaceCorrect(txt+n,id);
-	}
-
-	if(constWidth)
-		LCD_Reset_ConstWidthFonts(fontIndex);
-
-	if(displayOn)
-		LCD_DisplayBuff((uint32_t)X,(uint32_t)Y,(uint32_t)lenTxtInPixel,(uint32_t)j,LcdBuffer+posBuff);
-	structTemp.inChar=lenTxt;
-	structTemp.inPixel=lenTxtInPixel;
-	structTemp.height=j;
-	return structTemp;
+//	StructTxtPxlLen structTemp={0,0,0};
+//	int idVar = id>>16;
+//	id=id&0x0000FFFF;
+//	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
+//	if(fontIndex==-1)
+//		return structTemp;
+//	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
+//	int i,j,n,o,lenTxt,temp,lenTxtInPixel=0;
+//	int posX=0;
+//	char *pbmp;
+//	uint32_t index=0, width=0, height=0, bit_pixel=0;
+//	uint32_t backGround;
+//	uint32_t pos, pos2, xi;
+//	uint32_t Y_bkColor;
+//
+//	if(constWidth)
+//		LCD_Set_ConstWidthFonts(fontIndex);
+//
+//	/* Get bitmap data address offset */
+//	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
+//	/* Read bitmap width */
+//	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
+//	/* Read bitmap height */
+//	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
+//	/* Read bit/pixel */
+//	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
+//	bit_pixel/=8;
+//
+//	fontsBuffer += (index + (width * height * bit_pixel));
+//	fontsBuffer -= width*bit_pixel;
+//
+//	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];
+//
+//	if(OnlyDigits==halfHight)
+//		height=Font[fontIndex].heightHalf;
+//
+//	j=strlen(txt);
+//	for(i=0;i<j;i++)
+//	{
+//		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
+//		if(X+lenTxtInPixel+temp <= maxSizeX)
+//			lenTxtInPixel += temp;
+//		else break;
+//	}
+//	lenTxt=i;
+//
+//	if(bkColor)
+//	{
+//		if(id==LCD_GetStrVar_fontID(idVar))
+//		{
+//			switch(LCD_GetStrVar_bkRoundRect(idVar))
+//			{
+//			case BK_Rectangle:
+//				LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,bkColor);
+//				break;
+//			case BK_Round:
+//				LCD_RoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+//				break;
+//			case BK_LittleRound:
+//				LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+//				break;
+//			case BK_None:
+//				break;
+//			}
+//		}
+//		else LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,bkColor,bkColor,bkColor);
+//
+//		Y_bkColor= COLOR_TO_Y(bkColor)+coeff;
+//	}
+//
+//	for(n=0;n<lenTxt;++n)
+//	{
+//		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
+//		pos2= posBuff+posX;
+//		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
+//
+//		for(j=0; j < height; ++j)
+//		{
+//			if(Y+j>=maxSizeY)
+//				break;
+//			pos=pos2+lenTxtInPixel*j;
+//			o=0;
+//			for(i=0; i<xi; ++i)
+//			{
+//				if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
+//				{
+//					LcdBuffer[pos+i]= *((uint32_t*)(pbmp+o));
+//
+//					if(coeff!=0)
+//					{
+//						if(coeff>0)
+//						{
+//							if(COLOR_TO_Y(LcdBuffer[pos+i]) < Y_bkColor)
+//								LcdBuffer[pos+i]= bkColor;
+//						}
+//						else
+//						{
+//							if(COLOR_TO_Y(LcdBuffer[pos+i]) > Y_bkColor)
+//								LcdBuffer[pos+i]= bkColor;
+//						}
+//					}
+//				}
+//				o+=3;
+//			}
+//			pbmp -= width*bit_pixel;
+//		}
+//		posX += xi;
+//		posX += space + RealizeSpaceCorrect(txt+n,id);
+//	}
+//
+//	if(constWidth)
+//		LCD_Reset_ConstWidthFonts(fontIndex);
+//
+//	if(displayOn)
+//		LCD_DisplayBuff((uint32_t)X,(uint32_t)Y,(uint32_t)lenTxtInPixel,(uint32_t)j,LcdBuffer+posBuff);
+//	structTemp.inChar=lenTxt;
+//	structTemp.inPixel=lenTxtInPixel;
+//	structTemp.height=j;
+//	return structTemp;
 
 }
 static StructTxtPxlLen LCD_DrawStrChangeColorToBuff(uint32_t posBuff,uint32_t windowX,uint32_t windowY,int id, int X, int Y_, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t NewBkColor, uint32_t NewFontColor, int constWidth)
 {
-	StructTxtPxlLen structTemp={0,0,0};
-	int idVar = id>>16;
-	id=id&0x0000FFFF;
-	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
-	if(fontIndex==-1)
-		return structTemp;
-	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
-	int i,j,n,o,lenTxt,temp,lenTxtInPixel=0;
-	int posX=X, posY=Y_&0xFFFF, Y=Y_&0xFFFF;
-	char *pbmp;
-	uint32_t index=0, width=0, height=0, bit_pixel=0;
-	uint32_t backGround /*=(FontID[id].bkColor & 0x00FFFFFF)*/, currColor, fontColor=(FontID[id].color & 0x00FFFFFF);
-	uint32_t pos, pos2, xi;
+	return LCD_DisplayTxt(posBuff,0, id, txt, 0,0, windowX,windowY, X,Y_, NewBkColor, NewFontColor, space,constWidth, OnlyDigits, 0);
 
-	if(constWidth)
-		LCD_Set_ConstWidthFonts(fontIndex);
-
-	/* Get bitmap data address offset */
-	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
-	/* Read bitmap width */
-	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
-	/* Read bitmap height */
-	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
-	/* Read bit/pixel */
-	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
-	bit_pixel/=8;
-
-	fontsBuffer += (index + (width * height * bit_pixel));
-	fontsBuffer -= width*bit_pixel;
-
-	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];		/* = (FontID[id].color & 0x00FFFFFF) */
-
-	if(OnlyDigits==halfHight)
-		height=Font[fontIndex].heightHalf;
-
-	if(0==(Y_>>16)) j=strlen(txt);
-	else				 j=Y_>>16;
-
-	for(i=0;i<j;i++)
-	{
-		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
-		if(posX+lenTxtInPixel+temp <= windowX)
-			lenTxtInPixel += temp;
-		else break;
-	}
-	lenTxt=i;
-
-	if(id==LCD_GetStrVar_fontID(idVar))
-	{
-		switch(LCD_GetStrVar_bkRoundRect(idVar))
-		{
-		case BK_Rectangle:
-			LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,NewBkColor);
-			break;
-		case BK_Round:
-			LCD_RoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
-			break;
-		case BK_LittleRound:
-			LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
-			break;
-		case BK_None:
-			break;
-		}
-	}
-	else LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,NewBkColor);
-
-//	idxChangeColorBuff=0;
-//   for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
-//   	buffChangeColorIN[i]=0;
-//   	buffChangeColorOUT[i]=0;
-//   }
-
-
-	//LCD_DisplayTxt(posBuff, id, txt, unUsed,unUsed,  windowX,windowY, X,Y, NewBkColor,NewFontColor, space,constWidth, OnlyDigits, unUsed);
-
-	for(n=0;n<lenTxt;++n)
-	{
-		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
-		pos2= posBuff+(windowX*posY + posX);
-		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
-
-		for(j=0; j < height; ++j)
-		{
-			if(Y+j>=windowY)
-				break;
-			pos=pos2+windowX*j;
-			o=0;
-			for(i=0; i<xi; ++i)
-			{
-		/*		if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
-					LcdBuffer[pos+i] = GetCalculatedRGB(*(pbmp+o+2),*(pbmp+o+1),*(pbmp+o+0));		*/
-
-				currColor = (*((uint32_t*)(pbmp+o))&0x00FFFFFF);
-				if (currColor != backGround)
-				{
-					if (currColor == fontColor)
-						LcdBuffer[pos+i] = NewFontColor;
-					else	/* transition color */
-						LcdBuffer[pos+i]=GetTransitionColor(NewFontColor&0x00FFFFFF, LcdBuffer[pos+i]&0x00FFFFFF, GetTransitionCoeff(fontColor,backGround,currColor));
-				}
-
-				o+=3;
-			}
-			pbmp -= width*bit_pixel;
-		}
-		posX += xi;
-		posX += space + RealizeSpaceCorrect(txt+n,id);
-	}
-
-	if(constWidth)
-		LCD_Reset_ConstWidthFonts(fontIndex);
-
-	structTemp.inChar=lenTxt;
-	structTemp.inPixel=lenTxtInPixel;
-	structTemp.height=j;
-	return structTemp;
+//	StructTxtPxlLen structTemp={0,0,0};
+//	int idVar = id>>16;
+//	id=id&0x0000FFFF;
+//	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
+//	if(fontIndex==-1)
+//		return structTemp;
+//	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
+//	int i,j,n,o,lenTxt,temp,lenTxtInPixel=0;
+//	int posX=X, posY=Y_&0xFFFF, Y=Y_&0xFFFF;
+//	char *pbmp;
+//	uint32_t index=0, width=0, height=0, bit_pixel=0;
+//	uint32_t backGround /*=(FontID[id].bkColor & 0x00FFFFFF)*/, currColor, fontColor=(FontID[id].color & 0x00FFFFFF);
+//	uint32_t pos, pos2, xi;
+//
+//	if(constWidth)
+//		LCD_Set_ConstWidthFonts(fontIndex);
+//
+//	/* Get bitmap data address offset */
+//	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
+//	/* Read bitmap width */
+//	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
+//	/* Read bitmap height */
+//	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
+//	/* Read bit/pixel */
+//	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
+//	bit_pixel/=8;
+//
+//	fontsBuffer += (index + (width * height * bit_pixel));
+//	fontsBuffer -= width*bit_pixel;
+//
+//	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];		/* = (FontID[id].color & 0x00FFFFFF) */
+//
+//	if(OnlyDigits==halfHight)
+//		height=Font[fontIndex].heightHalf;
+//
+//	if(0==(Y_>>16)) j=strlen(txt);
+//	else				 j=Y_>>16;
+//
+//	for(i=0;i<j;i++)
+//	{
+//		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
+//		if(posX+lenTxtInPixel+temp <= windowX)
+//			lenTxtInPixel += temp;
+//		else break;
+//	}
+//
+//	//posTxtX += Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][1] +  + RealizeSpaceCorrect(pTxt[h],fontID);
+//
+//	lenTxt=i;
+//
+//	if(id==LCD_GetStrVar_fontID(idVar))
+//	{
+//		switch(LCD_GetStrVar_bkRoundRect(idVar))
+//		{
+//		case BK_Rectangle:
+//			LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,NewBkColor);
+//			break;
+//		case BK_Round:
+//			LCD_RoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
+//			break;
+//		case BK_LittleRound:
+//			LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
+//			break;
+//		case BK_None:
+//			break;
+//		}
+//	}
+//	else LCD_RectangleBuff(LcdBuffer,posBuff,windowX,windowY,X,Y,lenTxtInPixel,Y+height>windowY?windowY-Y:height,NewBkColor,NewBkColor,NewBkColor);
+//
+////	idxChangeColorBuff=0;
+////   for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
+////   	buffChangeColorIN[i]=0;
+////   	buffChangeColorOUT[i]=0;
+////   }
+//
+//
+//	for(n=0;n<lenTxt;++n)
+//	{
+//		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
+//		pos2= posBuff+(windowX*posY + posX);
+//		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
+//
+//		for(j=0; j < height; ++j)
+//		{
+//			if(Y+j>=windowY)
+//				break;
+//			pos=pos2+windowX*j;
+//			o=0;
+//			for(i=0; i<xi; ++i)
+//			{
+//		/*		if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
+//					LcdBuffer[pos+i] = GetCalculatedRGB(*(pbmp+o+2),*(pbmp+o+1),*(pbmp+o+0));		*/
+//
+//				currColor = (*((uint32_t*)(pbmp+o))&0x00FFFFFF);
+//				if (currColor != backGround)
+//				{
+//					if (currColor == fontColor)
+//						LcdBuffer[pos+i] = NewFontColor;
+//					else	/* transition color */
+//						LcdBuffer[pos+i]=GetTransitionColor(NewFontColor&0x00FFFFFF, LcdBuffer[pos+i]&0x00FFFFFF, GetTransitionCoeff(fontColor,backGround,currColor));
+//				}
+//
+//				o+=3;
+//			}
+//			pbmp -= width*bit_pixel;
+//		}
+//		posX += xi;
+//		posX += space + RealizeSpaceCorrect(txt+n,id);
+//	}
+//
+//	if(constWidth)
+//		LCD_Reset_ConstWidthFonts(fontIndex);
+//
+//	structTemp.inChar=lenTxt;
+//	structTemp.inPixel=lenTxtInPixel;
+//	structTemp.height=j;
+//	return structTemp;
 
 }
 
 static StructTxtPxlLen LCD_DrawStrChangeColorIndirectToBuffAndDisplay(uint32_t posBuff, int displayOn, uint32_t maxSizeX, uint32_t maxSizeY, int id, int X, int Y, char *txt, uint32_t *LcdBuffer,int OnlyDigits, int space, uint32_t NewBkColor, uint32_t NewFontColor, int constWidth)
 {
-	StructTxtPxlLen structTemp={0,0,0};
-	int idVar = id>>16;
-	id=id&0x0000FFFF;
-	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
-	if(fontIndex==-1)
-		return structTemp;
-	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
-	int i,j,n,o,lenTxt,temp,lenTxtInPixel=0;
-	int posX=0;
-	char *pbmp;
-	uint32_t index=0, width=0, height=0, bit_pixel=0;
-	uint32_t backGround /*=(FontID[id].bkColor & 0x00FFFFFF)*/, currColor, fontColor=(FontID[id].color & 0x00FFFFFF);
-	uint32_t pos, pos2, xi;
+	return LCD_DisplayTxt(posBuff,displayOn, id, txt, 0,0, maxSizeX,maxSizeY, X,Y, NewBkColor, NewFontColor, space,constWidth, OnlyDigits, 0);
 
-	if(constWidth)
-		LCD_Set_ConstWidthFonts(fontIndex);
-
-	/* Get bitmap data address offset */
-	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
-	/* Read bitmap width */
-	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
-	/* Read bitmap height */
-	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
-	/* Read bit/pixel */
-	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
-	bit_pixel/=8;
-
-	fontsBuffer += (index + (width * height * bit_pixel));
-	fontsBuffer -= width*bit_pixel;
-
-	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];
-
-	if(OnlyDigits==halfHight)
-		height=Font[fontIndex].heightHalf;
-
-	j=strlen(txt);
-	for(i=0;i<j;i++)
-	{
-		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
-		if(X+lenTxtInPixel+temp <= maxSizeX)
-			lenTxtInPixel += temp;
-		else break;
-	}
-	lenTxt=i;
-
-	if(id==LCD_GetStrVar_fontID(idVar))
-	{
-		switch(LCD_GetStrVar_bkRoundRect(idVar))
-		{
-		case BK_Rectangle:
-			LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,NewBkColor);
-			break;
-		case BK_Round:
-			LCD_RoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
-			break;
-		case BK_LittleRound:
-			LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
-			break;
-		case BK_None:
-			break;
-		}
-	}
-	else LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,NewBkColor);
-
-//	idxChangeColorBuff=0;
-//   for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
-//   	buffChangeColorIN[i]=0;
-//   	buffChangeColorOUT[i]=0;
-//   }
-
-	for(n=0;n<lenTxt;++n)
-	{
-		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
-		pos2= posBuff+posX;
-		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
-
-		for(j=0; j < height; ++j)
-		{
-			if(Y+j>=maxSizeY)
-				break;
-			pos=pos2+lenTxtInPixel*j;
-			o=0;
-			for(i=0; i<xi; ++i)
-			{
-		/*		if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
-					LcdBuffer[pos+i] = GetCalculatedRGB(*(pbmp+o+2),*(pbmp+o+1),*(pbmp+o+0));		*/
-
-				currColor = (*((uint32_t*)(pbmp+o))&0x00FFFFFF);
-				if (currColor != backGround)
-				{
-					if (currColor == fontColor)
-						LcdBuffer[pos+i] = NewFontColor;
-					else	/* transition color */
-						LcdBuffer[pos+i]=GetTransitionColor(NewFontColor&0x00FFFFFF, LcdBuffer[pos+i]&0x00FFFFFF, GetTransitionCoeff(fontColor,backGround,currColor));
-				}
-
-				o+=3;
-			}
-			pbmp -= width*bit_pixel;
-		}
-		posX += xi;
-		posX += space + RealizeSpaceCorrect(txt+n,id);
-	}
-
-	if(constWidth)
-		LCD_Reset_ConstWidthFonts(fontIndex);
-
-	if(displayOn)
-		LCD_DisplayBuff((uint32_t)X,(uint32_t)Y,(uint32_t)lenTxtInPixel,(uint32_t)j,LcdBuffer+posBuff);
-	structTemp.inChar=lenTxt;
-	structTemp.inPixel=lenTxtInPixel;
-	structTemp.height=j;
-	return structTemp;
+//	StructTxtPxlLen structTemp={0,0,0};
+//	int idVar = id>>16;
+//	id=id&0x0000FFFF;
+//	int fontIndex=SearchFontIndex(FontID[id].size, FontID[id].style, FontID[id].bkColor, FontID[id].color);
+//	if(fontIndex==-1)
+//		return structTemp;
+//	char *fontsBuffer=Font[fontIndex].pointerToMemoryFont;
+//	int i,j,n,o,lenTxt,temp,lenTxtInPixel=0;
+//	int posX=0;
+//	char *pbmp;
+//	uint32_t index=0, width=0, height=0, bit_pixel=0;
+//	uint32_t backGround /*=(FontID[id].bkColor & 0x00FFFFFF)*/, currColor, fontColor=(FontID[id].color & 0x00FFFFFF);
+//	uint32_t pos, pos2, xi;
+//
+//	if(constWidth)
+//		LCD_Set_ConstWidthFonts(fontIndex);
+//
+//	/* Get bitmap data address offset */
+//	index = fontsBuffer[10] + (fontsBuffer[11] << 8) + (fontsBuffer[12] << 16)  + (fontsBuffer[13] << 24);
+//	/* Read bitmap width */
+//	width = fontsBuffer[18] + (fontsBuffer[19] << 8) + (fontsBuffer[20] << 16)  + (fontsBuffer[21] << 24);  		/* 'width' must be multiple of 4 */
+//	/* Read bitmap height */
+//	height = fontsBuffer[22] + (fontsBuffer[23] << 8) + (fontsBuffer[24] << 16)  + (fontsBuffer[25] << 24);
+//	/* Read bit/pixel */
+//	bit_pixel = fontsBuffer[28] + (fontsBuffer[29] << 8);
+//	bit_pixel/=8;
+//
+//	fontsBuffer += (index + (width * height * bit_pixel));
+//	fontsBuffer -= width*bit_pixel;
+//
+//	backGround= fontsBuffer[2]<<16 | fontsBuffer[1]<<8 | fontsBuffer[0];
+//
+//	if(OnlyDigits==halfHight)
+//		height=Font[fontIndex].heightHalf;
+//
+//	j=strlen(txt);
+//	for(i=0;i<j;i++)
+//	{
+//		temp = Font[fontIndex].fontsTabPos[ (int)txt[i] ][1] + space + RealizeSpaceCorrect(txt+i,id);
+//		if(X+lenTxtInPixel+temp <= maxSizeX)
+//			lenTxtInPixel += temp;
+//		else break;
+//	}
+//	lenTxt=i;
+//
+//	if(id==LCD_GetStrVar_fontID(idVar))
+//	{
+//		switch(LCD_GetStrVar_bkRoundRect(idVar))
+//		{
+//		case BK_Rectangle:
+//			LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,NewBkColor);
+//			break;
+//		case BK_Round:
+//			LCD_RoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
+//			break;
+//		case BK_LittleRound:
+//			LCD_LittleRoundRectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,LCD_GetStrVar_bkScreenColor(idVar));
+//			break;
+//		case BK_None:
+//			break;
+//		}
+//	}
+//	else LCD_RectangleBuff(LcdBuffer,posBuff,lenTxtInPixel,height,0,0,lenTxtInPixel,Y+height>maxSizeY?maxSizeY-Y:height,NewBkColor,NewBkColor,NewBkColor);
+//
+////	idxChangeColorBuff=0;
+////   for(i=0;i<MAX_SIZE_CHANGECOLOR_BUFF;++i){
+////   	buffChangeColorIN[i]=0;
+////   	buffChangeColorOUT[i]=0;
+////   }
+//
+//	for(n=0;n<lenTxt;++n)
+//	{
+//		pbmp=fontsBuffer+3*Font[fontIndex].fontsTabPos[ (int)txt[n] ][0];
+//		pos2= posBuff+posX;
+//		xi=Font[fontIndex].fontsTabPos[ (int)txt[n] ][1];
+//
+//		for(j=0; j < height; ++j)
+//		{
+//			if(Y+j>=maxSizeY)
+//				break;
+//			pos=pos2+lenTxtInPixel*j;
+//			o=0;
+//			for(i=0; i<xi; ++i)
+//			{
+//		/*		if ((*((uint32_t*)(pbmp+o))&0x00FFFFFF)!=backGround)
+//					LcdBuffer[pos+i] = GetCalculatedRGB(*(pbmp+o+2),*(pbmp+o+1),*(pbmp+o+0));		*/
+//
+//				currColor = (*((uint32_t*)(pbmp+o))&0x00FFFFFF);
+//				if (currColor != backGround)
+//				{
+//					if (currColor == fontColor)
+//						LcdBuffer[pos+i] = NewFontColor;
+//					else	/* transition color */
+//						LcdBuffer[pos+i]=GetTransitionColor(NewFontColor&0x00FFFFFF, LcdBuffer[pos+i]&0x00FFFFFF, GetTransitionCoeff(fontColor,backGround,currColor));
+//				}
+//
+//				o+=3;
+//			}
+//			pbmp -= width*bit_pixel;
+//		}
+//		posX += xi;
+//		posX += space + RealizeSpaceCorrect(txt+n,id);
+//	}
+//
+//	if(constWidth)
+//		LCD_Reset_ConstWidthFonts(fontIndex);
+//
+//	if(displayOn)
+//		LCD_DisplayBuff((uint32_t)X,(uint32_t)Y,(uint32_t)lenTxtInPixel,(uint32_t)j,LcdBuffer+posBuff);
+//	structTemp.inChar=lenTxt;
+//	structTemp.inPixel=lenTxtInPixel;
+//	structTemp.height=j;
+//	return structTemp;
 }
 
 static StructTxtPxlLen LCD_DrawStr(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY,int fontID, int Xpos, int Ypos, char *txt, uint32_t *LcdBuffer, int OnlyDigits, int space, uint32_t bkColor, int coeff, int constWidth){
@@ -2490,16 +2499,16 @@ int LCD_GetSizeOfFontFileCFF(int fontSize, int fontStyle, FONTS_TYPES fontColorT
 }
 
 int LCD_LoadFont_WhiteBlack(int fontSize, int fontStyle, uint32_t fontID){
-	LCD_LoadFontFromFileCFF(FONT_8, fontStyle, White_Black, fontID_17+fontID);
-	return LCD_LoadFont(fontSize,fontStyle,WHITE,BLACK,fontID);
+	return LCD_LoadFontFromFileCFF(fontSize, fontStyle, White_Black, /*fontID_17+*/fontID);
+	//return LCD_LoadFont(fontSize,fontStyle,WHITE,BLACK,fontID);
 }
 int LCD_LoadFont_DarkgrayGreen(int fontSize, int fontStyle, uint32_t fontID){
-	LCD_LoadFontFromFileCFF(FONT_8, fontStyle, Gray_Green, fontID_17+fontID);
-	return LCD_LoadFont(fontSize,fontStyle,DARKGRAY,MYGREEN,fontID);
+	return LCD_LoadFontFromFileCFF(fontSize, fontStyle, Gray_Green, /*fontID_17+*/fontID);
+	//return LCD_LoadFont(fontSize,fontStyle,DARKGRAY,MYGREEN,fontID);
 }
 int LCD_LoadFont_DarkgrayWhite(int fontSize, int fontStyle, uint32_t fontID){
-	LCD_LoadFontFromFileCFF(FONT_8, fontStyle, RGB_White, fontID_17+fontID);
-	return LCD_LoadFont(fontSize,fontStyle,DARKGRAY,WHITE,fontID);
+	return LCD_LoadFontFromFileCFF(fontSize, fontStyle, RGB_White, /*fontID_17+*/fontID);
+	//return LCD_LoadFont(fontSize,fontStyle,DARKGRAY,WHITE,fontID);
 }
 int LCD_LoadFont_ChangeColor(int fontSize, int fontStyle, uint32_t fontID){
 	return LCD_LoadFont_DarkgrayGreen(fontSize,fontStyle,fontID);
@@ -4075,17 +4084,20 @@ uint32_t LCD_LoadFont_DependOnColors(int fontSize, int fontStyle, uint32_t bkCol
 		return LCD_LoadFont_ChangeColor	 (fontSize, fontStyle, fontID);
 }
 
-int LCD_DisplayTxt(u32 posBuff, int fontID, char *pTxt, u16 winX,u16 winY, u16 winW,u16 winH, u16 x,u16 y, u32 bkColor,u32 foColor, int space,int constWidth, int OnlyDigits, int coeff)
+StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTxt, u16 winX,u16 winY, u16 winW,u16 winH, u16 x,u16 y, u32 bkColor,u32 foColor, int space,int constWidth, int OnlyDigits, int coeff)
 {
+	StructTxtPxlLen structTemp={0,0,0};
+	int idVar = fontID>>16;						fontID = fontID & 0x0000FFFF;
 	u32 *outBuff = pLcd;
 	int data=0, posReadFileCFF=0, posTxtX=0, posTemp=0;
 	u8 colorR=0, colorG=0, colorB=0;
 	u32 currColor=0, readBkColor=0, Y_bkColor;
+	u32 height=0;
 	COLOR_TYPE type=0;
-	int len = strlen(pTxt);
+	int len = strlen(pTxt),  lenTxt=0, lenTxtInPixel=0, temp,i;
 	int fontIndx = SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
 	if(fontIndx==-1)
-		return -1;
+		return structTemp;
 	char *pFileCFF = Font[fontIndx].pointerToMemoryFont;
 
 	int _GetDataFromInput(char *inputBuff, int *pAddr, COLOR_TYPE *type){
@@ -4102,14 +4114,49 @@ int LCD_DisplayTxt(u32 posBuff, int fontID, char *pTxt, u16 winX,u16 winY, u16 w
 	}
 
 
+	if(constWidth)
+		LCD_Set_ConstWidthFonts(fontIndx);
 
-//	posTemp = posBuff+(y+0)*winW+x+posTxtX+0;
-//	LCD_RectangleBuff(pLcd+posTemp,posBuff,   winW,winH,   0,0,   500, Font[fontIndx].height,   bkColor,bkColor,bkColor);
+	if(OnlyDigits==halfHight)	height = Font[fontIndx].heightHalf;
+	else								height = Font[fontIndx].height;
+
+//	if(0==(Y_>>16)) j=strlen(txt);
+//	else				 j=Y_>>16;
+
+	for(i=0;i<len;++i){
+		temp = Font[fontIndx].fontsTabPos[ (int)pTxt[i] ][1] + space + RealizeSpaceCorrect(pTxt+i,fontID);
+		if(x + lenTxtInPixel + temp <= winW)
+			lenTxtInPixel += temp;
+		else break;
+	}
+	lenTxt=i;
 
 
-	LOOP_INIT(h,0,len){		posReadFileCFF = Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][0];		data=0;
+	if(fontID==LCD_GetStrVar_fontID(idVar))
+	{
+		switch(LCD_GetStrVar_bkRoundRect(idVar))
+		{
+		case BK_Rectangle:
+			LCD_RectangleBuff(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
+			break;
+		case BK_Round:
+			LCD_RoundRectangleBuff(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+			break;
+		case BK_LittleRound:
+			LCD_LittleRoundRectangleBuff(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+			break;
+		case BK_None:
+			break;
+		}
+	}
+	else LCD_RectangleBuff(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
+
+
+
+
+	LOOP_INIT(h,0,lenTxt){		posReadFileCFF = Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][0];		data=0;
 		LOOP_FOR(i, Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][1]){
-			LOOP_FOR(j, Font[fontIndx].heightFile){
+			LOOP_FOR(j, height){
 
 				posTemp = posBuff+(y+j)*winW+x+posTxtX+i;
 				if(pTxt[h]==' '){		if(bkColor!=0) outBuff[posTemp]=bkColor;	}
@@ -4154,12 +4201,12 @@ int LCD_DisplayTxt(u32 posBuff, int fontID, char *pTxt, u16 winX,u16 winY, u16 w
 								colorB = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+0];
 								colorG = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+1];
 								colorR = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+2];
+								currColor = RGB2INT( colorR,colorG,colorB );
 
 								if(FontID[fontID].bkColor == bkColor && FontID[fontID].color == foColor)
-									outBuff[posTemp] = RGB2INT( colorR,colorG,colorB );
+									outBuff[posTemp] = currColor;
 								else
 								{
-									currColor = RGB2INT( colorR,colorG,colorB );
 									readBkColor = CONDITION( bkColor==0, outBuff[posTemp], bkColor );
 									outBuff[posTemp] = GetTransitionColor( foColor&0x00FFFFFF, readBkColor&0x00FFFFFF, GetTransitionCoeff(FontID[fontID].color, FontID[fontID].bkColor, currColor) );
 								}
@@ -4170,9 +4217,19 @@ int LCD_DisplayTxt(u32 posBuff, int fontID, char *pTxt, u16 winX,u16 winY, u16 w
 					if(data > 0) data--;
 				}
 		}}
-		posTxtX += Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][1] +  + RealizeSpaceCorrect(pTxt[h],fontID);
-	 }
-	return 0;
+		posTxtX += Font[fontIndx].fontsTabPos[ (int)pTxt[h] ][1] + space + RealizeSpaceCorrect(pTxt+h,fontID);
+	}
+
+	if(constWidth)
+		LCD_Reset_ConstWidthFonts(fontIndx);
+
+	if(displayOn)
+		LCD_DisplayBuff((uint32_t)x,(uint32_t)y,(uint32_t)lenTxtInPixel,(uint32_t)height,outBuff+posBuff);
+
+	structTemp.inChar	 = lenTxt;
+	structTemp.inPixel = lenTxtInPixel;
+	structTemp.height	 = height;
+	return structTemp;
 }
 
 StructTxtPxlLen LCD_StrDependOnColors(int fontID, int Xpos, int Ypos, char *txt, int OnlyDigits, int space, uint32_t bkColor, uint32_t fontColor,int maxVal, int constWidth)
