@@ -1189,6 +1189,34 @@ static void LCD_Set_ConstWidthFonts(int fontIndex)
 	Font[fontIndex].fontsTabPos[(int) ' '][1]=maxWidth;
 }
 
+u32 LCD_GetMaxWidthOfFont(int fontIndex)
+{
+	const char *pChar;
+	int maxWidth=0;
+	uint8_t fontSize=ReturnFontSize(fontIndex);
+
+	switch(fontSize){
+	case FONT_72:
+	case FONT_72_bold:
+	case FONT_72_italics:
+	case FONT_130:
+	case FONT_130_bold:
+	case FONT_130_italics:
+		pChar=CharsTab_digits;
+		break;
+	default:
+		pChar=CharsTab_full;
+		break;
+	}
+	int j, lenTab=strlen(pChar);
+	for(j=0; j<lenTab; j++){
+		if(RealizeWidthConst(pChar[j])){
+			if(Font[fontIndex].fontsTabPos[(int) pChar[j]][1] > maxWidth)
+				maxWidth = Font[fontIndex].fontsTabPos[(int) pChar[j]][1];
+	}}
+	return maxWidth;
+}
+
 static void LCD_Reset_ConstWidthFonts(int fontIndex)
 {
 	const char *pChar;
@@ -4092,7 +4120,7 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTx
 	int data=0, posReadFileCFF=0, posTxtX=0, posTemp=0;
 	u8 colorR=0, colorG=0, colorB=0;
 	u32 currColor=0, readBkColor=0, Y_bkColor;
-	u32 height=0;
+	u32 height=0, maxCharWidth=0;
 	COLOR_TYPE type=0;
 	int len = strlen(pTxt),  lenTxt=0, lenTxtInPixel=0, temp,i;
 	int fontIndx = SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
@@ -4114,8 +4142,7 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTx
 	}
 	void _SendToBuffOut(int stepY, u32 data){	if(stepY <= height) outBuff[posTemp] = data;	}
 
-	if(constWidth)
-		LCD_Set_ConstWidthFonts(fontIndx);
+	if(constWidth)	maxCharWidth=LCD_GetMaxWidthOfFont(fontIndx);
 
 	if(OnlyDigits==halfHight)	height = Font[fontIndx].heightHalf;
 	else								height = Font[fontIndx].height;
@@ -4124,49 +4151,43 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTx
 //	else				 j=Y_>>16;
 
 	for(i=0;i<len;++i){
-		temp = Font[fontIndx].fontsTabPos[ (int)pTxt[i] ][1] + space + RealizeSpaceCorrect(pTxt+i,fontID);
+		temp = CONDITION(constWidth,maxCharWidth,Font[fontIndx].fontsTabPos[(int)pTxt[i]][1]) + space + RealizeSpaceCorrect(pTxt+i,fontID);
 		if(x + lenTxtInPixel + temp <= winW)
 			lenTxtInPixel += temp;
 		else break;
 	}
 	lenTxt=i;
 
-
-	if(fontID==LCD_GetStrVar_fontID(idVar))
-	{
-		switch(LCD_GetStrVar_bkRoundRect(idVar))
+	if(bkColor){
+		if(fontID==LCD_GetStrVar_fontID(idVar))
 		{
-		case BK_Rectangle:
-			LCD_RectangleBuff					(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor); 										break;
-		case BK_Round:
-			LCD_RoundRectangleBuff			(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar)); 	break;
-		case BK_LittleRound:
-			LCD_LittleRoundRectangleBuff	(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));	break;
-		case BK_None: break;
-	}}
-	else LCD_RectangleBuff(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
+			switch(LCD_GetStrVar_bkRoundRect(idVar))
+			{
+			case BK_Rectangle:
+				LCD_RectangleBuff					(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor); 										break;
+			case BK_Round:
+				LCD_RoundRectangleBuff			(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar)); 	break;
+			case BK_LittleRound:
+				LCD_LittleRoundRectangleBuff	(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));	break;
+			case BK_None: break;
+		}}
+		else LCD_RectangleBuff(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
+	}
 
+	LOOP_INIT(h,0,lenTxt){		posReadFileCFF = Font[fontIndx].fontsTabPos[(int)pTxt[h]][0];		data=0;
 
-	LOOP_INIT(h,0,lenTxt){		posReadFileCFF = CONDITION(constWidth, fontsTabPos_temp[(int)pTxt[h]][0], Font[fontIndx].fontsTabPos[(int)pTxt[h]][0]);		data=0;
-		LOOP_FOR(i, CONDITION(constWidth, fontsTabPos_temp[(int)pTxt[h]][1], Font[fontIndx].fontsTabPos[(int)pTxt[h]][1]) ){
+		if(constWidth){		if(Font[fontIndx].fontsTabPos[(int)pTxt[h]][1] < maxCharWidth)	 posTxtX += ( maxCharWidth - Font[fontIndx].fontsTabPos[(int)pTxt[h]][1] ) / 2;		}
+
+		LOOP_FOR(i, Font[fontIndx].fontsTabPos[(int)pTxt[h]][1]){
 			LOOP_FOR(j, Font[fontIndx].height){
 
-				//if(y+j >= winH) break;
-				//fontsTabPos_temp[(int)pTxt[h]][0]  ->> dla[0] bezsens !!!!!! tu !!!!!
-
-
-				if(displayOn)
-					posTemp = posBuff + j*lenTxtInPixel + posTxtX + i;
-				else
-					posTemp = posBuff + (y+j)*winW + x + posTxtX + i;
-
-
-				//if(constWidth  &&  i > 9);
-
+				if(displayOn) posTemp = posBuff + 	 j*lenTxtInPixel + posTxtX + i;
+				else			  posTemp = posBuff + (y+j)*winW   +   x + posTxtX + i;
 
 				if(pTxt[h]==' '){		if(bkColor!=0) _SendToBuffOut(j,bkColor);	}
 				else
 				{
+
 					if(data == 0)	data = _GetDataFromInput(pFileCFF,&posReadFileCFF,&type);
 
 					if(FontID[fontID].bkColor != bkColor && FontID[fontID].color == foColor	&& coeff != 0)			/*	only change bkColor */
@@ -4187,7 +4208,7 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTx
 								else		  {		if(COLOR_TO_Y( outBuff[posTemp] ) > Y_bkColor) _SendToBuffOut(j,bkColor);		}
 								if(AA==type) data = 1;
 								break;
-					}}
+						}}
 					else			/* change bkColor and fonrtColor */
 					{
 						switch((int)type){
@@ -4208,14 +4229,14 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTx
 								}
 								data = 1;
 								break;
-					}}
-					if(data > 0) data--;
-		}}}
-		posTxtX += CONDITION(constWidth, fontsTabPos_temp[(int)pTxt[h]][1], Font[fontIndx].fontsTabPos[(int)pTxt[h]][1]) + space + RealizeSpaceCorrect(pTxt+h,fontID);
-	}
+				}}
+				if(data > 0) data--;
+			}}
+		}
+		if(constWidth){		if(Font[fontIndx].fontsTabPos[(int)pTxt[h]][1] < maxCharWidth)	 posTxtX += ( maxCharWidth - Font[fontIndx].fontsTabPos[(int)pTxt[h]][1] ) / 2;		}
 
-	if(constWidth)
-		LCD_Reset_ConstWidthFonts(fontIndx);
+		posTxtX += Font[fontIndx].fontsTabPos[(int)pTxt[h]][1] + space + RealizeSpaceCorrect(pTxt+h,fontID);
+	}
 
 	if(displayOn)
 		LCD_DisplayBuff((uint32_t)x,(uint32_t)y,(uint32_t)lenTxtInPixel,(uint32_t)height,outBuff+posBuff);
