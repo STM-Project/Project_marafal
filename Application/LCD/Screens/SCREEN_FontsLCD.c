@@ -2380,13 +2380,13 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
-		StructTxtPxlLen sssss = LCD_DisplayTxt(0,0,fontID_1, "51523051116044yjH::e?l:lo W??or.,ld!", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,10, 0xFF606060,YELLOW, 0,NoConstWidth, fullHight,0);
-		LCD_DisplayTxt(0,0,fontID_2, "5523056044yjH::e?l:lo W??or.,ld! 02345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,60, 0xFF606060,YELLOW, 0,NoConstWidth, fullHight,0);
-		LCD_DisplayTxt(0,0,fontID_9, "22 23156144yjHello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,120, 0xFF606060,YELLOW, 0,ConstWidth, fullHight,0);
-		LCD_DisplayTxt(0,0,fontID_14, "33 23156144yjHello Wo.rl,d! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,200, 0xFF606060,YELLOW, 0,NoConstWidth, fullHight,0);
-		LCD_DisplayTxt(0,0,fontID_16, "5123116044yjH::e?l:lo W??or.,ld! 02345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,300, 0xFF606060,YELLOW, 0,ConstWidth, fullHight,0);
-
-		LCD_Show(); while(1);
+//		StructTxtPxlLen sssss = LCD_DisplayTxt(0,0,fontID_1, "51523051116044yjH::e?l:lo W??or.,ld!", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,10, 0xFF606060,YELLOW, 0,ConstWidth, fullHight,0);
+//		LCD_DisplayTxt(0,0,fontID_2, "5523056044yjH::e?l:lo W??or.,ld! 02345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,60, 0xFF606060,YELLOW, 0,ConstWidth, fullHight,0);
+//		LCD_DisplayTxt(0,0,fontID_9, "22 23156144yjHello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,120, 0xFF606060,YELLOW, 0,ConstWidth, fullHight,0);
+//		LCD_DisplayTxt(0,0,fontID_14, "33 23156144yjHello Wo.rl,d! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,200, 0xFF606060,YELLOW, 0,ConstWidth, fullHight,0);
+//		LCD_DisplayTxt(0,0,fontID_16, "5123116044yjH::e?l:lo W??or.,ld! 02345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,300, 0xFF606060,YELLOW, 0,ConstWidth, fullHight,0);
+//
+//		LCD_Show(); while(1);
 
 
 
