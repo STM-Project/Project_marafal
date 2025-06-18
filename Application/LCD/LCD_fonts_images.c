@@ -4832,7 +4832,7 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 		temp= LCD_StrDependOnColorsWindow(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x,	 	  _y,		  txt,OnlyDigits,space,bkColor,	 shadeColor,maxVal,constWidth);
 		for(i=1; i<deep; ++i)
 			LCD_StrDependOnColorsWindow	(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,shadeColor,shadeColor,maxVal,constWidth);
-		LCD_StrDependOnColorsWindow		(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,0,fontColor, maxVal,constWidth);
+		LCD_StrDependOnColorsWindow		(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,0,			 fontColor, maxVal,constWidth);
 		LCD_SetBkFontShape(idVar,bkShape);
 		return temp;
 	}
@@ -4843,7 +4843,7 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 		temp= LCD_StrDependOnColorsWindow(0, bkX,bkY, FONT_ID_VAR(p->fontId,p->fontVar), _x,	 	_y, 	 	p->str, p->onlyDig, p->spac, p->bkCol,					p->shadow.shadeColor, p->maxV, p->constW);
 		for(i=1; i < p->shadow.deep; ++i)
 			LCD_StrDependOnColorsWindow	(0, bkX,bkY, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, p->shadow.shadeColor,	p->shadow.shadeColor, p->maxV, p->constW);
-		LCD_StrDependOnColorsWindow		(0, bkX,bkY, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, 			  				 p->maxV, p->constW);
+		LCD_StrDependOnColorsWindow		(0, bkX,bkY, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, 0, 							p->fontCol, 			 p->maxV, p->constW);
 		LCD_SetBkFontShape(p->fontVar,bkShape);
 		return temp;
 	}

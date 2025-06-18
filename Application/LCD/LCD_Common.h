@@ -66,7 +66,7 @@ typedef enum{
 
 #define LOAD_FONT_PARAM(name) 			v.FONT_SIZE_##name, v.FONT_STYLE_##name, v.FONT_BKCOLOR_##name, v.FONT_COLOR_##name
 #define STR_FONT_PARAM(name,bkScreen) 	v.FONT_VAR_##name, v.FONT_ID_##name, v.FONT_COLOR_##name, v.FONT_BKCOLOR_##name, v.COLOR_##bkScreen
-#define STR_FONT_PARAM2(name) 	v.FONT_VAR_##name, v.FONT_ID_##name, v.FONT_COLOR_##name, v.FONT_BKCOLOR_##name, v.FONT_BKCOLOR_##name
+#define STR_FONT_PARAM2(name) 			v.FONT_VAR_##name, v.FONT_ID_##name, v.FONT_COLOR_##name, v.FONT_BKCOLOR_##name, v.FONT_BKCOLOR_##name
 #define SHAPE_PARAM(frame,fill,bk) 		v.COLOR_##frame, v.COLOR_##fill, v.COLOR_##bk
 #define SHAPE_PARAM_BOLD(frame,fill,bk,bold) 		((v.COLOR_##frame&0xFFFFFF)|(bold)<<24), v.COLOR_##fill, v.COLOR_##bk
 
