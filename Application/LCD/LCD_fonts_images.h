@@ -322,7 +322,7 @@ int 				 LCD_CreateFileCFFfromAllFilesBMP(void);
 int 				 LCD_CkeckAllFontFilesCFF			(void);
 int 				 LCD_LoadFontFromFileCFF			(int fontSize, int fontStyle, FONTS_TYPES fontColorType, u32 fontID);
 int 				 LCD_GetSizeOfFontFileCFF			(int fontSize, int fontStyle, FONTS_TYPES fontColorType);
-StructTxtPxlLen LCD_DisplayTxt						(u32 posBuff, int displayOn, int fontID, char *pTxt, u16 winX,u16 winY, u16 winW,u16 winH, u16 x,u16 y, u32 bkColor,u32 foColor, int space,int constWidth, int OnlyDigits, int coeff);
+StructTxtPxlLen LCD_DisplayTxt						(u32 posBuff, u32 *buff, int displayOn, int fontID, char *pTxt, u16 winX,u16 winY, u16 winW,u16 winH, u16 x,u32 y_, u32 bkColor,u32 foColor, int space,int constWidth, int OnlyDigits, int coeff);
 
 int LCD_LoadFont(int fontSize, int fontStyle, uint32_t backgroundColor, uint32_t fontColor, uint32_t fontID);
 int LCD_LoadFont_WhiteBlack(int fontSize, int fontStyle, uint32_t fontID);

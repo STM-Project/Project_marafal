@@ -2495,7 +2495,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 	StopMeasureTime_us("Time GRAPH:");
 
-	LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 6, RightDown);
+	LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 320,200, "12345", BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, 0x777777, 6, RightDown);
 
 	//ZROBIC CIRCLE zmienna grubosc DRAWLINE !!!!!!!!!!!! z AA z 0.0 na 0.5 np!!!!
 	//ZROBIC cieniowanie pol i text 3d na nim jak w biletcie automatu na muzeum naradowe

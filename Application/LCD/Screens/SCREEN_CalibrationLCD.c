@@ -163,11 +163,11 @@ static void GetPhysValues(XY_Touch_Struct log, XY_Touch_Struct *phys, uint16_t w
 	{
 		int pos_Circle = (width-LCD_CalculateCircleWidth(width/2))/2;
 
-		LCD_ShapeWindow	         (LCD_Rectangle,0,width,width, 0,         	0,     	  width,  width,    SetBold2Color(bkColor,0), 		  bkColor,  	bkColor);
-		LCD_ShapeWindow	         (LCD_Circle,	0,width,width, 0,         	0,     	  width,  width,    SetBold2Color(frameColor,bold), fillColor,   bkColor);
+		LCD_ShapeWindow	         (LCD_Rectangle,0,width,width, 0,         	0,     	  width,  width,    SetBold2Color(bkColor,0), 		 bkColor,  	bkColor);
+		LCD_ShapeWindow	         (LCD_Circle,	0,width,width, 0,         	0,     	  width,  width,    SetBold2Color(frameColor,bold), fillColor, bkColor);
 	#if defined(CIRCLE_WITH_FRAME)
 		LCD_ShapeWindow				(LCD_Circle,	0,width,width, pos_Circle, pos_Circle, width/2,width/2, SetBold2Color(frameColor,bold), TRANSPARENT, fillColor);
-		LCD_ShapeWindowIndirect(x,y,LCD_Frame,		0,width,width, 0,			   0, 			width,  width,   frameColor, 							  	  bkColor, 	 	bkColor);
+		LCD_ShapeWindowIndirect(x,y,LCD_Frame,		0,width,width, 0,			   0, 			width,  width,   frameColor, 							  	  bkColor, bkColor);
 	#else
 		LCD_ShapeWindowIndirect(x,y,LCD_Circle,	0,width,width, pos_Circle, pos_Circle, width/2,width/2, SetBold2Color(frameColor,bold), TRANSPARENT, fillColor);
 	#endif

@@ -5642,7 +5642,7 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 					DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA)
 {
 	#if defined(GRAPH_MEMORY_SDRAM2)
-		if(GRAPH_SetPointers(offsMem,nrMem)) return;
+		if(GRAPH_SetPointers(offsMem,nrMem)) return;//OGRANICZYC WYCIEK POZA ZAKRES pLCD !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	#endif
 
 	if(!IS_RANGE(posXY_par[0].len_posXYrep,1,GRAPH_MAX_SIZE_POSXY)) return;
