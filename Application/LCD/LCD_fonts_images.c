@@ -691,7 +691,7 @@ static int CountHalfHeightForDot(char *pbmp, uint32_t width, uint32_t height, ui
 	return -1;
 }
 
-static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t fontID, int bytesPerPxl, char *newFileNameToCreate)
+static int FONTS_CreateFileCFFfromBMP(char *pbmp, const char *pChars, u16 width,u16 height, uint32_t fontID, int bytesPerPxl, char *newFileNameToCreate)
 {
  /* 											File CCF Format Scheme
 	--- FontID Table --------
@@ -882,7 +882,7 @@ static int FONTS_CreateFileCFFfromBMP(char *pbmp, u16 width,u16 height, uint32_t
 				}
 				_SetDataToOut(&iData,bk,retVal);
 
-				struct_FONT.fontsTabPos[ (int)CharsTab_full[countFonts++] ][0] = SIZE_HEADER + iData;
+				struct_FONT.fontsTabPos[ (int)pChars[countFonts++] ][0] = SIZE_HEADER + iData;
 				if(start_bk==1 && cntBk >= height) cntBk=0;
 	}}}
 
@@ -1141,7 +1141,7 @@ static int SearchCurrentFont_TablePos_forCreatingFileCFF(char *pbmp, int fontInd
 	Font[fontIndex].bytesPerPxl = bit_pixel;
 
 /*		FONTS_InfoFileBMP(pbmp, width, height, fontID, bit_pixel); 	*/
-	return FONTS_CreateFileCFFfromBMP(pbmp, width, height, fontID, bit_pixel, newFileNameToCreate);
+	return FONTS_CreateFileCFFfromBMP(pbmp, pChar, width, height, fontID, bit_pixel, newFileNameToCreate);
 }
 
 static void LCD_Set_ConstWidthFonts(int fontIndex)
@@ -4112,7 +4112,7 @@ uint32_t LCD_LoadFont_DependOnColors(int fontSize, int fontStyle, uint32_t bkCol
 		return LCD_LoadFont_ChangeColor	 (fontSize, fontStyle, fontID);
 }
 
-StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTxt, u16 winX,u16 winY, u16 winW,u16 winH, u16 x,u16 y, u32 bkColor,u32 foColor, int space,int constWidth, int OnlyDigits, int coeff)
+StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTxt, u16 winX,u16 winY, u16 winW,u16 winH, u16 x,u32 y_, u32 bkColor,u32 foColor, int space,int constWidth, int OnlyDigits, int coeff)
 {
 	StructTxtPxlLen structTemp={0,0,0};
 	int idVar = fontID>>16;						fontID = fontID & 0x0000FFFF;
@@ -4120,9 +4120,9 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTx
 	int data=0, posReadFileCFF=0, posTxtX=0, posTemp=0;
 	u8 colorR=0, colorG=0, colorB=0;
 	u32 currColor=0, readBkColor=0, Y_bkColor;
-	u32 height=0, maxCharWidth=0;
+	u32 height=0, maxCharWidth=0, y=MASK(y_,FFFF);
 	COLOR_TYPE type=0;
-	int len = strlen(pTxt),  lenTxt=0, lenTxtInPixel=0, temp,i;
+	int len=0,  lenTxt=0, lenTxtInPixel=0, temp,i;
 	int fontIndx = SearchFontIndex(FontID[fontID].size, FontID[fontID].style, FontID[fontID].bkColor, FontID[fontID].color);
 	if(fontIndx==-1)
 		return structTemp;
@@ -4147,8 +4147,8 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTx
 	if(OnlyDigits==halfHight)	height = Font[fontIndx].heightHalf;
 	else								height = Font[fontIndx].height;
 
-//	if(0==(Y_>>16)) j=strlen(txt);
-//	else				 j=Y_>>16;
+	if(0==(y_>>16)) len = strlen(pTxt);
+	else				 len = y_>>16;
 
 	for(i=0;i<len;++i){
 		temp = CONDITION(constWidth,maxCharWidth,Font[fontIndx].fontsTabPos[(int)pTxt[i]][1]) + space + RealizeSpaceCorrect(pTxt+i,fontID);
@@ -4159,16 +4159,20 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTx
 	lenTxt=i;
 
 	if(bkColor){
-		if(fontID==LCD_GetStrVar_fontID(idVar))
-		{
-			switch(LCD_GetStrVar_bkRoundRect(idVar))
-			{
+		if(fontID==LCD_GetStrVar_fontID(idVar)){
+			switch(LCD_GetStrVar_bkRoundRect(idVar)){
 			case BK_Rectangle:
-				LCD_RectangleBuff					(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor); 										break;
+				if(displayOn)	LCD_RectangleBuff(outBuff,posBuff, lenTxtInPixel,height, 0,0, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
+				else				LCD_RectangleBuff(outBuff,posBuff, winW,         winH,   x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
+				break;
 			case BK_Round:
-				LCD_RoundRectangleBuff			(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar)); 	break;
+				if(displayOn)	LCD_RoundRectangleBuff(outBuff,posBuff, lenTxtInPixel,height, 0,0, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				else				LCD_RoundRectangleBuff(outBuff,posBuff, winW,			winH,	  x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				break;
 			case BK_LittleRound:
-				LCD_LittleRoundRectangleBuff	(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));	break;
+				if(displayOn)	LCD_LittleRoundRectangleBuff(outBuff,posBuff, lenTxtInPixel,height, 0,0, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				else				LCD_LittleRoundRectangleBuff(outBuff,posBuff, winW,			winH,	  x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				break;
 			case BK_None: break;
 		}}
 		else LCD_RectangleBuff(outBuff,posBuff,winW,winH,x,y,lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
@@ -4187,7 +4191,6 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTx
 				if(pTxt[h]==' '){		if(bkColor!=0) _SendToBuffOut(j,bkColor);	}
 				else
 				{
-
 					if(data == 0)	data = _GetDataFromInput(pFileCFF,&posReadFileCFF,&type);
 
 					if(FontID[fontID].bkColor != bkColor && FontID[fontID].color == foColor	&& coeff != 0)			/*	only change bkColor */
@@ -4212,7 +4215,7 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, int displayOn, int fontID, char *pTx
 					else			/* change bkColor and fonrtColor */
 					{
 						switch((int)type){
-							case bk:	 if(bkColor!=0) _SendToBuffOut(j,bkColor); /* Font[fontIndx].fontBkColorToIndex; */	break;
+							case bk:	/* if(bkColor!=0) _SendToBuffOut(j,bkColor);*/ /* Font[fontIndx].fontBkColorToIndex; */	break;
 							case fo:	 					 _SendToBuffOut(j,foColor); /* Font[fontIndx].fontColorToIndex */;	break;
 							case AA:
 								colorB = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+0];
