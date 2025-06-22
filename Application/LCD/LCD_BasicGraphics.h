@@ -169,7 +169,7 @@ typedef struct{
 }structGradParam;
 
 typedef struct{
-	u32 fromColorPtr; u32 toColorPtr; structSizeU16 sizePtr;	u16 xPos;
+	u32 fromColorPtr; u32 toColorPtr; structSizeU16 sizePtr;	u16 posPtr;
 	u32 fromColorRct; u32 toColorRct; structSizeU16 sizeRct; structPosU16 posRct;
 }structPointParam;
 

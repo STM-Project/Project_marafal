@@ -2459,9 +2459,9 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 //#define MEM_1		NR_MEM(2000000,0)
 //#define MEM_2		NR_MEM(4000000,1)
 //#define MEM_3_IND		NR_MEM(5500000,2)
-//
-//
-////-----CHART  common --------
+
+
+//-----CHART  common --------
 //	GRAPH_GetSamples(NR_MEM(2000000,0), XYPOS_YMIN_YMAX( 50,250, -170,170), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
 //	GRAPH_GetSamples(NR_MEM(4000000,1), XYPOS_YMIN_YMAX(300,250, -170,170), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin1));
 //	GRAPH_GetSamples(MEM_3_IND, 			XYPOS_YMIN_YMAX(  0,120, -120,10), POINTS_STEP_XYSCALE(240,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin1));
@@ -2472,14 +2472,14 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 //
 //	int widthBk = GRAPH_GetNmbrPoints(MEM_3_IND);
 //	par2 = LCD_Chart(ToStructAndReturn, MEM_3_IND, XY_WIN(540,210), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*widthBk-0, 0*widthBk-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA);
-//
-//
-////-----CHART  opt 1 --------
+
+
+//-----CHART  opt 1 --------
 //	LCD_Chart(0, MEM_3,				 LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA);
 //	LCD_Chart(0, NR_MEM(4000000,1),LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA);
 //	LCD_Chart(0, NR_MEM(2000000,0),LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA);
-//
-////-----CHART  opt 2 --------
+
+//-----CHART  opt 2 --------
 //	LCDSHAPE_Chart(0,par1);
 //	LCDSHAPE_Chart(0,par3);
 //
@@ -2503,7 +2503,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	if(LoadNoDispScreen != argNmb) LCD_Show();
 
 
-
+		//LCDSHAPE_Chart_Indirect(par2);
 
 //ROBIMY :  1. LISTVIEW  tabelko z lista   2. klawiature i koniec !!!
 	//GRAPH ZADANIA  : delikatna siateczka, okienko XY, wskaznik pionowy

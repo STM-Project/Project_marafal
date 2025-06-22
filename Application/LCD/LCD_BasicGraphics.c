@@ -5766,16 +5766,39 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 
 	int len = posXY_par[0].len_posXY;
 
+	typedef struct{
+		structPosU16 pos;
+		structSizeU16 size;
+		u32 *mem;
+	}CHART_PTR_XY_PREV;
+
+	CHART_PTR_XY_PREV ptrPrev = {0};
+
 
 	u32 col1 = GetTransitionColor(LIGHTBLUE,DARKBLUE,0.5);
 	u32 col2 = GetTransitionColor(LIGHTRED,DARKRED,0.5);
 	u32 col3 = GetTransitionColor(GREEN,DARKGREEN,0.5);
 
-	LCD_GradientCircleButton(0,widthBk,LCD_Y, posXY[len/2].x-9, posXY[len/2].y-9, 18,18, SetBold2Color(col1,1),LIGHTBLUE,DARKBLUE,0,ReadOutColor);  //Ta wielkosc jes t ok !!!!
+
+
+	ptrPrev.pos.x = posXY[len/2].x-9;
+	ptrPrev.pos.y = posXY[len/2].y-9;
+	ptrPrev.size.w =18;
+	ptrPrev.size.h =18;
+
+	LCD_GradientCircleButton(0,widthBk,unUsed/*LCD_Y*/, posXY[len/2].x-9, posXY[len/2].y-9, 18,18, SetBold2Color(col1,1),LIGHTBLUE,DARKBLUE,0,ReadOutColor);  //Ta wielkosc jes t ok !!!!
 
 
 
 
+	_2LOOP_INIT(int m=0, i,j, ptrPrev.size.w, ptrPrev.size.h)
+		*(ptrPrev.mem + m) = _PLCD(posBuff, ptrPrev.pos.x, ptrPrev.pos.y);
+	_2LOOP_END
+
+
+
+
+	LCD_Display(posBuff, ptrPrev.pos.x, ptrPrev.pos.y, ptrPrev.size.w, ptrPrev.size.h);
 
 
 
@@ -5833,7 +5856,7 @@ void LCD_Chart_Indirect(int offsMem, int nrMem, u32 widthBk, u32 colorLineAA, u3
 		_1LOOP_END
 		k += width;
 	_1LOOP_END
-	LCD_Display(width, x,y, width,height);
+	LCD_Display(width/*offsK*/, x,y, width,height);
 }
 USER_GRAPH_PARAM LCDSHAPE_Chart(uint32_t posBuff, USER_GRAPH_PARAM param){
 	return LCD_Chart(posBuff, param.offsMem, param.nrMem, param.widthBk, param.lineColor, param.AAoutColor, param.AAinColor, param.bkRectColor, param.AAoutCoeff, param.AAinCoeff, param.dispOpt, param.colorLinePosXY, param.colorLinePosXYrep, param.KoffsPosXY, param.KoffsPosXYrep, param.grad.bkType, param.grad.fromColor, param.grad.toColor, param.grad.stripY, param.grad.amplTrans, param.grad.offsTrans, param.corr45degAA);
