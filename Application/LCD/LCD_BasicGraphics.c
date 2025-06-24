@@ -5844,7 +5844,7 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 		ptrPrev.memInUse=1;
 	}
 
-	switch(chartPtr.hideShowRct)
+	switch(chartPtr.hideShowPtr)
 	{
 		default: case 0:		break;
 
