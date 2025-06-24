@@ -5665,33 +5665,44 @@ void GRAPH_DrawPtr(int posBuff, u16 posPtr, /*int offsMem,int nrMem,*/ structPoi
 
 	u32 colorTransPtr = GetTransitionColor(par.fromColorPtr, par.toColorPtr, 0.5);
 	u32 widthBk 		= ptrPrev.widthBk;
-	int posChartPtr   = CONDITION( posPtr >= posXY_par[0].len_posXY-1, 	posXY_par[0].len_posXY-(ptrPrev.size.w/2-2), 	posPtr );
+	int posChartPtr   = posPtr; //CONDITION( posPtr >= posXY_par[0].len_posXY-1, 	posXY_par[0].len_posXY-(ptrPrev.size.w/2-2), 	posPtr );
 
 	void __CopyPtrBitmapToMem(void){
-		_2LOOP_INIT(int m=0, i,j, ptrPrev.size.w, ptrPrev.size.h)
+		_2LOOP_INIT(int m=0, i,j, ptrPrev.size.w+2, ptrPrev.size.h+2)
 			if(m>=CHART_PTR_MEM_SIZE) break;
-			*(ptrPrev.mem + m++) = _PLCD(posBuff, i+ptrPrev.pos.x, j+ptrPrev.pos.y);
+			*(ptrPrev.mem + m++) = pLcd[posBuff+LCD_X*(j+ptrPrev.pos.y)+(i+ptrPrev.pos.x)];
 		_2LOOP_END
 		ptrPrev.memInUse=1;
 	}
 
 	void __DispPtrBitmapFromMem(void){  // moze te funkcjie zewn ???  i stosuj wiele wykresow czyli tablice kilku chartPtr !!!!!!
-		_2LOOP_INIT(int m2=0, i,j, ptrPrev.size.w, ptrPrev.size.h)
-				_PLCD(posBuff, i,j) = *(ptrPrev.mem + m2++);
+		_2LOOP_INIT(int m=0, i,j, ptrPrev.size.w+2, ptrPrev.size.h+2)
+			pLcd[posBuff+(ptrPrev.size.w+2)*j+i] = *(ptrPrev.mem + m++);
 		_2LOOP_END
 		ptrPrev.memInUse=0;
 	}
 
 	if(ptrPrev.memInUse){
 		__DispPtrBitmapFromMem();
-		LCD_Display(0, ptrPrev.pos.x, ptrPrev.pos.y, ptrPrev.size.w, ptrPrev.size.h);
+		LCD_Display(posBuff, ptrPrev.pos.x, ptrPrev.pos.y, ptrPrev.size.w+2, ptrPrev.size.h+2);
 	}
 
-	ptrPrev.pos.x = posXY[posChartPtr].x;		/* Set new pointer position of chart */
-	ptrPrev.pos.y = posXY[posChartPtr].y;
+	ptrPrev.pos.x = posXY[posChartPtr].x - ptrPrev.size.w/2;		/* Set new pointer position of chart */
+	ptrPrev.pos.y = posXY[posChartPtr].y - ptrPrev.size.w/2;
 
-	LCD_GradientCircleButton_Indirect(ptrPrev.pos.x, ptrPrev.pos.y,  ptrPrev.size.w,ptrPrev.size.h,  SetBold2Color(colorTransPtr,1), par.fromColorPtr, par.toColorPtr, 0,ReadOutColor);
+
+
 	__CopyPtrBitmapToMem();
+
+	_2LOOP_INIT(int m=0, i,j, ptrPrev.size.w+2, ptrPrev.size.h+2)
+		if(m>=CHART_PTR_MEM_SIZE) break;
+		pLcd[posBuff+(ptrPrev.size.w+2)*j+i] = pLcd[posBuff+LCD_X*(j+ptrPrev.pos.y)+(i+ptrPrev.pos.x)];  //UWAGA inaczej , moze nadpisywac !!!!!
+	_2LOOP_END
+
+	LCD_GradientCircleButton_Indirect(ptrPrev.pos.x, ptrPrev.pos.y,  ptrPrev.size.w,ptrPrev.size.h,  SetBold2Color(colorTransPtr,1), LIGHTBLUE,DARKBLUE /*par.fromColorPtr, par.toColorPtr*/, 0,ReadOutColor);
+
+
+
 }
 
 					 /* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
@@ -5826,20 +5837,30 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 
 	u32 colorTransPtr = GetTransitionColor(chartPtr.fromColorPtr, chartPtr.toColorPtr, 0.5);
 	int sizeChartPtr  = CONDITION(chartPtr.sizePtr%2, chartPtr.sizePtr+1, chartPtr.sizePtr);
-	int posChartPtr   = CONDITION( chartPtr.posPtr >= posXY_par[0].len_posXY-1, 	posXY_par[0].len_posXY-(sizeChartPtr/2-2), 	chartPtr.posPtr );
+	int posChartPtr   = chartPtr.posPtr;
+
+//	if(posChartPtr >= posXY_par[0].len_posXY-1)	posChartPtr = posXY_par[0].len_posXY-(sizeChartPtr/2-2);  //ZASTANOWIC sie
+//	if(posChartPtr <  sizeChartPtr/2				)	posChartPtr = 0;
 
 	ptrPrev.size.w  = sizeChartPtr;
 	ptrPrev.size.h  = sizeChartPtr;
-	ptrPrev.pos.x 	 = posXY[posChartPtr].x;
-	ptrPrev.pos.y 	 = posXY[posChartPtr].y;
-	ptrPrev.widthBk = widthBk;
+	ptrPrev.pos.x 	 = posXY[posChartPtr].x-sizeChartPtr/2;
+	ptrPrev.pos.y 	 = posXY[posChartPtr].y-sizeChartPtr/2;
+	ptrPrev.widthBk = ptrPrev.size.w;
 
 
 
 	void __CopyPtrBitmapToMem(void){
-		_2LOOP_INIT(int m=0, i,j, ptrPrev.size.w, ptrPrev.size.h)
+//		_2LOOP_INIT(int m=0, i,j, ptrPrev.size.w, ptrPrev.size.h)
+//			if(m>=CHART_PTR_MEM_SIZE-1)
+//				return;
+//			*(ptrPrev.mem + m++) = _PLCD(posBuff, i+ptrPrev.pos.x, j+ptrPrev.pos.y);
+//		_2LOOP_END
+//		ptrPrev.memInUse=1;
+
+		_2LOOP_INIT(int m=0, i,j, ptrPrev.size.w+2, ptrPrev.size.h+2)
 			if(m>=CHART_PTR_MEM_SIZE) break;
-			*(ptrPrev.mem + m++) = _PLCD(posBuff, i+ptrPrev.pos.x, j+ptrPrev.pos.y);
+			*(ptrPrev.mem + m++) = pLcd[posBuff+LCD_X*(j+ptrPrev.pos.y)+(i+ptrPrev.pos.x)];
 		_2LOOP_END
 		ptrPrev.memInUse=1;
 	}
@@ -5849,8 +5870,8 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 		default: case 0:		break;
 
 		case 1:
-			LCD_GradientCircleButton(0,widthBk,unUsed/*LCD_Y*/, ptrPrev.pos.x, ptrPrev.pos.y,  ptrPrev.size.w, ptrPrev.size.h,  SetBold2Color(colorTransPtr,1),chartPtr.fromColorPtr,chartPtr.toColorPtr,0,ReadOutColor);
 			__CopyPtrBitmapToMem();
+			LCD_GradientCircleButton(0,widthBk,unUsed/*LCD_Y*/, ptrPrev.pos.x, ptrPrev.pos.y,  ptrPrev.size.w, ptrPrev.size.h,  SetBold2Color(colorTransPtr,1),chartPtr.fromColorPtr,chartPtr.toColorPtr,0,ReadOutColor);
 			break;
 	}
 }
