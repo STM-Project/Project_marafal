@@ -1859,7 +1859,7 @@ void FILE_NAME(debugRcvStr)(void)
 	}
 	else if(DEBUG_RcvStr("j"))
 	{
-		GRAPH_DrawPtr(0,do_wymazania++);  //Identyfikacja ktory wykres !!!!!!!!!!!!!!!!!!!!!!!!!!
+		GRAPH_DrawPtr(0,++do_wymazania);  //Identyfikacja ktory wykres !!!!!!!!!!!!!!!!!!!!!!!!!!
 		if(do_wymazania>200) do_wymazania=100;
 	}
 
@@ -2511,6 +2511,17 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	//ZROBIC cieniowanie pol i text 3d na nim jak w biletcie automatu na muzeum naradowe
 	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
 	if(LoadNoDispScreen != argNmb) LCD_Show();
+
+
+	if(testGraph.grad.bkType == 0){
+		GRAPH_DrawPtr(0,50);
+	}
+	else if(testGraph.grad.bkType == 1){
+		GRAPH_DrawPtr(0,100);
+	}
+	else if(testGraph.grad.bkType == 2){
+		GRAPH_DrawPtr(0,150);
+	}
 
 
 		//LCDSHAPE_Chart_Indirect(par2);

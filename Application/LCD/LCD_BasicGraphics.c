@@ -5678,8 +5678,8 @@ void GRAPH_DrawPtr(int posBuff, u16 posPtr /*, int offsMem,int nrMem,*/)
 		_2LOOP_INIT(int m=0, i,j, corrSizeW,corrSizeH)
 			if(m>=CHART_PTR_MEM_SIZE) return;
 			temp 				  = pLcd[posBuff+ptrPrev.chartBkW*(j+ptrPrev.pos.y)+(i+ptrPrev.pos.x)];
-			*(ptrPrev.mem+m) = temp;
-			pLcd[posBuff+m]  = temp;
+			*(ptrPrev.mem+m) = temp;	//zapis do pamieci tla
+			pLcd[posBuff+m]  = temp;  //przygotowanie tla dla Circle Buton idirect !!!!
 			m++;
 		_2LOOP_END
 		ptrPrev.memInUse=1;
@@ -5696,6 +5696,7 @@ void GRAPH_DrawPtr(int posBuff, u16 posPtr /*, int offsMem,int nrMem,*/)
 	if(ptrPrev.memInUse){
 		__DispPtrBitmapFromMem();
 		LCD_Display(posBuff, ptrPrev.pos.x, ptrPrev.pos.y, corrSizeW,corrSizeH);
+		//HAL_Delay(1000);
 	}
 
 	ptrPrev.pos.x = posXY[posChartPtr].x - ptrPrev.size.w/2;		/* Set new pointer position of chart */
@@ -5873,11 +5874,12 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 
 	switch(chartPtr.hideShowPtr)
 	{
-		default: case 0:		break;
+		default: case 0:
+			break;
 
 		case 1:
 			__CopyPtrBitmapToMem();
-			LCD_GradientCircleButton(0,widthBk,unUsed/*LCD_Y*/, ptrPrev.pos.x, ptrPrev.pos.y,  ptrPrev.size.w, ptrPrev.size.h,  SetBold2Color(colorTransPtr,1),chartPtr.fromColorPtr,chartPtr.toColorPtr,0,ReadOutColor);
+			//LCD_GradientCircleButton(0,widthBk,unUsed/*LCD_Y*/, ptrPrev.pos.x, ptrPrev.pos.y,  ptrPrev.size.w, ptrPrev.size.h,  SetBold2Color(colorTransPtr,1),chartPtr.fromColorPtr,chartPtr.toColorPtr,0,ReadOutColor);
 			break;
 	}
 }
