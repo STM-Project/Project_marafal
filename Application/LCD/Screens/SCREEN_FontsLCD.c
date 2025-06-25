@@ -1776,7 +1776,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 static USER_GRAPH_PARAM testGraph = {.par.scaleX=1.5, .par.scaleY=46.0, .funcType=Func_sin, .grad.bkType=Grad_Ystrip, .corr45degAA=1};
 
 
-static int do_wymazania = 160;
+static int do_wymazania = 100;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -1859,7 +1859,8 @@ void FILE_NAME(debugRcvStr)(void)
 	}
 	else if(DEBUG_RcvStr("j"))
 	{
-		GRAPH_DrawPtr(0,do_wymazania++, testGraph.ptr);  //Identyfikacja ktory wykres !!!!!!!!!!!!!!!!!!!!!!!!!!
+		GRAPH_DrawPtr(0,do_wymazania++);  //Identyfikacja ktory wykres !!!!!!!!!!!!!!!!!!!!!!!!!!
+		if(do_wymazania>200) do_wymazania=100;
 	}
 
 
