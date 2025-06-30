@@ -1044,13 +1044,16 @@ static void _Middle_RoundRectangleFrame(int rectangleFrame, int fillHeight, uint
 /* Transparent version of Rectangle-Frame */
 static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor_, uint32_t FillColor_, uint32_t BkpColor, float transpCoeff)
 {
-	#define FrameColor 	GetTransitionColor( FrameColor_, pLcd[k],  transpCoeff )
-	#define FillColor 	GetTransitionColor( FillColor_, pLcd[k],	 transpCoeff )
+
+
+
+	#define FrameColor 	GetTransitionColor( FrameColor_, RED/*pLcd[k]*/,  transpCoeff )
+	#define FillColor 	GetTransitionColor( FillColor_, BLUE/*pLcd[k]*/,	 transpCoeff )
 	#define i1 				GetTransitionColor( FrameColor, FillColor, AA.c1 )
 	#define i2 				GetTransitionColor( FrameColor, FillColor, AA.c2 )
 	#define o1 				GetTransitionColor( FrameColor, BkpColor,  AA.c1 )
 	#define o2 				GetTransitionColor( FrameColor, BkpColor,  AA.c2 )
-	typedef enum{ frC,i1C,i2C }TypeOfColor;
+	typedef enum{ frC,i1C,i2C,o1C,o2C,bkC }TypeOfColor;
 
 	uint8_t thickness = BkpColor>>24;
 
@@ -1065,16 +1068,22 @@ static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBu
 	void A(int itCount, TypeOfColor type){
 		switch((int)type){
 			case frC:
-				for(int i=0;i<itCount;++i)
-					_SetColorToPLCD(FrameColor);
+				for(int i=0;i<itCount;++i) _SetColorToPLCD(FrameColor);
 				break;
 			case i1C:
-				for(int i=0;i<itCount;++i)
-					_SetColorToPLCD(i1);
+				for(int i=0;i<itCount;++i) _SetColorToPLCD(i1);
 				break;
 			case i2C:
-				for(int i=0;i<itCount;++i)
-					_SetColorToPLCD(i2);
+				for(int i=0;i<itCount;++i) _SetColorToPLCD(i2);
+				break;
+			case o1C:
+				for(int i=0;i<itCount;++i) _SetColorToPLCD(o1);
+				break;
+			case o2C:
+				for(int i=0;i<itCount;++i) _SetColorToPLCD(o2);
+				break;
+			case bkC:
+				for(int i=0;i<itCount;++i) _SetColorToPLCD(BkpColor);
 				break;
 		}
 	}
@@ -1084,11 +1093,11 @@ static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBu
 		if((thickness==0)||(thickness==255))
 		{	switch(stage)
 			{
-			case 0:	A(3,BkpColor); A(1,o2); A(1,o1);  break;
-			case 1:	A(2,BkpColor); A(1,o1);  break;
-			case 2:	A(1,BkpColor); A(1,o1);  break;
-			case 3:	A(1,o2); break;
-			case 4:	A(1,o1); break;
+			case 0:	A(3,bkC); A(1,o2C); A(1,o1C);  break;
+			case 1:	A(2,bkC); A(1,o1C);  break;
+			case 2:	A(1,bkC); A(1,o1C);  break;
+			case 3:	A(1,o2C); break;
+			case 4:	A(1,o1C); break;
 			}
 		}
 		else
@@ -1108,11 +1117,11 @@ static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBu
 		if((thickness==0)||(thickness==255))
 		{	switch(stage)
 			{
-			case 0:	A(1,o1); A(1,o2); A(3,BkpColor);  break;
-			case 1:	A(1,o1); A(2,BkpColor);  break;
-			case 2:	A(1,o1); A(1,BkpColor);  break;
-			case 3:	A(1,o2); break;
-			case 4:	A(1,o1); break;
+			case 0:	A(1,o1C); A(1,o2C); A(3,bkC);  break;
+			case 1:	A(1,o1C); A(2,bkC);  break;
+			case 2:	A(1,o1C); A(1,bkC);  break;
+			case 3:	A(1,o2C); break;
+			case 4:	A(1,o1C); break;
 			}
 		}
 		else
@@ -1139,12 +1148,42 @@ static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBu
 	_Out_AA_left(4); A(1,frC); _Fill(width-4); A(1,frC); _Out_AA_right(4);
 	_NextDrawLine(BkpSizeX,width);
 
-	A(1,FrameColor);  A(1,i1C); _Fill(width-4); A(1,i1C); A(1,frC);
+	A(1,frC);  A(1,i1C); _Fill(width-4); A(1,i1C); A(1,frC);
 	_NextDrawLine(BkpSizeX,width);
-	A(1,FrameColor);  A(1,i2C); _Fill(width-4); A(1,i2C); A(1,frC);
+	A(1,frC);  A(1,i2C); _Fill(width-4); A(1,i2C); A(1,frC);
 	_NextDrawLine(BkpSizeX,width);
 
-	_Middle_RoundRectangleFrame(rectangleFrame,14,FrameColor,FillColor,BkpSizeX,width,height);
+	//_Middle_RoundRectangleFrame(rectangleFrame,14,FrameColor,FillColor,BkpSizeX,width,height);
+
+	int _height = height-14;
+	int _width = width-2;
+	if(rectangleFrame)
+	{
+		for (int j=0; j<_height; j++)
+		{
+			A(1,frC); //_FillBuff(1, FrameColor);
+
+
+			//_FillBuff(_width, FillColor);
+			for(int i=0;i<_width;++i)
+				_SetColorToPLCD(FillColor);
+
+
+			A(1,frC); //_FillBuff(1, FrameColor);
+			_NextDrawLine(BkpSizeX,width);
+		}
+	}
+	else
+	{
+		for (int j=0; j<_height; j++)
+		{
+			A(1,frC); //_FillBuff(1, FrameColor);
+			k+=_width;
+			A(1,frC); //_FillBuff(1, FrameColor);
+			_NextDrawLine(BkpSizeX,width);
+		}
+	}
+
 
 	A(1,frC);  A(1,i2C); _Fill(width-4); A(1,i2C); A(1,frC);
 	_NextDrawLine(BkpSizeX,width);
@@ -1160,6 +1199,13 @@ static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBu
 	_Out_AA_left(1); A(2,frC); A(1,i1C);A(1,i2C); _Fill(width-14); A(1,i2C);A(1,i1C);A(2,frC); _Out_AA_right(1);
 	_NextDrawLine(BkpSizeX,width);
 	_Out_AA_left(0); A(width-10,frC); _Out_AA_right(0);
+
+
+
+
+
+
+
 
 	#undef FrameColor
 	#undef FillColor
@@ -5860,7 +5906,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 		u32 temp;
 		_2LOOP_INIT(int m=0, i,j, corrSizeW,corrSizeH)
 			if(m>=CHART_PTR_MEM_SIZE) return;
-			temp 				  = pLcd[posBuff+ptrPrev[nrMem].chartBkW*(j+ptrPrev[nrMem].pos.y)+(i+ptrPrev[nrMem].pos.x)];
+			temp 				  			= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(j+ptrPrev[nrMem].pos.y)+(i+ptrPrev[nrMem].pos.x)];
 			*(ptrPrev[nrMem].mem+m) = temp;		/* write background to memory */
 			pLcd[posBuff+m]  			= temp;  	/* prepare background for Circle Button Indirect */
 			m++;
@@ -5890,12 +5936,12 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 	if(ptrPrev[nrMem].ptr.hideShowRct)
 	{
-		int rectX=0, rectY=0;
+		int rectX=50, rectY=50;
 		switch(ptrPrev[nrMem].ptr.hideShowRct){
 			default:
 			case 1:
 				ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;
-				ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 60;
+				ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 30;
 
 //				temp = ptrPrev[nrMem].pos.x - ptrPrev[nrMem].ptr.sizeRct.w / 2;		if(temp < ptrPrev[nrMem].startXYchart.x) temp= ptrPrev[nrMem].startXYchart.x;
 //				ptrPrev[nrMem].ptr.posRct.x = temp;
@@ -5905,12 +5951,16 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 			case 2:
 				ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;
-				ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 60;
+				ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 30;
 				break;
 
 		}
+
+		//int pppppo = ptrPrev[nrMem].ptr.sizeRct.w  *  ptrPrev[nrMem].ptr.posRct.y  +   ptrPrev[nrMem].ptr.posRct.x;
+
 		LCD_RoundRectangleTransp(posBuff,  ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h, 	0,0, 	ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, 0xFF414141, 0.5);  //uniescic w example.c !!!!!!
-		LCD_Display					(posBuff,  rectX,  							  rectY,  										ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h);
+		//LCD_RoundRectangle(posBuff,  ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h, 	0,0, 	ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h, 	RED/*ptrPrev[nrMem].ptr.fromColorRct*/, GRAY/*ptrPrev[nrMem].ptr.toColorRct*/, 0xFF414141);
+		LCD_Display					(posBuff,  ptrPrev[nrMem].ptr.posRct.x, ptrPrev[nrMem].ptr.posRct.y,  			ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h);
 	}
 
 
