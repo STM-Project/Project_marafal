@@ -22,7 +22,7 @@
 #define GRAPH_MAX_SIZE_POSXY	10000
 #define SIZE_ONE_CHART		sizeof(structGetSmpl) + GRAPH_MAX_SIZE_POSXY*sizeof(structPosU16) + 2*GRAPH_MAX_SIZE_POSXY*sizeof(structRepPos)
 #define CHART_PTR_MEM_SIZE		30*30
-//#define CHART_PTR_MEM_SIZE		30*30
+#define CHART_RCT_MEM_SIZE		60*30
 #define MAX_CHARTS_SIMULTANEOUSLY	8
 
 /* Select one memory type for graphic of chart */
@@ -106,7 +106,8 @@ typedef struct{
 	structPointParam ptr;
 	u8 memInUse;
 	u16 chartBkW;
-	u32 *mem;
+	u32 *ptrMem;
+	u32 *rctMem;
 }CHART_PTR_PREV;
 
 static AACoeff_RoundFrameRectangle AA;
@@ -116,6 +117,7 @@ static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .
 USER_GRAPH_PARAM USER_GRAPH_PARAM_Zero = {0};
 
 static u32 				  chartPtrMem[ MAX_CHARTS_SIMULTANEOUSLY ][ CHART_PTR_MEM_SIZE ];			/* in future allocate dynamic memory for fonts memory */
+static u32 				  chartRctMem[ MAX_CHARTS_SIMULTANEOUSLY ][ CHART_RCT_MEM_SIZE ];
 static CHART_PTR_PREV 		ptrPrev[ MAX_CHARTS_SIMULTANEOUSLY ]={0};
 
 
@@ -5896,26 +5898,41 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 	u32 colorTransPtr = GetTransitionColor( ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0.5);
 	int posChartPtr   = posPtr;
 	int sizeChartPtr 	= ptrPrev[nrMem].size.w;
-	int temp;
 
 	if(posChartPtr >= posXY_par[0].len_posXY-(sizeChartPtr/2-2))	posChartPtr = posXY_par[0].len_posXY-(sizeChartPtr/2-2);  //ZASTANOWIC sie
 	if(posChartPtr <  sizeChartPtr/2+2								  )	posChartPtr = sizeChartPtr/2+2;
 
-	void __CopyPtrBitmapToMem_and_PrepareBkForCircleButton(void){
+	void __CopyPtrBitmapToMem_and_PrepareBkForPtr(void){
 		u32 temp;
 		_2LOOP_INIT(int m=0, i,j, corrSizeW,corrSizeH)
 			if(m>=CHART_PTR_MEM_SIZE) return;
-			temp 				  			= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(j+ptrPrev[nrMem].pos.y)+(i+ptrPrev[nrMem].pos.x)];
-			*(ptrPrev[nrMem].mem+m) = temp;		/* write background to memory */
-			pLcd[posBuff+m]  			= temp;  	/* prepare background for Circle Button Indirect */
+			temp 				  				= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(j+ptrPrev[nrMem].pos.y)+(i+ptrPrev[nrMem].pos.x)];
+			*(ptrPrev[nrMem].ptrMem+m) = temp;		/* write background to memory */
+			pLcd[posBuff+m]  				= temp;  	/* prepare new background */
 			m++;
 		_2LOOP_END
 		ptrPrev[nrMem].memInUse=1;
 	}
+	void __CopyPtrBitmapToMem_and_PrepareBkForRct(void){
+		u32 temp;
+		_2LOOP_INIT(int m=0, i,j, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h)
+			temp 								= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(ptrPrev[nrMem].ptr.posRct.y+j)+(ptrPrev[nrMem].ptr.posRct.x+i)];
+			*(ptrPrev[nrMem].rctMem+m) = temp;		/* write background to memory */
+			pLcd[posBuff+m]  				= temp;  	/* prepare new background */
+			m++;
+		_2LOOP_END
+	}
 
 	void __DispPtrBitmapFromMem(void){
 		_2LOOP_INIT(int m=0, i,j, corrSizeW,corrSizeH)
-			pLcd[posBuff+m] = *(ptrPrev[nrMem].mem + m);
+			pLcd[posBuff+m] = *(ptrPrev[nrMem].ptrMem + m);
+			m++;
+		_2LOOP_END
+		ptrPrev[nrMem].memInUse=0;
+	}
+	void __DispRctBitmapFromMem(void){
+		_2LOOP_INIT(int m=0, i,j, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h)
+			pLcd[posBuff+m] = *(ptrPrev[nrMem].rctMem + m);
 			m++;
 		_2LOOP_END
 		ptrPrev[nrMem].memInUse=0;
@@ -5923,13 +5940,17 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 	if(ptrPrev[nrMem].memInUse){
 		__DispPtrBitmapFromMem();
-		LCD_Display(posBuff, ptrPrev[nrMem].pos.x, ptrPrev[nrMem].pos.y, corrSizeW,corrSizeH);
-	}
+		LCD_Display(posBuff, ptrPrev[nrMem].pos.x, ptrPrev[nrMem].pos.y,  corrSizeW,corrSizeH);
+
+		if(ptrPrev[nrMem].ptr.hideShowRct){
+			__DispRctBitmapFromMem();
+			LCD_Display(posBuff, ptrPrev[nrMem].ptr.posRct.x, ptrPrev[nrMem].ptr.posRct.y, 	 ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h);
+	}}
 
 	ptrPrev[nrMem].pos.x = posXY[posChartPtr].x - ptrPrev[nrMem].size.w/2;		/* Set new pointer position of chart */
 	ptrPrev[nrMem].pos.y = posXY[posChartPtr].y - ptrPrev[nrMem].size.w/2;
 
-	__CopyPtrBitmapToMem_and_PrepareBkForCircleButton();
+	__CopyPtrBitmapToMem_and_PrepareBkForPtr();
 	LCD_GradientCircleButton_Indirect(ptrPrev[nrMem].pos.x, ptrPrev[nrMem].pos.y,  ptrPrev[nrMem].size.w, ptrPrev[nrMem].size.h,  SetBold2Color(colorTransPtr,1), ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0,ReadOutColor);
 
 
@@ -5964,20 +5985,122 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 		rectW = ptrPrev[nrMem].ptr.sizeRct.w;
 		rectH = ptrPrev[nrMem].ptr.sizeRct.h;
 
-		void __PrepareBkForRct(void){
-			_2LOOP_INIT(int m=0, i,j, rectW,rectH)
-				pLcd[posBuff+m++] = pLcd[posBuff+ptrPrev[nrMem].chartBkW*(rectY+j)+(rectX+i)];
-			_2LOOP_END
-		}
+
 #include "LCD_fonts_images.h"
-		__PrepareBkForRct();  //sparwdz tez thickness !!!!
-		LCD_RoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, 0/*0xFF414141*/, 0.95);  //uniescic w example.c !!!!!!
+		__CopyPtrBitmapToMem_and_PrepareBkForRct();  //sparwdz tez thickness !!!!
+		LCD_RoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, 0/*0xFF414141*/, 0.5);  //uniescic w example.c !!!!!!
 
 		LCD_BkFontTransparent(fontVar_40, fontID_14);
 		LCD_Txt(Display, NULL, unUsed,unUsed, rectW,rectH, fontID_14, fontVar_40, 15,10, "123", BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, unUsed/*0x777777*/, unUsed, NoDirect);
 
 		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
 	}
+
+
+
+
+
+
+
+
+
+
+
+
+//
+//	if(nrMem >= MAX_CHARTS_SIMULTANEOUSLY 	||  ptrPrev[nrMem].ptr.hideShowPtr == 0) return;
+//	int posBuff = 0;
+//	u16 corrSizeW 		= ptrPrev[nrMem].size.w+2;		/* '+2' because of bkSizeX for LCD_GradientCircleButton() */
+//	u16 corrSizeH 		= ptrPrev[nrMem].size.h+2;
+//	u32 colorTransPtr = GetTransitionColor( ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0.5);
+//	int posChartPtr   = posPtr;
+//	int sizeChartPtr 	= ptrPrev[nrMem].size.w;
+//	int temp;
+//
+//	if(posChartPtr >= posXY_par[0].len_posXY-(sizeChartPtr/2-2))	posChartPtr = posXY_par[0].len_posXY-(sizeChartPtr/2-2);  //ZASTANOWIC sie
+//	if(posChartPtr <  sizeChartPtr/2+2								  )	posChartPtr = sizeChartPtr/2+2;
+//
+//	void __CopyPtrBitmapToMem_and_PrepareBkForCircleButton(void){
+//		u32 temp;
+//		_2LOOP_INIT(int m=0, i,j, corrSizeW,corrSizeH)
+//			if(m>=CHART_PTR_MEM_SIZE) return;
+//			temp 				  			= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(j+ptrPrev[nrMem].pos.y)+(i+ptrPrev[nrMem].pos.x)];
+//			*(ptrPrev[nrMem].mem+m) = temp;		/* write background to memory */
+//			pLcd[posBuff+m]  			= temp;  	/* prepare background for Circle Button Indirect */
+//			m++;
+//		_2LOOP_END
+//		ptrPrev[nrMem].memInUse=1;
+//	}
+//
+//	void __DispPtrBitmapFromMem(void){
+//		_2LOOP_INIT(int m=0, i,j, corrSizeW,corrSizeH)
+//			pLcd[posBuff+m] = *(ptrPrev[nrMem].mem + m);
+//			m++;
+//		_2LOOP_END
+//		ptrPrev[nrMem].memInUse=0;
+//	}
+//
+//	if(ptrPrev[nrMem].memInUse){
+//		__DispPtrBitmapFromMem();
+//		LCD_Display(posBuff, ptrPrev[nrMem].pos.x, ptrPrev[nrMem].pos.y, corrSizeW,corrSizeH);
+//	}
+//
+//	ptrPrev[nrMem].pos.x = posXY[posChartPtr].x - ptrPrev[nrMem].size.w/2;		/* Set new pointer position of chart */
+//	ptrPrev[nrMem].pos.y = posXY[posChartPtr].y - ptrPrev[nrMem].size.w/2;
+//
+//	__CopyPtrBitmapToMem_and_PrepareBkForCircleButton();
+//	LCD_GradientCircleButton_Indirect(ptrPrev[nrMem].pos.x, ptrPrev[nrMem].pos.y,  ptrPrev[nrMem].size.w, ptrPrev[nrMem].size.h,  SetBold2Color(colorTransPtr,1), ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0,ReadOutColor);
+//
+//
+//	if(ptrPrev[nrMem].ptr.hideShowRct)
+//	{
+//		int rectX,rectY, rectW,rectH;
+//		switch(ptrPrev[nrMem].ptr.hideShowRct){
+//			default:
+//			case 1:
+//				ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;
+//				ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 30;
+//
+////				temp = ptrPrev[nrMem].pos.x - ptrPrev[nrMem].ptr.sizeRct.w / 2;		if(temp < ptrPrev[nrMem].startXYchart.x) temp= ptrPrev[nrMem].startXYchart.x;
+////				ptrPrev[nrMem].ptr.posRct.x = temp;
+////				temp = ptrPrev[nrMem].pos.y + ptrPrev[nrMem].size.h / 2 + 15;			if(temp + ptrPrev[nrMem].ptr.sizeRct.h > ptrPrev[nrMem].startXYchart.y + ptrPrev[nrMem].yMinMaxchart[0]) temp= ....;
+////				ptrPrev[nrMem].ptr.posRct.y = temp;
+//				break;
+//
+//			case 2:
+//				ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;
+//				ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 30;
+//				break;
+//
+//		}
+//
+//		//int pppppo = ptrPrev[nrMem].ptr.sizeRct.w  *  ptrPrev[nrMem].ptr.posRct.y  +   ptrPrev[nrMem].ptr.posRct.x;
+//
+//
+//		rectX = ptrPrev[nrMem].ptr.posRct.x;
+//		rectY = ptrPrev[nrMem].ptr.posRct.y;
+//
+//		rectW = ptrPrev[nrMem].ptr.sizeRct.w;
+//		rectH = ptrPrev[nrMem].ptr.sizeRct.h;
+//
+//		void __PrepareBkForRct(void){
+//			_2LOOP_INIT(int m=0, i,j, rectW,rectH)
+//				pLcd[posBuff+m++] = pLcd[posBuff+ptrPrev[nrMem].chartBkW*(rectY+j)+(rectX+i)];
+//			_2LOOP_END
+//		}
+//#include "LCD_fonts_images.h"
+//		__PrepareBkForRct();  //sparwdz tez thickness !!!!
+//		LCD_RoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, 0/*0xFF414141*/, 0.95);  //uniescic w example.c !!!!!!
+//
+//		LCD_BkFontTransparent(fontVar_40, fontID_14);
+//		LCD_Txt(Display, NULL, unUsed,unUsed, rectW,rectH, fontID_14, fontVar_40, 15,10, "123", BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, unUsed/*0x777777*/, unUsed, NoDirect);
+//
+//		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
+//	}
+
+
+
+
 
 
 
@@ -6102,7 +6225,8 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 		ptrPrev[nrMem].pos.y   	= posXY[posChartPtr].y-sizeChartPtr/2;
 		ptrPrev[nrMem].chartBkW = widthBk;
 		ptrPrev[nrMem].ptr 	 	= chartPtr;
-		ptrPrev[nrMem].mem 		= chartPtrMem[nrMem];
+		ptrPrev[nrMem].ptrMem	= chartPtrMem[nrMem];
+		ptrPrev[nrMem].rctMem	= chartRctMem[nrMem];
 
 		u16 corrSizeW = ptrPrev[nrMem].size.w+2;		/* '+2' because of bkSizeX for LCD_GradientCircleButton() */
 		u16 corrSizeH = ptrPrev[nrMem].size.h+2;
@@ -6111,10 +6235,26 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 			_2LOOP_INIT(int m=0, i,j, corrSizeW,corrSizeH)
 				if(m>=CHART_PTR_MEM_SIZE)
 					break;
-				*(ptrPrev[nrMem].mem + m) = pLcd[posBuff+widthBk*(j+ptrPrev[nrMem].pos.y)+(i+ptrPrev[nrMem].pos.x)];
+				*(ptrPrev[nrMem].ptrMem + m) = pLcd[posBuff+widthBk*(j+ptrPrev[nrMem].pos.y)+(i+ptrPrev[nrMem].pos.x)];
 				m++;
 			_2LOOP_END
 			ptrPrev[nrMem].memInUse=1;
+		}
+
+		void __CopyRctBitmapToMem(void){
+			_2LOOP_INIT(int m=0, i,j, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h)
+				if(m>=CHART_RCT_MEM_SIZE)
+					break;
+				*(ptrPrev[nrMem].rctMem + m) = pLcd[posBuff+widthBk*(j+ptrPrev[nrMem].ptr.posRct.y)+(i+ptrPrev[nrMem].ptr.posRct.x)];
+				m++;
+			_2LOOP_END
+			ptrPrev[nrMem].memInUse=1;
+		}
+
+		if(chartPtr.hideShowRct){
+			ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;			//w zaleznosci od typu 'hideShowRct' rozne rozklady RCT dac !!!!!!!
+			ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 30;
+			__CopyRctBitmapToMem();
 		}
 
 		__CopyPtrBitmapToMem();					 /*LCD_Y*/
