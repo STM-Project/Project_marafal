@@ -22,6 +22,7 @@
 #define GRAPH_MAX_SIZE_POSXY	10000
 #define SIZE_ONE_CHART		sizeof(structGetSmpl) + GRAPH_MAX_SIZE_POSXY*sizeof(structPosU16) + 2*GRAPH_MAX_SIZE_POSXY*sizeof(structRepPos)
 #define CHART_PTR_MEM_SIZE		30*30
+//#define CHART_PTR_MEM_SIZE		30*30
 #define MAX_CHARTS_SIMULTANEOUSLY	8
 
 /* Select one memory type for graphic of chart */
@@ -1042,20 +1043,18 @@ static void _Middle_RoundRectangleFrame(int rectangleFrame, int fillHeight, uint
 }
 
 /* Transparent version of Rectangle-Frame */
-static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor_, uint32_t FillColor_, uint32_t BkpColor, float transpCoeff)
+static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor_, uint32_t FillColor_, uint32_t BkpColor_, float transpCoeff)
 {
-
-
-
-	#define FrameColor 	GetTransitionColor( FrameColor_, RED/*pLcd[k]*/,  transpCoeff )
-	#define FillColor 	GetTransitionColor( FillColor_, BLUE/*pLcd[k]*/,	 transpCoeff )
+	#define BkColor    	CONDITION( BkpColor_==0, pLcd[k], BkpColor_ )						/* if(BkpColor_!=0) we don`t mixer colors (BkpColor_ with pLcd[k]) via transparent coefficient */
+	#define FrameColor 	GetTransitionColor( FrameColor_,pLcd[k],  transpCoeff )
+	#define FillColor 	GetTransitionColor( FillColor_, pLcd[k],	transpCoeff )
 	#define i1 				GetTransitionColor( FrameColor, FillColor, AA.c1 )
 	#define i2 				GetTransitionColor( FrameColor, FillColor, AA.c2 )
-	#define o1 				GetTransitionColor( FrameColor, BkpColor,  AA.c1 )
-	#define o2 				GetTransitionColor( FrameColor, BkpColor,  AA.c2 )
+	#define o1 				GetTransitionColor( FrameColor, BkColor,  AA.c1 )
+	#define o2 				GetTransitionColor( FrameColor, BkColor,  AA.c2 )
 	typedef enum{ frC,i1C,i2C,o1C,o2C,bkC }TypeOfColor;
 
-	uint8_t thickness = BkpColor>>24;
+	uint8_t thickness = BkpColor_>>24;
 
 	void _Fill(int x){
 		if(rectangleFrame){
@@ -1083,7 +1082,7 @@ static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBu
 				for(int i=0;i<itCount;++i) _SetColorToPLCD(o2);
 				break;
 			case bkC:
-				for(int i=0;i<itCount;++i) _SetColorToPLCD(BkpColor);
+				for(int i=0;i<itCount;++i) _SetColorToPLCD(BkColor);
 				break;
 		}
 	}
@@ -5936,7 +5935,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 	if(ptrPrev[nrMem].ptr.hideShowRct)
 	{
-		int rectX=50, rectY=50;
+		int rectX,rectY, rectW,rectH;
 		switch(ptrPrev[nrMem].ptr.hideShowRct){
 			default:
 			case 1:
@@ -5958,9 +5957,26 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 		//int pppppo = ptrPrev[nrMem].ptr.sizeRct.w  *  ptrPrev[nrMem].ptr.posRct.y  +   ptrPrev[nrMem].ptr.posRct.x;
 
-		LCD_RoundRectangleTransp(posBuff,  ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h, 	0,0, 	ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, 0xFF414141, 0.5);  //uniescic w example.c !!!!!!
-		//LCD_RoundRectangle(posBuff,  ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h, 	0,0, 	ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h, 	RED/*ptrPrev[nrMem].ptr.fromColorRct*/, GRAY/*ptrPrev[nrMem].ptr.toColorRct*/, 0xFF414141);
-		LCD_Display					(posBuff,  ptrPrev[nrMem].ptr.posRct.x, ptrPrev[nrMem].ptr.posRct.y,  			ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h);
+
+		rectX = ptrPrev[nrMem].ptr.posRct.x;
+		rectY = ptrPrev[nrMem].ptr.posRct.y;
+
+		rectW = ptrPrev[nrMem].ptr.sizeRct.w;
+		rectH = ptrPrev[nrMem].ptr.sizeRct.h;
+
+		void __PrepareBkForRct(void){
+			_2LOOP_INIT(int m=0, i,j, rectW,rectH)
+				pLcd[posBuff+m++] = pLcd[posBuff+ptrPrev[nrMem].chartBkW*(rectY+j)+(rectX+i)];
+			_2LOOP_END
+		}
+#include "LCD_fonts_images.h"
+		__PrepareBkForRct();  //sparwdz tez thickness !!!!
+		LCD_RoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, 0/*0xFF414141*/, 0.95);  //uniescic w example.c !!!!!!
+
+		LCD_BkFontTransparent(fontVar_40, fontID_14);
+		LCD_Txt(Display, NULL, unUsed,unUsed, rectW,rectH, fontID_14, fontVar_40, 15,10, "123", BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, unUsed/*0x777777*/, unUsed, NoDirect);
+
+		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
 	}
 
 
