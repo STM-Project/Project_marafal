@@ -42,8 +42,9 @@
 #define _PLCD(offs,x,y)	 	pLcd[(offs)+widthBk*(y)+(x)]
 #define _K(x,y)	 			widthBk*(y)+(x)
 
-#define _2LOOP(ix,iy,widthX,widthY)								 for(int (iy)=0;(iy)<(widthY);(iy)++){ for(int (ix)=0;(ix)<(widthX);(ix)++){
-#define _2LOOP_INIT(init,ix,iy,widthX,widthY)		init;  for(int (iy)=0;(iy)<(widthY);(iy)++){ for(int (ix)=0;(ix)<(widthX);(ix)++){
+#define _2LOOP(ix,iy,widthX,widthY)								 		 		 for(int (iy)=0;(iy)<(widthY);(iy)++){ for(int (ix)=0;(ix)<(widthX);(ix)++){
+#define _2LOOP_INIT(init,ix,iy,widthX,widthY)				init;  		 for(int (iy)=0;(iy)<(widthY);(iy)++){ for(int (ix)=0;(ix)<(widthX);(ix)++){  ///daj!!! _2LOOP !!!!
+#define _2LOOP_2INIT(init,init2,ix,iy,widthX,widthY)		init; init2; for(int (iy)=0;(iy)<(widthY);(iy)++){ for(int (ix)=0;(ix)<(widthX);(ix)++){
 #define _2LOOP_END		}}
 #define _1LOOP_END		}
 
@@ -5909,7 +5910,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 		u32 temp;
 		_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH)
 			if(m>=CHART_PTR_MEM_SIZE) return;
-			temp 				  				= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(j+ptrPrev[nrMem].pos.y)+(i+ptrPrev[nrMem].pos.x)];
+			temp 				  				= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(ptrPrev[nrMem].pos.y+j)+(ptrPrev[nrMem].pos.x+i)];
 			*(ptrPrev[nrMem].ptrMem+m) = temp;		/* write background to memory */
 			pLcd[posBuff+m]  				= temp;  	/* prepare new background */
 			m++;
@@ -5926,14 +5927,14 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 		_2LOOP_END
 	}
 
-	void __DispPtrBitmapFromMem(void){
+	void __CopyPtrBitmapToMemTemp(void){
 		_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH)
 			chartPtrMem_temp[m] = *(ptrPrev[nrMem].ptrMem + m);
 			m++;
 		_2LOOP_END
 		ptrPrev[nrMem].memInUse=0;
 	}
-	void __DispRctBitmapFromMem(void){
+	void __CopyRctBitmapToMemTemp(void){
 		_2LOOP_INIT(int m=0, i,j, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h)
 			chartRctMem_temp[m] = *(ptrPrev[nrMem].rctMem + m);
 			m++;
@@ -5941,15 +5942,11 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 		ptrPrev[nrMem].memInUse=0;
 	}
 
-	if(ptrPrev[nrMem].memInUse){		///displ prev block to erase ptr
-		__DispPtrBitmapFromMem();
-		//LCD_Display(0, ptrPrev[nrMem].pos.x, ptrPrev[nrMem].pos.y,  corrPtrW,corrPtrH);
-
-		if(ptrPrev[nrMem].ptr.hideShowRct){
-			__DispRctBitmapFromMem();
-			//LCD_Display(0, ptrPrev[nrMem].ptr.posRct.x, ptrPrev[nrMem].ptr.posRct.y, 	 ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h);
-	}}
-
+	if(ptrPrev[nrMem].memInUse){
+		__CopyPtrBitmapToMemTemp();
+		if(ptrPrev[nrMem].ptr.hideShowRct)
+			__CopyRctBitmapToMemTemp();
+	}
 
 	SET_VAL( posXY[posChartPtr].x-ptrPrev[nrMem].size.w/2, ptrX, ptrPrev[nrMem].pos.x );		/* Set new pointer position of chart */
 	SET_VAL( posXY[posChartPtr].y-ptrPrev[nrMem].size.h/2, ptrY, ptrPrev[nrMem].pos.y );
@@ -5959,104 +5956,96 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 
 
-	diffX = ABS(ptrX - ptrX_prev);
+
+	diffX = ABS(ptrX - ptrX_prev);     //Dac to jako fajna funkcje !!!!!!!!!!!!!!!!!
 	diffY = ABS(ptrY - ptrY_prev);
 
 	if(diffX >= corrPtrW || diffY >= corrPtrH)
 		LCD_DisplayBuff( ptrX_prev, ptrY_prev,	  corrPtrW, corrPtrH,  chartPtrMem_temp);
 	else{
-		LCD_DisplayBuff( ptrX_prev+CONDITION(ptrX<ptrX_prev,corrPtrW-diffX,0), ptrY_prev+CONDITION(ptrY<ptrY_prev,corrPtrH-diffY,0),	  corrPtrW, diffY,  	  chartPtrMem_temp);
-		LCD_DisplayBuff( ptrX_prev+CONDITION(ptrX<ptrX_prev,corrPtrW-diffX,0), ptrY_prev+CONDITION(ptrY<ptrY_prev,corrPtrH-diffY,0),	  diffX,	   corrPtrH,  chartPtrMem_temp);
+		int offsY = CONDITION(ptrY<ptrY_prev,corrPtrH-diffY,0);
+		int offsX = CONDITION(ptrX<ptrX_prev,corrPtrW-diffX,0);
+		if(diffY) LCD_DisplayBuff( ptrX_prev, ptrY_prev+offsY,	  corrPtrW, diffY,  	 chartPtrMem_temp+corrPtrW*offsY);
+
+		if(diffX){
+			_2LOOP_2INIT(int m=0, int n=0, i,j, diffX,corrPtrH)
+				chartPtrMem_temp[m++] = *(chartPtrMem_temp + offsX + n+i);
+				_1LOOP_END
+				n+=corrPtrW;
+			_1LOOP_END
+			LCD_DisplayBuff( ptrX_prev+offsX, ptrY_prev,	  diffX, corrPtrH,  chartPtrMem_temp);
+		}
 	}
 
 
 
+	if(ptrPrev[nrMem].ptr.hideShowRct)
+	{
+		int rectX, rectY;
+		int rectW 		= ptrPrev[nrMem].ptr.sizeRct.w;
+		int rectH 		= ptrPrev[nrMem].ptr.sizeRct.h;
+		int rectX_prev = ptrPrev[nrMem].ptr.posRct.x;
+		int rectY_prev = ptrPrev[nrMem].ptr.posRct.y;
+
+		switch(ptrPrev[nrMem].ptr.hideShowRct){
+			default:
+			case 1:
+				SET_VAL( ptrPrev[nrMem].pos.x-1,  rectX, ptrPrev[nrMem].ptr.posRct.x );
+				SET_VAL( ptrPrev[nrMem].pos.y+30, rectY, ptrPrev[nrMem].ptr.posRct.y );
 
 
+//				temp = ptrPrev[nrMem].pos.x - ptrPrev[nrMem].ptr.sizeRct.w / 2;		if(temp < ptrPrev[nrMem].startXYchart.x) temp= ptrPrev[nrMem].startXYchart.x;
+//				ptrPrev[nrMem].ptr.posRct.x = temp;
+//				temp = ptrPrev[nrMem].pos.y + ptrPrev[nrMem].size.h / 2 + 15;			if(temp + ptrPrev[nrMem].ptr.sizeRct.h > ptrPrev[nrMem].startXYchart.y + ptrPrev[nrMem].yMinMaxchart[0]) temp= ....;
+//				ptrPrev[nrMem].ptr.posRct.y = temp;
+				break;
 
-//	if(ptrX > ptrX_prev && ptrY > ptrY_prev){
-//		diffX = ptrX - ptrX_prev;
-//		diffY = ptrY - ptrY_prev;
-//		if(diffX > corrPtrW || diffY > corrPtrH)
-//			LCD_DisplayBuff( ptrX_prev, ptrY_prev,	  corrPtrW, corrPtrH,  chartPtrMem_temp);
-//		else{
-//			LCD_DisplayBuff( ptrX_prev, ptrY_prev,	  corrPtrW, diffY,  	  chartPtrMem_temp);
-//			LCD_DisplayBuff( ptrX_prev, ptrY_prev,	  diffX,	   corrPtrH,  chartPtrMem_temp);
-//		}
-//	}
-//	else if(ptrX > ptrX_prev && ptrY < ptrY_prev){
-//		diffX = ptrX - ptrX_prev;
-//		diffY = ptrY_prev - ptrY;
-//		if(diffX > corrPtrW || diffY > corrPtrH)
-//			LCD_DisplayBuff( ptrX_prev, ptrY_prev,	  corrPtrW, corrPtrH,  chartPtrMem_temp);
-//		else{
-//			LCD_DisplayBuff( ptrX_prev, ptrY_prev+(corrPtrH-diffY),	  corrPtrW, diffY,  	  chartPtrMem_temp);
-//			LCD_DisplayBuff( ptrX_prev, ptrY_prev,	  					  	  diffX,	   corrPtrH,  chartPtrMem_temp);
-//		}
-//	}
-//	else if(ptrX < ptrX_prev && ptrY > ptrY_prev){
-//		diffX = ptrX - ptrX_prev;
-//		diffY = ptrY_prev - ptrY;
-//		if(diffX > corrPtrW || diffY > corrPtrH)
-//			LCD_DisplayBuff( ptrX_prev, ptrY_prev,	  corrPtrW, corrPtrH,  chartPtrMem_temp);
-//		else{
-//			LCD_DisplayBuff( ptrX_prev, ptrY_prev+(corrPtrH-diffY),	  corrPtrW, diffY,  	  chartPtrMem_temp);
-//			LCD_DisplayBuff( ptrX_prev, ptrY_prev,	  					  	  diffX,	   corrPtrH,  chartPtrMem_temp);
-//		}
-//	}
-//	else{
-//
-//	}
-
-
-
-
-
-
-//	if(ptrPrev[nrMem].ptr.hideShowRct)
-//	{
-//		int rectX, rectY;
-//		int rectW 		= ptrPrev[nrMem].ptr.sizeRct.w;
-//		int rectH 		= ptrPrev[nrMem].ptr.sizeRct.h;
-//		int rectX_prev = ptrPrev[nrMem].ptr.posRct.x;
-//		int rectY_prev = ptrPrev[nrMem].ptr.posRct.y;
-//
-//		switch(ptrPrev[nrMem].ptr.hideShowRct){
-//			default:
-//			case 1:
-//				SET_VAL( ptrPrev[nrMem].pos.x-1,  rectX, ptrPrev[nrMem].ptr.posRct.x );
-//				SET_VAL( ptrPrev[nrMem].pos.y+30, rectY, ptrPrev[nrMem].ptr.posRct.y );
-//
-//
-////				temp = ptrPrev[nrMem].pos.x - ptrPrev[nrMem].ptr.sizeRct.w / 2;		if(temp < ptrPrev[nrMem].startXYchart.x) temp= ptrPrev[nrMem].startXYchart.x;
-////				ptrPrev[nrMem].ptr.posRct.x = temp;
-////				temp = ptrPrev[nrMem].pos.y + ptrPrev[nrMem].size.h / 2 + 15;			if(temp + ptrPrev[nrMem].ptr.sizeRct.h > ptrPrev[nrMem].startXYchart.y + ptrPrev[nrMem].yMinMaxchart[0]) temp= ....;
-////				ptrPrev[nrMem].ptr.posRct.y = temp;
+//			case 2:
+//				ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;
+//				ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 30;
 //				break;
-//
-////			case 2:
-////				ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;
-////				ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 30;
-////				break;
-//
-//		}
-//
-//
-//
-//
-//#include "LCD_fonts_images.h"  //!!!!
-//
-//		__CopyPtrBitmapToMem_and_PrepareBkForRct();  //sparwdz tez thickness !!!!
-//		LCD_RoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, 0/*0xFF414141*/, 0.5);  //uniescic w example.c !!!!!!
-//
-//		LCD_BkFontTransparent(fontVar_40, fontID_14);
-//		LCD_Txt(Display, NULL, unUsed,unUsed, rectW,rectH, fontID_14, fontVar_40, 15,10, "123", WHITE, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, unUsed/*0x777777*/, unUsed, NoDirect);
-//
-//		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
-//
-//
-//		LCD_DisplayBuff( rectX_prev,rectY_prev,	rectW,rectH,  chartRctMem_temp);
-//	}
+
+		}
+
+#include "LCD_fonts_images.h"  //!!!!
+
+		__CopyPtrBitmapToMem_and_PrepareBkForRct();  //sparwdz tez thickness !!!!
+		LCD_RoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, 0/*0xFF414141*/, 0.5);  //uniescic w example.c !!!!!!
+
+		LCD_BkFontTransparent(fontVar_40, fontID_14);
+		LCD_Txt(Display, NULL, unUsed,unUsed, rectW,rectH, fontID_14, fontVar_40, 15,10, "123", WHITE, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, unUsed/*0x777777*/, unUsed, NoDirect);
+
+		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
+
+
+
+
+
+		diffX = ABS(rectX - rectX_prev);  //Dac to jako fajna funkcje !!!!!!!!!!!!!!!!!
+		diffY = ABS(rectY - rectY_prev);
+
+		if(diffX >= rectW || diffY >= rectH)
+			LCD_DisplayBuff( rectX_prev, rectY_prev,	 rectW,rectH,  chartRctMem_temp);
+		else{
+			int offsY = CONDITION(rectY<rectY_prev,rectH-diffY,0);
+			int offsX = CONDITION(rectX<rectX_prev,rectW-diffX,0);
+			if(diffY) LCD_DisplayBuff( rectX_prev, rectY_prev+offsY,	  rectW, diffY,  	 chartRctMem_temp+rectW*offsY);
+
+			if(diffX){
+				_2LOOP_2INIT(int m=0, int n=0, i,j, diffX,rectH)
+					chartRctMem_temp[m++] = *(chartRctMem_temp + offsX + n+i);
+					_1LOOP_END
+					n+=rectW;
+				_1LOOP_END
+				LCD_DisplayBuff( rectX_prev+offsX, rectY_prev,	 diffX,rectH,  chartRctMem_temp);
+			}
+		}
+
+
+
+
+
+	}
 
 
 
@@ -6163,7 +6152,7 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 	}
 
 	/* Prepare (not display here) pointer of the chart */
-	if(chartPtr.hideShowPtr)
+	if(chartPtr.hideShowPtr)		//!!!!!!!!!!!!!!!!!!!!  DAJ OGRANICZENIE   CHART_RCT_MEM_SIZE  i CHART_PTR_MEM_SIZE !!!!!!!!!!!!!!!!!
 	{
 		if(nrMem >= MAX_CHARTS_SIMULTANEOUSLY) return;
 		/* u32 colorTransPtr = GetTransitionColor(chartPtr.fromColorPtr, chartPtr.toColorPtr, 0.5); */

@@ -1775,7 +1775,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 
 static USER_GRAPH_PARAM testGraph = {.par.scaleX=1.5, .par.scaleY=46.0, .funcType=Func_sin, .grad.bkType=Grad_Ystrip, .corr45degAA=1};
 
-static int chartPtrPos[3] = {100,200,300};
+static int chartPtrPos[3] = {70,70,70};
 
 
 void FILE_NAME(debugRcvStr)(void)
@@ -1861,9 +1861,17 @@ void FILE_NAME(debugRcvStr)(void)
 	else if(DEBUG_RcvStr("j"))
 	{
 
-		if		 (testGraph.grad.bkType == 0){		GRAPH_DrawPtr(0,++chartPtrPos[0]);		if(chartPtrPos[0]>400) chartPtrPos[0]=100;	}
-		else if(testGraph.grad.bkType == 1){		GRAPH_DrawPtr(1,++chartPtrPos[1]);		if(chartPtrPos[1]>400) chartPtrPos[1]=100;	}
-		else if(testGraph.grad.bkType == 2){		GRAPH_DrawPtr(2,++chartPtrPos[2]);		if(chartPtrPos[2]>400) chartPtrPos[2]=100;	}
+		if		 (testGraph.grad.bkType == 0){	chartPtrPos[0]+=3;	GRAPH_DrawPtr(0,chartPtrPos[0]);		   if(chartPtrPos[0]>600) chartPtrPos[0]=100;	}
+		else if(testGraph.grad.bkType == 1){	chartPtrPos[1]+=3;	GRAPH_DrawPtr(1,chartPtrPos[1]);			if(chartPtrPos[1]>600) chartPtrPos[1]=100;	}
+		else if(testGraph.grad.bkType == 2){	chartPtrPos[2]+=3;	GRAPH_DrawPtr(2,chartPtrPos[2]);			if(chartPtrPos[2]>600) chartPtrPos[2]=100;	}
+
+	}
+	else if(DEBUG_RcvStr("u"))
+	{
+
+		if		 (testGraph.grad.bkType == 0){	chartPtrPos[0]-=3;	if(chartPtrPos[0]<0) chartPtrPos[0]=600;  GRAPH_DrawPtr(0,chartPtrPos[0]);				}
+		else if(testGraph.grad.bkType == 1){	chartPtrPos[1]-=3;	if(chartPtrPos[1]<0) chartPtrPos[1]=600;  GRAPH_DrawPtr(1,chartPtrPos[1]);				}
+		else if(testGraph.grad.bkType == 2){	chartPtrPos[2]-=3;	if(chartPtrPos[2]<0) chartPtrPos[2]=600;  GRAPH_DrawPtr(2,chartPtrPos[2]);				}
 
 	}
 
