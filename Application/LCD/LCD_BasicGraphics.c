@@ -3903,6 +3903,24 @@ void LCD_LineV(uint32_t BkpSizeX, uint16_t x, uint16_t y, uint16_t width,  uint3
 		_SetCopyDrawPos();	_IncDrawPos(1); _CopyDrawPos();  _DrawDown(width, color, BkpSizeX);
 	}
 }
+void LCD_ErasePrevShape(int posX_prev,int posY_prev, int posX,int posY, int width,int height, u32 *pBuff){
+	int diffX = ABS(posX-posX_prev);
+	int diffY = ABS(posY-posY_prev);
+	if(diffX >= width || diffY >= height)  LCD_DisplayBuff(posX_prev,posY_prev, width,height, pBuff);
+	else{
+		int offsY = CONDITION(posY<posY_prev,height-diffY,0);
+		int offsX = CONDITION(posX<posX_prev,width-diffX,0);
+		if(diffY) LCD_DisplayBuff( posX_prev, posY_prev+offsY, width,diffY, pBuff+width*offsY);
+
+		if(diffX){
+			_2LOOP_2INIT(int m=0, int n=0, i,j, diffX,height)
+				pBuff[m++] = *(pBuff+offsX+n+i);
+				_1LOOP_END
+				n+=width;
+			_1LOOP_END
+			LCD_DisplayBuff(posX_prev+offsX,posY_prev, diffX,height, pBuff);
+	}}
+}
 void LCD_Display(uint32_t posBuff, uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t height){
 	LCD_DisplayBuff(Xpos,Ypos,width,height,  pLcd+posBuff);
 }
@@ -5953,29 +5971,8 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 	__CopyPtrBitmapToMem_and_PrepareBkForPtr();
 	LCD_GradientCircleButton_Indirect(ptrX,ptrY,  corrPtrW-2,corrPtrH-2,  SetBold2Color(colorTransPtr,1), ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0,ReadOutColor);
+	LCD_ErasePrevShape(ptrX_prev,ptrY_prev, ptrX,ptrY, corrPtrW,corrPtrH, chartPtrMem_temp);
 
-
-
-
-	diffX = ABS(ptrX - ptrX_prev);     //Dac to jako fajna funkcje !!!!!!!!!!!!!!!!!
-	diffY = ABS(ptrY - ptrY_prev);
-
-	if(diffX >= corrPtrW || diffY >= corrPtrH)
-		LCD_DisplayBuff( ptrX_prev, ptrY_prev,	  corrPtrW, corrPtrH,  chartPtrMem_temp);
-	else{
-		int offsY = CONDITION(ptrY<ptrY_prev,corrPtrH-diffY,0);
-		int offsX = CONDITION(ptrX<ptrX_prev,corrPtrW-diffX,0);
-		if(diffY) LCD_DisplayBuff( ptrX_prev, ptrY_prev+offsY,	  corrPtrW, diffY,  	 chartPtrMem_temp+corrPtrW*offsY);
-
-		if(diffX){
-			_2LOOP_2INIT(int m=0, int n=0, i,j, diffX,corrPtrH)
-				chartPtrMem_temp[m++] = *(chartPtrMem_temp + offsX + n+i);
-				_1LOOP_END
-				n+=corrPtrW;
-			_1LOOP_END
-			LCD_DisplayBuff( ptrX_prev+offsX, ptrY_prev,	  diffX, corrPtrH,  chartPtrMem_temp);
-		}
-	}
 
 
 
@@ -6018,29 +6015,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
 
 
-
-
-
-		diffX = ABS(rectX - rectX_prev);  //Dac to jako fajna funkcje !!!!!!!!!!!!!!!!!
-		diffY = ABS(rectY - rectY_prev);
-
-		if(diffX >= rectW || diffY >= rectH)
-			LCD_DisplayBuff( rectX_prev, rectY_prev,	 rectW,rectH,  chartRctMem_temp);
-		else{
-			int offsY = CONDITION(rectY<rectY_prev,rectH-diffY,0);
-			int offsX = CONDITION(rectX<rectX_prev,rectW-diffX,0);
-			if(diffY) LCD_DisplayBuff( rectX_prev, rectY_prev+offsY,	  rectW, diffY,  	 chartRctMem_temp+rectW*offsY);
-
-			if(diffX){
-				_2LOOP_2INIT(int m=0, int n=0, i,j, diffX,rectH)
-					chartRctMem_temp[m++] = *(chartRctMem_temp + offsX + n+i);
-					_1LOOP_END
-					n+=rectW;
-				_1LOOP_END
-				LCD_DisplayBuff( rectX_prev+offsX, rectY_prev,	 diffX,rectH,  chartRctMem_temp);
-			}
-		}
-
+		LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, chartRctMem_temp);
 
 
 
