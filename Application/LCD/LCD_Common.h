@@ -88,6 +88,8 @@ typedef enum{
 #define _G(y,cb,cr)	(y - 0.34414 * (cb - 128) - 0.71414 * (cr - 128))
 #define _B(y,cb,cr)	(y + 1.772   * (cb - 128))
 
+#define READ_BGCOLOR	 0
+
 enum Refresh_Screens_Param{
 	refresh_1,refresh_2,refresh_3,refresh_4,refresh_5,refresh_6,refresh_7,refresh_8,refresh_9,refresh_10,
 	refresh_11,refresh_12,refresh_13,refresh_14,refresh_15,refresh_16,refresh_17,refresh_18,refresh_19,refresh_20,
