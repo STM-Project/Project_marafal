@@ -274,19 +274,32 @@ static Struct_SpaceCorrect space[MAX_SPACE_CORRECT];
 static uint8_t StructSpaceCount=0;
 
 uint32_t CounterBusyBytesForFontsImages=0;
+int tempSpaceCorr=0;
 
 extern uint32_t pLcd[];
 
 /* -------------- My Settings -------------- */
+static int RealizeTempSpaceCorrect(char *txt, int id){
+	switch(tempSpaceCorr){
+		case 0: break;
+		case 1:
+			if((FONT_12==FontID[id].size)&&(Times_New_Roman==FontID[id].style)){
+				if( (IS_RANGE(txt[0],'0','9')&&(txt[1]==',')) || ((txt[0]==',')&&IS_RANGE(txt[1],'0','9')) )
+					return 6;
+			}
+			break;
+		default: break;
+	}
+	return 0;
+}
+
 static int MyRealizeSpaceCorrect(char *txt, int id)
 {
-/*		if((FONT_20==FontID[id].size)&&(Times_New_Roman==FontID[id].style))
-		{
-			if((txt[0]=='i')&&(txt[1]=='j'))
-				return 20;
-		}	*/
-
-	return 0;
+	if((FONT_12==FontID[id].size)&&(Times_New_Roman==FontID[id].style)){
+		if((txt[0]=='W')&&(txt[1]=='s'))
+			return -2;
+	}
+	return RealizeTempSpaceCorrect(txt,id);
 }
 
 static int RealizeWidthConst(const char _char)
@@ -4186,9 +4199,9 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, u32 *buff, int displayOn, int fontID
 		LOOP_FOR(i, Font[fontIndx].fontsTabPos[(int)pTxt[h]][1]){
 			LOOP_FOR(j, Font[fontIndx].height){
 
-//				if(y+j>=winH)
-//					break;
-
+		/*		if(y+j>=winH)
+					break;
+		 */
 				if(displayOn) posTemp = posBuff + 	 j*lenTxtInPixel + posTxtX + i;
 				else			  posTemp = posBuff + (y+j)*winW   +   x + posTxtX + i;
 
@@ -4220,7 +4233,7 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, u32 *buff, int displayOn, int fontID
 					{
 						switch((int)type){
 							case bk:	/* if(bkColor!=0) _SendToBuffOut(j,bkColor); */		 /* Font[fontIndx].fontBkColorToIndex; */	break;
-							case fo:	 					 	_SendToBuffOut(j,foColor); 			 /* Font[fontIndx].fontColorToIndex */		break;
+							case fo:	 					 	_SendToBuffOut(j,foColor); 		 /* Font[fontIndx].fontColorToIndex */		break;
 							case AA:
 								colorB = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+0];
 								colorG = pFileCFF[ ADDR_AA_TAB + 2 + 3*data+1];

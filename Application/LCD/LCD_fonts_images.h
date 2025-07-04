@@ -63,6 +63,7 @@
 #define FONT_ID_VAR(fontID,fontVAR)		fontID|(fontVAR<<16)
 
 #define TXTSHADECOLOR_DEEP_DIR(color,deep,dir)	color,deep,dir
+#define TXTSHADE_NONE	0,0,0
 
 enum FontsSize{
 	FONT_8,
@@ -253,6 +254,7 @@ typedef struct{
 extern LIST_TXT 		  LIST_TXT_Zero;
 extern StructTxtPxlLen StructTxtPxlLen_Zero;
 extern LCD_STR_PARAM	  LCD_STR_PARAM_Zero;
+extern int tempSpaceCorr;
 
 int SETVAL_char(uint32_t nrVal, char val);
 int SETVAL_str(uint32_t nrVal, char* val, uint32_t len);

@@ -22,7 +22,7 @@
 #define GRAPH_MAX_SIZE_POSXY	10000
 #define SIZE_ONE_CHART		sizeof(structGetSmpl) + GRAPH_MAX_SIZE_POSXY*sizeof(structPosU16) + 2*GRAPH_MAX_SIZE_POSXY*sizeof(structRepPos)
 #define CHART_PTR_MEM_SIZE		32*32
-#define CHART_RCT_MEM_SIZE		60*30
+#define CHART_RCT_MEM_SIZE		120*60
 #define MAX_CHARTS_SIMULTANEOUSLY	8
 
 /* Select one memory type for graphic of chart */
@@ -5986,7 +5986,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 			case 1:
 
 
-				if(ptrPrev[nrMem].yMinMaxchart[0] <= ptrPrev[nrMem].pos.y-30-rectH)
+				if(ptrPrev[nrMem].pos.y - ptrPrev[nrMem].yMinMaxchart[0] >= 80+rectH)
 				{
 					SET_VAL( ptrPrev[nrMem].pos.x-10, 		 rectX, ptrPrev[nrMem].ptr.posRct.x );
 					SET_VAL( ptrPrev[nrMem].pos.y-30-rectH, rectY, ptrPrev[nrMem].ptr.posRct.y );
@@ -6015,10 +6015,26 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 		LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, chartRctMem_temp);
 		__RCT_CopyBitmapToMem_and_PrepareBk();  //sparwdz tez thickness !!!!
-		LCD_RoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.5);  //uniescic w example.c !!!!!!
+		LCD_RoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.2);  //uniescic w example.c !!!!!! i wyczyscic KOD tej funkcji !!!!
 
 		LCD_BkFontTransparent(fontVar_40, fontID_14);
-		LCD_Txt(Display, NULL, unUsed,unUsed, rectW,rectH, fontID_14, fontVar_40, 15,10, 	StrAll(3,Int2Str(ptrX,Space,3,Sign_none),",",Int2Str(ptrY,Space,3,Sign_none)), 		WHITE, READ_BGCOLOR, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(BLACK,1,RightDown));
+
+
+//		char *pTxt_xPos = Int2Str(ptrX,Space,3,Sign_none);
+//		char *pTxt_inter = " , ";
+//		char *pTxt_yPos = Int2Str(ptrY,Space,3,Sign_none);
+
+		tempSpaceCorr = 1;
+		char *pTxt = StrAll(3,Int2Str(ptrX,None,3,Sign_none),",",Int2Str(ptrY,None,3,Sign_none));
+
+		LCD_Xmiddle(0,SetPos,SetPosAndWidth(0,rectW),NULL,0,NoConstWidth);
+		LCD_Ymiddle(0,SetPos,SetPosAndWidth(0,rectH));
+
+		int pX = LCD_Xmiddle(0,GetPos,fontID_14,	pTxt,	0,NoConstWidth);
+		int pY = LCD_Ymiddle(0,GetPos,fontID_14);
+
+		LCD_Txt(Display, NULL, unUsed,unUsed, rectW,rectH, fontID_14, fontVar_40, pX,pY, 	pTxt, 		WHITE, READ_BGCOLOR, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(BLACK,2,LeftUp));
+		tempSpaceCorr = 0;
 
 		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
 
