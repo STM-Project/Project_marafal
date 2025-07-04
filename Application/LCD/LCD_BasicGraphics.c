@@ -5986,7 +5986,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 			case 1:
 
 
-				if(ptrPrev[nrMem].startXYchart.y + ptrPrev[nrMem].yMinMaxchart[0] <= ptrPrev[nrMem].pos.y-30-rectH)
+				if(ptrPrev[nrMem].yMinMaxchart[0] <= ptrPrev[nrMem].pos.y-30-rectH)
 				{
 					SET_VAL( ptrPrev[nrMem].pos.x-10, 		 rectX, ptrPrev[nrMem].ptr.posRct.x );
 					SET_VAL( ptrPrev[nrMem].pos.y-30-rectH, rectY, ptrPrev[nrMem].ptr.posRct.y );
