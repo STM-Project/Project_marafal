@@ -2278,11 +2278,6 @@ static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int 
 
 void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Touch left dac mozliwosc wspolczynnik zmiany
 {
-
-
-	static int onlyOne = 0;
-
-
 	if(NULL == argVal)
 		argVal = (char**)ppMain;
 
@@ -2295,14 +2290,13 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 		FONTS_LCD_ResetParam();
 
 
-
+//Test umiescic w example.c !!!!!!!!!!!!!!!!!!!!!!!!
   //----------- TEST -----------------------------------------
 
-//zamow plytke z easterm 1.27 i tranzystoey RFdobre, pret ferrytowy mniejszy  rezonat 100MHz generatory....  pierscienie ferrytowe
 //zrob mahanie portami z maksymalna szybkoscia
 
-		if(onlyOne==0){
-			onlyOne = 1;
+//		if(onlyOne==0){
+//			onlyOne = 1;
 //
 //		/*	LCD_CreateFileCFFfromAllFilesBMP(); */
 //		/*	LCD_CkeckAllFontFilesCFF(); 			*/
@@ -2383,7 +2377,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 //			LCD_TOUCH_DeleteAllSetTouch();
 //			FONTS_LCD_ResetParam();
 
-		}
+//		}
 
 
 
