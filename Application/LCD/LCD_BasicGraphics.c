@@ -5912,7 +5912,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 {
 	if(nrMem >= MAX_CHARTS_SIMULTANEOUSLY 	||  ptrPrev[nrMem].ptr.hideShowPtr == 0) return;
 	int posBuff = 0;
-	int ptrX,ptrY, diffX,diffY;
+	int ptrX,ptrY;
 	int ptrX_prev 		= ptrPrev[nrMem].pos.x;
 	int ptrY_prev 		= ptrPrev[nrMem].pos.y;
 	u16 corrPtrW 		= ptrPrev[nrMem].size.w+2;		/* '+2' because of bkSizeX for LCD_GradientCircleButton() */
@@ -5924,7 +5924,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 	if(posChartPtr >= posXY_par[0].len_posXY-(sizeChartPtr/2-2))	posChartPtr = posXY_par[0].len_posXY-(sizeChartPtr/2-2);  //ZASTANOWIC sie
 	if(posChartPtr <  sizeChartPtr/2+2								  )	posChartPtr = sizeChartPtr/2+2;
 
-	void __CopyPtrBitmapToMem_and_PrepareBkForPtr(void){
+	void __PTR_CopyBitmapToMem_and_PrepareBk(void){
 		u32 temp;
 		_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH)
 			if(m>=CHART_PTR_MEM_SIZE) return;
@@ -5935,7 +5935,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 		_2LOOP_END
 		ptrPrev[nrMem].memInUse=1;
 	}
-	void __CopyPtrBitmapToMem_and_PrepareBkForRct(void){
+	void __RCT_CopyBitmapToMem_and_PrepareBk(void){
 		u32 temp;
 		_2LOOP_INIT(int m=0, i,j, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h)
 			temp 								= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(ptrPrev[nrMem].ptr.posRct.y+j)+(ptrPrev[nrMem].ptr.posRct.x+i)];
@@ -5969,12 +5969,9 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 	SET_VAL( posXY[posChartPtr].x-ptrPrev[nrMem].size.w/2, ptrX, ptrPrev[nrMem].pos.x );		/* Set new pointer position of chart */
 	SET_VAL( posXY[posChartPtr].y-ptrPrev[nrMem].size.h/2, ptrY, ptrPrev[nrMem].pos.y );
 
-	__CopyPtrBitmapToMem_and_PrepareBkForPtr();
-	LCD_GradientCircleButton_Indirect(ptrX,ptrY,  corrPtrW-2,corrPtrH-2,  SetBold2Color(colorTransPtr,1), ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0,ReadOutColor);
 	LCD_ErasePrevShape(ptrX_prev,ptrY_prev, ptrX,ptrY, corrPtrW,corrPtrH, chartPtrMem_temp);
-
-
-
+	__PTR_CopyBitmapToMem_and_PrepareBk();
+	LCD_GradientCircleButton_Indirect(ptrX,ptrY,  corrPtrW-2,corrPtrH-2,  SetBold2Color(colorTransPtr,1), ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0,ReadOutColor);
 
 	if(ptrPrev[nrMem].ptr.hideShowRct)
 	{
@@ -5987,8 +5984,18 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 		switch(ptrPrev[nrMem].ptr.hideShowRct){
 			default:
 			case 1:
-				SET_VAL( ptrPrev[nrMem].pos.x-1,  rectX, ptrPrev[nrMem].ptr.posRct.x );
-				SET_VAL( ptrPrev[nrMem].pos.y+30, rectY, ptrPrev[nrMem].ptr.posRct.y );
+
+
+				if(ptrPrev[nrMem].startXYchart.y + ptrPrev[nrMem].yMinMaxchart[0] <= ptrPrev[nrMem].pos.y-30-rectH)
+				{
+					SET_VAL( ptrPrev[nrMem].pos.x-10, 		 rectX, ptrPrev[nrMem].ptr.posRct.x );
+					SET_VAL( ptrPrev[nrMem].pos.y-30-rectH, rectY, ptrPrev[nrMem].ptr.posRct.y );
+				}
+				else
+				{
+					SET_VAL( ptrPrev[nrMem].pos.x-10, rectX, ptrPrev[nrMem].ptr.posRct.x );
+					SET_VAL( ptrPrev[nrMem].pos.y+30, rectY, ptrPrev[nrMem].ptr.posRct.y );
+				}
 
 
 //				temp = ptrPrev[nrMem].pos.x - ptrPrev[nrMem].ptr.sizeRct.w / 2;		if(temp < ptrPrev[nrMem].startXYchart.x) temp= ptrPrev[nrMem].startXYchart.x;
@@ -6006,16 +6013,17 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 #include "LCD_fonts_images.h"  //!!!!
 
-		__CopyPtrBitmapToMem_and_PrepareBkForRct();  //sparwdz tez thickness !!!!
-		LCD_RoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, 0/*0xFF414141*/, 0.5);  //uniescic w example.c !!!!!!
+		LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, chartRctMem_temp);
+		__RCT_CopyBitmapToMem_and_PrepareBk();  //sparwdz tez thickness !!!!
+		LCD_RoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.5);  //uniescic w example.c !!!!!!
 
 		LCD_BkFontTransparent(fontVar_40, fontID_14);
-		LCD_Txt(Display, NULL, unUsed,unUsed, rectW,rectH, fontID_14, fontVar_40, 15,10, "123", WHITE, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, unUsed/*0x777777*/, unUsed, NoDirect);
+		LCD_Txt(Display, NULL, unUsed,unUsed, rectW,rectH, fontID_14, fontVar_40, 15,10, 	StrAll(3,Int2Str(ptrX,Space,3,Sign_none),",",Int2Str(ptrY,Space,3,Sign_none)), 		WHITE, READ_BGCOLOR, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(BLACK,1,RightDown));
 
 		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
 
 
-		LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, chartRctMem_temp);
+
 
 
 
@@ -6170,7 +6178,7 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 		}
 
 		if(chartPtr.hideShowRct){
-			ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;			//w zaleznosci od typu 'hideShowRct' rozne rozklady RCT dac !!!!!!!
+			ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;			//w zaleznosci od typu 'hideShowRct' rozne rozklady RCT dac !!!!!!!  TO CHYBA TU USUN !!!!! a dja wyzej
 			ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 30;
 			__CopyRctBitmapToMem();
 		}
@@ -6187,8 +6195,8 @@ void GRAPH_GetSamplesAndDraw(int posBuff, int offsMem,int nrMem, u32 widthBk, in
 	if(GRAPH_GetSamples(offsMem,nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType)) return;
 	ptrPrev[nrMem].startXYchart.x = startX;
 	ptrPrev[nrMem].startXYchart.y = startY;
-	ptrPrev[nrMem].yMinMaxchart[0] = -yMin;
-	ptrPrev[nrMem].yMinMaxchart[1] = yMax;
+	ptrPrev[nrMem].yMinMaxchart[0] = startY + yMin;
+	ptrPrev[nrMem].yMinMaxchart[1] = startY + yMax;
 	GRAPH_Draw(posBuff, offsMem,nrMem, widthBk, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, dispOption,color1,color2,offsK1,offsK2, bkGradType,gradColor1,gradColor2,gradStripY,amplTrans,offsTrans, corr45degAA, chartPtr);
 }
 
