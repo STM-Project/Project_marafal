@@ -62,6 +62,8 @@
 #define BK_SIZE_IS_TXT_SIZE		0,0
 #define FONT_ID_VAR(fontID,fontVAR)		fontID|(fontVAR<<16)
 
+#define TXTSHADECOLOR_DEEP_DIR(color,deep,dir)	color,deep,dir
+
 enum FontsSize{
 	FONT_8,
 	FONT_8_bold,
