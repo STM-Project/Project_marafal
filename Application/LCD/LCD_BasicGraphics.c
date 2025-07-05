@@ -30,8 +30,9 @@
 /* #define GRAPH_MEMORY_SDRAM */
 #define GRAPH_MEMORY_SDRAM2
 
-#define AA_OUT_OFF  	 1<<24
-#define READ_BKCOLOR  1<<25
+#define AA_OUT_OFF  	 (1<<24)
+#define AA_IN_OFF  	 (1<<26)
+#define READ_BKCOLOR  (1<<25)
 #define COLOR_TEST		0x12345678		/* Reserved colors - Not use this color in other applications */
 #define COLOR_TEST_1		0x12345677
 #define COLOR_TEST_2		0x12345679
@@ -1048,16 +1049,16 @@ static void _Middle_RoundRectangleFrame(int rectangleFrame, int fillHeight, uint
 /* Transparent version of Rectangle-Frame */
 static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor_, uint32_t FillColor_, uint32_t BkpColor_, float transpCoeff)
 {
-	#define BkColor    	CONDITION( BkpColor_==0, pLcd[k], BkpColor_ )						/* if(BkpColor_!=0) we don`t mixer colors (BkpColor_ with pLcd[k]) via transparent coefficient */
+	#define BkColor    	CONDITION( (0xFFFFFF&BkpColor_)==0, pLcd[k], BkpColor_ )						/* if(BkpColor_!=0) we don`t mixer colors (BkpColor_ with pLcd[k]) via transparent coefficient */
 	#define FrameColor 	GetTransitionColor( FrameColor_,pLcd[k],  transpCoeff )
-	#define FillColor 	GetTransitionColor( FillColor_, pLcd[k],	transpCoeff )
-	#define i1 				GetTransitionColor( FrameColor, FillColor, AA.c1 )
-	#define i2 				GetTransitionColor( FrameColor, FillColor, AA.c2 )
+	#define FillColor 	CONDITION( rectangleFrame, GetTransitionColor( FillColor_,pLcd[k],transpCoeff ), pLcd[k] )
+	#define i1 				CONDITION( BkpColor_&AA_IN_OFF, FrameColor, GetTransitionColor( FrameColor, FillColor, AA.c1 ) )
+	#define i2 				CONDITION( BkpColor_&AA_IN_OFF, pLcd[k], GetTransitionColor( FrameColor, FillColor, AA.c2 ) )
 	#define o1 				GetTransitionColor( FrameColor, BkColor,  AA.c1 )
 	#define o2 				GetTransitionColor( FrameColor, BkColor,  AA.c2 )
 	typedef enum{ frC,i1C,i2C,o1C,o2C,bkC }TypeOfColor;
 
-	uint8_t thickness = BkpColor_>>24;
+	u32 outAAoff = BkpColor_ & AA_OUT_OFF;
 
 	void _Fill(int x){
 		if(rectangleFrame){
@@ -1092,7 +1093,7 @@ static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBu
 
 	void _Out_AA_left(int stage)
 	{
-		if((thickness==0)||(thickness==255))
+		if(0==outAAoff)
 		{	switch(stage)
 			{
 			case 0:	A(3,bkC); A(1,o2C); A(1,o1C);  break;
@@ -1116,7 +1117,7 @@ static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBu
 
 	void _Out_AA_right(int stage)
 	{
-		if((thickness==0)||(thickness==255))
+		if(0==outAAoff)
 		{	switch(stage)
 			{
 			case 0:	A(1,o1C); A(1,o2C); A(3,bkC);  break;
@@ -1155,37 +1156,14 @@ static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBu
 	A(1,frC);  A(1,i2C); _Fill(width-4); A(1,i2C); A(1,frC);
 	_NextDrawLine(BkpSizeX,width);
 
-	//_Middle_RoundRectangleFrame(rectangleFrame,14,FrameColor,FillColor,BkpSizeX,width,height);
-
 	int _height = height-14;
 	int _width = width-2;
-	if(rectangleFrame)
-	{
-		for (int j=0; j<_height; j++)
-		{
-			A(1,frC); //_FillBuff(1, FrameColor);
-
-
-			//_FillBuff(_width, FillColor);
-			for(int i=0;i<_width;++i)
-				_SetColorToPLCD(FillColor);
-
-
-			A(1,frC); //_FillBuff(1, FrameColor);
-			_NextDrawLine(BkpSizeX,width);
-		}
+	if(rectangleFrame){
+		for (int j=0; j<_height; j++){	A(1,frC);  for(int i=0;i<_width;++i) _SetColorToPLCD(FillColor);	 A(1,frC); _NextDrawLine(BkpSizeX,width); }
 	}
-	else
-	{
-		for (int j=0; j<_height; j++)
-		{
-			A(1,frC); //_FillBuff(1, FrameColor);
-			k+=_width;
-			A(1,frC); //_FillBuff(1, FrameColor);
-			_NextDrawLine(BkpSizeX,width);
-		}
+	else{
+		for (int j=0; j<_height; j++){	A(1,frC);  k+=_width; 															 A(1,frC); _NextDrawLine(BkpSizeX,width); }
 	}
-
 
 	A(1,frC);  A(1,i2C); _Fill(width-4); A(1,i2C); A(1,frC);
 	_NextDrawLine(BkpSizeX,width);
@@ -1202,13 +1180,7 @@ static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBu
 	_NextDrawLine(BkpSizeX,width);
 	_Out_AA_left(0); A(width-10,frC); _Out_AA_right(0);
 
-
-
-
-
-
-
-
+	#undef BkColor
 	#undef FrameColor
 	#undef FillColor
 	#undef  i1
@@ -4168,7 +4140,8 @@ void LCD_BoldRoundRectangleTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t B
 		thickness=1;
 	else
 		thickness--;
-	LCD_DrawRoundRectangleFrameTransp(1,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FrameColor,BkpColor,transpCoeff);
+	LCD_BoldRoundFrameTransp(posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FrameColor,BkpColor,transpCoeff);
+	//LCD_DrawRoundRectangleFrameTransp(1,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FrameColor,BkpColor,transpCoeff);
 	LCD_DrawRoundRectangleFrameTransp(1,posBuff,BkpSizeX,BkpSizeY,x+thickness,y+thickness,width-2*thickness,height-2*thickness,FrameColor,FillColor,AA_OUT_OFF,transpCoeff);
 }
 
@@ -4177,12 +4150,12 @@ void LCD_BoldRoundFrameTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSi
 	uint8_t thickness = FrameColor>>24;
 	if((thickness==0)||(thickness==1)||(thickness==2)||(thickness==255))
 		thickness=2;
-	LCD_DrawRoundRectangleFrameTransp(0,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FrameColor,BkpColor,transpCoeff);
+	LCD_DrawRoundRectangleFrameTransp(0,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FrameColor,BkpColor|AA_IN_OFF,transpCoeff);
 	thickness-=2;
 	for(i=0;i<thickness;++i){
 		k1=1+i;
 		k2=2*k1;
-		LCD_DrawRoundRectangleFrameTransp(0,posBuff,BkpSizeX,BkpSizeY,x+k1,y+k1,width-k2,height-k2,FrameColor,FrameColor,AA_OUT_OFF,transpCoeff);
+		LCD_DrawRoundRectangleFrameTransp(0,posBuff,BkpSizeX,BkpSizeY,x+k1,y+k1,width-k2,height-k2,FrameColor,FrameColor,AA_OUT_OFF|AA_IN_OFF,transpCoeff);
 	}
 	k1=1+i;
 	k2=2*k1;
@@ -5946,7 +5919,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 	}
 
 	void __CopyPtrBitmapToMemTemp(void){
-		_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH)
+		_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH) //GOTOWA uniwersalna funkcja copy bitmap z bk jednego na drugi !!!!!!!!!!!!
 			chartPtrMem_temp[m] = *(ptrPrev[nrMem].ptrMem + m);
 			m++;
 		_2LOOP_END
@@ -6015,7 +5988,10 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 		LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, chartRctMem_temp);
 		__RCT_CopyBitmapToMem_and_PrepareBk();  //sparwdz tez thickness !!!!
-		LCD_RoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.2);  //uniescic w example.c !!!!!! i wyczyscic KOD tej funkcji !!!!
+		LCD_BoldRoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	SetBold2Color(ptrPrev[nrMem].ptr.fromColorRct,6), ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.5);  //uniescic w example.c !!!!!! i wyczyscic KOD tej funkcji !!!!
+
+
+		//LCD_BoldRoundFrameTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	SetBold2Color(ptrPrev[nrMem].ptr.fromColorRct,6), RED, READ_BGCOLOR, 0.5);  //RED filcolor unused for frame
 
 		LCD_BkFontTransparent(fontVar_40, fontID_14);
 

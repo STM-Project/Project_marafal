@@ -57,10 +57,15 @@ void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLO
 	LCD_RoundRectangle2(0,PARAM32(Shade,  bold7, unUsed,Frame),		LCD_X,LCD_Y,480,383,70,80, BrightDecr(0xFFA0A0A0,0x77),BrightDecr(0xFFA0A0A0,0x77),  unUsed,								unUsed, 							 COLOR_BkScreen, 0.0, Down);
 	LCD_RoundRectangle2(0,PARAM32(AllEdge,bold10,unUsed,Rectangle),LCD_X,LCD_Y,480,383,70,80, 0xFFA0A0A0,						 0xFFA0A0A0,  	 					 BrightDecr(0xFFA0A0A0,0x30), BrightDecr(0xFFA0A0A0,0x10),COLOR_BkScreen, 0.0, Down); 	  _Str(500,400,"18");
 
-//	LCDSHAPE_Rectangle_Indirect(par3); 	  _Str(530,355,"11");
-//	LCDSHAPE_Rectangle_Indirect(par4); 	  _Str(615,380,"12");
-//	LCDSHAPE_Rectangle_Indirect(par5); 	  _Str(590,250,"13");
-//	LCDSHAPE_Rectangle_Indirect(par6);	  _Str(590,310,"14");
+/*	LCDSHAPE_Rectangle_Indirect(par3); 	  _Str(530,355,"11");
+	LCDSHAPE_Rectangle_Indirect(par4); 	  _Str(615,380,"12");
+	LCDSHAPE_Rectangle_Indirect(par5); 	  _Str(590,250,"13");
+	LCDSHAPE_Rectangle_Indirect(par6);	  _Str(590,310,"14");
+*/
+//	LCD_BoldRoundRectangleTransp(posBuff,  120,rectH, 	0,0, 	rectW,rectH, 	SetBold2Color(ptrPrev[nrMem].ptr.fromColorRct,2), ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.2);
+//	LCD_BoldRoundFrameTransp	 (posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	SetBold2Color(ptrPrev[nrMem].ptr.fromColorRct,2), ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.2);
+//	LCD_RoundRectangleTransp	 (posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.2);
+//	LCD_RoundFrameTransp			 (posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	ptrPrev[nrMem].ptr.fromColorRct, ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.2);
 }
 
 void LCDEXAMPLE_GradientCircleButtonAndSlider(int FONT_ID_Title, int FONT_VAR_Title, u32 COLOR_FillMainFrame, u32 COLOR_Frame, u32 COLOR_BkScreen)

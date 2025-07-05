@@ -57,7 +57,7 @@
 #define NR_MEM(offs,nr) 		offs,nr
 
 #define CHART_PTR_NONE																																											GRAPH_SetPtr(0,0,0,0,0, 0,0,0,0,0,0,0,0)
-#define CHART_PTR_DEFAULT(posPtr,fontID)																																					GRAPH_SetPtr(LIGHTBLUE,DARKBLUE,18,posPtr,1, 0xffeeeeee,DARKYELLOW,80,30,10,10,1,fontID)
+#define CHART_PTR_DEFAULT(posPtr,fontID)																																					GRAPH_SetPtr(LIGHTBLUE,DARKBLUE,18,posPtr,1, WHITE,DARKYELLOW,80,30,10,10,1,fontID)
 #define CHART_PTR_PARAM(colorPtr1,colorPtr2,sizePtr,posPtr,hideShowPtr, colorRct1,colorRct2,xSizeRct,ySizeRct,xPosRct,yPosRct,hideShowRct,fontID)		GRAPH_SetPtr(colorPtr1,colorPtr2,sizePtr,posPtr,hideShowPtr, colorRct1,colorRct2,xSizeRct,ySizeRct,xPosRct,yPosRct,hideShowRct,fontID)
 
 typedef enum{
@@ -245,6 +245,11 @@ void LCD_RoundFrame			(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, ui
 void LCD_RoundRectangle		(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
 void LCD_BoldRoundRectangle(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
 void LCD_BoldRoundFrame		(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
+
+void LCD_RoundFrameTransp			(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, float transpCoeff);
+void LCD_RoundRectangleTransp		(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, float transpCoeff);
+void LCD_BoldRoundRectangleTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, float transpCoeff);
+void LCD_BoldRoundFrameTransp		(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, float transpCoeff);
 
 void LCD_LittleRoundRectangle(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
 void LCD_LittleRoundFrame(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor);
