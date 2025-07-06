@@ -274,7 +274,7 @@ static Struct_SpaceCorrect space[MAX_SPACE_CORRECT];
 static uint8_t StructSpaceCount=0;
 
 uint32_t CounterBusyBytesForFontsImages=0;
-int tempSpaceCorr=0;
+int tempSpaceCorr=0; //daj static
 
 extern uint32_t pLcd[];
 
@@ -283,10 +283,7 @@ static int RealizeTempSpaceCorrect(char *txt, int id){
 	switch(tempSpaceCorr){
 		case 0: break;
 		case 1:
-			if((FONT_12==FontID[id].size)&&(Times_New_Roman==FontID[id].style)){
-				if( (IS_RANGE(txt[0],'0','9')&&(txt[1]==',')) || ((txt[0]==',')&&IS_RANGE(txt[1],'0','9')) )
-					return 6;
-			}
+			if((IS_RANGE(txt[0],'0','9')&&(txt[1]==','))||((txt[0]==',')&&IS_RANGE(txt[1],'0','9'))) return 6;
 			break;
 		default: break;
 	}

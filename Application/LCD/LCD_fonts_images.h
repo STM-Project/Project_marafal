@@ -254,7 +254,7 @@ typedef struct{
 extern LIST_TXT 		  LIST_TXT_Zero;
 extern StructTxtPxlLen StructTxtPxlLen_Zero;
 extern LCD_STR_PARAM	  LCD_STR_PARAM_Zero;
-extern int tempSpaceCorr;
+extern int tempSpaceCorr;  //usun
 
 int SETVAL_char(uint32_t nrVal, char val);
 int SETVAL_str(uint32_t nrVal, char* val, uint32_t len);
