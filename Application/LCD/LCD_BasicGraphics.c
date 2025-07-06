@@ -30,6 +30,7 @@
 /* #define GRAPH_MEMORY_SDRAM */
 #define GRAPH_MEMORY_SDRAM2
 
+#define AA_NO_FRAME	 (1<<28)
 #define AA_OUT_OFF  	 (1<<24)
 #define AA_IN_OFF  	 (1<<26)
 #define READ_BKCOLOR  (1<<25)
@@ -1059,6 +1060,7 @@ static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBu
 	typedef enum{ frC,i1C,i2C,o1C,o2C,bkC }TypeOfColor;
 
 	u32 outAAoff = BkpColor_ & AA_OUT_OFF;
+	u32 noFrame  = BkpColor_ & AA_NO_FRAME;
 
 	void _Fill(int x){
 		if(rectangleFrame){
@@ -1071,7 +1073,7 @@ static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBu
 	void A(int itCount, TypeOfColor type){
 		switch((int)type){
 			case frC:
-				for(int i=0;i<itCount;++i) _SetColorToPLCD(FrameColor);
+				for(int i=0;i<itCount;++i){ if(0==noFrame) _SetColorToPLCD(FrameColor); else k++; }
 				break;
 			case i1C:
 				for(int i=0;i<itCount;++i) _SetColorToPLCD(i1);
@@ -4141,8 +4143,7 @@ void LCD_BoldRoundRectangleTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t B
 	else
 		thickness--;
 	LCD_BoldRoundFrameTransp(posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FrameColor,BkpColor,transpCoeff);
-	//LCD_DrawRoundRectangleFrameTransp(1,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FrameColor,BkpColor,transpCoeff);
-	LCD_DrawRoundRectangleFrameTransp(1,posBuff,BkpSizeX,BkpSizeY,x+thickness,y+thickness,width-2*thickness,height-2*thickness,FrameColor,FillColor,AA_OUT_OFF,transpCoeff);
+	LCD_DrawRoundRectangleFrameTransp(1,posBuff,BkpSizeX,BkpSizeY,x+thickness,y+thickness,width-2*thickness,height-2*thickness,FrameColor,FillColor,AA_OUT_OFF|AA_NO_FRAME,transpCoeff);
 }
 
 void LCD_BoldRoundFrameTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, float transpCoeff){
@@ -5988,7 +5989,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 		LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, chartRctMem_temp);
 		__RCT_CopyBitmapToMem_and_PrepareBk();  //sparwdz tez thickness !!!!
-		LCD_BoldRoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	SetBold2Color(ptrPrev[nrMem].ptr.fromColorRct,6), ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.5);  //uniescic w example.c !!!!!! i wyczyscic KOD tej funkcji !!!!
+		LCD_BoldRoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	SetBold2Color(ptrPrev[nrMem].ptr.fromColorRct,4), ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.5);  //uniescic w example.c !!!!!! i wyczyscic KOD tej funkcji !!!!
 
 
 		//LCD_BoldRoundFrameTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	SetBold2Color(ptrPrev[nrMem].ptr.fromColorRct,6), RED, READ_BGCOLOR, 0.5);  //RED filcolor unused for frame

@@ -2508,7 +2508,6 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
-
 	StopMeasureTime_us("Time GRAPH:");
 
 	// UWAGA jesli masz shadow to nie dawaj spacji bo z spacji robi shadow !!!!!
