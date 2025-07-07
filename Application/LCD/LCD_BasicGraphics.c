@@ -5940,12 +5940,16 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 			__CopyRctBitmapToMemTemp();
 	}
 
+
 	SET_VAL( posXY[posChartPtr].x-ptrPrev[nrMem].size.w/2, ptrX, ptrPrev[nrMem].pos.x );		/* Set new pointer position of chart */
 	SET_VAL( posXY[posChartPtr].y-ptrPrev[nrMem].size.h/2, ptrY, ptrPrev[nrMem].pos.y );
 
 	LCD_ErasePrevShape(ptrX_prev,ptrY_prev, ptrX,ptrY, corrPtrW,corrPtrH, chartPtrMem_temp);
-	__PTR_CopyBitmapToMem_and_PrepareBk();
-	LCD_GradientCircleButton_Indirect(ptrX,ptrY,  corrPtrW-2,corrPtrH-2,  SetBold2Color(colorTransPtr,1), ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0,ReadOutColor);
+
+
+
+
+
 
 	if(ptrPrev[nrMem].ptr.hideShowRct)
 	{
@@ -5985,7 +5989,6 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 		}
 
-#include "LCD_fonts_images.h"  //!!!!
 
 		LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, chartRctMem_temp);
 		__RCT_CopyBitmapToMem_and_PrepareBk();
@@ -5993,60 +5996,31 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 
 
+#include "LCD_fonts_images.h"  //!!!!
 
-
-		LCD_STR_PARAM LCD_TxtInFrame(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int idVar, int Xpos, int Ypos, char *txt, uint32_t fontColor, uint32_t bkColor, int OnlyDigits, int space,int maxVal, int constWidth, u32 shadeColor, u8 deep, DIRECTIONS dir)
-		{
-			tempSpaceCorr = 1;
-			LCD_BkFontTransparent(fontVar_40, fontID);  	/* This is not necessary if 'bkColor = READ_BGCOLOR' */
-
-			LCD_Xmiddle(0,SetPos,SetPosAndWidth(0,BkpSizeX),NULL,0,constWidth);
-			LCD_Ymiddle(0,SetPos,SetPosAndWidth(0,BkpSizeY));
-
-			int pX = LCD_Xmiddle(0, GetPos, fontID, txt, 0,constWidth);
-			int pY = LCD_Ymiddle(0, GetPos, fontID);
-
-			LCD_STR_PARAM strParam = LCD_Txt(act, p, Xwin,Ywin, BkpSizeX,BkpSizeY, fontID,idVar, pX,pY, txt, fontColor,bkColor, OnlyDigits,space,maxVal,constWidth, shadeColor,deep,dir);
-			tempSpaceCorr = 0;
-			return strParam;
-		}
 
 		char *pTxt = StrAll(3,Int2Str(ptrX,None,3,Sign_none),",",Int2Str(ptrY,None,3,Sign_none));
-		LCD_TxtInFrame(Display, NULL, unUsed,unUsed, rectW,rectH, ptrPrev[nrMem].ptr.fontID, fontVar_40, ptrX,ptrY, 	pTxt, 	WHITE, READ_BGCOLOR, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(BLACK,2,LeftUp));
-
-
-
-
-
-//		char *pTxt_xPos = Int2Str(ptrX,Space,3,Sign_none);
-//		char *pTxt_inter = " , ";
-//		char *pTxt_yPos = Int2Str(ptrY,Space,3,Sign_none);
-
-//		tempSpaceCorr = 1;
-//		LCD_BkFontTransparent(fontVar_40, ptrPrev[nrMem].ptr.fontID);  	/* This is not necessary if 'bkColor = READ_BGCOLOR' */
-//		char *pTxt = StrAll(3,Int2Str(ptrX,None,3,Sign_none),",",Int2Str(ptrY,None,3,Sign_none));
-//
-//		LCD_Xmiddle(0,SetPos,SetPosAndWidth(0,rectW),NULL,0,NoConstWidth);
-//		LCD_Ymiddle(0,SetPos,SetPosAndWidth(0,rectH));
-//
-//		int pX = LCD_Xmiddle(0, GetPos, ptrPrev[nrMem].ptr.fontID, pTxt, 0,NoConstWidth);
-//		int pY = LCD_Ymiddle(0, GetPos, ptrPrev[nrMem].ptr.fontID);
-//
-//		LCD_Txt(Display, NULL, unUsed,unUsed, rectW,rectH, ptrPrev[nrMem].ptr.fontID, fontVar_40, pX,pY, 	pTxt, 		WHITE, READ_BGCOLOR, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(BLACK,2,LeftUp));
-//		tempSpaceCorr = 0;
-
-
+		LCD_TxtInFrame(Display, NULL, unUsed,unUsed, rectW,rectH, ptrPrev[nrMem].ptr.fontID, ptrX,ptrY, pTxt, WHITE, TXTSHADECOLOR_DEEP_DIR(BLACK,2,LeftUp), 1);
 
 
 		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
 
-
-
-
-
-
-
 	}
+
+
+
+
+
+
+
+
+
+	__PTR_CopyBitmapToMem_and_PrepareBk();
+	LCD_GradientCircleButton_Indirect(ptrX,ptrY,  corrPtrW-2,corrPtrH-2,  SetBold2Color(colorTransPtr,1), ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0,ReadOutColor);
+
+
+
+
 
 
 

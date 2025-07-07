@@ -274,13 +274,13 @@ static Struct_SpaceCorrect space[MAX_SPACE_CORRECT];
 static uint8_t StructSpaceCount=0;
 
 uint32_t CounterBusyBytesForFontsImages=0;
-int tempSpaceCorr=0; //daj static
+static int TempSpaceCorr=0;
 
 extern uint32_t pLcd[];
 
 /* -------------- My Settings -------------- */
 static int RealizeTempSpaceCorrect(char *txt, int id){
-	switch(tempSpaceCorr){
+	switch(TempSpaceCorr){
 		case 0: break;
 		case 1:
 			if((IS_RANGE(txt[0],'0','9')&&(txt[1]==','))||((txt[0]==',')&&IS_RANGE(txt[1],'0','9'))) return 6;
@@ -4168,7 +4168,7 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, u32 *buff, int displayOn, int fontID
 	}
 	lenTxt=i;
 
-	if(displayOn | bkColor){
+	if(displayOn | (bkColor&0xFFFFFF)){
 		if(fontID==LCD_GetStrVar_fontID(idVar)){
 			switch(LCD_GetStrVar_bkRoundRect(idVar)){
 			case BK_Rectangle:
@@ -4928,5 +4928,18 @@ LCD_STR_PARAM LCD_TxtVar(LCD_STR_PARAM *p, char *txt){
 LCD_STR_PARAM LCD_TxtVarInd(LCD_STR_PARAM *p, char *txt){
 	if(NULL!=txt) LCD_SetNewTxt(p,txt);
 	return LCD_Txt(DisplayIndirectViaStruct, p, NO_TXT_ARGS);
+}
+
+LCD_STR_PARAM LCD_TxtInFrame(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int Xpos, int Ypos, char *txt, uint32_t fontColor, u32 shadeColor, u8 deep, DIRECTIONS dir,  int spaceCorr){
+	int idVar = fontVar_40;		u32 bkColor=READ_BGCOLOR;  int OnlyDigits=halfHight;  int space=0;  int maxVal=255;  int constWidth=NoConstWidth;
+	TempSpaceCorr = spaceCorr;
+	/* LCD_BkFontTransparent(idVar, fontID); */  	/* This is not necessary if 'bkColor = READ_BGCOLOR' */
+	LCD_Xmiddle(0,SetPos,SetPosAndWidth(0,BkpSizeX),NULL,0,NoConstWidth);
+	LCD_Ymiddle(0,SetPos,SetPosAndWidth(0,BkpSizeY));
+	int pX = LCD_Xmiddle(0, GetPos, fontID, txt, 0,NoConstWidth);
+	int pY = LCD_Ymiddle(0, GetPos, fontID);
+	LCD_STR_PARAM strParam = LCD_Txt(act, p, Xwin,Ywin, BkpSizeX,BkpSizeY, fontID,idVar, pX,pY, txt, fontColor,bkColor, OnlyDigits,space,maxVal,constWidth, shadeColor,deep,dir);
+	TempSpaceCorr = 0;
+	return strParam;
 }
 

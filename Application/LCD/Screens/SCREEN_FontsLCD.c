@@ -1861,17 +1861,17 @@ void FILE_NAME(debugRcvStr)(void)
 	else if(DEBUG_RcvStr("j"))
 	{
 
-		if		 (testGraph.grad.bkType == 0){	chartPtrPos[0]+=3;	GRAPH_DrawPtr(0,chartPtrPos[0]);		   if(chartPtrPos[0]>600) chartPtrPos[0]=100;	}
-		else if(testGraph.grad.bkType == 1){	chartPtrPos[1]+=3;	GRAPH_DrawPtr(1,chartPtrPos[1]);			if(chartPtrPos[1]>600) chartPtrPos[1]=100;	}
-		else if(testGraph.grad.bkType == 2){	chartPtrPos[2]+=3;	GRAPH_DrawPtr(2,chartPtrPos[2]);			if(chartPtrPos[2]>600) chartPtrPos[2]=100;	}
+		if		 (testGraph.grad.bkType == 0){	chartPtrPos[0]+=50;	GRAPH_DrawPtr(0,chartPtrPos[0]);		   if(chartPtrPos[0]>600) chartPtrPos[0]=100;	}
+		else if(testGraph.grad.bkType == 1){	chartPtrPos[1]+=50;	GRAPH_DrawPtr(1,chartPtrPos[1]);			if(chartPtrPos[1]>600) chartPtrPos[1]=100;	}
+		else if(testGraph.grad.bkType == 2){	chartPtrPos[2]+=50;	GRAPH_DrawPtr(2,chartPtrPos[2]);			if(chartPtrPos[2]>600) chartPtrPos[2]=100;	}
 
 	}
 	else if(DEBUG_RcvStr("u"))
 	{
 
-		if		 (testGraph.grad.bkType == 0){	chartPtrPos[0]-=3;	if(chartPtrPos[0]<0) chartPtrPos[0]=600;  GRAPH_DrawPtr(0,chartPtrPos[0]);				}
-		else if(testGraph.grad.bkType == 1){	chartPtrPos[1]-=3;	if(chartPtrPos[1]<0) chartPtrPos[1]=600;  GRAPH_DrawPtr(1,chartPtrPos[1]);				}
-		else if(testGraph.grad.bkType == 2){	chartPtrPos[2]-=3;	if(chartPtrPos[2]<0) chartPtrPos[2]=600;  GRAPH_DrawPtr(2,chartPtrPos[2]);				}
+		if		 (testGraph.grad.bkType == 0){	chartPtrPos[0]-=50;	if(chartPtrPos[0]<0) chartPtrPos[0]=600;  GRAPH_DrawPtr(0,chartPtrPos[0]);				}
+		else if(testGraph.grad.bkType == 1){	chartPtrPos[1]-=50;	if(chartPtrPos[1]<0) chartPtrPos[1]=600;  GRAPH_DrawPtr(1,chartPtrPos[1]);				}
+		else if(testGraph.grad.bkType == 2){	chartPtrPos[2]-=50;	if(chartPtrPos[2]<0) chartPtrPos[2]=600;  GRAPH_DrawPtr(2,chartPtrPos[2]);				}
 
 	}
 
