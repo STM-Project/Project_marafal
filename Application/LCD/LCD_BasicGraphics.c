@@ -5996,11 +5996,10 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 
 
-#include "LCD_fonts_images.h"  //!!!!
-
+extern void LCD_TxtInFrame_minimize();
 
 		char *pTxt = StrAll(3,Int2Str(ptrX,None,3,Sign_none),",",Int2Str(ptrY,None,3,Sign_none));
-		LCD_TxtInFrame(Display, NULL, unUsed,unUsed, rectW,rectH, ptrPrev[nrMem].ptr.fontID, ptrX,ptrY, pTxt, WHITE, TXTSHADECOLOR_DEEP_DIR(BLACK,2,LeftUp), 1);
+		LCD_TxtInFrame_minimize(rectW,rectH, ptrPrev[nrMem].ptr.fontID, ptrX,ptrY, pTxt, 1);
 
 
 		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
