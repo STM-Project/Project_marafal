@@ -4931,9 +4931,9 @@ LCD_STR_PARAM LCD_TxtVarInd(LCD_STR_PARAM *p, char *txt){
 }
 
 LCD_STR_PARAM LCD_TxtInFrame(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin,int Ywin, u32 BkpSizeX,u32 BkpSizeY, int fontID, int Xpos,int Ypos, char *txt, uint32_t fontColor,u32 bkColor, int OnlyDigits,int space,int maxVal,int constWidth, u32 shadeColor,u8 deep,DIRECTIONS dir, int spaceCorr){
-	int idVar = fontVar_40;		//u32 bkColor=READ_BGCOLOR;  int OnlyDigits=halfHight;  int space=0;  int maxVal=255;  int constWidth=NoConstWidth;
+	int idVar = fontVar_40;
 	TempSpaceCorr = spaceCorr;
-	/* LCD_BkFontTransparent(idVar, fontID); */  	/* This is not necessary if 'bkColor = READ_BGCOLOR' */
+	LCD_BkFontTransparent(idVar, fontID);
 	LCD_Xmiddle(0,SetPos,SetPosAndWidth(0,BkpSizeX),NULL,0,NoConstWidth);
 	LCD_Ymiddle(0,SetPos,SetPosAndWidth(0,BkpSizeY));
 	int pX = LCD_Xmiddle(0, GetPos, fontID, txt, 0,NoConstWidth);
