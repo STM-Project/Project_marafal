@@ -4930,8 +4930,8 @@ LCD_STR_PARAM LCD_TxtVarInd(LCD_STR_PARAM *p, char *txt){
 	return LCD_Txt(DisplayIndirectViaStruct, p, NO_TXT_ARGS);
 }
 
-LCD_STR_PARAM LCD_TxtInFrame(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int Xpos, int Ypos, char *txt, uint32_t fontColor, u32 shadeColor, u8 deep, DIRECTIONS dir,  int spaceCorr){
-	int idVar = fontVar_40;		u32 bkColor=READ_BGCOLOR;  int OnlyDigits=halfHight;  int space=0;  int maxVal=255;  int constWidth=NoConstWidth;
+LCD_STR_PARAM LCD_TxtInFrame(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin,int Ywin, u32 BkpSizeX,u32 BkpSizeY, int fontID, int Xpos,int Ypos, char *txt, uint32_t fontColor,u32 bkColor, int OnlyDigits,int space,int maxVal,int constWidth, u32 shadeColor,u8 deep,DIRECTIONS dir, int spaceCorr){
+	int idVar = fontVar_40;		//u32 bkColor=READ_BGCOLOR;  int OnlyDigits=halfHight;  int space=0;  int maxVal=255;  int constWidth=NoConstWidth;
 	TempSpaceCorr = spaceCorr;
 	/* LCD_BkFontTransparent(idVar, fontID); */  	/* This is not necessary if 'bkColor = READ_BGCOLOR' */
 	LCD_Xmiddle(0,SetPos,SetPosAndWidth(0,BkpSizeX),NULL,0,NoConstWidth);
@@ -4941,5 +4941,8 @@ LCD_STR_PARAM LCD_TxtInFrame(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin,
 	LCD_STR_PARAM strParam = LCD_Txt(act, p, Xwin,Ywin, BkpSizeX,BkpSizeY, fontID,idVar, pX,pY, txt, fontColor,bkColor, OnlyDigits,space,maxVal,constWidth, shadeColor,deep,dir);
 	TempSpaceCorr = 0;
 	return strParam;
+}
+void LCD_TxtInFrame_minimize(uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int Xpos, int Ypos, char *txt, int spaceCorr){
+	LCD_TxtInFrame(Display, NULL, 0,0, BkpSizeX,BkpSizeY, fontID, Xpos,Ypos, txt, WHITE,READ_BGCOLOR, halfHight,0,255,NoConstWidth, 0xFF202020,3,LeftUp, spaceCorr);
 }
 
