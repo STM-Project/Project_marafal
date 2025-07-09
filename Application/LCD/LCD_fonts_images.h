@@ -460,8 +460,8 @@ void 			  		LCD_SetNewTxt					(LCD_STR_PARAM* p, char* newTxt);
 LCD_STR_PARAM 		LCD_Txt							(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int idVar, int Xpos, int Ypos, char *txt, uint32_t fontColor, uint32_t bkColor, int OnlyDigits, int space,int maxVal, int constWidth, u32 shadeColor, u8 deep, DIRECTIONS dir);
 LCD_STR_PARAM 		LCD_TxtVar						(LCD_STR_PARAM *p, char *txt);
 LCD_STR_PARAM 		LCD_TxtVarInd					(LCD_STR_PARAM *p, char *txt);
-LCD_STR_PARAM 		LCD_TxtInFrame					(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin,int Ywin, u32 BkpSizeX,u32 BkpSizeY, int fontID, int Xpos,int Ypos, char *txt, uint32_t fontColor,u32 bkColor, int OnlyDigits,int space,int maxVal,int constWidth, u32 shadeColor,u8 deep,DIRECTIONS dir, int spaceCorr);
-void			  		LCD_TxtInFrame_minimize		(u32 BkpSizeX, u32 BkpSizeY, int fontID, int Xpos, int Ypos, char *txt, int spaceCorr);
+LCD_STR_PARAM 		LCD_TxtInFrame					(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin,int Ywin, u32 BkpSizeX,u32 BkpSizeY, int fontID, int Xoffs,int Yoffs, char *txt, uint32_t fontColor,u32 bkColor, int OnlyDigits,int space,int maxVal,int constWidth, u32 shadeColor,u8 deep,DIRECTIONS dir, int spaceCorr);
+void			  		LCD_TxtInFrame_minimize		(u32 BkpSizeX, u32 BkpSizeY, int fontID, int Xoffs,int Yoffs, char *txt, int spaceCorr);
 
 
 #endif /* LCD_LCD_FONTS_IMAGES_H_ */

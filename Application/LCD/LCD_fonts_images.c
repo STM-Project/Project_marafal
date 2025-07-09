@@ -210,7 +210,7 @@ typedef struct{
 	ANIMATION_SETTING Animation;
 } IMAGES_SETTING;
 static IMAGES_SETTING Image[MAX_OPEN_IMAGES_SIMULTANEOUSLY];
-
+/*
 typedef struct
 {
 	uint32_t colorIn[2];
@@ -223,7 +223,7 @@ typedef struct
 	float bCb;
 }FontCoeff;
 static FontCoeff coeff;
-
+*/
 typedef struct{
 	uint32_t posBuff;
 	uint16_t xImgWidth;
@@ -283,7 +283,7 @@ static int RealizeTempSpaceCorrect(char *txt, int id){
 	switch(TempSpaceCorr){
 		case 0: break;
 		case 1:
-			if((IS_RANGE(txt[0],'0','9')&&(txt[1]==','))||((txt[0]==',')&&IS_RANGE(txt[1],'0','9'))) return 6;
+			if((IS_RANGE(txt[0],'0','9')&&(txt[1]==','))||((txt[0]==',')&&IS_RANGE(txt[1],'0','9'))) return 2;
 			break;
 		default: break;
 	}
@@ -4930,19 +4930,19 @@ LCD_STR_PARAM LCD_TxtVarInd(LCD_STR_PARAM *p, char *txt){
 	return LCD_Txt(DisplayIndirectViaStruct, p, NO_TXT_ARGS);
 }
 
-LCD_STR_PARAM LCD_TxtInFrame(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin,int Ywin, u32 BkpSizeX,u32 BkpSizeY, int fontID, int Xpos,int Ypos, char *txt, uint32_t fontColor,u32 bkColor, int OnlyDigits,int space,int maxVal,int constWidth, u32 shadeColor,u8 deep,DIRECTIONS dir, int spaceCorr){
+LCD_STR_PARAM LCD_TxtInFrame(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin,int Ywin, u32 BkpSizeX,u32 BkpSizeY, int fontID, int Xoffs,int Yoffs, char *txt, uint32_t fontColor,u32 bkColor, int OnlyDigits,int space,int maxVal,int constWidth, u32 shadeColor,u8 deep,DIRECTIONS dir, int spaceCorr){
 	int idVar = fontVar_40;
 	TempSpaceCorr = spaceCorr;
 	LCD_BkFontTransparent(idVar, fontID);
-	LCD_Xmiddle(0,SetPos,SetPosAndWidth(0,BkpSizeX),NULL,0,NoConstWidth);
+	LCD_Xmiddle(0,SetPos,SetPosAndWidth(0,BkpSizeX),NULL,0,constWidth);
 	LCD_Ymiddle(0,SetPos,SetPosAndWidth(0,BkpSizeY));
-	int pX = LCD_Xmiddle(0, GetPos, fontID, txt, 0,NoConstWidth);
+	int pX = LCD_Xmiddle(0, GetPos, fontID, txt, 0,constWidth);
 	int pY = LCD_Ymiddle(0, GetPos, fontID);
-	LCD_STR_PARAM strParam = LCD_Txt(act, p, Xwin,Ywin, BkpSizeX,BkpSizeY, fontID,idVar, pX,pY, txt, fontColor,bkColor, OnlyDigits,space,maxVal,constWidth, shadeColor,deep,dir);
+	LCD_STR_PARAM strParam = LCD_Txt(act, p, Xwin,Ywin, BkpSizeX,BkpSizeY, fontID,idVar, pX+Xoffs,pY+Yoffs, txt, fontColor,bkColor, OnlyDigits,space,maxVal,constWidth, shadeColor,deep,dir);
 	TempSpaceCorr = 0;
 	return strParam;
 }
-void LCD_TxtInFrame_minimize(uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int Xpos, int Ypos, char *txt, int spaceCorr){
-	LCD_TxtInFrame(Display, NULL, 0,0, BkpSizeX,BkpSizeY, fontID, Xpos,Ypos, txt, WHITE,READ_BGCOLOR, halfHight,0,255,NoConstWidth, 0xFF202020,3,LeftUp, spaceCorr);
+void LCD_TxtInFrame_minimize(uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int Xoffs,int Yoffs, char *txt, int spaceCorr){
+	LCD_TxtInFrame(Display, NULL, unUsed,unUsed, BkpSizeX,BkpSizeY, fontID, Xoffs,Yoffs, txt, WHITE,READ_BGCOLOR, halfHight,0,255,ConstWidth, 0xFF202020,3,LeftUp, spaceCorr);
 }
 

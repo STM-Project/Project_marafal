@@ -5883,7 +5883,7 @@ structPointParam GRAPH_SetPtr(u32 fromColorPtr, u32 toColorPtr, u16 sizePtr, 			
 	return param;
 }
 
-void GRAPH_DrawPtr(int nrMem, u16 posPtr)
+void GRAPH_DrawPtr(int nrMem, u16 posPtr)  //NIECH ZWARACA int posChart !!!!!!!!!!!!!!! dla "j"  "u" !!!!!!!!!!!!!!   posChartPtr
 {
 	if(nrMem >= MAX_CHARTS_SIMULTANEOUSLY 	||  ptrPrev[nrMem].ptr.hideShowPtr == 0) return;
 	int posBuff = 0;
@@ -5896,8 +5896,11 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 	int posChartPtr   = posPtr;
 	int sizeChartPtr 	= ptrPrev[nrMem].size.w;
 
-	if(posChartPtr >= posXY_par[0].len_posXY-(sizeChartPtr/2-2))	posChartPtr = posXY_par[0].len_posXY-(sizeChartPtr/2-2);  //ZASTANOWIC sie
-	if(posChartPtr <  sizeChartPtr/2+2								  )	posChartPtr = sizeChartPtr/2+2;
+
+	//Display() idze przez xSize = (ptrPrev[nrMem].sizeX =posXY_par[0].nmbrPoints)
+
+	if(posChartPtr >= posXY_par[0].len_posXY-(sizeChartPtr/2-2))	posChartPtr = posXY_par[0].len_posXY-(sizeChartPtr/2-2);  //posXY_par[0].len_posXY (=733) jest rozny od  ptrPrev[nrMem].sizeX  (=700)
+	if(posChartPtr <= 0)															posChartPtr = 0;
 
 	void __PTR_CopyBitmapToMem_and_PrepareBk(void){
 		u32 temp;
@@ -5942,8 +5945,28 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 	}
 
 
-	SET_VAL( posXY[posChartPtr].x-ptrPrev[nrMem].size.w/2, ptrX, ptrPrev[nrMem].pos.x );		/* Set new pointer position of chart */
-	SET_VAL( posXY[posChartPtr].y-ptrPrev[nrMem].size.h/2, ptrY, ptrPrev[nrMem].pos.y );
+	if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2){
+		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2);
+
+		ptrX 						= posXY[posChartPtr].x - corrPtrW/2;
+		ptrPrev[nrMem].pos.x = posXY[posChartPtr].x - corrPtrW/2;
+		ptrY 						= posXY[posChartPtr].y - corrPtrH/2;
+		ptrPrev[nrMem].pos.y = posXY[posChartPtr].y - corrPtrH/2;
+//		ptrX 						= ptrPrev[nrMem].startXYchart.x;
+//		ptrPrev[nrMem].pos.x = ptrPrev[nrMem].startXYchart.x;
+//		ptrY 						= ptrPrev[nrMem].startXYchart.y - corrPtrH/2;
+//		ptrPrev[nrMem].pos.y = ptrPrev[nrMem].startXYchart.y - corrPtrH/2;
+	}
+	else{
+		ptrX 						= posXY[posChartPtr].x - corrPtrW/2;
+		ptrPrev[nrMem].pos.x = posXY[posChartPtr].x - corrPtrW/2;
+		ptrY 						= posXY[posChartPtr].y - corrPtrH/2;
+		ptrPrev[nrMem].pos.y = posXY[posChartPtr].y - corrPtrH/2;
+	}
+
+//SET_VAL( CONDITION(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2,  ptrPrev[nrMem].startXYchart.x,  posXY[posChartPtr].x - corrPtrW/2), 		 ptrX, 		ptrPrev[nrMem].pos.x );  		/* Set new pointer position of chart */
+//	//SET_VAL( posXY[posChartPtr].x-ptrPrev[nrMem].size.w/2, ptrX, ptrPrev[nrMem].pos.x );
+//	SET_VAL( posXY[posChartPtr].y-ptrPrev[nrMem].size.h/2, ptrY, ptrPrev[nrMem].pos.y );
 
 	LCD_ErasePrevShape(ptrX_prev,ptrY_prev, ptrX,ptrY, corrPtrW,corrPtrH, chartPtrMem_temp);
 
@@ -5973,19 +5996,19 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 			default:
 			case 1:
 				offsRctToPtr_x = 0;
-				int offsRctToPtr_y = -30;
+				offsRctToPtr_y = -15;
 				break;
 
 			case 2:
-				offsRctToPtr_x = 0;
-				offsRctToPtr_y = -30;
+				offsRctToPtr_x = -20;
+				offsRctToPtr_y = 15;
 				break;
 		}
 
 
 		int xRctStart = ( ptrX - (rectW-corrPtrW)/2 ) + offsRctToPtr_x;
-		if(xRctStart < ptrPrev[nrMem].startXYchart.x)  xRctStart = ptrPrev[nrMem].startXYchart.x;
-		if(xRctStart > ptrPrev[nrMem].sizeX - rectW)   xRctStart = ptrPrev[nrMem].sizeX - rectW;
+		if(xRctStart < ptrPrev[nrMem].startXYchart.x)  											 xRctStart = ptrPrev[nrMem].startXYchart.x;
+		if(xRctStart > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - rectW)   xRctStart = ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - rectW;
 
 
 		int yRctStart = ptrY + CONDITION(offsRctToPtr_y<0,-rectH,corrPtrH) + offsRctToPtr_y;
@@ -6008,7 +6031,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 
 		char *pTxt = StrAll(3,Int2Str(ptrX,None,3,Sign_none),",",Int2Str(ptrY,None,3,Sign_none));
-		LCD_TxtInFrame_minimize(rectW,rectH, ptrPrev[nrMem].ptr.fontID, ptrX,ptrY, pTxt, 1);
+		LCD_TxtInFrame_minimize(rectW,rectH, ptrPrev[nrMem].ptr.fontID, -2,0, pTxt, ptrPrev[nrMem].ptr.hideShowRct);
 
 
 		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
@@ -6143,7 +6166,7 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 		int posChartPtr   = chartPtr.posPtr;
 
 		if(posChartPtr >= posXY_par[0].len_posXY-(sizeChartPtr/2-2))	posChartPtr = posXY_par[0].len_posXY-(sizeChartPtr/2-2);
-		if(posChartPtr <  sizeChartPtr/2+2								  )	posChartPtr = sizeChartPtr/2+2;
+		if(posChartPtr <= 0)															posChartPtr = 0;
 
 		ptrPrev[nrMem].size.w  	= sizeChartPtr;
 		ptrPrev[nrMem].size.h  	= sizeChartPtr;
@@ -6193,7 +6216,7 @@ void GRAPH_GetSamplesAndDraw(int posBuff, int offsMem,int nrMem, u32 widthBk, in
 {
 	if(nrMem >= MAX_CHARTS_SIMULTANEOUSLY) return;
 	if(GRAPH_GetSamples(offsMem,nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType)) return;
-	ptrPrev[nrMem].startXYchart.x = startX;
+	ptrPrev[nrMem].startXYchart.x = startX;   //Te wpisy musza tez byc dla LCD_Chart() !!!!!!!!!!!!!!
 	ptrPrev[nrMem].startXYchart.y = startY;
 	ptrPrev[nrMem].yMinMaxchart[0] = startY + yMin;
 	ptrPrev[nrMem].yMinMaxchart[1] = startY + yMax;
