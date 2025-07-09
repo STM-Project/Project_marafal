@@ -102,8 +102,9 @@ typedef struct
 }Circle_Param;
 
 typedef struct{
-	structPosU16 startXYchart;
-	u16 yMinMaxchart[2];
+	structPosU16 startXYchart;		/* win of chart position (x,y) starts from middle of Y (not on top Y) */
+	u16 yMinMaxchart[2];				/* Y of top win of chart  and  Y of bottom win of chart */
+	u16 sizeX;
 	structPosU16 pos;			/* calculated position of only pointer */
 	structSizeU16 size;		/* calculated size of only pointer */
 	structPointParam ptr;
@@ -5948,46 +5949,54 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 
 
-
+//ZROB OPTYMA fast dla GRAPH !!!!!!!!!!!!!!
 
 
 	if(ptrPrev[nrMem].ptr.hideShowRct)
 	{
+		extern void LCD_TxtInFrame_minimize();
 		int rectX, rectY;
 		int rectW 		= ptrPrev[nrMem].ptr.sizeRct.w;
 		int rectH 		= ptrPrev[nrMem].ptr.sizeRct.h;
 		int rectX_prev = ptrPrev[nrMem].ptr.posRct.x;
 		int rectY_prev = ptrPrev[nrMem].ptr.posRct.y;
 
+
+
+
+
+		int offsRctToPtr_x = 0;		/* offset X relative to middle of pointer */
+		int offsRctToPtr_y = 0;		/* offset Y relative to edge of pointer 	*/
+
+
 		switch(ptrPrev[nrMem].ptr.hideShowRct){
 			default:
 			case 1:
-
-
-				if(ptrPrev[nrMem].pos.y - ptrPrev[nrMem].yMinMaxchart[0] >= 80+rectH)
-				{
-					SET_VAL( ptrPrev[nrMem].pos.x-10, 		 rectX, ptrPrev[nrMem].ptr.posRct.x );
-					SET_VAL( ptrPrev[nrMem].pos.y-30-rectH, rectY, ptrPrev[nrMem].ptr.posRct.y );
-				}
-				else
-				{
-					SET_VAL( ptrPrev[nrMem].pos.x-10, rectX, ptrPrev[nrMem].ptr.posRct.x );
-					SET_VAL( ptrPrev[nrMem].pos.y+30, rectY, ptrPrev[nrMem].ptr.posRct.y );
-				}
-
-
-//				temp = ptrPrev[nrMem].pos.x - ptrPrev[nrMem].ptr.sizeRct.w / 2;		if(temp < ptrPrev[nrMem].startXYchart.x) temp= ptrPrev[nrMem].startXYchart.x;
-//				ptrPrev[nrMem].ptr.posRct.x = temp;
-//				temp = ptrPrev[nrMem].pos.y + ptrPrev[nrMem].size.h / 2 + 15;			if(temp + ptrPrev[nrMem].ptr.sizeRct.h > ptrPrev[nrMem].startXYchart.y + ptrPrev[nrMem].yMinMaxchart[0]) temp= ....;
-//				ptrPrev[nrMem].ptr.posRct.y = temp;
+				offsRctToPtr_x = 0;
+				int offsRctToPtr_y = -30;
 				break;
 
-//			case 2:
-//				ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;
-//				ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 30;
-//				break;
-
+			case 2:
+				offsRctToPtr_x = 0;
+				offsRctToPtr_y = -30;
+				break;
 		}
+
+
+		int xRctStart = ( ptrX - (rectW-corrPtrW)/2 ) + offsRctToPtr_x;
+		if(xRctStart < ptrPrev[nrMem].startXYchart.x)  xRctStart = ptrPrev[nrMem].startXYchart.x;
+		if(xRctStart > ptrPrev[nrMem].sizeX - rectW)   xRctStart = ptrPrev[nrMem].sizeX - rectW;
+
+
+		int yRctStart = ptrY + CONDITION(offsRctToPtr_y<0,-rectH,corrPtrH) + offsRctToPtr_y;
+		if(yRctStart < ptrPrev[nrMem].yMinMaxchart[0])  			yRctStart = ptrY + corrPtrH + ABS(offsRctToPtr_y);
+		if(yRctStart > ptrPrev[nrMem].yMinMaxchart[1] - rectH)   yRctStart = ptrY - rectH 	 - ABS(offsRctToPtr_y);
+
+
+		SET_VAL( xRctStart, rectX, ptrPrev[nrMem].ptr.posRct.x );
+		SET_VAL( yRctStart, rectY, ptrPrev[nrMem].ptr.posRct.y );
+
+
 
 
 		LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, chartRctMem_temp);
@@ -5996,7 +6005,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)
 
 
 
-extern void LCD_TxtInFrame_minimize();
+
 
 		char *pTxt = StrAll(3,Int2Str(ptrX,None,3,Sign_none),",",Int2Str(ptrY,None,3,Sign_none));
 		LCD_TxtInFrame_minimize(rectW,rectH, ptrPrev[nrMem].ptr.fontID, ptrX,ptrY, pTxt, 1);
@@ -6188,6 +6197,7 @@ void GRAPH_GetSamplesAndDraw(int posBuff, int offsMem,int nrMem, u32 widthBk, in
 	ptrPrev[nrMem].startXYchart.y = startY;
 	ptrPrev[nrMem].yMinMaxchart[0] = startY + yMin;
 	ptrPrev[nrMem].yMinMaxchart[1] = startY + yMax;
+	ptrPrev[nrMem].sizeX 			 = posXY_par[0].nmbrPoints;
 	GRAPH_Draw(posBuff, offsMem,nrMem, widthBk, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, dispOption,color1,color2,offsK1,offsK2, bkGradType,gradColor1,gradColor2,gradStripY,amplTrans,offsTrans, corr45degAA, chartPtr);
 }
 
