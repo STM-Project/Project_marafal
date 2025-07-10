@@ -5871,6 +5871,12 @@ int GRAPH_GetSamples(int offsMem,int nrMem, int startX,int startY, int yMin,int 
 
 	posXY_par[0].startX=startX;	posXY_par[0].startY=startY;	posXY_par[0].yMin=yMin;		posXY_par[0].yMax=yMax;		posXY_par[0].nmbrPoints=nmbrPoints;	  posXY_par[0].precision=precision;	  posXY_par[0].scaleX=scaleX;	 posXY_par[0].scaleY=scaleY;	 posXY_par[0].funcPatternType=funcPatternType;
 
+	ptrPrev[nrMem].startXYchart.x  = startX;
+	ptrPrev[nrMem].startXYchart.y  = startY;
+	ptrPrev[nrMem].yMinMaxchart[0] = startY + yMin;
+	ptrPrev[nrMem].yMinMaxchart[1] = startY + yMax;
+	ptrPrev[nrMem].sizeX 			 = nmbrPoints;
+
 	if(1 > posXY_par[0].len_posXYrep) return 1;
 	else										 return 0;
 }
@@ -6193,11 +6199,6 @@ void GRAPH_GetSamplesAndDraw(int posBuff, int offsMem,int nrMem, u32 widthBk, in
 {
 	if(nrMem >= MAX_CHARTS_SIMULTANEOUSLY) return;
 	if(GRAPH_GetSamples(offsMem,nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType)) return;
-	ptrPrev[nrMem].startXYchart.x = startX;   //Te wpisy musza tez byc dla LCD_Chart() !!!!!!!!!!!!!!
-	ptrPrev[nrMem].startXYchart.y = startY;
-	ptrPrev[nrMem].yMinMaxchart[0] = startY + yMin;
-	ptrPrev[nrMem].yMinMaxchart[1] = startY + yMax;
-	ptrPrev[nrMem].sizeX 			 = posXY_par[0].nmbrPoints;
 	GRAPH_Draw(posBuff, offsMem,nrMem, widthBk, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, dispOption,color1,color2,offsK1,offsK2, bkGradType,gradColor1,gradColor2,gradStripY,amplTrans,offsTrans, corr45degAA, chartPtr);
 }
 
