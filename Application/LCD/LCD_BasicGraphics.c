@@ -5944,8 +5944,8 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)  //NIECH ZWARACA int posChart !!!!!!!!
 	if(posChartPtr >= posXY_par[0].len_posXY)	posChartPtr = posXY_par[0].len_posXY - 1;  //posXY_par[0].len_posXY (=733) jest rozny od  ptrPrev[nrMem].sizeX  (=700)
 	if(posChartPtr < 0)								posChartPtr = 0;
 
-	if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2)			 {		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2);					}
-	if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX);		}
+	if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								 + corrPtrW/2){		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								+ corrPtrW/2);		}
+	if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}
 
 	SET_VAL( posXY[posChartPtr].x - corrPtrW/2, ptrX, ptrPrev[nrMem].pos.x );
 	SET_VAL( posXY[posChartPtr].y - corrPtrH/2, ptrY, ptrPrev[nrMem].pos.y );
@@ -6165,8 +6165,8 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 		if(posChartPtr >= posXY_par[0].len_posXY)	posChartPtr = posXY_par[0].len_posXY - 1;  //posXY_par[0].len_posXY (=733) jest rozny od  ptrPrev[nrMem].sizeX  (=700)
 		if(posChartPtr < 0)								posChartPtr = 0;
 
-		if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2)			 {		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2);					}
-		if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX);		}
+		if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								 + corrPtrW/2){		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								+ corrPtrW/2);		}
+		if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}
 
 		ptrPrev[nrMem].size.w  	= sizeChartPtr;
 		ptrPrev[nrMem].size.h  	= sizeChartPtr;
