@@ -5904,6 +5904,12 @@ void GRAPH_DrawPtr(int offsMem,int nrMem, u16 posPtr)  //NIECH ZWARACA int posCh
 	u32 colorTransPtr = GetTransitionColor( ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0.5);
 	int posChartPtr   = posPtr;
 
+
+	ptrPrev[nrMem].chartBkW = 800; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
 	void __PTR_CopyBitmapToMem_and_PrepareBk(void){
 		u32 temp;
 		_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH)
@@ -5955,8 +5961,21 @@ void GRAPH_DrawPtr(int offsMem,int nrMem, u16 posPtr)  //NIECH ZWARACA int posCh
 	if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								 + corrPtrW/2){		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								+ corrPtrW/2);		}
 	if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}
 */
-	SET_VAL( posXY[posChartPtr].x - corrPtrW/2, ptrX, ptrPrev[nrMem].pos.x );
-	SET_VAL( posXY[posChartPtr].y - corrPtrH/2, ptrY, ptrPrev[nrMem].pos.y );
+
+	if(ptrPrev[nrMem].startXYchart.x != posXY[0].x	&&	 ptrPrev[nrMem].startXYchart.y != posXY[0].y	)
+	{
+		//we have '..._indirect'
+
+		SET_VAL( ptrPrev[nrMem].startXYchart.x + posXY[posChartPtr].x - corrPtrW/2, 	 ptrX, 	ptrPrev[nrMem].pos.x );
+		SET_VAL( ptrPrev[nrMem].startXYchart.y + posXY[posChartPtr].y - corrPtrH/2, 	 ptrY, 	ptrPrev[nrMem].pos.y );
+	}
+	else
+	{
+		SET_VAL( posXY[posChartPtr].x - corrPtrW/2, 		ptrX, 	ptrPrev[nrMem].pos.x );
+		SET_VAL( posXY[posChartPtr].y - corrPtrH/2, 		ptrY, 	ptrPrev[nrMem].pos.y );
+	}
+
+
 
 	LCD_ErasePrevShape(ptrX_prev,ptrY_prev, ptrX,ptrY, corrPtrW,corrPtrH, chartPtrMem_temp);
 
@@ -6130,7 +6149,7 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 	if((int)dispOption==Disp_AA){
 					   GRAPH_Display(posBuff,	    	widthBk, posXY_par[0].len_posXYrep, colorLineAA, colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
 		if(offsK1){ GRAPH_Display(posBuff+offsK1, widthBk, posXY_par[0].len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart, 0); 		 }
-		if(offsK2){ GRAPH_Display(posBuff+offsK2, widthBk, posXY_par[0].len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0,			  unUsed); }
+		if(offsK2){ GRAPH_Display(posBuff+offsK2, widthBk, posXY_par[0].len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0,			  unUsed); 	 }
 	}
 	else{
 		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (posBuff+offsK1, widthBk, posXY_par[0].len_posXY,	 	color1);
@@ -6178,8 +6197,18 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 */
 		ptrPrev[nrMem].size.w  	= sizeChartPtr;
 		ptrPrev[nrMem].size.h  	= sizeChartPtr;
-		ptrPrev[nrMem].pos.x   	= posXY[posChartPtr].x-corrPtrW/2;
-		ptrPrev[nrMem].pos.y   	= posXY[posChartPtr].y-corrPtrH/2;
+
+		if(ptrPrev[nrMem].startXYchart.x != posXY[0].x	&&	 ptrPrev[nrMem].startXYchart.y != posXY[0].y	)  //we have '..._indirect'
+		{
+			ptrPrev[nrMem].pos.x   	= ptrPrev[nrMem].startXYchart.x-corrPtrW/2;
+			ptrPrev[nrMem].pos.y   	= ptrPrev[nrMem].startXYchart.y-corrPtrH/2;
+		}
+		else
+		{
+			ptrPrev[nrMem].pos.x   	= posXY[posChartPtr].x-corrPtrW/2;
+			ptrPrev[nrMem].pos.y   	= posXY[posChartPtr].y-corrPtrH/2;
+		}
+
 		ptrPrev[nrMem].chartBkW = widthBk;
 		ptrPrev[nrMem].ptr 	 	= chartPtr;
 		ptrPrev[nrMem].ptrMem	= chartPtrMem[nrMem];
@@ -6240,6 +6269,10 @@ void LCD_Chart_Indirect(int offsMem, int nrMem, u32 widthBk, u32 colorLineAA, u3
 	int width  	= posXY_par[0].nmbrPoints;
 	int height 	= posXY_par[0].yMax - posXY_par[0].yMin;
 	int offsK	= width;
+	ptrPrev[nrMem].startXYchart.x  = x;
+	ptrPrev[nrMem].startXYchart.y  = y;
+	ptrPrev[nrMem].yMinMaxchart[0] = 210-120;
+	ptrPrev[nrMem].yMinMaxchart[1] = 210+80;
 	if(bkRectColor) LCD_ShapeWindow(LCD_Rectangle, offsK, width,height, 0,0, width,height, bkRectColor,bkRectColor,bkRectColor);
 	GRAPH_Draw(offsK, offsMem,nrMem, width, colorLineAA, colorOut, colorIn, outRatioStart, inRatioStart, dispOption, color1, color2, offsK1, offsK2, bkGradType, gradColor1, gradColor2, gradStripY, amplTrans, offsTrans, corr45degAA, chartPtr);
 	_2LOOP_INIT(k=width,i,j,width,height)
