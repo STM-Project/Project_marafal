@@ -5894,13 +5894,7 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)  //NIECH ZWARACA int posChart !!!!!!!!
 	u16 corrPtrH 		= ptrPrev[nrMem].size.h+2;
 	u32 colorTransPtr = GetTransitionColor( ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0.5);
 	int posChartPtr   = posPtr;
-	int sizeChartPtr 	= ptrPrev[nrMem].size.w;
-
-
-	//Display() idze przez xSize = (ptrPrev[nrMem].sizeX =posXY_par[0].nmbrPoints)
-
-	if(posChartPtr >= posXY_par[0].len_posXY-(sizeChartPtr/2-2))	posChartPtr = posXY_par[0].len_posXY-(sizeChartPtr/2-2);  //posXY_par[0].len_posXY (=733) jest rozny od  ptrPrev[nrMem].sizeX  (=700)
-	if(posChartPtr <= 0)															posChartPtr = 0;
+	//int sizeChartPtr 	= ptrPrev[nrMem].size.w;
 
 	void __PTR_CopyBitmapToMem_and_PrepareBk(void){
 		u32 temp;
@@ -5938,35 +5932,23 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)  //NIECH ZWARACA int posChart !!!!!!!!
 		ptrPrev[nrMem].memInUse=0;
 	}
 
+
 	if(ptrPrev[nrMem].memInUse){
 		__CopyPtrBitmapToMemTemp();
 		if(ptrPrev[nrMem].ptr.hideShowRct)
 			__CopyRctBitmapToMemTemp();
 	}
 
+	//Display() idze przez xSize = (ptrPrev[nrMem].sizeX =posXY_par[0].nmbrPoints)
 
-	if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2){
-		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2);
+	if(posChartPtr >= posXY_par[0].len_posXY)	posChartPtr = posXY_par[0].len_posXY - 1;  //posXY_par[0].len_posXY (=733) jest rozny od  ptrPrev[nrMem].sizeX  (=700)
+	if(posChartPtr < 0)								posChartPtr = 0;
 
-		ptrX 						= posXY[posChartPtr].x - corrPtrW/2;
-		ptrPrev[nrMem].pos.x = posXY[posChartPtr].x - corrPtrW/2;
-		ptrY 						= posXY[posChartPtr].y - corrPtrH/2;
-		ptrPrev[nrMem].pos.y = posXY[posChartPtr].y - corrPtrH/2;
-//		ptrX 						= ptrPrev[nrMem].startXYchart.x;
-//		ptrPrev[nrMem].pos.x = ptrPrev[nrMem].startXYchart.x;
-//		ptrY 						= ptrPrev[nrMem].startXYchart.y - corrPtrH/2;
-//		ptrPrev[nrMem].pos.y = ptrPrev[nrMem].startXYchart.y - corrPtrH/2;
-	}
-	else{
-		ptrX 						= posXY[posChartPtr].x - corrPtrW/2;
-		ptrPrev[nrMem].pos.x = posXY[posChartPtr].x - corrPtrW/2;
-		ptrY 						= posXY[posChartPtr].y - corrPtrH/2;
-		ptrPrev[nrMem].pos.y = posXY[posChartPtr].y - corrPtrH/2;
-	}
+	if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2)			 {		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2);					}
+	if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX);		}
 
-//SET_VAL( CONDITION(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2,  ptrPrev[nrMem].startXYchart.x,  posXY[posChartPtr].x - corrPtrW/2), 		 ptrX, 		ptrPrev[nrMem].pos.x );  		/* Set new pointer position of chart */
-//	//SET_VAL( posXY[posChartPtr].x-ptrPrev[nrMem].size.w/2, ptrX, ptrPrev[nrMem].pos.x );
-//	SET_VAL( posXY[posChartPtr].y-ptrPrev[nrMem].size.h/2, ptrY, ptrPrev[nrMem].pos.y );
+	SET_VAL( posXY[posChartPtr].x - corrPtrW/2, ptrX, ptrPrev[nrMem].pos.x );
+	SET_VAL( posXY[posChartPtr].y - corrPtrH/2, ptrY, ptrPrev[nrMem].pos.y );
 
 	LCD_ErasePrevShape(ptrX_prev,ptrY_prev, ptrX,ptrY, corrPtrW,corrPtrH, chartPtrMem_temp);
 
@@ -6040,17 +6022,8 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)  //NIECH ZWARACA int posChart !!!!!!!!
 
 
 
-
-
-
-
-
-
 	__PTR_CopyBitmapToMem_and_PrepareBk();
 	LCD_GradientCircleButton_Indirect(ptrX,ptrY,  corrPtrW-2,corrPtrH-2,  SetBold2Color(colorTransPtr,1), ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0,ReadOutColor);
-
-
-
 
 
 
@@ -6165,23 +6138,11 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 		int sizeChartPtr  = CONDITION(chartPtr.sizePtr%2, chartPtr.sizePtr+1, chartPtr.sizePtr);
 		int posChartPtr   = chartPtr.posPtr;
 
-		if(posChartPtr >= posXY_par[0].len_posXY-(sizeChartPtr/2-2))	posChartPtr = posXY_par[0].len_posXY-(sizeChartPtr/2-2);
-		if(posChartPtr <= 0)															posChartPtr = 0;
-
-		ptrPrev[nrMem].size.w  	= sizeChartPtr;
-		ptrPrev[nrMem].size.h  	= sizeChartPtr;
-		ptrPrev[nrMem].pos.x   	= posXY[posChartPtr].x-sizeChartPtr/2;
-		ptrPrev[nrMem].pos.y   	= posXY[posChartPtr].y-sizeChartPtr/2;
-		ptrPrev[nrMem].chartBkW = widthBk;
-		ptrPrev[nrMem].ptr 	 	= chartPtr;
-		ptrPrev[nrMem].ptrMem	= chartPtrMem[nrMem];
-		ptrPrev[nrMem].rctMem	= chartRctMem[nrMem];
-
-		u16 corrPtrW = ptrPrev[nrMem].size.w+2;		/* '+2' because of bkSizeX for LCD_GradientCircleButton() */
-		u16 corrPtrH = ptrPrev[nrMem].size.h+2;
+		u16 corrPtrW = sizeChartPtr+2;		/* '+2' because of bkSizeX for LCD_GradientCircleButton() */
+		u16 corrPtrH = sizeChartPtr+2;
 
 		void __CopyPtrBitmapToMem(void){
-			_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH)
+			_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH)			//POZYCJE tu rct i ptr NIE MA SENSU USUN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				if(m>=CHART_PTR_MEM_SIZE)
 					break;
 				*(ptrPrev[nrMem].ptrMem + m) = pLcd[posBuff+widthBk*(j+ptrPrev[nrMem].pos.y)+(i+ptrPrev[nrMem].pos.x)];
@@ -6200,9 +6161,25 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 			ptrPrev[nrMem].memInUse=1;
 		}
 
+
+		if(posChartPtr >= posXY_par[0].len_posXY)	posChartPtr = posXY_par[0].len_posXY - 1;  //posXY_par[0].len_posXY (=733) jest rozny od  ptrPrev[nrMem].sizeX  (=700)
+		if(posChartPtr < 0)								posChartPtr = 0;
+
+		if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2)			 {		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x + corrPtrW/2);					}
+		if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX);		}
+
+		ptrPrev[nrMem].size.w  	= sizeChartPtr;
+		ptrPrev[nrMem].size.h  	= sizeChartPtr;
+		ptrPrev[nrMem].pos.x   	= posXY[posChartPtr].x-corrPtrW/2;
+		ptrPrev[nrMem].pos.y   	= posXY[posChartPtr].y-corrPtrH/2;
+		ptrPrev[nrMem].chartBkW = widthBk;
+		ptrPrev[nrMem].ptr 	 	= chartPtr;
+		ptrPrev[nrMem].ptrMem	= chartPtrMem[nrMem];
+		ptrPrev[nrMem].rctMem	= chartRctMem[nrMem];
+
 		if(chartPtr.hideShowRct){
 			ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;			//w zaleznosci od typu 'hideShowRct' rozne rozklady RCT dac !!!!!!!  TO CHYBA TU USUN !!!!! a dja wyzej
-			ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 30;
+			ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 0;
 			__CopyRctBitmapToMem();
 		}
 
