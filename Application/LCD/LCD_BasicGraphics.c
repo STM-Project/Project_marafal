@@ -5889,9 +5889,12 @@ structPointParam GRAPH_SetPtr(u32 fromColorPtr, u32 toColorPtr, u16 sizePtr, 			
 	return param;
 }
 
-void GRAPH_DrawPtr(int nrMem, u16 posPtr)  //NIECH ZWARACA int posChart !!!!!!!!!!!!!!! dla "j"  "u" !!!!!!!!!!!!!!   posChartPtr
+void GRAPH_DrawPtr(int offsMem,int nrMem, u16 posPtr)  //NIECH ZWARACA int posChart !!!!!!!!!!!!!!! dla "j"  "u" !!!!!!!!!!!!!!   posChartPtr
 {
 	if(nrMem >= MAX_CHARTS_SIMULTANEOUSLY 	||  ptrPrev[nrMem].ptr.hideShowPtr == 0) return;
+	#if defined(GRAPH_MEMORY_SDRAM2)
+		if(GRAPH_SetPointers(offsMem,nrMem)) return;
+	#endif
 	int posBuff = 0;
 	int ptrX,ptrY;
 	int ptrX_prev 		= ptrPrev[nrMem].pos.x;
@@ -5900,7 +5903,6 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)  //NIECH ZWARACA int posChart !!!!!!!!
 	u16 corrPtrH 		= ptrPrev[nrMem].size.h+2;
 	u32 colorTransPtr = GetTransitionColor( ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0.5);
 	int posChartPtr   = posPtr;
-	//int sizeChartPtr 	= ptrPrev[nrMem].size.w;
 
 	void __PTR_CopyBitmapToMem_and_PrepareBk(void){
 		u32 temp;
@@ -5949,10 +5951,10 @@ void GRAPH_DrawPtr(int nrMem, u16 posPtr)  //NIECH ZWARACA int posChart !!!!!!!!
 
 	if(posChartPtr >= posXY_par[0].len_posXY)	posChartPtr = posXY_par[0].len_posXY - 1;  //posXY_par[0].len_posXY (=733) jest rozny od  ptrPrev[nrMem].sizeX  (=700)
 	if(posChartPtr < 0)								posChartPtr = 0;
-
+/*
 	if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								 + corrPtrW/2){		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								+ corrPtrW/2);		}
 	if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}
-
+*/
 	SET_VAL( posXY[posChartPtr].x - corrPtrW/2, ptrX, ptrPrev[nrMem].pos.x );
 	SET_VAL( posXY[posChartPtr].y - corrPtrH/2, ptrY, ptrPrev[nrMem].pos.y );
 
@@ -6170,10 +6172,10 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 
 		if(posChartPtr >= posXY_par[0].len_posXY)	posChartPtr = posXY_par[0].len_posXY - 1;  //posXY_par[0].len_posXY (=733) jest rozny od  ptrPrev[nrMem].sizeX  (=700)
 		if(posChartPtr < 0)								posChartPtr = 0;
-
+/*
 		if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								 + corrPtrW/2){		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								+ corrPtrW/2);		}
 		if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}
-
+*/
 		ptrPrev[nrMem].size.w  	= sizeChartPtr;
 		ptrPrev[nrMem].size.h  	= sizeChartPtr;
 		ptrPrev[nrMem].pos.x   	= posXY[posChartPtr].x-corrPtrW/2;
