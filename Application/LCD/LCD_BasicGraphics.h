@@ -221,6 +221,7 @@ void Set_AACoeff_Draw(int pixelsInOneSide, uint32_t colorFrom, uint32_t colorTo,
 void LCD_LineH(uint32_t BkpSizeX, uint16_t x, uint16_t y, uint16_t width,  uint32_t color, uint16_t bold);
 void LCD_LineV(uint32_t BkpSizeX, uint16_t x, uint16_t y, uint16_t width,  uint32_t color, uint16_t bold);
 void LCD_ErasePrevShape(int posX_prev,int posY_prev, int posX,int posY, int width,int height, u32 *pBuff);
+void LCD_CopyBuffers(u32 *pBuff1,u32 offs1,u16 widthBk1,u16 Xpos1,u16 Ypos1,	 u32 *pBuff2,u32 offs2,u16 widthBk2,u16 width2,u16 height2,u16 Xpos2,u16 Ypos2);
 
 void LCD_Display(uint32_t posBuff, uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t height);
 void LCD_DisplayPart(uint32_t posBuff, uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t height);
@@ -335,6 +336,7 @@ void 	LCDSHAPE_GradientCircleSlider_Indirect		(SHAPE_PARAMS param);
 void 	LCDSHAPE_Chart_Indirect							(USER_GRAPH_PARAM param);
 /* ------- End Selected Figures ------------------*/
 
+int 				  GRAPH_IsIndirect		  (int nrMem);
 int 				  GRAPH_GetNmbrPoints	  (int offsMem, int nrMem);
 int				  GRAPH_GetSamples		  (int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,float precision, float scaleX,float scaleY, int funcPatternType);
 structPointParam GRAPH_SetPtr				  (u32 fromColorPtr, u32 toColorPtr, u16 sizePtr, u16 posPtr, u8 hideShowPtr, u32 fromColorRct, u32 toColorRct, u16 xSizeRct,u16 ySizeRct, u16 xPosRct,u16 yPosRct, u8 hideShowRct, int fontID);
