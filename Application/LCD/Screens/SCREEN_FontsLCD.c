@@ -1876,32 +1876,32 @@ void FILE_NAME(debugRcvStr)(void)
 //	}
 	else if(DEBUG_RcvStr("j"))
 	{
-		chartPtrPos[0]+=1;	GRAPH_DrawPtr(0,0,chartPtrPos[0]);		   if(chartPtrPos[0]>60000) chartPtrPos[0]=0;
+		chartPtrPos[0]+=5;	GRAPH_DrawPtr(0,0,chartPtrPos[0]);		   if(chartPtrPos[0]>60000) chartPtrPos[0]=0;
 	}
 	else if(DEBUG_RcvStr("u"))
 	{
-		chartPtrPos[0]-=1;	if(chartPtrPos[0]<0) chartPtrPos[0]=0;  GRAPH_DrawPtr(0,0,chartPtrPos[0]);
+		chartPtrPos[0]-=5;	if(chartPtrPos[0]<0) chartPtrPos[0]=0;  GRAPH_DrawPtr(0,0,chartPtrPos[0]);
 	}
 
 
 
 	else if(DEBUG_RcvStr("k"))
 	{
-		chartPtrPos[1]+=1;	GRAPH_DrawPtr(1000000,1,chartPtrPos[1]);		   if(chartPtrPos[1]>60000) chartPtrPos[1]=0;
+		chartPtrPos[1]+=5;	GRAPH_DrawPtr(1000000,1,chartPtrPos[1]);		   if(chartPtrPos[1]>60000) chartPtrPos[1]=0;
 	}
 	else if(DEBUG_RcvStr("i"))
 	{
-		chartPtrPos[1]-=1;	if(chartPtrPos[1]<0) chartPtrPos[1]=0;  GRAPH_DrawPtr(1000000,1,chartPtrPos[1]);
+		chartPtrPos[1]-=5;	if(chartPtrPos[1]<0) chartPtrPos[1]=0;  GRAPH_DrawPtr(1000000,1,chartPtrPos[1]);
 	}
 
 
 	else if(DEBUG_RcvStr("l"))
 	{
-		chartPtrPos[2]+=1;	GRAPH_DrawPtr(2000000,2,chartPtrPos[2]);		   if(chartPtrPos[2]>60000) chartPtrPos[2]=0;
+		chartPtrPos[2]+=5;	GRAPH_DrawPtr(2000000,2,chartPtrPos[2]);		   if(chartPtrPos[2]>60000) chartPtrPos[2]=0;
 	}
 	else if(DEBUG_RcvStr("o"))
 	{
-		chartPtrPos[2]-=1;	if(chartPtrPos[2]<0) chartPtrPos[2]=0;  GRAPH_DrawPtr(2000000,2,chartPtrPos[2]);
+		chartPtrPos[2]-=5;	if(chartPtrPos[2]<0) chartPtrPos[2]=0;  GRAPH_DrawPtr(2000000,2,chartPtrPos[2]);
 	}
 
 
