@@ -5969,7 +5969,7 @@ void GRAPH_DrawPtr(int offsMem,int nrMem, u16 posPtr)  //NIECH ZWARACA int posCh
 		ptrPrev[nrMem].memInUse=0;
 	}
 
-	if(GRAPH_IsIndirect(nrMem)) ptrPrev[nrMem].chartBkW = LCD_X; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	///if(GRAPH_IsIndirect(nrMem)) ptrPrev[nrMem].chartBkW = LCD_X; // to juz nie potrzebne!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	if(ptrPrev[nrMem].memInUse){
 		__CopyPtrBitmapToMemTemp();
@@ -5981,10 +5981,10 @@ void GRAPH_DrawPtr(int offsMem,int nrMem, u16 posPtr)  //NIECH ZWARACA int posCh
 
 	if(posChartPtr >= posXY_par[0].len_posXY)	posChartPtr = posXY_par[0].len_posXY - 1;  //posXY_par[0].len_posXY (=733) jest rozny od  ptrPrev[nrMem].sizeX  (=700)
 	if(posChartPtr < 0)								posChartPtr = 0;
-/*
-	if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								 + corrPtrW/2){		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								+ corrPtrW/2);		}
-	if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}
-*/
+
+/*	if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								 + corrPtrW/2){		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								+ corrPtrW/2);		}
+	if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}	*/			/* only if pointer has distance from end or start of chart */
+
 
 
 	if(GRAPH_IsIndirect(nrMem)){	offsX = ptrPrev[nrMem].startXYchart.x;
@@ -6209,10 +6209,10 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 
 		if(posChartPtr >= posXY_par[0].len_posXY)	posChartPtr = posXY_par[0].len_posXY - 1;  //posXY_par[0].len_posXY (=733) jest rozny od  ptrPrev[nrMem].sizeX  (=700)
 		if(posChartPtr < 0)								posChartPtr = 0;
-/*
-		if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								 + corrPtrW/2){		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								+ corrPtrW/2);		}
-		if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}
-*/
+
+/*		if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								 + corrPtrW/2){		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								+ corrPtrW/2);		}
+		if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}	*/		/* only if pointer has distance from end or start of chart */
+
 		ptrPrev[nrMem].size.w  	= sizeChartPtr;
 		ptrPrev[nrMem].size.h  	= sizeChartPtr;
 		ptrPrev[nrMem].pos.x   	= CONDITION(GRAPH_IsIndirect(nrMem), ptrPrev[nrMem].startXYchart.x, 0) + posXY[posChartPtr].x - corrPtrW/2;
