@@ -5938,7 +5938,7 @@ void GRAPH_DrawPtr(int offsMem,int nrMem, u16 posPtr)  //NIECH ZWARACA int posCh
 		u32 temp;
 		_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH)
 			if(m>=CHART_PTR_MEM_SIZE) return;
-			temp 				  				= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(ptrPrev[nrMem].pos.y+j)+(ptrPrev[nrMem].pos.x+i)];
+			temp 				  				= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(ptrPrev[nrMem].pos.y+ CONDITION((GRAPH_IsIndirect(nrMem)),0,0) +j)+(ptrPrev[nrMem].pos.x+i)];
 			*(ptrPrev[nrMem].ptrMem+m) = temp;		/* write background to memory */
 			pLcd[posBuff+m]  				= temp;  	/* prepare new background */
 			m++;
@@ -6215,9 +6215,9 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 
 		ptrPrev[nrMem].size.w  	= sizeChartPtr;
 		ptrPrev[nrMem].size.h  	= sizeChartPtr;
-		ptrPrev[nrMem].pos.x   	= CONDITION(GRAPH_IsIndirect(nrMem), ptrPrev[nrMem].startXYchart.x, 0) + posXY[posChartPtr].x - corrPtrW/2;
-		ptrPrev[nrMem].pos.y   	= CONDITION(GRAPH_IsIndirect(nrMem), ptrPrev[nrMem].startXYchart.y, 0) + posXY[posChartPtr].y - corrPtrH/2;
-		ptrPrev[nrMem].chartBkW = LCD_X;  /* widthBk */
+		ptrPrev[nrMem].pos.x   	= CONDITION( 0 > posXY[posChartPtr].x-corrPtrW/2,  0,  posXY[posChartPtr].x-corrPtrW/2 );
+		ptrPrev[nrMem].pos.y   	= CONDITION( 0 > posXY[posChartPtr].y-corrPtrH/2,  0,  posXY[posChartPtr].y-corrPtrH/2 );
+		ptrPrev[nrMem].chartBkW = widthBk;
 		ptrPrev[nrMem].ptr 	 	= chartPtr;
 		ptrPrev[nrMem].ptrMem	= chartPtrMem[nrMem];
 		ptrPrev[nrMem].rctMem	= chartRctMem[nrMem];
@@ -6228,7 +6228,12 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 			__CopyRctBitmapToMem();
 		}
 
-		__CopyPtrBitmapToMem();					 /*LCD_Y*/
+		__CopyPtrBitmapToMem();
+		ptrPrev[nrMem].pos.x   	+= CONDITION(GRAPH_IsIndirect(nrMem), ptrPrev[nrMem].startXYchart.x, 0);
+		ptrPrev[nrMem].pos.y   	+= CONDITION(GRAPH_IsIndirect(nrMem), ptrPrev[nrMem].startXYchart.y, 0);
+		ptrPrev[nrMem].chartBkW  = LCD_X;
+		ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;
+		ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y + 0;
 		/* LCD_GradientCircleButton(0,widthBk,unUsed, ptrPrev.pos.x, ptrPrev.pos.y,  ptrPrev.size.w, ptrPrev.size.h,  SetBold2Color(colorTransPtr,1),chartPtr.fromColorPtr,chartPtr.toColorPtr,0,ReadOutColor); */
 	}
 }
@@ -6273,14 +6278,14 @@ void LCD_Chart_Indirect(int offsMem, int nrMem, u32 widthBk, u32 colorLineAA, u3
 		if(GRAPH_SetPointers(offsMem,nrMem)) return;
 	#endif
 	int x	 		= MASK(widthBk>>16,FFFF);
-	int y			= MASK(widthBk,	 FFFF);
+	int y			= MASK(widthBk,	 FFFF)-100;  //!!!!!!!!!!!!!!!yMax czy yMin !!!!!
 	int width  	= posXY_par[0].nmbrPoints;
 	int height 	= posXY_par[0].yMax - posXY_par[0].yMin;
-	int offsK	= width;
+	int offsK	= 0;//width;
 	ptrPrev[nrMem].startXYchart.x  = x;
 	ptrPrev[nrMem].startXYchart.y  = y;
-	ptrPrev[nrMem].yMinMaxchart[0] = 210-120;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	ptrPrev[nrMem].yMinMaxchart[1] = 210+80;
+	ptrPrev[nrMem].yMinMaxchart[0] = 250-100;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	ptrPrev[nrMem].yMinMaxchart[1] = 250+100;
 	if(bkRectColor) LCD_ShapeWindow(LCD_Rectangle, offsK, width,height, 0,0, width,height, bkRectColor,bkRectColor,bkRectColor);
 	GRAPH_Draw(offsK, offsMem,nrMem, width, colorLineAA, colorOut, colorIn, outRatioStart, inRatioStart, dispOption, color1, color2, offsK1, offsK2, bkGradType, gradColor1, gradColor2, gradStripY, amplTrans, offsTrans, corr45degAA, chartPtr);
 	_2LOOP_INIT(k=width,i,j,width,height)
@@ -6289,7 +6294,7 @@ void LCD_Chart_Indirect(int offsMem, int nrMem, u32 widthBk, u32 colorLineAA, u3
 		_1LOOP_END
 		k += width;
 	_1LOOP_END
-	LCD_Display(width/*offsK*/, x,y, width,height);
+	LCD_Display(/*width*/offsK, x,y, width,height);
 
 
 

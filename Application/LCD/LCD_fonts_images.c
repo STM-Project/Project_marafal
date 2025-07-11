@@ -301,7 +301,7 @@ static int MyRealizeSpaceCorrect(char *txt, int id)
 
 static int RealizeWidthConst(const char _char)
 {
-	if(((_char > 0x2F) && (_char < 0x3A)) || (_char == ':') || (_char == '-'))
+	if(((_char > 0x2F) && (_char < 0x3A)) || (_char == ':') || (_char == '-') || (_char == ','))
 		return 1;
 	else
 		return 0;
