@@ -120,9 +120,9 @@ static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .
 
 USER_GRAPH_PARAM USER_GRAPH_PARAM_Zero = {0};
 
-static u32 				  chartPtrMem[ MAX_CHARTS_SIMULTANEOUSLY ][ CHART_PTR_MEM_SIZE ],		chartPtrMem_temp[ CHART_PTR_MEM_SIZE ];			/* in future allocate as dynamic memory for fonts memory */
-static u32 				  chartRctMem[ MAX_CHARTS_SIMULTANEOUSLY ][ CHART_RCT_MEM_SIZE ],		chartRctMem_temp[ CHART_RCT_MEM_SIZE ];
-static CHART_PTR_PREV 		ptrPrev[ MAX_CHARTS_SIMULTANEOUSLY ]={0};
+SDRAM static u32 			chartPtrMem[ MAX_CHARTS_SIMULTANEOUSLY ][ CHART_PTR_MEM_SIZE ],	chartPtrMem_temp[ CHART_PTR_MEM_SIZE ];			/* in future allocate as dynamic memory as for fonts memory */
+SDRAM static u32 			chartRctMem[ MAX_CHARTS_SIMULTANEOUSLY ][ CHART_RCT_MEM_SIZE ],	chartRctMem_temp[ CHART_RCT_MEM_SIZE ];
+static CHART_PTR_PREV 	ptrPrev[ MAX_CHARTS_SIMULTANEOUSLY ]={0};
 
 
 #if defined(GRAPH_MEMORY_RAM)
@@ -3896,6 +3896,32 @@ void LCD_ErasePrevShape(int posX_prev,int posY_prev, int posX,int posY, int widt
 			LCD_DisplayBuff(posX_prev+offsX,posY_prev, diffX,height, pBuff);
 	}}
 }
+void LCD_CopyBuffers(u32 *pBuff1,u32 offs1,u16 widthBk1,u16 Xpos1,u16 Ypos1,	 u32 *pBuff2,u32 offs2,u16 widthBk2,u16 width2,u16 height2,u16 Xpos2,u16 Ypos2){		/* copy direction:  pBuff1 <= pBuff2 */
+	int k2=0, k1=0;
+	if(widthBk1 < width2) return;
+	if(widthBk2==width2 && Xpos2==0 && Ypos2==0){
+		if(widthBk1==width2 && Xpos1==0 && Ypos1==0){
+			_2LOOP(i,j,width2,height2)
+				pBuff1[offs1+k1++] = pBuff2[offs2+k2++];
+			_2LOOP_END
+		}
+		else{
+			_2LOOP(i,j,width2,height2)
+				pBuff1[offs1+widthBk1*(Ypos1+j)+Xpos1+i] = pBuff2[offs2+k2++];
+			_2LOOP_END
+	}}
+	else{
+		if(widthBk1==width2 && Xpos1==0 && Ypos1==0){
+			_2LOOP(i,j,width2,height2)
+				pBuff1[offs1+k1++] = pBuff2[offs2+widthBk2*(Ypos2+j)+Xpos2+i];
+			_2LOOP_END
+		}
+		else{
+			_2LOOP(i,j,width2,height2)
+				pBuff1[offs1+widthBk1*(Ypos1+j)+Xpos1+i] = pBuff2[offs2+widthBk2*(Ypos2+j)+Xpos2+i];
+			_2LOOP_END
+	}}
+}
 void LCD_Display(uint32_t posBuff, uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t height){
 	LCD_DisplayBuff(Xpos,Ypos,width,height,  pLcd+posBuff);
 }
@@ -5845,6 +5871,10 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
 }
 
 /* ---------------------------- GRAPH ------------------------- */
+int GRAPH_IsIndirect(int nrMem){		if(ptrPrev[nrMem].startXYchart.x != posXY[0].x	&&	 ptrPrev[nrMem].startXYchart.y != posXY[0].y	) return 1;
+												else																															  return 0;
+}
+
 int GRAPH_GetNmbrPoints(int offsMem, int nrMem)
 {
 	#if defined(GRAPH_MEMORY_SDRAM2)
@@ -5896,19 +5926,13 @@ void GRAPH_DrawPtr(int offsMem,int nrMem, u16 posPtr)  //NIECH ZWARACA int posCh
 		if(GRAPH_SetPointers(offsMem,nrMem)) return;
 	#endif
 	int posBuff = 0;
-	int ptrX,ptrY;
+	int ptrX,ptrY, offsX,offsY;
 	int ptrX_prev 		= ptrPrev[nrMem].pos.x;
 	int ptrY_prev 		= ptrPrev[nrMem].pos.y;
 	u16 corrPtrW 		= ptrPrev[nrMem].size.w+2;		/* '+2' because of bkSizeX for LCD_GradientCircleButton() */
 	u16 corrPtrH 		= ptrPrev[nrMem].size.h+2;
 	u32 colorTransPtr = GetTransitionColor( ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0.5);
 	int posChartPtr   = posPtr;
-
-
-	ptrPrev[nrMem].chartBkW = 800; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
 
 	void __PTR_CopyBitmapToMem_and_PrepareBk(void){
 		u32 temp;
@@ -5930,22 +5954,22 @@ void GRAPH_DrawPtr(int offsMem,int nrMem, u16 posPtr)  //NIECH ZWARACA int posCh
 			m++;
 		_2LOOP_END
 	}
-
 	void __CopyPtrBitmapToMemTemp(void){
-		_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH) //GOTOWA uniwersalna funkcja copy bitmap z bk jednego na drugi !!!!!!!!!!!!
+		_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH) //GOTOWA uniwersalna funkcja copy bitmap z bk jednego na drugi !!!!!!!!!!!!   jako np  LCD_CopyBuffers()
 			chartPtrMem_temp[m] = *(ptrPrev[nrMem].ptrMem + m);
 			m++;
 		_2LOOP_END
 		ptrPrev[nrMem].memInUse=0;
 	}
-	void __CopyRctBitmapToMemTemp(void){
+	void __CopyRctBitmapToMemTemp(void){		//jako np  LCD_CopyBuffers()
 		_2LOOP_INIT(int m=0, i,j, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h)
-			chartRctMem_temp[m] = *(ptrPrev[nrMem].rctMem + m);
+			chartRctMem_temp[m] = *(ptrPrev[nrMem].rctMem + m);			//WYeliminuj chartRctMem_temp daj bezposrednio prze ptr !!!!!!!!!!!!!!!!
 			m++;
 		_2LOOP_END
 		ptrPrev[nrMem].memInUse=0;
 	}
 
+	if(GRAPH_IsIndirect(nrMem)) ptrPrev[nrMem].chartBkW = LCD_X; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	if(ptrPrev[nrMem].memInUse){
 		__CopyPtrBitmapToMemTemp();
@@ -5962,20 +5986,14 @@ void GRAPH_DrawPtr(int offsMem,int nrMem, u16 posPtr)  //NIECH ZWARACA int posCh
 	if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}
 */
 
-	if(ptrPrev[nrMem].startXYchart.x != posXY[0].x	&&	 ptrPrev[nrMem].startXYchart.y != posXY[0].y	)
-	{
-		//we have '..._indirect'
 
-		SET_VAL( ptrPrev[nrMem].startXYchart.x + posXY[posChartPtr].x - corrPtrW/2, 	 ptrX, 	ptrPrev[nrMem].pos.x );
-		SET_VAL( ptrPrev[nrMem].startXYchart.y + posXY[posChartPtr].y - corrPtrH/2, 	 ptrY, 	ptrPrev[nrMem].pos.y );
-	}
-	else
-	{
-		SET_VAL( posXY[posChartPtr].x - corrPtrW/2, 		ptrX, 	ptrPrev[nrMem].pos.x );
-		SET_VAL( posXY[posChartPtr].y - corrPtrH/2, 		ptrY, 	ptrPrev[nrMem].pos.y );
-	}
+	if(GRAPH_IsIndirect(nrMem)){	offsX = ptrPrev[nrMem].startXYchart.x;
+											offsY = ptrPrev[nrMem].startXYchart.y;		}
+	else{	 	offsX = 0;
+			 	offsY = 0;	 }
 
-
+	SET_VAL( offsX + posXY[posChartPtr].x - corrPtrW/2, 		ptrX, 	ptrPrev[nrMem].pos.x );
+	SET_VAL( offsY + posXY[posChartPtr].y - corrPtrH/2, 		ptrY, 	ptrPrev[nrMem].pos.y );
 
 	LCD_ErasePrevShape(ptrX_prev,ptrY_prev, ptrX,ptrY, corrPtrW,corrPtrH, chartPtrMem_temp);
 
@@ -6172,17 +6190,17 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 			_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH)			//POZYCJE tu rct i ptr NIE MA SENSU USUN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				if(m>=CHART_PTR_MEM_SIZE)
 					break;
-				*(ptrPrev[nrMem].ptrMem + m) = pLcd[posBuff+widthBk*(j+ptrPrev[nrMem].pos.y)+(i+ptrPrev[nrMem].pos.x)];
+				*(ptrPrev[nrMem].ptrMem + m) = pLcd[posBuff+ptrPrev[nrMem].chartBkW*(j+ptrPrev[nrMem].pos.y)+(i+ptrPrev[nrMem].pos.x)];
 				m++;
 			_2LOOP_END
 			ptrPrev[nrMem].memInUse=1;
 		}
 
-		void __CopyRctBitmapToMem(void){
+		void __CopyRctBitmapToMem(void){   //daj jako nowa funkcje copyBuffers !!!!!
 			_2LOOP_INIT(int m=0, i,j, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h)
 				if(m>=CHART_RCT_MEM_SIZE)
 					break;
-				*(ptrPrev[nrMem].rctMem + m) = pLcd[posBuff+widthBk*(j+ptrPrev[nrMem].ptr.posRct.y)+(i+ptrPrev[nrMem].ptr.posRct.x)];
+				*(ptrPrev[nrMem].rctMem + m) = pLcd[posBuff+ptrPrev[nrMem].chartBkW*(j+ptrPrev[nrMem].ptr.posRct.y)+(i+ptrPrev[nrMem].ptr.posRct.x)];
 				m++;
 			_2LOOP_END
 			ptrPrev[nrMem].memInUse=1;
@@ -6197,19 +6215,9 @@ void GRAPH_Draw(int posBuff, int offsMem,int nrMem, u32 widthBk, u32 colorLineAA
 */
 		ptrPrev[nrMem].size.w  	= sizeChartPtr;
 		ptrPrev[nrMem].size.h  	= sizeChartPtr;
-
-		if(ptrPrev[nrMem].startXYchart.x != posXY[0].x	&&	 ptrPrev[nrMem].startXYchart.y != posXY[0].y	)  //we have '..._indirect'
-		{
-			ptrPrev[nrMem].pos.x   	= ptrPrev[nrMem].startXYchart.x-corrPtrW/2;
-			ptrPrev[nrMem].pos.y   	= ptrPrev[nrMem].startXYchart.y-corrPtrH/2;
-		}
-		else
-		{
-			ptrPrev[nrMem].pos.x   	= posXY[posChartPtr].x-corrPtrW/2;
-			ptrPrev[nrMem].pos.y   	= posXY[posChartPtr].y-corrPtrH/2;
-		}
-
-		ptrPrev[nrMem].chartBkW = widthBk;
+		ptrPrev[nrMem].pos.x   	= CONDITION(GRAPH_IsIndirect(nrMem), ptrPrev[nrMem].startXYchart.x, 0) + posXY[posChartPtr].x - corrPtrW/2;
+		ptrPrev[nrMem].pos.y   	= CONDITION(GRAPH_IsIndirect(nrMem), ptrPrev[nrMem].startXYchart.y, 0) + posXY[posChartPtr].y - corrPtrH/2;
+		ptrPrev[nrMem].chartBkW = LCD_X;  /* widthBk */
 		ptrPrev[nrMem].ptr 	 	= chartPtr;
 		ptrPrev[nrMem].ptrMem	= chartPtrMem[nrMem];
 		ptrPrev[nrMem].rctMem	= chartRctMem[nrMem];
@@ -6271,7 +6279,7 @@ void LCD_Chart_Indirect(int offsMem, int nrMem, u32 widthBk, u32 colorLineAA, u3
 	int offsK	= width;
 	ptrPrev[nrMem].startXYchart.x  = x;
 	ptrPrev[nrMem].startXYchart.y  = y;
-	ptrPrev[nrMem].yMinMaxchart[0] = 210-120;
+	ptrPrev[nrMem].yMinMaxchart[0] = 210-120;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	ptrPrev[nrMem].yMinMaxchart[1] = 210+80;
 	if(bkRectColor) LCD_ShapeWindow(LCD_Rectangle, offsK, width,height, 0,0, width,height, bkRectColor,bkRectColor,bkRectColor);
 	GRAPH_Draw(offsK, offsMem,nrMem, width, colorLineAA, colorOut, colorIn, outRatioStart, inRatioStart, dispOption, color1, color2, offsK1, offsK2, bkGradType, gradColor1, gradColor2, gradStripY, amplTrans, offsTrans, corr45degAA, chartPtr);
@@ -6282,6 +6290,17 @@ void LCD_Chart_Indirect(int offsMem, int nrMem, u32 widthBk, u32 colorLineAA, u3
 		k += width;
 	_1LOOP_END
 	LCD_Display(width/*offsK*/, x,y, width,height);
+
+
+
+
+
+	LCD_CopyBuffers(pLcd,0,LCD_X, x,y,	 pLcd,0,width,width,height,0,0);  //!!!!!!!!!!!!!! copying important for GRAPH_DrawPtr()
+
+
+
+
+
 }
 USER_GRAPH_PARAM LCDSHAPE_Chart(uint32_t posBuff, USER_GRAPH_PARAM param){
 	return LCD_Chart(posBuff, param.offsMem, param.nrMem, param.widthBk, param.lineColor, param.AAoutColor, param.AAinColor, param.bkRectColor, param.AAoutCoeff, param.AAinCoeff, param.dispOpt, param.colorLinePosXY, param.colorLinePosXYrep, param.KoffsPosXY, param.KoffsPosXYrep, param.grad.bkType, param.grad.fromColor, param.grad.toColor, param.grad.stripY, param.grad.amplTrans, param.grad.offsTrans, param.corr45degAA, param.ptr);
