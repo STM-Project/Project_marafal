@@ -2384,7 +2384,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 //	}
 
 
-
+//WYPROBUJ OPT FAST FONTY wyswieltanie ieCREATING!!!!
 
 #define MEM_1		NR_MEM(0,0)
 #define MEM_2		NR_MEM(1000000,1)
