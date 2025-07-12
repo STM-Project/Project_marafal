@@ -4127,7 +4127,7 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, u32 *buff, int displayOn, int fontID
 	StructTxtPxlLen structTemp={0,0,0};
 	int idVar = fontID>>16;						fontID = fontID & 0x0000FFFF;
 	u32 *outBuff = buff;		/* pLcd */
-	int data=0, posReadFileCFF=0, posTxtX=0, posTemp=0;
+	int data=0, posReadFileCFF=0, posTxtX=0, posTemp=0, isDsplRect=0;
 	u8 colorR=0, colorG=0, colorB=0;
 	u32 currColor=0, readBkColor=0, Y_bkColor;
 	u32 height=0, maxCharWidth=0, y=MASK(y_,FFFF);
@@ -4173,20 +4173,20 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, u32 *buff, int displayOn, int fontID
 			switch(LCD_GetStrVar_bkRoundRect(idVar)){
 			case BK_Rectangle:
 				if(displayOn)	LCD_RectangleBuff(outBuff,posBuff, lenTxtInPixel,height, 0,0, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
-				else				LCD_RectangleBuff(outBuff,posBuff, winW,         winH,   x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
+				else				LCD_RectangleBuff(outBuff,posBuff, winW,         winH,   x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);		isDsplRect=1;
 				break;
 			case BK_Round:
 				if(displayOn)	LCD_RoundRectangleBuff(outBuff,posBuff, lenTxtInPixel,height, 0,0, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
-				else				LCD_RoundRectangleBuff(outBuff,posBuff, winW,			winH,	  x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				else				LCD_RoundRectangleBuff(outBuff,posBuff, winW,			winH,	  x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));		isDsplRect=1;
 				break;
 			case BK_LittleRound:
 				if(displayOn)	LCD_LittleRoundRectangleBuff(outBuff,posBuff, lenTxtInPixel,height, 0,0, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
-				else				LCD_LittleRoundRectangleBuff(outBuff,posBuff, winW,			winH,	  x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				else				LCD_LittleRoundRectangleBuff(outBuff,posBuff, winW,			winH,	  x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));		isDsplRect=1;
 				break;
 			case BK_None: break;
 		}}
 		else{	if(displayOn)	LCD_RectangleBuff(outBuff,posBuff, lenTxtInPixel,height, 0,0, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
-				else				LCD_RectangleBuff(outBuff,posBuff, winW,			 winH,	x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
+				else				LCD_RectangleBuff(outBuff,posBuff, winW,			 winH,	x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);		isDsplRect=1;
 	}}
 
 	LOOP_INIT(h,0,lenTxt){		posReadFileCFF = Font[fontIndx].fontsTabPos[(int)pTxt[h]][0];		data=0;
@@ -4202,7 +4202,7 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, u32 *buff, int displayOn, int fontID
 				if(displayOn) posTemp = posBuff + 	 j*lenTxtInPixel + posTxtX + i;
 				else			  posTemp = posBuff + (y+j)*winW   +   x + posTxtX + i;
 
-				if(pTxt[h]==' '){		if(bkColor!=0) _SendToBuffOut(j,bkColor);	}
+				if(pTxt[h]==' '){	 if(bkColor!=0 && isDsplRect==0) _SendToBuffOut(j,bkColor);	}
 				else
 				{
 					if(data == 0)	data = _GetDataFromInput(pFileCFF,&posReadFileCFF,&type);

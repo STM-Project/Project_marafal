@@ -62,7 +62,7 @@ void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLO
 	LCDSHAPE_Rectangle_Indirect(par5); 	  _Str(590,250,"13");
 	LCDSHAPE_Rectangle_Indirect(par6);	  _Str(590,310,"14");
 */
-	LCD_RoundRectangleTransp	 (0, LCD_X,LCD_Y,   5,230, 120,60, WHITE, 					  DARKYELLOW, READ_BGCOLOR, 0.5);		/* version of background transparent */
+	LCD_RoundRectangleTransp	 (0, LCD_X,LCD_Y,   5,230, 120,60, WHITE, 					  DARKYELLOW, READ_BGCOLOR, 0.5);		/* version of background transparent (mixed with 2 colors) */
 	LCD_RoundFrameTransp			 (0, LCD_X,LCD_Y, 670,230, 120,60, WHITE, 					  unUsed, 	  READ_BGCOLOR, 0.5);
 	LCD_BoldRoundRectangleTransp(0, LCD_X,LCD_Y,   5,230, 120,60, SetBold2Color(WHITE,6), DARKYELLOW, READ_BGCOLOR, 0.5);
 	LCD_BoldRoundFrameTransp	 (0, LCD_X,LCD_Y, 670,230, 120,60, SetBold2Color(WHITE,6), unUsed, 	  READ_BGCOLOR, 0.5);

@@ -6292,8 +6292,8 @@ void LCD_Chart_Indirect(int offsMem, int nrMem, u32 widthBk, u32 colorLineAA, u3
 	int offsK	= 0;		/* must be multiple of '32' */
 	ptrPrev[nrMem].startXYchart.x  = x;
 	ptrPrev[nrMem].startXYchart.y  = y;
-	ptrPrev[nrMem].yMinMaxchart[0] = MASK(widthBk,	 FFFF)-yPosInGetSamples;
-	ptrPrev[nrMem].yMinMaxchart[1] = MASK(widthBk,	 FFFF)+yPosInGetSamples;
+	ptrPrev[nrMem].yMinMaxchart[0] = MASK(widthBk,FFFF)-yPosInGetSamples;
+	ptrPrev[nrMem].yMinMaxchart[1] = MASK(widthBk,FFFF)+yPosInGetSamples;
 	if(bkRectColor) LCD_ShapeWindow(LCD_Rectangle, offsK, width,height, 0,0, width,height, RED,bkRectColor,bkRectColor);
 	GRAPH_Draw(offsK, offsMem,nrMem, width, colorLineAA, colorOut, colorIn, outRatioStart, inRatioStart, dispOption, color1, color2, offsK1, offsK2, bkGradType, gradColor1, gradColor2, gradStripY, amplTrans, offsTrans, corr45degAA, chartPtr);
 	_2LOOP_INIT(k=width,i,j,width,height)

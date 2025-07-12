@@ -1971,7 +1971,7 @@ static StructTxtPxlLen ELEMENT_fontRGB(StructFieldPos *field, int xPos,int yPos,
 		v.FONT_ID_Descr, RGB2INT(51,90,245), v.FONT_BKCOLOR_Descr, 4|(xPos_under_right<<16), Under_right,	_TXT_B(60), fullHight, 0,250, NoConstWidth,\
 		LCD_STR_DESCR_PARAM_NUMBER(5) );
 
-	LCD_SetBkFontShape(v.FONT_VAR_FontColor,BK_Round);
+	LCD_SetBkFontShape(v.FONT_VAR_FontColor,BK_LittleRound);
 
 	fieldTouch 			= *field;
 	fieldTouch.width 	= fieldTouch.width/3;
@@ -2103,7 +2103,7 @@ static StructTxtPxlLen ELEMENT_fontType(StructFieldPos *field, int xPos,int yPos
 		v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4|(xPos<<16), Under_left,	SL(LANG_FontTypeUnder), fullHight, 0,250, NoConstWidth, \
 		LCD_STR_DESCR_PARAM_NUMBER(3) );
 
-	LCD_SetBkFontShape(v.FONT_VAR_FontType,BK_LittleRound);
+	LCD_SetBkFontShape(v.FONT_VAR_FontType,BK_Rectangle);
 
 #ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
 	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontType,  LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontType,0, field->len);
@@ -2131,7 +2131,7 @@ static StructTxtPxlLen ELEMENT_fontSize(StructFieldPos *field, int xPos,int yPos
 		v.FONT_ID_Descr, RGB2INT(186,130,50),v.FONT_BKCOLOR_Descr, interSp|(xPos<<16), Under_left,	SL(LANG_FontSizeUnder), fullHight, 0,250, NoConstWidth, \
 		LCD_STR_DESCR_PARAM_NUMBER(3) );
 
-	LCD_SetBkFontShape(v.FONT_VAR_FontSize,BK_LittleRound);
+	LCD_SetBkFontShape(v.FONT_VAR_FontSize,BK_Round);
 
 	fieldTouch 			= *field;
 	fieldTouch.width 	= fieldTouch.width/3;
@@ -2171,7 +2171,7 @@ static StructTxtPxlLen ELEMENT_fontStyle(StructFieldPos *field, int xPos,int yPo
 	field->width = field_copy.width;
 	field->height = field_copy.height;
 
-	LCD_SetBkFontShape(v.FONT_VAR_FontStyle,BK_LittleRound);
+	LCD_SetBkFontShape(v.FONT_VAR_FontStyle,BK_None);
 
 #ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
 	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontStyle, LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontStyle,0, field->len);
