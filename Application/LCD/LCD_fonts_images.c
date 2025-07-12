@@ -1150,7 +1150,7 @@ static int SearchCurrentFont_TablePos_forCreatingFileCFF(char *pbmp, int fontInd
 	Font[fontIndex].heightFile  = height;
 	Font[fontIndex].bytesPerPxl = bit_pixel;
 
-/*		FONTS_InfoFileBMP(pbmp, width, height, fontID, bit_pixel); 	*/
+/*	FONTS_InfoFileBMP(pbmp, width, height, fontID, bit_pixel); */
 	return FONTS_CreateFileCFFfromBMP(pbmp, pChar, width, height, fontID, bit_pixel, newFileNameToCreate);
 }
 
@@ -2537,16 +2537,16 @@ int LCD_GetSizeOfFontFileCFF(int fontSize, int fontStyle, FONTS_TYPES fontColorT
 }
 
 int LCD_LoadFont_WhiteBlack(int fontSize, int fontStyle, uint32_t fontID){
-	return LCD_LoadFontFromFileCFF(fontSize, fontStyle, White_Black, /*fontID_17+*/fontID);
-	//return LCD_LoadFont(fontSize,fontStyle,WHITE,BLACK,fontID);
+	return LCD_LoadFontFromFileCFF(fontSize, fontStyle, White_Black,fontID);
+/* return LCD_LoadFont(fontSize,fontStyle,WHITE,BLACK,fontID); */
 }
 int LCD_LoadFont_DarkgrayGreen(int fontSize, int fontStyle, uint32_t fontID){
-	return LCD_LoadFontFromFileCFF(fontSize, fontStyle, Gray_Green, /*fontID_17+*/fontID);
-	//return LCD_LoadFont(fontSize,fontStyle,DARKGRAY,MYGREEN,fontID);
+	return LCD_LoadFontFromFileCFF(fontSize, fontStyle, Gray_Green,fontID);
+/* return LCD_LoadFont(fontSize,fontStyle,DARKGRAY,MYGREEN,fontID); */
 }
 int LCD_LoadFont_DarkgrayWhite(int fontSize, int fontStyle, uint32_t fontID){
-	return LCD_LoadFontFromFileCFF(fontSize, fontStyle, RGB_White, /*fontID_17+*/fontID);
-	//return LCD_LoadFont(fontSize,fontStyle,DARKGRAY,WHITE,fontID);
+	return LCD_LoadFontFromFileCFF(fontSize, fontStyle, RGB_White,fontID);
+/* return LCD_LoadFont(fontSize,fontStyle,DARKGRAY,WHITE,fontID); */
 }
 int LCD_LoadFont_ChangeColor(int fontSize, int fontStyle, uint32_t fontID){
 	return LCD_LoadFont_DarkgrayGreen(fontSize,fontStyle,fontID);
@@ -4173,20 +4173,24 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, u32 *buff, int displayOn, int fontID
 			switch(LCD_GetStrVar_bkRoundRect(idVar)){
 			case BK_Rectangle:
 				if(displayOn)	LCD_RectangleBuff(outBuff,posBuff, lenTxtInPixel,height, 0,0, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
-				else				LCD_RectangleBuff(outBuff,posBuff, winW,         winH,   x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);		isDsplRect=1;
+				else				LCD_RectangleBuff(outBuff,posBuff, winW,         winH,   x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
+				isDsplRect=1;
 				break;
 			case BK_Round:
 				if(displayOn)	LCD_RoundRectangleBuff(outBuff,posBuff, lenTxtInPixel,height, 0,0, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
-				else				LCD_RoundRectangleBuff(outBuff,posBuff, winW,			winH,	  x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));		isDsplRect=1;
+				else				LCD_RoundRectangleBuff(outBuff,posBuff, winW,			winH,	  x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				isDsplRect=1;
 				break;
 			case BK_LittleRound:
 				if(displayOn)	LCD_LittleRoundRectangleBuff(outBuff,posBuff, lenTxtInPixel,height, 0,0, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
-				else				LCD_LittleRoundRectangleBuff(outBuff,posBuff, winW,			winH,	  x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));		isDsplRect=1;
+				else				LCD_LittleRoundRectangleBuff(outBuff,posBuff, winW,			winH,	  x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,LCD_GetStrVar_bkScreenColor(idVar));
+				isDsplRect=1;
 				break;
 			case BK_None: break;
 		}}
 		else{	if(displayOn)	LCD_RectangleBuff(outBuff,posBuff, lenTxtInPixel,height, 0,0, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
-				else				LCD_RectangleBuff(outBuff,posBuff, winW,			 winH,	x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);		isDsplRect=1;
+				else				LCD_RectangleBuff(outBuff,posBuff, winW,			 winH,	x,y, lenTxtInPixel, y+height>winH?winH-y:height, bkColor,bkColor,bkColor);
+				isDsplRect=1;
 	}}
 
 	LOOP_INIT(h,0,lenTxt){		posReadFileCFF = Font[fontIndx].fontsTabPos[(int)pTxt[h]][0];		data=0;

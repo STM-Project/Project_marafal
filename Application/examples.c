@@ -273,3 +273,40 @@ void LCDEXAMPLE_Graph(u32 COLOR_BkScreen)
 
 }
 
+void LCDEXAMPLE_CreateLoadDisplayFonts(u32 COLOR_BkScreen)
+{
+	/* 1. Creating all fonts from file.bmp to compressed file.ccf */
+	LCD_CreateFileCFFfromAllFilesBMP();
+	LCD_CkeckAllFontFilesCFF();
+	LCD_DeleteAllFontAndImages();
+
+	/* 2. Creating selected fonts from file.bmp to compressed file.ccf */
+	LCD_DeleteAllFontAndImages();
+	if( LCD_CreateFileCFFfromBMP(FONT_72, Comic_Saens_MS, RGB_RGB) < 0)
+		_NOP;
+	LCD_DeleteAllFontAndImages();
+	if( LCD_CreateFileCFFfromBMP(FONT_72_bold, Comic_Saens_MS, RGB_RGB) < 0)
+		_NOP;
+	LCD_DeleteAllFontAndImages();
+	if( LCD_CreateFileCFFfromBMP(FONT_72_italics, Comic_Saens_MS, RGB_RGB) < 0)
+		_NOP;
+	LCD_DeleteAllFontAndImages();
+
+	/* 3. Loading selected fonts from compressed file.ccf to SDRAM */
+	if( LCD_LoadFontFromFileCFF(FONT_72, Comic_Saens_MS, RGB_RGB, fontID_1) < 0)
+		_NOP;
+	if( LCD_LoadFontFromFileCFF(FONT_72_bold, Comic_Saens_MS, RGB_RGB, fontID_2) < 0)
+		_NOP;
+	if( LCD_LoadFontFromFileCFF(FONT_72_italics, Comic_Saens_MS, RGB_RGB, fontID_3) < 0)
+		_NOP;
+
+	/* 4. Displaying fonts from SDRAM before loading from compressed file.ccf */
+	extern uint32_t pLcd[];
+	LCD_DisplayTxt(0,pLcd,0,fontID_1, "+23.09 -76.9", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,0, 	COLOR_BkScreen,YELLOW, 0,NoConstWidth,fullHight,0);
+	LCD_DisplayTxt(0,pLcd,0,fontID_2, "+23.09 -76.9", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,150, COLOR_BkScreen,YELLOW, 0,NoConstWidth,fullHight,0);
+	LCD_DisplayTxt(0,pLcd,0,fontID_3, "+23.09 -76.9", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,300, COLOR_BkScreen,YELLOW, 0,ConstWidth,  fullHight,0);
+
+	LCD_Show();
+	while(1);
+}
+

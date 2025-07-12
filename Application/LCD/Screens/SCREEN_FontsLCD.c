@@ -2317,121 +2317,10 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 		LCD_TOUCH_DeleteAllSetTouch();
 		FONTS_LCD_ResetParam();
 
-
-//Test umiescic w example.c !!!!!!!!!!!!!!!!!!!!!!!!
-  //----------- TEST -----------------------------------------
-
-//zrob mahanie portami z maksymalna szybkoscia
-
-//		if(onlyOne==0){
-//			onlyOne = 1;
-//
-//		/*	LCD_CreateFileCFFfromAllFilesBMP(); */
-//		/*	LCD_CkeckAllFontFilesCFF(); 			*/
-//
-//
-////			StartMeasureTime_us();  // z optyamlizacja fast i normalnie
-////
-//			if( LCD_CreateFileCFFfromBMP(FONT_18_bold, Arial, RGB_RGB) < 0)
-//				_NOP;
-//
-//			SCREEN_ResetAllParameters();
-//			LCD_TOUCH_DeleteAllSetTouch();
-//			FONTS_LCD_ResetParam();
-//
-//			if( LCD_CreateFileCFFfromBMP(FONT_20_bold, Arial, RGB_RGB) < 0)
-//				_NOP;
-//
-//			SCREEN_ResetAllParameters();
-//			LCD_TOUCH_DeleteAllSetTouch();
-//			FONTS_LCD_ResetParam();
-//
-//			if( LCD_CreateFileCFFfromBMP(FONT_22_bold, Arial, RGB_RGB) < 0)
-//				_NOP;
-//
-//
-//			SCREEN_ResetAllParameters();
-//			LCD_TOUCH_DeleteAllSetTouch();
-//			FONTS_LCD_ResetParam();
-////
-////			StopMeasureTime_us("Time CreateFileCFFfromBMP():");
-//
-//
-//
-//
-//
-//			LCD_Clear(v.COLOR_BkScreen);
-//
-//			SCREEN_ResetAllParameters();
-//			LCD_TOUCH_DeleteAllSetTouch();
-//			FONTS_LCD_ResetParam();
-//
-//
-//			if( LCD_LoadFontFromFileCFF(FONT_24, Times_New_Roman, RGB_RGB, fontID_1) < 0)
-//				_NOP;
-//
-//			if( LCD_LoadFontFromFileCFF(FONT_20, Arial, RGB_White, fontID_2) < 0)
-//				_NOP;
-//
-//			if( LCD_LoadFontFromFileCFF(FONT_26_bold, Arial, White_Black, fontID_3) < 0)
-//				_NOP;
-//
-//
-//
-//
-//			LCD_DisplayTxt(0,0,fontID_1, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,210, 0x606060,YELLOW, 0,0, 0,0);
-//
-//			LCD_DisplayTxt(0,0,fontID_1, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,240, 0xFF222222,MYGREEN, 0,0, 0,-10);
-//
-//
-//
-//			LCD_DisplayTxt(0,0,fontID_2, "+123956 Rafa"ł" Markielowski", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,280, RED,BLUE, 0,0, 0,0);;
-//
-//			LCD_DisplayTxt(0,0,fontID_2, "+123956 Rafa"ł" Markielowski", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,320, 0xFF00FF40,WHITE, 0,0, 0, -20);  //sac ze jezeli orignal np DARKGRAY, WHITE to nic nie zmieniaj !!!
-//
-//
-//
-//			LCD_DisplayTxt(0,0,fontID_3, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,360, RED,BLUE, 0,0, 0,0);
-//
-//			LCD_DisplayTxt(0,0,fontID_3, "Hello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,400, RED,BLACK, 0,0, 0, 1);
-//
-//
-//			LCD_Show(); while(1);
-//
-//
-//
-//
-//			SCREEN_ResetAllParameters();
-//			LCD_TOUCH_DeleteAllSetTouch();
-//			FONTS_LCD_ResetParam();
-
-//		}
-
-
-
-// -----------End Test ---------------------------------------
-
-
-
 		DbgVar(v.DEBUG_ON,100, "%s" Cya_"\r\nStart: %s\r\n"_X, CONDITION(USE_DBG_CLR,Clr_,""), GET_CODE_FUNCTION);
 
 		LoadFonts(FONT_ID_Title, FONT_ID_Press);
 		LCD_LoadFontVar();
-
-
-
-
-
-//		StructTxtPxlLen sssss = LCD_DisplayTxt(0,0,fontID_1, "51523051116044yjH::e?l:lo W??or.,ld!", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,10, 0xFF606060,YELLOW, 0,ConstWidth, fullHight,0);
-//		LCD_DisplayTxt(0,0,fontID_2, "5523056044yjH::e?l:lo W??or.,ld! 02345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,60, 0xFF606060,YELLOW, 0,ConstWidth, fullHight,0);
-//		LCD_DisplayTxt(0,0,fontID_9, "22 23156144yjHello World! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,120, 0xFF606060,YELLOW, 0,ConstWidth, fullHight,0);
-//		LCD_DisplayTxt(0,0,fontID_14, "33 23156144yjHello Wo.rl,d! 12345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,200, 0xFF606060,YELLOW, 0,ConstWidth, fullHight,0);
-//		LCD_DisplayTxt(0,0,fontID_16, "5123116044yjH::e?l:lo W??or.,ld! 02345 Rafa"ł""Ł" "ó""Ó"G", 0,0, LCD_GetXSize(),LCD_GetYSize(), 5,300, 0xFF606060,YELLOW, 0,ConstWidth, fullHight,0);
-//
-//		LCD_Show(); while(1);
-
-
-
 
 		LCDTOUCH_Set(LCD_X-FV(SetVal,0,LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,SL(LANG_MainFrameType),0,NoConstWidth)+5), \
 						 LCD_Y-FV(SetVal,1,LCD_GetFontHeight(v.FONT_ID_Descr)+5), \
@@ -2501,7 +2390,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 #define MEM_2		NR_MEM(1000000,1)
 #define MEM_3_IND		NR_MEM(2000000,2)
 
-
+//ZROBIC OPT Fast !!!!!!!!!!
 //-----CHART  common --------
 	GRAPH_GetSamples(NR_MEM(0,0), 		XYPOS_YMIN_YMAX( 50,250, -100,100), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
 	GRAPH_GetSamples(NR_MEM(1000000,1), XYPOS_YMIN_YMAX(300,250, -80,80), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
