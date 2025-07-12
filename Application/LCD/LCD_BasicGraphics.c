@@ -5938,7 +5938,7 @@ void GRAPH_DrawPtr(int offsMem,int nrMem, u16 posPtr)  //NIECH ZWARACA int posCh
 		u32 temp;
 		_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH)
 			if(m>=CHART_PTR_MEM_SIZE) return;
-			temp 				  				= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(ptrPrev[nrMem].pos.y+ CONDITION((GRAPH_IsIndirect(nrMem)),0,0) +j)+(ptrPrev[nrMem].pos.x+i)];
+			temp 				  				= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(ptrPrev[nrMem].pos.y+j)+(ptrPrev[nrMem].pos.x+i)];
 			*(ptrPrev[nrMem].ptrMem+m) = temp;		/* write background to memory */
 			pLcd[posBuff+m]  				= temp;  	/* prepare new background */
 			m++;
@@ -6061,7 +6061,7 @@ void GRAPH_DrawPtr(int offsMem,int nrMem, u16 posPtr)  //NIECH ZWARACA int posCh
 
 
 
-		char *pTxt = StrAll(3,Int2Str(ptrX,None,3,Sign_none),",",Int2Str(ptrY,None,3,Sign_none));
+		char *pTxt = StrAll(3,Int2Str(ptrX+corrPtrW/2,None,3,Sign_none),",",Int2Str(ptrY+corrPtrH/2,None,3,Sign_none));
 		LCD_TxtInFrame_minimize(rectW,rectH, ptrPrev[nrMem].ptr.fontID, -2,0, pTxt, ptrPrev[nrMem].ptr.hideShowRct);
 
 
@@ -6284,35 +6284,26 @@ void LCD_Chart_Indirect(int offsMem, int nrMem, u32 widthBk, u32 colorLineAA, u3
 	#if defined(GRAPH_MEMORY_SDRAM2)
 		if(GRAPH_SetPointers(offsMem,nrMem)) return;
 	#endif
+	int yPosInGetSamples = ptrPrev[nrMem].startXYchart.y;
 	int x	 		= MASK(widthBk>>16,FFFF);
-	int y			= MASK(widthBk,	 FFFF)-100;  //!!!!!!!!!!!!!!!yMax czy yMin !!!!!
+	int y			= MASK(widthBk,	 FFFF)-yPosInGetSamples;
 	int width  	= posXY_par[0].nmbrPoints;
-	int height 	= 1+posXY_par[0].yMax - posXY_par[0].yMin;
-	int offsK	= 0;//width;
+	int height 	= 1+2*yPosInGetSamples;
+	int offsK	= 0;		/* must be multiple of '32' */
 	ptrPrev[nrMem].startXYchart.x  = x;
 	ptrPrev[nrMem].startXYchart.y  = y;
-	ptrPrev[nrMem].yMinMaxchart[0] = 250-100;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	ptrPrev[nrMem].yMinMaxchart[1] = 250+100;
-	if(bkRectColor) LCD_ShapeWindow(LCD_Rectangle, offsK, width,height, 0,0, width,height, bkRectColor,bkRectColor,bkRectColor);
+	ptrPrev[nrMem].yMinMaxchart[0] = MASK(widthBk,	 FFFF)-yPosInGetSamples;
+	ptrPrev[nrMem].yMinMaxchart[1] = MASK(widthBk,	 FFFF)+yPosInGetSamples;
+	if(bkRectColor) LCD_ShapeWindow(LCD_Rectangle, offsK, width,height, 0,0, width,height, RED,bkRectColor,bkRectColor);
 	GRAPH_Draw(offsK, offsMem,nrMem, width, colorLineAA, colorOut, colorIn, outRatioStart, inRatioStart, dispOption, color1, color2, offsK1, offsK2, bkGradType, gradColor1, gradColor2, gradStripY, amplTrans, offsTrans, corr45degAA, chartPtr);
 	_2LOOP_INIT(k=width,i,j,width,height)
-			if(i==0) 		pLcd[k+i]=bkRectColor;
-			if(i==width-1) pLcd[k+i]=bkRectColor;
+			if(i==0) 		pLcd[offsK+k+i]=bkRectColor;
+			if(i==width-1) pLcd[offsK+k+i]=bkRectColor;
 		_1LOOP_END
 		k += width;
 	_1LOOP_END
-	LCD_Display(/*width*/offsK, x,y, width,height);
-
-
-
-
-
-	LCD_CopyBuffers(pLcd,0,LCD_X, x,y,	 pLcd,0,width,width,height,0,0);  //!!!!!!!!!!!!!! copying important for GRAPH_DrawPtr()
-
-
-
-
-
+	LCD_Display(offsK, x,y, width,height);
+	LCD_CopyBuffers(pLcd,0,LCD_X,x,y, pLcd,offsK,width,width,height,0,0);  /* copying buffers is very important only for GRAPH_DrawPtr() */
 }
 USER_GRAPH_PARAM LCDSHAPE_Chart(uint32_t posBuff, USER_GRAPH_PARAM param){
 	return LCD_Chart(posBuff, param.offsMem, param.nrMem, param.widthBk, param.lineColor, param.AAoutColor, param.AAinColor, param.bkRectColor, param.AAoutCoeff, param.AAinCoeff, param.dispOpt, param.colorLinePosXY, param.colorLinePosXYrep, param.KoffsPosXY, param.KoffsPosXYrep, param.grad.bkType, param.grad.fromColor, param.grad.toColor, param.grad.stripY, param.grad.amplTrans, param.grad.offsTrans, param.corr45degAA, param.ptr);

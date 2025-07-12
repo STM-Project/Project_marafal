@@ -1971,7 +1971,7 @@ static StructTxtPxlLen ELEMENT_fontRGB(StructFieldPos *field, int xPos,int yPos,
 		v.FONT_ID_Descr, RGB2INT(51,90,245), v.FONT_BKCOLOR_Descr, 4|(xPos_under_right<<16), Under_right,	_TXT_B(60), fullHight, 0,250, NoConstWidth,\
 		LCD_STR_DESCR_PARAM_NUMBER(5) );
 
-	LCD_SetBkFontShape(v.FONT_VAR_FontColor,BK_LittleRound);
+	LCD_SetBkFontShape(v.FONT_VAR_FontColor,BK_Round);
 
 	fieldTouch 			= *field;
 	fieldTouch.width 	= fieldTouch.width/3;
@@ -2504,7 +2504,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 //-----CHART  common --------
 	GRAPH_GetSamples(NR_MEM(0,0), 		XYPOS_YMIN_YMAX( 50,250, -100,100), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
-	GRAPH_GetSamples(NR_MEM(1000000,1), XYPOS_YMIN_YMAX(300,250, -100,100), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
+	GRAPH_GetSamples(NR_MEM(1000000,1), XYPOS_YMIN_YMAX(300,250, -80,80), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
 	GRAPH_GetSamples(MEM_3_IND, 			XYPOS_YMIN_YMAX(  0,100, -100,100),  POINTS_STEP_XYSCALE(240,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
 
 	USER_GRAPH_PARAM par1, par2, par3;					 							/* LINE_AACOLOR(WHITE,0,0) */
