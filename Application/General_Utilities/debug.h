@@ -11,14 +11,14 @@
 #include "stm32f7xx_hal.h"
 #include "common.h"
 
-#define _DBG_PARAM_NOWRAP(dbgStr,ptrData,typeData,dataAct,step,minMax,descr,func)	else if(DEBUG_RcvStr(dbgStr)){ DEBUG_TestFunction(ptrData,typeData,dataAct,step,NULL,minMax,descr,func); }
-#define _DBG_PARAM_WRAP(dbgStr,ptrData,typeData,dataAct,step,min,max,descr,func)		else if(DEBUG_RcvStr(dbgStr)){ DEBUG_TestFunction(ptrData,typeData,dataAct,step,min,max,descr,func); }
+#define _DBG_PARAM_NOWRAP(dbgStr,ptrData,typeData,dataAct,step,minMax,descr,func)	else if(DEBUG_RcvStr(dbgStr)){ DEBUG_TestFunction(ptrData,typeData,dataAct,step,NULL,minMax,descr,func,NULL); }
+#define _DBG_PARAM_WRAP(dbgStr,ptrData,typeData,dataAct,step,min,max,descr,func)		else if(DEBUG_RcvStr(dbgStr)){ DEBUG_TestFunction(ptrData,typeData,dataAct,step,min,max,descr,func,NULL); }
 
-#define _DBG2_PARAM_NOWRAP(dbgStr,dbgStr2,ptrData,typeData,dataAct,step,step2,minMax,descr,func)	else if(DEBUG_RcvStr(dbgStr)){ DEBUG_TestFunction(ptrData,typeData,dataAct,step,NULL,minMax,descr,func); }\
-																																	else if(DEBUG_RcvStr(dbgStr2)){ DEBUG_TestFunction(ptrData,typeData,dataAct,step2,NULL,minMax,descr,func); }
+#define _DBG2_PARAM_NOWRAP(dbgStr,dbgStr2,ptrData,typeData,dataAct,step,step2,minMax,descr,func,func2)	else if(DEBUG_RcvStr(dbgStr)){ DEBUG_TestFunction(ptrData,typeData,dataAct,step,NULL,minMax,descr,func,func2); }\
+																																			else if(DEBUG_RcvStr(dbgStr2)){ DEBUG_TestFunction(ptrData,typeData,dataAct,step2,NULL,minMax,descr,func,func2); }
 
-#define _DBG3_PARAM_NOWRAP(dbgStrIncr,dbgStrIncr2,dbgStrDecr,dbgStrDecr2,ptrData,typeData,step,step2,max,min,descr,func)  _DBG2_PARAM_NOWRAP(dbgStrIncr,dbgStrIncr2,ptrData,typeData,_Incr,step,step2,max,descr,func)\
-																												   										 	  _DBG2_PARAM_NOWRAP(dbgStrDecr,dbgStrDecr2,ptrData,typeData,_Decr,step,step2,min,descr,func)
+#define _DBG3_PARAM_NOWRAP(dbgStrIncr,dbgStrIncr2,dbgStrDecr,dbgStrDecr2,ptrData,typeData,step,step2,max,min,descr,func,func2)  _DBG2_PARAM_NOWRAP(dbgStrIncr,dbgStrIncr2,ptrData,typeData,_Incr,step,step2,max,descr,func,func2)\
+																												   										 	  	  	  _DBG2_PARAM_NOWRAP(dbgStrDecr,dbgStrDecr2,ptrData,typeData,_Decr,step,step2,min,descr,func,func2)
 
 typedef enum{
 	font,
@@ -70,7 +70,7 @@ void DbgVar2(int on, unsigned int buffLen, const char *fmt, ...);
 void DEBUG_RxFullBuffService(void);
 int DEBUG_RcvStr(char *txt);
 
-void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, void *step, void *min, void *max, char *descr, VOID_FUNCTION_TEST xfunc);
+void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, void *step, void *min, void *max, char *descr, VOID_FUNCTION_TEST xfunc, VOID_FUNCTION_TEST xfunc2);
 
 
 #endif /* GENERAL_UTILITIES_DEBUG_H_ */

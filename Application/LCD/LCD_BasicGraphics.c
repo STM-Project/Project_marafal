@@ -6085,15 +6085,20 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 	return posChartPtr;
 
 
-//	LOOP_FOR(i,3)
-//	{
-//		if(IS_RANGE(x, ptrPrev[nrMem].startXYchart.x, ptrPrev[nrMem].startXYchart.x)+ptrPrev[nrMem].sizeX)
-//		{
-//			chartPtrPos[0]=GRAPH_DrawPtr(0,0,chartPtrPos[0]+=1);
-//		}
-//	}
 
 
+
+}
+
+int GRAPH_ptrTouchService(u16 touchPosX, u16 touchPosY, int nmbrOfCharts, int *ptrPos){
+	LOOP_FOR(i,nmbrOfCharts){
+		if( IS_RANGE(touchPosX, ptrPrev[i].startXYchart.x,  ptrPrev[i].startXYchart.x+ptrPrev[i].sizeX ) &&
+			 IS_RANGE(touchPosY, ptrPrev[i].yMinMaxchart[0], ptrPrev[i].yMinMaxchart[1]					  ) )
+		{
+			ptrPos[i]=GRAPH_DrawPtr(i, touchPosX-ptrPrev[i].startXYchart.x);
+			return 1;
+	}}
+	return 0;
 }
 
 					 /* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */

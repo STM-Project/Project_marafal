@@ -401,6 +401,9 @@ typedef enum{
 	Touch_SpacesInfoTest,
 	Touch_MainFramesType,
 	Touch_SetTxt,
+	Touch_Chart_1,
+	Touch_Chart_2,
+	Touch_Chart_3,
 	Move_1,
 	Move_2,
 	Move_3,
@@ -1448,6 +1451,18 @@ void FUNC_FontLenOffs(int k){ switch(k){
 		break;
 }}
 
+
+
+
+
+static USER_GRAPH_PARAM testGraph = {.par.scaleX=1.5, .par.scaleY=46.0, .funcType=Func_sin, .grad.bkType=Grad_Ystrip, .corr45degAA=1};
+
+static int chartPtrPos[3] = {70,70,70};
+
+
+
+
+
 void FILE_NAME(setTouch)(void)
 {/*
 	#define DESELECT_CURRENT_FONT(src,txt) \
@@ -1695,6 +1710,12 @@ void FILE_NAME(setTouch)(void)
 			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
 			break;
 
+		case Touch_Chart_1:
+		case Touch_Chart_2:
+		case Touch_Chart_3:
+			GRAPH_ptrTouchService(pos.x,pos.y,3,chartPtrPos);
+			break;
+
 		default:
 			if(IS_RANGE(state,Touch_Q,Touch_enter)){
 				if(Touch_exit==state){
@@ -1764,19 +1785,23 @@ void FILE_NAME(setTouch)(void)
 	}
 
 	FILE_NAME(timer)();
-
 /*	LCDTOUCH_testFunc(); */
+
 }
 
 static void* MainFuncRefresh(void *p1,void *p2){
 	FILE_NAME(main)(LoadUserScreen,(char**)ppMain);
 	return NULL;
 }
-
-static USER_GRAPH_PARAM testGraph = {.par.scaleX=1.5, .par.scaleY=46.0, .funcType=Func_sin, .grad.bkType=Grad_Ystrip, .corr45degAA=1};
-
-static int chartPtrPos[3] = {70,70,70};
-
+static void* AAAAAA(void *p1,void *p2){
+	LCD_TOUCH_DeleteSelectTouch(Touch_Chart_1);
+	LCD_TOUCH_DeleteSelectTouch(Touch_Chart_2);
+	LCD_TOUCH_DeleteSelectTouch(Touch_Chart_3);
+	LCDTOUCH_Set( 50,250-100, 200,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_1, pressRelease);
+	LCDTOUCH_Set(300,250- 80, 200,160, ID_TOUCH_GET_ANY_POINT, Touch_Chart_2, pressRelease);
+	LCDTOUCH_Set(550,250-100, 240,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_3, pressRelease);
+	return NULL;
+}
 
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
@@ -1797,8 +1822,8 @@ void FILE_NAME(debugRcvStr)(void)
 
 
 	/* ----- Debug Test GRAPH ----- */
-	_DBG3_PARAM_NOWRAP("a","A","z","Z",&testGraph.par.scaleX,_float,_Float(0.1),_Float( 1.5),_Float( 20.0),_Float(1.0),"Test Graph scaleX: ",MainFuncRefresh)
-	_DBG3_PARAM_NOWRAP("s","S","x","X",&testGraph.par.scaleY,_float,_Float(1.0),_Float(10.0),_Float(100.0),_Float(1.0),"Test Graph scaleY: ",MainFuncRefresh)
+	_DBG3_PARAM_NOWRAP("a","A","z","Z",&testGraph.par.scaleX,_float,_Float(0.1),_Float( 1.5),_Float( 20.0),_Float(1.0),"Test Graph scaleX: ",MainFuncRefresh,AAAAAA)
+	_DBG3_PARAM_NOWRAP("s","S","x","X",&testGraph.par.scaleY,_float,_Float(1.0),_Float(10.0),_Float(100.0),_Float(1.0),"Test Graph scaleY: ",MainFuncRefresh,AAAAAA)
 
 	_DBG_PARAM_NOWRAP("d",&testGraph.funcType,_uint8,_Incr,_Uint8(1),_Uint8(Func_lines6),"Test Graph funcType: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("c",&testGraph.funcType,_uint8,_Decr,_Uint8(1),_Uint8(Func_sin),	 "Test Graph funcType: ",MainFuncRefresh)
@@ -1858,22 +1883,7 @@ void FILE_NAME(debugRcvStr)(void)
 		Dbg(1,"test");
 		FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
 	}
-//	else if(DEBUG_RcvStr("j"))
-//	{
-//
-//		if		 (testGraph.grad.bkType == 0){	chartPtrPos[0]+=1;	GRAPH_DrawPtr(0,chartPtrPos[0]);		   if(chartPtrPos[0]>60000) chartPtrPos[0]=0;	}
-//		else if(testGraph.grad.bkType == 1){	chartPtrPos[1]+=1;	GRAPH_DrawPtr(1,chartPtrPos[1]);			if(chartPtrPos[1]>60000) chartPtrPos[1]=0;	}
-//		else if(testGraph.grad.bkType == 2){	chartPtrPos[2]+=1;	GRAPH_DrawPtr(2,chartPtrPos[2]);			if(chartPtrPos[2]>60000) chartPtrPos[2]=0;	}
-//
-//	}
-//	else if(DEBUG_RcvStr("u"))
-//	{
-//
-//		if		 (testGraph.grad.bkType == 0){	chartPtrPos[0]-=1;	if(chartPtrPos[0]<0) chartPtrPos[0]=0;  GRAPH_DrawPtr(0,chartPtrPos[0]);				}
-//		else if(testGraph.grad.bkType == 1){	chartPtrPos[1]-=1;	if(chartPtrPos[1]<0) chartPtrPos[1]=0;  GRAPH_DrawPtr(1,chartPtrPos[1]);				}
-//		else if(testGraph.grad.bkType == 2){	chartPtrPos[2]-=1;	if(chartPtrPos[2]<0) chartPtrPos[2]=0;  GRAPH_DrawPtr(2,chartPtrPos[2]);				}
-//
-//	}
+
 	else if(DEBUG_RcvStr("j")) chartPtrPos[0]=GRAPH_DrawPtr(0,chartPtrPos[0]+=1);
 	else if(DEBUG_RcvStr("u")) chartPtrPos[0]=GRAPH_DrawPtr(0,chartPtrPos[0]-=1);
 	else if(DEBUG_RcvStr("k")) chartPtrPos[1]=GRAPH_DrawPtr(1,chartPtrPos[1]+=5);
@@ -2364,15 +2374,12 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 //WYPROBUJ OPT FAST FONTY wyswieltanie ieCREATING!!!!
 
-#define MEM_1		NR_MEM(0,0)
-#define MEM_2		NR_MEM(1000000,1)
-#define MEM_3_IND		NR_MEM(2000000,2)
 
 //ZROBIC OPT Fast !!!!!!!!!!
 //-----CHART  common --------
-	GRAPH_GetSamples(NR_MEM(0,0), 		XYPOS_YMIN_YMAX( 50,250, -100,100), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
-	GRAPH_GetSamples(NR_MEM(1000000,1), XYPOS_YMIN_YMAX(300,250, -80,80), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
-	GRAPH_GetSamples(MEM_3_IND, 			XYPOS_YMIN_YMAX(  0,100, -100,100),  POINTS_STEP_XYSCALE(240,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
+	GRAPH_GetSamples(NR_MEM(0,		  0), XYPOS_YMIN_YMAX( 50,250, -100,100), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
+	GRAPH_GetSamples(NR_MEM(1000000,1), XYPOS_YMIN_YMAX(300,250,  -80, 80), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
+	GRAPH_GetSamples(NR_MEM(2000000,2), XYPOS_YMIN_YMAX(  0,100, -100,100), POINTS_STEP_XYSCALE(240,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
 
 	USER_GRAPH_PARAM par1, par2, par3;				//Wazen wycieki pamieci (brak ogr) dla 	pomocnych krzywych Disp_posXY i Disp_posXYrep !!!!!!!!!!!!!!!
 																								/* alternative: LINE_AACOLOR(WHITE,0,0) */
@@ -2382,6 +2389,10 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	int widthBk = GRAPH_GetNmbrPoints(2);  ///naprawic wyciek gdy coraz wieksaz ampl !!!!! dla indirect
 	par3 = LCD_Chart(ToStructAndReturn, 2, XY_WIN(550,250), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*widthBk-0, 0*widthBk-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[2],v.FONT_ID_Descr));
 
+
+	LCDTOUCH_Set( 50,250-100, 200,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_1, pressRelease);
+	LCDTOUCH_Set(300,250- 80, 200,160, ID_TOUCH_GET_ANY_POINT, Touch_Chart_2, pressRelease);
+	LCDTOUCH_Set(550,250-100, 240,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_3, pressRelease);
 
 //-----CHART  opt 1 --------
 //	LCD_Chart(0, MEM_3,				 LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(50,v.FONT_ID_Descr));

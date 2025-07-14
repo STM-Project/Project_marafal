@@ -136,7 +136,7 @@ char* _Col(FONT_BKG_COLOR background, uint8_t red, uint8_t green, uint8_t blue)
 	return &tab[i_copy];
 }
 
-void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, void *step, void *min, void *max, char *descr, VOID_FUNCTION_TEST xfunc){
+void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, void *step, void *min, void *max, char *descr, VOID_FUNCTION_TEST xfunc, VOID_FUNCTION_TEST xfunc2){
 
 	#define  _OPERAT(type)\
 		if(_Incr==dataAction) INCR( *((type*)a), *((type*)step), *((type*)max));\
@@ -144,7 +144,8 @@ void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, vo
 		if(_Wrap==dataAction) INCR_WRAP( *((type*)a), *((type*)step), *((type*)min), *((type*)max));\
 		if(_float==dataType||_double==dataType) DbgVar(1,50,"\r\n%s: %s ",descr,Float2Str(*((type*)a),' ',1,Sign_none,1));\
 		else 												 DbgVar(1,50,"\r\n%s: %d ",descr, *((type*)a));\
-		if(xfunc!=NULL) xfunc(NULL,NULL);	/* in future use */
+		if(xfunc !=NULL) xfunc (NULL,NULL);	/* in future use */
+		if(xfunc2!=NULL) xfunc2(NULL,NULL);
 
 	switch((int)dataType){
 		case _int:		_OPERAT(int) 	  break;
