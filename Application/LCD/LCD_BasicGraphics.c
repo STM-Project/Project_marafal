@@ -112,6 +112,7 @@ typedef struct{
 	u16 chartBkW;
 	u32 *ptrMem;
 	u32 *rctMem;
+	u32 CounterBusyBytesForFontsImages_copy;
 }CHART_PTR_PREV;
 
 static AACoeff_RoundFrameRectangle AA;
@@ -5879,6 +5880,11 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
 int GRAPH_IsIndirect(int nrMem){		if(ptrPrev[nrMem].startXYchart.x != posXY[0].x	&&	 ptrPrev[nrMem].startXYchart.y != posXY[0].y	) return 1;
 												else																															  return 0;
 }
+int GRAPH_IsMemReloaded(int nrMem){
+	extern u32 GET_nmbrBytesForFontsImages();
+	if(ptrPrev[nrMem].CounterBusyBytesForFontsImages_copy != GET_nmbrBytesForFontsImages()) return 1;
+	return 0;
+}
 int GRAPH_GetNmbrPoints(int nrMem)
 {
 	#if defined(GRAPH_MEMORY_SDRAM2)
@@ -5889,7 +5895,6 @@ int GRAPH_GetNmbrPoints(int nrMem)
 	#endif
 	return posXY_par[0].nmbrPoints;
 }
-
 							/* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
 int GRAPH_GetSamples(int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,float precision, float scaleX,float scaleY, int funcPatternType)
 {
@@ -5897,7 +5902,7 @@ int GRAPH_GetSamples(int offsMem,int nrMem, int startX,int startY, int yMin,int 
 		if(GRAPH_SetPointers(offsMem,nrMem)) return 0;
 		chartMemOffsForMemNr[nrMem]=offsMem;
 	#endif
-
+	extern u32 GET_nmbrBytesForFontsImages();
 	GRAPH_ClearPosXYpar();
 	GRAPH_ClearPosXY();
 	GRAPH_ClearPosXYrep();			/* '.len_posXY' may be equal to 'nmbrPoints' or many times smaller as in square signal */
@@ -5912,6 +5917,7 @@ int GRAPH_GetSamples(int offsMem,int nrMem, int startX,int startY, int yMin,int 
 	ptrPrev[nrMem].yMinMaxchart[0] = startY + yMin;
 	ptrPrev[nrMem].yMinMaxchart[1] = startY + yMax;
 	ptrPrev[nrMem].sizeX 			 = nmbrPoints;
+	ptrPrev[nrMem].CounterBusyBytesForFontsImages_copy = GET_nmbrBytesForFontsImages();
 
 	if(1 > posXY_par[0].len_posXYrep) return 1;
 	else										 return 0;
@@ -5939,7 +5945,7 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 	u16 corrPtrW 		= ptrPrev[nrMem].size.w+2;		/* '+2' because of bkSizeX for LCD_GradientCircleButton() */
 	u16 corrPtrH 		= ptrPrev[nrMem].size.h+2;
 	u32 colorTransPtr = GetTransitionColor( ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0.5);
-	int posChartPtr   = posPtr;
+	int posChartPtr   = 0;
 
 	void __PTR_CopyBitmapToMem_and_PrepareBk(void){
 		u32 temp;
@@ -5977,7 +5983,6 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 		ptrPrev[nrMem].memInUse=1;
 	}
 
-	///if(GRAPH_IsIndirect(nrMem)) ptrPrev[nrMem].chartBkW = LCD_X; // to juz nie potrzebne!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	if(ptrPrev[nrMem].memInUse){
 		__CopyPtrBitmapToMemTemp();
@@ -5985,20 +5990,19 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 			__CopyRctBitmapToMemTemp();
 	}
 
-	//Display() idze przez xSize = (ptrPrev[nrMem].sizeX =posXY_par[0].nmbrPoints)
-
-	if(posChartPtr >= posXY_par[0].len_posXY)	posChartPtr = posXY_par[0].len_posXY - 1;  //posXY_par[0].len_posXY (=733) jest rozny od  ptrPrev[nrMem].sizeX  (=700)
-	if(posChartPtr < 0)								posChartPtr = 0;
-
-/*	if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								 + corrPtrW/2){		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								+ corrPtrW/2);		}
-	if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}	*/			/* only if pointer has distance from end or start of chart */
-
-
-
 	if(GRAPH_IsIndirect(nrMem)){	offsX = ptrPrev[nrMem].startXYchart.x;
 											offsY = ptrPrev[nrMem].startXYchart.y;		}
 	else{	 	offsX = 0;
 			 	offsY = 0;	 }
+
+	int temp2 = offsX+posXY[0].x;
+	LOOP_FOR(i, posXY_par[0].len_posXY){	if(temp2 != offsX+posXY[i].x) temp2=offsX+posXY[i].x;		if(temp2>=posPtr){ posChartPtr=i; break; }	}
+
+	if(posChartPtr >= posXY_par[0].len_posXY)	posChartPtr = posXY_par[0].len_posXY - 1;  		/* posXY_par[0].len_posXY >= ptrPrev[nrMem].sizeX */
+	if(posChartPtr < 0)								posChartPtr = 0;
+
+/*	if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								 + corrPtrW/2){		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								+ corrPtrW/2);		}
+	if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}	*/			/* only if pointer has distance from end or start of chart */
 
 	SET_VAL( offsX + posXY[posChartPtr].x - corrPtrW/2, 		ptrX, 	ptrPrev[nrMem].pos.x );
 	SET_VAL( offsY + posXY[posChartPtr].y - corrPtrH/2, 		ptrY, 	ptrPrev[nrMem].pos.y );
@@ -6090,17 +6094,15 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 
 }
 
-int GRAPH_ptrTouchService(u16 touchPosX, u16 touchPosY, int nmbrOfCharts, int *ptrPos){
-	LOOP_FOR(i,nmbrOfCharts){
-		if( IS_RANGE(touchPosX, ptrPrev[i].startXYchart.x,  ptrPrev[i].startXYchart.x+ptrPrev[i].sizeX ) &&
-			 IS_RANGE(touchPosY, ptrPrev[i].yMinMaxchart[0], ptrPrev[i].yMinMaxchart[1]					  ) )
-		{
-			ptrPos[i]=GRAPH_DrawPtr(i, touchPosX-ptrPrev[i].startXYchart.x);
-			return 1;
-	}}
+int GRAPH_ptrTouchService(u16 touchPosX, u16 touchPosY, int nrChart){
+	if( IS_RANGE(touchPosX, ptrPrev[nrChart].startXYchart.x,  ptrPrev[nrChart].startXYchart.x+ptrPrev[nrChart].sizeX ) &&
+		 IS_RANGE(touchPosY, ptrPrev[nrChart].yMinMaxchart[0], ptrPrev[nrChart].yMinMaxchart[1]					  		  ) )
+	{
+		GRAPH_DrawPtr(nrChart, touchPosX);
+		return 1;
+	}
 	return 0;
 }
-
 					 /* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
 void GRAPH_Draw(int posBuff,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
 					DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA, structPointParam chartPtr)

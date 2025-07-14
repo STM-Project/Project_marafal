@@ -337,12 +337,13 @@ void 	LCDSHAPE_GradientCircleSlider_Indirect		(SHAPE_PARAMS param);
 void 	LCDSHAPE_Chart_Indirect							(USER_GRAPH_PARAM param);
 /* ------- End Selected Figures ------------------*/
 
+int 				  GRAPH_IsMemReloaded	  (int nrMem);
 int 				  GRAPH_IsIndirect		  (int nrMem);
 int 				  GRAPH_GetNmbrPoints	  (int nrMem);
 int				  GRAPH_GetSamples		  (int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,float precision, float scaleX,float scaleY, int funcPatternType);
 structPointParam GRAPH_SetPtr				  (u32 fromColorPtr, u32 toColorPtr, u16 sizePtr, u16 posPtr, u8 hideShowPtr, u32 fromColorRct, u32 toColorRct, u16 xSizeRct,u16 ySizeRct, u16 xPosRct,u16 yPosRct, u8 hideShowRct, int fontID);
 int 				  GRAPH_DrawPtr			  (int nrMem, int posPtr);
-int 				  GRAPH_ptrTouchService	  (u16 touchPosX, u16 touchPosY, int nmbrOfCharts, int *ptrPos);
+int 				  GRAPH_ptrTouchService	  (u16 touchPosX, u16 touchPosY, int nmbrOfCharts);
 void				  GRAPH_Draw				  (int posBuff,int nrMem, u32 widthBk,																																						 			  u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA, structPointParam chartPtr);
 void				  GRAPH_GetSamplesAndDraw (int posBuff,int offsMem,int nrMem, u32 widthBk, int startX,int startY, int yMin,int yMax, int nmbrPoints,float precision, float scaleX,float scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA, structPointParam chartPtr);
 

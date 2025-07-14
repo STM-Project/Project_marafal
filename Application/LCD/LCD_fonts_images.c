@@ -273,7 +273,7 @@ typedef struct
 static Struct_SpaceCorrect space[MAX_SPACE_CORRECT];
 static uint8_t StructSpaceCount=0;
 
-uint32_t CounterBusyBytesForFontsImages=0;
+static uint32_t CounterBusyBytesForFontsImages=0;
 static int TempSpaceCorr=0;
 
 extern uint32_t pLcd[];
@@ -1943,6 +1943,10 @@ static int ReadSpacesBetweenFontsFromSDcard(void){
 }
 
 /* ------------ Global Declarations ------------ */
+
+u32 GET_nmbrBytesForFontsImages(void){
+	return CounterBusyBytesForFontsImages;
+}
 
 int SETVAL_char(uint32_t nrVal, char val){
 	if( MAX_FONTS_AND_IMAGES_MEMORY_SIZE > CounterBusyBytesForFontsImages + ALIGN_OFFS + nrVal ){

@@ -266,7 +266,7 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 
 #define USE_DBG_CLR	0
 
-#define TEXT_TO_SHOW		"1234567890"//"Rafa"ł" Markielowski"
+#define TEXT_TO_SHOW		"+-456.7890"//"Rafa"ł" Markielowski"
 
 #define ID_MIDDLE_TXT	LCD_XY_MIDDLE_MAX_NUMBER_USE-1
 #define POS_X_TXT		LCD_Xmiddle(ID_MIDDLE_TXT,GetPos,v.FONT_ID_Fonts,Test.txt,Test.spaceBetweenFonts,Test.constWidth)
@@ -1710,11 +1710,10 @@ void FILE_NAME(setTouch)(void)
 			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
 			break;
 
-		case Touch_Chart_1:
-		case Touch_Chart_2:
-		case Touch_Chart_3:
-			GRAPH_ptrTouchService(pos.x,pos.y,3,chartPtrPos);
-			break;
+		case Touch_Chart_1:	if(GRAPH_IsMemReloaded(0)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,0);	break;		/* Attention:  Charts use memory for samples pointed by CounterBusyBytesForFontsImages what is changed by load fonts function... */
+		case Touch_Chart_2:	if(GRAPH_IsMemReloaded(1)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,1);	break;		/* 				... and you must reloaded charts if you have changed CounterBusyBytesForFontsImages before.								*/
+		case Touch_Chart_3:	if(GRAPH_IsMemReloaded(2)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,2);	break;
+
 
 		default:
 			if(IS_RANGE(state,Touch_Q,Touch_enter)){
@@ -1793,15 +1792,6 @@ static void* MainFuncRefresh(void *p1,void *p2){
 	FILE_NAME(main)(LoadUserScreen,(char**)ppMain);
 	return NULL;
 }
-static void* AAAAAA(void *p1,void *p2){
-	LCD_TOUCH_DeleteSelectTouch(Touch_Chart_1);
-	LCD_TOUCH_DeleteSelectTouch(Touch_Chart_2);
-	LCD_TOUCH_DeleteSelectTouch(Touch_Chart_3);
-	LCDTOUCH_Set( 50,250-100, 200,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_1, pressRelease);
-	LCDTOUCH_Set(300,250- 80, 200,160, ID_TOUCH_GET_ANY_POINT, Touch_Chart_2, pressRelease);
-	LCDTOUCH_Set(550,250-100, 240,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_3, pressRelease);
-	return NULL;
-}
 
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
@@ -1822,8 +1812,8 @@ void FILE_NAME(debugRcvStr)(void)
 
 
 	/* ----- Debug Test GRAPH ----- */
-	_DBG3_PARAM_NOWRAP("a","A","z","Z",&testGraph.par.scaleX,_float,_Float(0.1),_Float( 1.5),_Float( 20.0),_Float(1.0),"Test Graph scaleX: ",MainFuncRefresh,AAAAAA)
-	_DBG3_PARAM_NOWRAP("s","S","x","X",&testGraph.par.scaleY,_float,_Float(1.0),_Float(10.0),_Float(100.0),_Float(1.0),"Test Graph scaleY: ",MainFuncRefresh,AAAAAA)
+	_DBG3_PARAM_NOWRAP("a","A","z","Z",&testGraph.par.scaleX,_float,_Float(0.1),_Float( 1.5),_Float( 20.0),_Float(1.0),"Test Graph scaleX: ",MainFuncRefresh,NULL)
+	_DBG3_PARAM_NOWRAP("s","S","x","X",&testGraph.par.scaleY,_float,_Float(1.0),_Float(10.0),_Float(100.0),_Float(1.0),"Test Graph scaleY: ",MainFuncRefresh,NULL)
 
 	_DBG_PARAM_NOWRAP("d",&testGraph.funcType,_uint8,_Incr,_Uint8(1),_Uint8(Func_lines6),"Test Graph funcType: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("c",&testGraph.funcType,_uint8,_Decr,_Uint8(1),_Uint8(Func_sin),	 "Test Graph funcType: ",MainFuncRefresh)
@@ -2373,13 +2363,13 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 //WYPROBUJ OPT FAST FONTY wyswieltanie ieCREATING!!!!
+//SIATKE zrobic !!!!zastanowic sie moze taka delikatna przezroczysta!!!!
 
-
-//ZROBIC OPT Fast !!!!!!!!!!
+//ZROBIC OPT Fast !!!!!!!!!!  URUCHOM przewijanie wykresu po X !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //-----CHART  common --------
-	GRAPH_GetSamples(NR_MEM(0,		  0), XYPOS_YMIN_YMAX( 50,250, -100,100), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
-	GRAPH_GetSamples(NR_MEM(1000000,1), XYPOS_YMIN_YMAX(300,250,  -80, 80), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
-	GRAPH_GetSamples(NR_MEM(2000000,2), XYPOS_YMIN_YMAX(  0,100, -100,100), POINTS_STEP_XYSCALE(240,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
+	GRAPH_GetSamples(NR_MEM(3000000,0), XYPOS_YMIN_YMAX( 50,250, -100,100), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
+	GRAPH_GetSamples(NR_MEM(4000000,1), XYPOS_YMIN_YMAX(300,250,  -80, 80), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
+	GRAPH_GetSamples(NR_MEM(5000000,2), XYPOS_YMIN_YMAX(  0,100, -100,100), POINTS_STEP_XYSCALE(240,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
 
 	USER_GRAPH_PARAM par1, par2, par3;				//Wazen wycieki pamieci (brak ogr) dla 	pomocnych krzywych Disp_posXY i Disp_posXYrep !!!!!!!!!!!!!!!
 																								/* alternative: LINE_AACOLOR(WHITE,0,0) */
