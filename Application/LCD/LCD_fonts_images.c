@@ -4108,6 +4108,7 @@ void SCREEN_ResetAllParameters(void)
 	LCD_AllRefreshScreenClear();
 	LCD_ResetStrMovBuffPos();
 	LCD_DeleteAllFontAndImages();
+	LCD_ResetAllBasicGraphicsParams();
 }
 
 uint32_t LCD_LoadFont_DependOnColors(int fontSize, int fontStyle, uint32_t bkColor, uint32_t fontColor, uint32_t fontID)
