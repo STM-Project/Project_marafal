@@ -143,6 +143,7 @@ typedef uint8_t u8;
 
 #define OPTIMIZE_FAST	__attribute__ ((optimize("-Ofast")))
 #define OPTIMIZE_SIZE	__attribute__ ((optimize("-Os")))
+#define OPTIMIZE_DBG		__attribute__ ((optimize("-Og")))
 
 #define ALIGN_TO_32BIT(val)		while(((val)%4)!=0) (val)++;
 #define _NOP		asm("nop")

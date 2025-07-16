@@ -5958,14 +5958,25 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 		_2LOOP_END
 		ptrPrev[nrMem].memInUse=1;
 	}
+
 	void __RCT_CopyBitmapToMem_and_PrepareBk(void){
+	/* Time execution for none optimization for below code: 800[us]					Time execution for optimization: 400[us] 					Time execute for fast or size optimization: 220[us] but vibration screen are observed ! */
+	/*	StartMeasureTime_us();
 		u32 temp;
 		_2LOOP_INIT(int m=0, i,j, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h)
 			temp 								= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(ptrPrev[nrMem].ptr.posRct.y+j)+(ptrPrev[nrMem].ptr.posRct.x+i)];
-			*(ptrPrev[nrMem].rctMem+m) = temp;		/* write background to memory */
-			pLcd[posBuff+m]  				= temp;  	/* prepare new background */
+			*(ptrPrev[nrMem].rctMem+m) = temp;		//write background to memory
+			pLcd[posBuff+m]  				= temp;		//prepare new background
 			m++;
 		_2LOOP_END
+	*/
+	/* Time execution for none optimization for LCD_CopyBuffers(): 600[us]			Time execute for debug optimization: 270[us]				Time execute for fast or size optimization: 150[us] but vibration screen are observed ! */
+		LCD_CopyBuffers( ptrPrev[nrMem].rctMem, 0, 		 ptrPrev[nrMem].ptr.sizeRct.w, 																				 0,									0, \
+							  pLcd,						 posBuff, ptrPrev[nrMem].chartBkW, 	 	 ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h, ptrPrev[nrMem].ptr.posRct.x, ptrPrev[nrMem].ptr.posRct.y);		/* write background to memory */
+
+		LCD_CopyBuffers( pLcd,						 posBuff, ptrPrev[nrMem].ptr.sizeRct.w, 																				 0,									0, \
+							  pLcd,						 posBuff, ptrPrev[nrMem].chartBkW, 	 	 ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h, ptrPrev[nrMem].ptr.posRct.x, ptrPrev[nrMem].ptr.posRct.y);  	/* prepare new background */
+
 		ptrPrev[nrMem].memInUse=1;
 	}
 	void __CopyPtrBitmapToMemTemp(void){
