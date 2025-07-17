@@ -44,9 +44,9 @@
 #define _PLCD(offs,x,y)	 	pLcd[(offs)+widthBk*(y)+(x)]
 #define _K(x,y)	 			widthBk*(y)+(x)
 
-#define _2LOOP(ix,iy,widthX,widthY)								 		 		 for(int (iy)=0;(iy)<(widthY);(iy)++){ for(int (ix)=0;(ix)<(widthX);(ix)++){
-#define _2LOOP_INIT(init,ix,iy,widthX,widthY)				init;  		 for(int (iy)=0;(iy)<(widthY);(iy)++){ for(int (ix)=0;(ix)<(widthX);(ix)++){  ///daj!!! _2LOOP !!!!
-#define _2LOOP_2INIT(init,init2,ix,iy,widthX,widthY)		init; init2; for(int (iy)=0;(iy)<(widthY);(iy)++){ for(int (ix)=0;(ix)<(widthX);(ix)++){
+#define _2LOOP(ix,iy,widthX,widthY)								for(int (iy)=0;(iy)<(widthY);(iy)++){ for(int (ix)=0;(ix)<(widthX);(ix)++){
+#define _2LOOP_INIT(init,ix,iy,widthX,widthY)				init;  		 _2LOOP(ix,iy,widthX,widthY)
+#define _2LOOP_2INIT(init,init2,ix,iy,widthX,widthY)		init; init2; _2LOOP(ix,iy,widthX,widthY)
 #define _2LOOP_END		}}
 #define _1LOOP_END		}
 
@@ -6150,6 +6150,21 @@ void GRAPH_Draw(int posBuff,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOu
 		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (posBuff+offsK1, widthBk, posXY_par[0].len_posXY,	 	color1);
 		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(posBuff+offsK2, widthBk, posXY_par[0].len_posXYrep, color2);
 		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (posBuff,		 	widthBk, posXY_par[0].len_posXYrep, colorLineAA, colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
+	}
+
+	if(1)
+	{
+		int height__ = ptrPrev[nrMem].yMinMaxchart[1] - ptrPrev[nrMem].yMinMaxchart[0];
+
+		_2LOOP(i,j, ptrPrev[nrMem].sizeX, height__)
+
+			if(GRAPH_IsIndirect(nrMem)){
+				if(i%15==0 || j%15==0)	_PLCD(posBuff,i,j) = GetTransitionColor(_PLCD(posBuff,i,j), WHITE, 0.1);
+			}
+			else{
+				if(i%15==0 && j%15==0)	_PLCD(posBuff,ptrPrev[nrMem].startXYchart.x+i,ptrPrev[nrMem].yMinMaxchart[0]+j) = GetTransitionColor(_PLCD(posBuff,ptrPrev[nrMem].startXYchart.x+i,ptrPrev[nrMem].yMinMaxchart[0]+j), WHITE, 0.1);
+			}
+		_2LOOP_END
 	}
 
 	/* Prepare (not display here) pointer of the chart, rest of data is filled in GRAPH_DrawPtr() */

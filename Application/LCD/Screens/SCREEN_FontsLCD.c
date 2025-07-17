@@ -1874,15 +1874,6 @@ void FILE_NAME(debugRcvStr)(void)
 		FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
 	}
 
-	else if(DEBUG_RcvStr("j")) chartPtrPos[0]=GRAPH_DrawPtr(0,chartPtrPos[0]+=1);
-	else if(DEBUG_RcvStr("u")) chartPtrPos[0]=GRAPH_DrawPtr(0,chartPtrPos[0]-=1);
-	else if(DEBUG_RcvStr("k")) chartPtrPos[1]=GRAPH_DrawPtr(1,chartPtrPos[1]+=5);
-	else if(DEBUG_RcvStr("i")) chartPtrPos[1]=GRAPH_DrawPtr(1,chartPtrPos[1]-=5);
-	else if(DEBUG_RcvStr("l")) chartPtrPos[2]=GRAPH_DrawPtr(2,chartPtrPos[2]+=25);
-	else if(DEBUG_RcvStr("o")) chartPtrPos[2]=GRAPH_DrawPtr(2,chartPtrPos[2]-=25);
-
-
-
 }}
 
 static void LoadFonts(int startFontID, int endFontID){
