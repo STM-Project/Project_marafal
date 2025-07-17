@@ -121,8 +121,8 @@ static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .
 
 USER_GRAPH_PARAM USER_GRAPH_PARAM_Zero = {0};
 
-SDRAM static u32 			chartPtrMem					[ MAX_CHARTS_SIMULTANEOUSLY ][ CHART_PTR_MEM_SIZE ],	chartPtrMem_temp[ CHART_PTR_MEM_SIZE ];			/* in future allocate as dynamic memory as for fonts memory */
-SDRAM static u32 			chartRctMem					[ MAX_CHARTS_SIMULTANEOUSLY ][ CHART_RCT_MEM_SIZE ],	chartRctMem_temp[ CHART_RCT_MEM_SIZE ];
+SDRAM static u32 			chartPtrMem					[ MAX_CHARTS_SIMULTANEOUSLY ][ CHART_PTR_MEM_SIZE ];			/* in future allocate as dynamic memory as for fonts memory */
+SDRAM static u32 			chartRctMem					[ MAX_CHARTS_SIMULTANEOUSLY ][ CHART_RCT_MEM_SIZE ];
 static CHART_PTR_PREV 	ptrPrev						[ MAX_CHARTS_SIMULTANEOUSLY ] = {0};
 static int 					chartMemOffsForMemNr		[ MAX_CHARTS_SIMULTANEOUSLY ] = {0};
 
@@ -3902,7 +3902,7 @@ void LCD_ErasePrevShape(int posX_prev,int posY_prev, int posX,int posY, int widt
 			LCD_DisplayBuff(posX_prev+offsX,posY_prev, diffX,height, pBuff);
 	}}
 }
-void LCD_CopyBuffers(u32 *pBuff1,u32 offs1,u16 widthBk1,u16 Xpos1,u16 Ypos1,	 u32 *pBuff2,u32 offs2,u16 widthBk2,u16 width2,u16 height2,u16 Xpos2,u16 Ypos2){		/* copy direction:  pBuff1 <= pBuff2 */
+void LCD_CopyBuffers(u32 *pBuff1,u32 offs1,u16 widthBk1,u16 Xpos1,u16 Ypos1,	 u32 *pBuff2,u32 offs2,u16 widthBk2,u16 Xpos2,u16 Ypos2,u16 width2,u16 height2){		/* copy direction:  pBuff1 <= pBuff2 */
 	int k2=0, k1=0;
 	if(widthBk1 < width2) return;
 	if(widthBk2==width2 && Xpos2==0 && Ypos2==0){
@@ -5958,7 +5958,6 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 		_2LOOP_END
 		ptrPrev[nrMem].memInUse=1;
 	}
-
 	void __RCT_CopyBitmapToMem_and_PrepareBk(void){
 	/* Time execution for none optimization for below code: 800[us]					Time execution for optimization: 400[us] 					Time execute for fast or size optimization: 220[us] but vibration screen are observed ! */
 	/*	StartMeasureTime_us();
@@ -5971,34 +5970,12 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 		_2LOOP_END
 	*/
 	/* Time execution for none optimization for LCD_CopyBuffers(): 600[us]			Time execute for debug optimization: 270[us]				Time execute for fast or size optimization: 150[us] but vibration screen are observed ! */
-		LCD_CopyBuffers( ptrPrev[nrMem].rctMem, 0, 		 ptrPrev[nrMem].ptr.sizeRct.w, 																				 0,									0, \
-							  pLcd,						 posBuff, ptrPrev[nrMem].chartBkW, 	 	 ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h, ptrPrev[nrMem].ptr.posRct.x, ptrPrev[nrMem].ptr.posRct.y);		/* write background to memory */
+		LCD_CopyBuffers( ptrPrev[nrMem].rctMem, 0, 		 ptrPrev[nrMem].ptr.sizeRct.w, 0,									0, \
+							  pLcd,						 posBuff, ptrPrev[nrMem].chartBkW, 	 	 ptrPrev[nrMem].ptr.posRct.x, ptrPrev[nrMem].ptr.posRct.y, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h);		/* write background to memory */
 
-		LCD_CopyBuffers( pLcd,						 posBuff, ptrPrev[nrMem].ptr.sizeRct.w, 																				 0,									0, \
-							  pLcd,						 posBuff, ptrPrev[nrMem].chartBkW, 	 	 ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h, ptrPrev[nrMem].ptr.posRct.x, ptrPrev[nrMem].ptr.posRct.y);  	/* prepare new background */
-
+		LCD_CopyBuffers( pLcd,						 posBuff, ptrPrev[nrMem].ptr.sizeRct.w, 0,									0, \
+							  pLcd,						 posBuff, ptrPrev[nrMem].chartBkW, 	 	 ptrPrev[nrMem].ptr.posRct.x, ptrPrev[nrMem].ptr.posRct.y,  ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h);  	/* prepare new background */
 		ptrPrev[nrMem].memInUse=1;
-	}
-	void __CopyPtrBitmapToMemTemp(void){
-		_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH) //GOTOWA uniwersalna funkcja copy bitmap z bk jednego na drugi !!!!!!!!!!!!   jako np  LCD_CopyBuffers()
-			chartPtrMem_temp[m] = *(ptrPrev[nrMem].ptrMem + m);
-			m++;
-		_2LOOP_END
-		ptrPrev[nrMem].memInUse=1;
-	}
-	void __CopyRctBitmapToMemTemp(void){		//jako np  LCD_CopyBuffers()
-		_2LOOP_INIT(int m=0, i,j, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h)
-			chartRctMem_temp[m] = *(ptrPrev[nrMem].rctMem + m);			//WYeliminuj chartRctMem_temp daj bezposrednio prze ptr !!!!!!!!!!!!!!!!
-			m++;
-		_2LOOP_END
-		ptrPrev[nrMem].memInUse=1;
-	}
-
-
-	if(ptrPrev[nrMem].memInUse){
-		__CopyPtrBitmapToMemTemp();
-		if(ptrPrev[nrMem].ptr.hideShowRct)
-			__CopyRctBitmapToMemTemp();
 	}
 
 	if(GRAPH_IsIndirect(nrMem)){	offsX = ptrPrev[nrMem].startXYchart.x;
@@ -6018,14 +5995,7 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 	SET_VAL( offsX + posXY[posChartPtr].x - corrPtrW/2, 		ptrX, 	ptrPrev[nrMem].pos.x );
 	SET_VAL( offsY + posXY[posChartPtr].y - corrPtrH/2, 		ptrY, 	ptrPrev[nrMem].pos.y );
 
-	if(ptrPrev[nrMem].memInUse)
-		LCD_ErasePrevShape(ptrX_prev,ptrY_prev, ptrX,ptrY, corrPtrW,corrPtrH, chartPtrMem_temp);
-
-
-
-//ZROB OPTYMA fast dla GRAPH !!!!!!!!!!!!!!
-
-
+	if(ptrPrev[nrMem].memInUse) LCD_ErasePrevShape(ptrX_prev,ptrY_prev, ptrX,ptrY, corrPtrW,corrPtrH, ptrPrev[nrMem].ptrMem);
 	if(ptrPrev[nrMem].ptr.hideShowRct)
 	{
 		extern void LCD_TxtInFrame_minimize();
@@ -6034,14 +6004,8 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 		int rectH 		= ptrPrev[nrMem].ptr.sizeRct.h;
 		int rectX_prev = ptrPrev[nrMem].ptr.posRct.x;
 		int rectY_prev = ptrPrev[nrMem].ptr.posRct.y;
-
-
-
-
-
 		int offsRctToPtr_x = 0;		/* offset X relative to middle of pointer */
 		int offsRctToPtr_y = 0;		/* offset Y relative to edge of pointer 	*/
-
 
 		switch(ptrPrev[nrMem].ptr.hideShowRct){
 			default:
@@ -6055,54 +6019,27 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 				offsRctToPtr_y = 15;
 				break;
 		}
-
-
 		int xRctStart = ( ptrX - (rectW-corrPtrW)/2 ) + offsRctToPtr_x;
 		if(xRctStart < ptrPrev[nrMem].startXYchart.x)  											 xRctStart = ptrPrev[nrMem].startXYchart.x;
 		if(xRctStart > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - rectW)   xRctStart = ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - rectW;
-
 
 		int yRctStart = ptrY + CONDITION(offsRctToPtr_y<0,-rectH,corrPtrH) + offsRctToPtr_y;
 		if(yRctStart < ptrPrev[nrMem].yMinMaxchart[0])  			yRctStart = ptrY + corrPtrH + ABS(offsRctToPtr_y);
 		if(yRctStart > ptrPrev[nrMem].yMinMaxchart[1] - rectH)   yRctStart = ptrY - rectH 	 - ABS(offsRctToPtr_y);
 
-
 		SET_VAL( xRctStart, rectX, ptrPrev[nrMem].ptr.posRct.x );
 		SET_VAL( yRctStart, rectY, ptrPrev[nrMem].ptr.posRct.y );
 
-
-
-
-		if(ptrPrev[nrMem].memInUse)
-			LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, chartRctMem_temp);
-
+		if(ptrPrev[nrMem].memInUse) LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, ptrPrev[nrMem].rctMem);
 		__RCT_CopyBitmapToMem_and_PrepareBk();
 		LCD_BoldRoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	SetBold2Color(ptrPrev[nrMem].ptr.fromColorRct,3), ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.5);
-
-
-
-
-
-		char *pTxt = StrAll(3,Int2Str(ptrX+corrPtrW/2,None,3,Sign_none),",",Int2Str(ptrY+corrPtrH/2,None,3,Sign_none));
-		LCD_TxtInFrame_minimize(rectW,rectH, ptrPrev[nrMem].ptr.fontID, -2,0, pTxt, ptrPrev[nrMem].ptr.hideShowRct);
-
-
+		LCD_TxtInFrame_minimize(rectW,rectH, ptrPrev[nrMem].ptr.fontID, -2,0, 	StrAll(3,Int2Str(ptrX+corrPtrW/2,None,3,Sign_none),",",Int2Str(ptrY+corrPtrH/2,None,3,Sign_none)),		ptrPrev[nrMem].ptr.hideShowRct);
 		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
-
 	}
-
-
 
 	__PTR_CopyBitmapToMem_and_PrepareBk();
 	LCD_GradientCircleButton_Indirect(ptrX,ptrY,  corrPtrW-2,corrPtrH-2,  SetBold2Color(colorTransPtr,1), ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0,ReadOutColor);
-
-
 	return posChartPtr;
-
-
-
-
-
 }
 
 int GRAPH_ptrTouchService(u16 touchPosX, u16 touchPosY, int nrChart){
@@ -6297,7 +6234,7 @@ void LCD_Chart_Indirect(int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOut, u
 		k += width;
 	_1LOOP_END
 	LCD_Display(offsK, x,y, width,height);
-	LCD_CopyBuffers(pLcd,0,LCD_X,x,y, pLcd,offsK,width,width,height,0,0);  /* copying buffers is very important only for GRAPH_DrawPtr() */
+	LCD_CopyBuffers(pLcd,0,LCD_X,x,y, pLcd,offsK,width,0,0,width,height);  /* copying buffers is very important only for GRAPH_DrawPtr() */
 }
 USER_GRAPH_PARAM LCDSHAPE_Chart(uint32_t posBuff, USER_GRAPH_PARAM param){
 	return LCD_Chart(posBuff, param.nrMem, param.widthBk, param.lineColor, param.AAoutColor, param.AAinColor, param.bkRectColor, param.AAoutCoeff, param.AAinCoeff, param.dispOpt, param.colorLinePosXY, param.colorLinePosXYrep, param.KoffsPosXY, param.KoffsPosXYrep, param.grad.bkType, param.grad.fromColor, param.grad.toColor, param.grad.stripY, param.grad.amplTrans, param.grad.offsTrans, param.corr45degAA, param.ptr);
