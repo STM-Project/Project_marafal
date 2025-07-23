@@ -4954,4 +4954,10 @@ LCD_STR_PARAM LCD_TxtInFrame(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin,
 void LCD_TxtInFrame_minimize(uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int Xoffs,int Yoffs, char *txt, int spaceCorr){
 	LCD_TxtInFrame(Display, NULL, unUsed,unUsed, BkpSizeX,BkpSizeY, fontID, Xoffs,Yoffs, txt, WHITE,READ_BGCOLOR, halfHight,0,255,ConstWidth, 0xFF202020,2,LeftUp, spaceCorr);
 }
+void LCD_Txt_minimize(int Xpos,int Ypos, uint32_t BkpSizeX, int fontID,char *txt){
+	int idVar = fontVar_40;
+	LCD_BkFontTransparent(idVar, fontID);
+	LCD_Txt(Display, NULL, unUsed,unUsed, BkpSizeX,0, fontID,idVar, Xpos,Ypos, txt, WHITE,READ_BGCOLOR, halfHight,0,255,ConstWidth, TXTSHADE_NONE);
+
+}
 

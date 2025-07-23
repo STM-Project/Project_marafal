@@ -463,6 +463,6 @@ LCD_STR_PARAM 		LCD_TxtVar						(LCD_STR_PARAM *p, char *txt);
 LCD_STR_PARAM 		LCD_TxtVarInd					(LCD_STR_PARAM *p, char *txt);
 LCD_STR_PARAM 		LCD_TxtInFrame					(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin,int Ywin, u32 BkpSizeX,u32 BkpSizeY, int fontID, int Xoffs,int Yoffs, char *txt, uint32_t fontColor,u32 bkColor, int OnlyDigits,int space,int maxVal,int constWidth, u32 shadeColor,u8 deep,DIRECTIONS dir, int spaceCorr);
 void			  		LCD_TxtInFrame_minimize		(u32 BkpSizeX, u32 BkpSizeY, int fontID, int Xoffs,int Yoffs, char *txt, int spaceCorr);
-
+void 					LCD_Txt_minimize				(int Xpos,int Ypos, uint32_t BkpSizeX, int fontID,char *txt);
 
 #endif /* LCD_LCD_FONTS_IMAGES_H_ */

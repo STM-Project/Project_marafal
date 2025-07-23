@@ -5964,8 +5964,8 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 		u32 temp;
 		_2LOOP_INIT(int m=0, i,j, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h)
 			temp 								= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(ptrPrev[nrMem].ptr.posRct.y+j)+(ptrPrev[nrMem].ptr.posRct.x+i)];
-			*(ptrPrev[nrMem].rctMem+m) = temp;		//write background to memory
-			pLcd[posBuff+m]  				= temp;		//prepare new background
+			*(ptrPrev[nrMem].rctMem+m) = temp;		// write background to memory
+			pLcd[posBuff+m]  				= temp;		// prepare new background
 			m++;
 		_2LOOP_END
 	*/
@@ -6008,16 +6008,8 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 		int offsRctToPtr_y = 0;		/* offset Y relative to edge of pointer 	*/
 
 		switch(ptrPrev[nrMem].ptr.hideShowRct){
-			default:
-			case 1:
-				offsRctToPtr_x = 0;
-				offsRctToPtr_y = -15;
-				break;
-
-			case 2:
-				offsRctToPtr_x = -20;
-				offsRctToPtr_y = 15;
-				break;
+			case 1: default: 	offsRctToPtr_x = 0;		offsRctToPtr_y = -15;	break;
+			case 2:				offsRctToPtr_x = -20;	offsRctToPtr_y = 15;		break;
 		}
 		int xRctStart = ( ptrX - (rectW-corrPtrW)/2 ) + offsRctToPtr_x;
 		if(xRctStart < ptrPrev[nrMem].startXYchart.x)  											 xRctStart = ptrPrev[nrMem].startXYchart.x;
@@ -6032,8 +6024,8 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 
 		if(ptrPrev[nrMem].memInUse) LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, ptrPrev[nrMem].rctMem);
 		__RCT_CopyBitmapToMem_and_PrepareBk();
-		LCD_BoldRoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	SetBold2Color(ptrPrev[nrMem].ptr.fromColorRct,3), ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.5);
-		LCD_TxtInFrame_minimize(rectW,rectH, ptrPrev[nrMem].ptr.fontID, -2,0, 	StrAll(3,Int2Str(ptrX+corrPtrW/2,None,3,Sign_none),",",Int2Str(ptrY+corrPtrH/2,None,3,Sign_none)),		ptrPrev[nrMem].ptr.hideShowRct);
+		LCD_BoldRoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	SetBold2Color(ptrPrev[nrMem].ptr.fromColorRct,2), ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.5);
+		LCD_TxtInFrame_minimize(rectW,rectH, ptrPrev[nrMem].ptr.fontID, -2,0, 	StrAll(3,Int2Str(posXY[posChartPtr].x-CONDITION(GRAPH_IsIndirect(nrMem),0,ptrPrev[nrMem].startXYchart.x),None,3,Sign_none),",",Int2Str(posXY[posChartPtr].y-CONDITION(GRAPH_IsIndirect(nrMem),0,ptrPrev[nrMem].yMinMaxchart[0]),None,3,Sign_none)),	1);
 		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
 	}
 
@@ -6156,6 +6148,7 @@ void GRAPH_Draw(int posBuff,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOu
 	if(gridType){
 		int sizeY = ptrPrev[nrMem].yMinMaxchart[1] - ptrPrev[nrMem].yMinMaxchart[0];
 		int posX,posY;
+		extern void LCD_Txt_minimize();
 		void _WriteColorToPlcd(void){	_PLCD(posBuff,posX,posY) = GetTransitionColor(_PLCD(posBuff,posX,posY), gridColor, gridCoeff);	}
 		_2LOOP(i,j, ptrPrev[nrMem].sizeX, sizeY)
 			if(GRAPH_IsIndirect(nrMem)){	posX = i;												posY = j;	}
@@ -6165,6 +6158,7 @@ void GRAPH_Draw(int posBuff,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOu
 				case Grid_Line: if(i%gridSizeX==0 || j%gridSizeY==0) _WriteColorToPlcd(); break;
 				default: break;
 			}
+			if(i==0 && (j==0||j==sizeY/2)) LCD_Txt_minimize(posX-25,posY, widthBk, chartPtr.fontID, "123");
 		_2LOOP_END
 	}
 

@@ -2364,11 +2364,11 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 	USER_GRAPH_PARAM par1, par2, par3;				//Wazen wycieki pamieci (brak ogr) dla 	pomocnych krzywych Disp_posXY i Disp_posXYrep !!!!!!!!!!!!!!!
 																								/* alternative: LINE_AACOLOR(WHITE,0,0) */
-	par1 = LCD_Chart(ToStructAndReturn, 0, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*40*LCD_X-0, 80*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[0],v.FONT_ID_Descr), CHART_GRID(Grid_Line,10,10,WHITE,0.15));
-	par2 = LCD_Chart(ToStructAndReturn, 1, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*40*LCD_X-0, 80*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr), CHART_GRID(Grid_Line,20,20,WHITE,0.35));
+	par1 = LCD_Chart(ToStructAndReturn, 0, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*40*LCD_X-0, 80*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[0],v.FONT_ID_Descr), CHART_GRID(Grid_Line,10,10,WHITE,0.2));
+	par2 = LCD_Chart(ToStructAndReturn, 1, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*40*LCD_X-0, 80*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr), CHART_GRID(Grid_Dots,20,20,WHITE,0.85));
 
-	int widthBk = GRAPH_GetNmbrPoints(2);  ///naprawic wyciek gdy coraz wieksaz ampl !!!!! dla indirect
-	par3 = LCD_Chart(ToStructAndReturn, 2, XY_WIN(550,250), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*widthBk-0, 0*widthBk-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[2],v.FONT_ID_Descr), CHART_GRID(Grid_Dots,30,30,WHITE,0.75));
+	int widthBk = GRAPH_GetNmbrPoints(2);
+	par3 = LCD_Chart(ToStructAndReturn, 2, XY_WIN(550,250), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*widthBk-0, 0*widthBk-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[2],v.FONT_ID_Descr), CHART_GRID(Grid_Line,30,30,WHITE,0.2));
 
 
 	LCDTOUCH_Set( 50,250-100, 200,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_1, pressRelease);
