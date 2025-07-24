@@ -284,6 +284,7 @@ static int RealizeTempSpaceCorrect(char *txt, int id){
 		case 0: break;
 		case 1:
 			if((IS_RANGE(txt[0],'0','9')&&(txt[1]==','))||((txt[0]==',')&&IS_RANGE(txt[1],'0','9'))) return 2;
+			if((IS_RANGE(txt[0],'0','9')&&(txt[1]=='.'))||((txt[0]=='.')&&IS_RANGE(txt[1],'0','9'))) return -2;
 			break;
 		default: break;
 	}

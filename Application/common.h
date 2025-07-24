@@ -97,6 +97,7 @@ typedef uint8_t u8;
 
 #define INIT(name,val)	int name=val
 #define CONDITION(condition,val1,val2)	((condition) ? (val1) : (val2))
+#define INIT(name,val)	int name=val
 #define MAXVAL2(value1,value2)	((value1) >= (value2) ? (value1) : (value2))
 #define MINVAL2(value1,value2)	((value1) <= (value2) ? (value1) : (value2))
 #define SET_VAL(val,to1,to2)		to1=val; to2=val

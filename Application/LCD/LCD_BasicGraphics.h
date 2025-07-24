@@ -31,7 +31,7 @@
 #define POS_SIZE_CIRCLEBUTTONSLIDER_indirect(p,offsX,offsY)		p.pos[0].x+(offsX), p.pos[0].y+(offsY), p.size[0].w+2, p.size[0].h+2			/*	'+2' because in LCD_GradientCircleButton_Indirect() and LCD_GradientCircleSlider_Indirect() we have '+2' for 'bkSizeX' and 'bkSizeY' */
 
 #define POINTS_STEP_XYSCALE(p1,p2,p3,p4)	p1,p2,p3,p4
-#define FUNC_TYPE(func)	 func
+#define FUNC_SCALE(func,scale)	 func,scale
 #define LINE_COLOR(line,outLine,inLine)	 				 line,outLine,inLine
 #define LINE_AA_BKCOLOR(line,outLine,inLine,bkRect)	 line,outLine,inLine,bkRect
 #define LINE_AACOLOR(line,outLine,inLine)	 	 		 	 line,outLine,inLine,0
@@ -57,7 +57,7 @@
 #define NR_MEM(offs,nr) 		offs,nr
 
 #define CHART_PTR_NONE																																											GRAPH_SetPtr(0,0,0,0,0, 0,0,0,0,0,0,0,0)
-#define CHART_PTR_DEFAULT(posPtr,fontID)																																					GRAPH_SetPtr(LIGHTBLUE,DARKBLUE,18,posPtr,1, WHITE,DARKYELLOW,80,30,10,10,1,fontID)
+#define CHART_PTR_DEFAULT(posPtr,fontID)																																					GRAPH_SetPtr(LIGHTBLUE,DARKBLUE,18,posPtr,1, WHITE,DARKYELLOW,87,30,10,10,1,fontID)
 #define CHART_PTR_PARAM(colorPtr1,colorPtr2,sizePtr,posPtr,hideShowPtr, colorRct1,colorRct2,xSizeRct,ySizeRct,xPosRct,yPosRct,hideShowRct,fontID)		GRAPH_SetPtr(colorPtr1,colorPtr2,sizePtr,posPtr,hideShowPtr, colorRct1,colorRct2,xSizeRct,ySizeRct,xPosRct,yPosRct,hideShowRct,fontID)
 
 #define CHART_GRID(type,sizeX,sizeY,color,transCoeff)			type,sizeX,sizeY,color,transCoeff
@@ -347,7 +347,7 @@ void 	LCDSHAPE_Chart_Indirect							(USER_GRAPH_PARAM param);
 int 				  GRAPH_IsMemReloaded	  (int nrMem);
 int 				  GRAPH_IsIndirect		  (int nrMem);
 int 				  GRAPH_GetNmbrPoints	  (int nrMem);
-int				  GRAPH_GetSamples		  (int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,float precision, float scaleX,float scaleY, int funcPatternType);
+int				  GRAPH_GetSamples		  (int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,float precision, float scaleX,float scaleY, int funcPatternType, float dispScaleY);
 structPointParam GRAPH_SetPtr				  (u32 fromColorPtr, u32 toColorPtr, u16 sizePtr, u16 posPtr, u8 hideShowPtr, u32 fromColorRct, u32 toColorRct, u16 xSizeRct,u16 ySizeRct, u16 xPosRct,u16 yPosRct, u8 hideShowRct, int fontID);
 int 				  GRAPH_DrawPtr			  (int nrMem, int posPtr);
 int 				  GRAPH_ptrTouchService	  (u16 touchPosX, u16 touchPosY, int nmbrOfCharts);

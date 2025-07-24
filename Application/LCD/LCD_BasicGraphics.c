@@ -113,6 +113,7 @@ typedef struct{
 	u32 *ptrMem;
 	u32 *rctMem;
 	u32 CounterBusyBytesForFontsImages_copy;
+	float scaleY;		/* 1 pixel -> scaleY */
 }CHART_PTR_PREV;
 
 static AACoeff_RoundFrameRectangle AA;
@@ -3315,7 +3316,7 @@ static int GRAPH_GetFuncPosXY(int startX,int startY, int yMin,int yMax, int nmbr
 		funcVal = SET_IN_RANGE(funcVal,yMin,yMax);
 
 		temp_x = posXY[0].x + (int)i;
-		temp_y = posXY[0].y + (int)funcVal;
+		temp_y = posXY[0].y + ROUND_VAL(funcVal,0.5);
 
 		if(posXY_prev.x != temp_x)
 		{
@@ -5896,7 +5897,7 @@ int GRAPH_GetNmbrPoints(int nrMem)
 	return posXY_par[0].nmbrPoints;
 }
 							/* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
-int GRAPH_GetSamples(int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,float precision, float scaleX,float scaleY, int funcPatternType)
+int GRAPH_GetSamples(int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,float precision, float scaleX,float scaleY, int funcPatternType, float dispScaleY)
 {
 	#if defined(GRAPH_MEMORY_SDRAM2)
 		if(GRAPH_SetPointers(offsMem,nrMem)) return 0;
@@ -5917,6 +5918,7 @@ int GRAPH_GetSamples(int offsMem,int nrMem, int startX,int startY, int yMin,int 
 	ptrPrev[nrMem].yMinMaxchart[0] = startY + yMin;
 	ptrPrev[nrMem].yMinMaxchart[1] = startY + yMax;
 	ptrPrev[nrMem].sizeX 			 = nmbrPoints;
+	ptrPrev[nrMem].scaleY 			 = dispScaleY;
 	ptrPrev[nrMem].CounterBusyBytesForFontsImages_copy = GET_nmbrBytesForFontsImages();
 
 	if(1 > posXY_par[0].len_posXYrep) return 1;
@@ -6025,7 +6027,12 @@ int GRAPH_DrawPtr(int nrMem, int posPtr)
 		if(ptrPrev[nrMem].memInUse) LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, ptrPrev[nrMem].rctMem);
 		__RCT_CopyBitmapToMem_and_PrepareBk();
 		LCD_BoldRoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	SetBold2Color(ptrPrev[nrMem].ptr.fromColorRct,2), ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.5);
-		LCD_TxtInFrame_minimize(rectW,rectH, ptrPrev[nrMem].ptr.fontID, -2,0, 	StrAll(3,Int2Str(posXY[posChartPtr].x-CONDITION(GRAPH_IsIndirect(nrMem),0,ptrPrev[nrMem].startXYchart.x),None,3,Sign_none),",",Int2Str(posXY[posChartPtr].y-CONDITION(GRAPH_IsIndirect(nrMem),0,ptrPrev[nrMem].yMinMaxchart[0]),None,3,Sign_none)),	1);
+
+		int 	sizeY 	= ptrPrev[nrMem].yMinMaxchart[1] - ptrPrev[nrMem].yMinMaxchart[0];
+		int 	dispPosX = 	 			 posXY[posChartPtr].x-CONDITION(GRAPH_IsIndirect(nrMem),0,ptrPrev[nrMem].startXYchart.x );
+		float dispPosY = (sizeY/2 - ( posXY[posChartPtr].y-CONDITION(GRAPH_IsIndirect(nrMem),0,ptrPrev[nrMem].yMinMaxchart[0]) )) * ptrPrev[nrMem].scaleY;
+
+		LCD_TxtInFrame_minimize(rectW,rectH, ptrPrev[nrMem].ptr.fontID, -2,0, 	StrAll(3,Int2Str(dispPosX,None,3,Sign_none),",",Float2Str(dispPosY,None,3,Sign_minus,2)),	1);
 		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
 	}
 
@@ -6151,14 +6158,16 @@ void GRAPH_Draw(int posBuff,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOu
 		extern void LCD_Txt_minimize();
 		void _WriteColorToPlcd(void){	_PLCD(posBuff,posX,posY) = GetTransitionColor(_PLCD(posBuff,posX,posY), gridColor, gridCoeff);	}
 		_2LOOP(i,j, ptrPrev[nrMem].sizeX, sizeY)
-			if(GRAPH_IsIndirect(nrMem)){	posX = i;												posY = j;	}
-			else								{	posX = ptrPrev[nrMem].startXYchart.x+i;		posY = ptrPrev[nrMem].yMinMaxchart[0]+j;		}
+			if(GRAPH_IsIndirect(nrMem)){	posX = i;												posY = j;											}
+			else								{	posX = ptrPrev[nrMem].startXYchart.x+i;		posY = ptrPrev[nrMem].yMinMaxchart[0]+j;	}
 			switch((int)gridType){
 				case Grid_Dots: if(i%gridSizeX==0 && j%gridSizeY==0) _WriteColorToPlcd(); break;
 				case Grid_Line: if(i%gridSizeX==0 || j%gridSizeY==0) _WriteColorToPlcd(); break;
 				default: break;
 			}
-			if(i==0 && (j==0||j==sizeY/2)) LCD_Txt_minimize(posX-25,posY, widthBk, chartPtr.fontID, "123");
+			if(i==0 && (j==0||j==sizeY/2)){
+				if(GRAPH_IsIndirect(nrMem)) LCD_Txt_minimize(posX-25,posY, widthBk, chartPtr.fontID, Int2Str(j,None,3,Sign_none));
+				else								 LCD_Txt_minimize(posX-25,posY, widthBk, chartPtr.fontID, Int2Str(j,None,3,Sign_none));	}
 		_2LOOP_END
 	}
 
@@ -6187,7 +6196,7 @@ void GRAPH_GetSamplesAndDraw(int posBuff, int offsMem,int nrMem, u32 widthBk, in
 								DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA, structPointParam chartPtr, GRID_TYPE gridType,u16 gridSizeX,u16 gridSizeY,u32 gridColor,float gridCoeff)
 {
 	if(nrMem >= MAX_CHARTS_SIMULTANEOUSLY) return;
-	if(GRAPH_GetSamples(offsMem,nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType)) return;
+	if(GRAPH_GetSamples(offsMem,nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType,1)) return; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	GRAPH_Draw(posBuff,nrMem, widthBk, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, dispOption,color1,color2,offsK1,offsK2, bkGradType,gradColor1,gradColor2,gradStripY,amplTrans,offsTrans, corr45degAA, chartPtr, gridType,gridSizeX,gridSizeY,gridColor,gridCoeff);
 }
 
