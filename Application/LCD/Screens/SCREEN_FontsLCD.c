@@ -2339,22 +2339,21 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	StartMeasureTime_us();
 
 
-//-----CHART  opt 1 --------    //LCD_STR_PARAM txt dla tekstu wskaznika xy !!!! jako arg dla GRAPH_GetSamplesAndDraw() i LCD_Chart() !!!!
-
+//-----CHART  opt 1 --------
+//
 //	if(testGraph.grad.bkType == 0){   /* Uwaga gdy dajesz itestowe wykresy inne niz Disp_AA to uwazaj b przekracza granice i jest nadpisanie fontow !!!!!!*/
-//		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, 		WHITE,WHITE, 0/*70*LCD_X-0*/, 0/*140*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE),  GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[0],v.FONT_ID_Descr) );
+//		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_SCALE(testGraph.funcType,0.89), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, 		WHITE,WHITE, 0/*70*LCD_X-0*/, 0/*140*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE),  GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[0],v.FONT_ID_Descr), CHART_GRID(Grid_Line,10,10,WHITE,0.2) );
 //	}
 //	else if(testGraph.grad.bkType == 1){
-//		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,1), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 140*LCD_X-0), GRAD_Ystrip(GREEN,51),GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr) );
+//		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,1), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_SCALE(testGraph.funcType,0.51), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 140*LCD_X-0), GRAD_Ystrip(GREEN,51),GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr), CHART_GRID(Grid_Dots,20,20,WHITE,0.85) );
 //
 //	}
 //	else if(testGraph.grad.bkType == 2){
-//		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,2), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY/*|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 0*LCD_X-0), GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[2],v.FONT_ID_Descr) );
+//		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,2), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_SCALE(testGraph.funcType,0.23), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY/*|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 0*LCD_X-0), GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[2],v.FONT_ID_Descr), CHART_GRID(Grid_Line,30,30,WHITE,0.2) );
 //	}
 
 
 //WYPROBUJ OPT FAST FONTY wyswieltanie ieCREATING!!!!
-//SIATKE zrobic !!!!zastanowic sie moze taka delikatna przezroczysta!!!!
 
 //ZROBIC OPT Fast !!!!!!!!!!  URUCHOM przewijanie wykresu po X !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //-----CHART  common --------
@@ -2388,20 +2387,6 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 //	LCDSHAPE_Chart_Indirect(par3);
 
 
-//	double aaaa1=3.499999;
-//	double aaaa2=3.5000001;
-//	double aaaa3=3.1111;
-//	int yyyy1 = ROUND_VAL(aaaa1,0.5);//CONDITION((aaaa1-(int)aaaa1)>0.5, (int)(aaaa1+1.0), (int)aaaa1);
-//	int yyyy2 =  ROUND_VAL(aaaa2,0.5);//CONDITION((aaaa2-(int)aaaa2)>0.5, (int)(aaaa2+1.0), (int)aaaa2);
-//	int yyyy3 =  ROUND_VAL(aaaa3,0.5);//CONDITION((aaaa3-(int)aaaa3)>0.5, (int)(aaaa3+1.0), (int)aaaa3);
-//
-//	int yyyy4 =  ROUND_VAL(aaaa2,0.5000001);//CONDITION((aaaa2-(int)aaaa2)>0.5, (int)(aaaa2+1.0), (int)aaaa2);
-//	int yyyy5 =  ROUND_VAL(aaaa2,0.50000001);//CONDITION((aaaa3-(int)aaaa3)>0.5, (int)(aaaa3+1.0), (int)aaaa3);
-//
-//	int yyyy6 =  ROUND_VAL(aaaa2,0.500001);//CONDITION((aaaa2-(int)aaaa2)>0.5, (int)(aaaa2+1.0), (int)aaaa2);
-
-
-
 
 	StopMeasureTime_us("Time GRAPH:");
 
@@ -2420,7 +2405,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 //ROBIMY :  1. LISTVIEW  tabelko z lista   2. klawiature i koniec !!!
-	//GRAPH ZADANIA  : delikatna siateczka, okienko XY, wskaznik pionowy
+
 	//pobawic sie w selektywna optymalizacje
 
 	//ATTENTION IN FUTURE   tylko w jednej funkcji umieszczamy zmienne odswiezane reularnie i ta funkcja idzie do jakiegos watku !!!!!
@@ -2466,7 +2451,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 #undef MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY
 #undef SELECT_CURRENT_FONT
 
-//w harfoult interrup ddacv mozliwosc odczyti linijki kodu poprzedniego !!!!
+//w harfoult interrup ddacv mozliwosc odczyti linijki kodu poprzedniego w sposob jawny np z pliku elf!!!!
 //Zrobic szablon nowego okna -pliku LCD !!!! aby latwo wystartowac !!!
 //ZROBIC animacje ze samo sie klioka i chmurka z info ze przytrzymac na 2 sekundy ....
 //ZROBIC AUTOMATYCZNE testy wszystkich mozliwosci !!!!!!! taki interfejs testowy

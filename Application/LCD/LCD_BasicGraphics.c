@@ -6192,11 +6192,11 @@ void GRAPH_Draw(int posBuff,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOu
 	}
 }
 									  /* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
-void GRAPH_GetSamplesAndDraw(int posBuff, int offsMem,int nrMem, u32 widthBk, int startX,int startY, int yMin,int yMax, int nmbrPoints,float precision, float scaleX,float scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
+void GRAPH_GetSamplesAndDraw(int posBuff, int offsMem,int nrMem, u32 widthBk, int startX,int startY, int yMin,int yMax, int nmbrPoints,float precision, float scaleX,float scaleY, int funcPatternType, float dispScaleY, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
 								DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA, structPointParam chartPtr, GRID_TYPE gridType,u16 gridSizeX,u16 gridSizeY,u32 gridColor,float gridCoeff)
 {
 	if(nrMem >= MAX_CHARTS_SIMULTANEOUSLY) return;
-	if(GRAPH_GetSamples(offsMem,nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType,1)) return; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	if(GRAPH_GetSamples(offsMem,nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType,dispScaleY)) return;
 	GRAPH_Draw(posBuff,nrMem, widthBk, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, dispOption,color1,color2,offsK1,offsK2, bkGradType,gradColor1,gradColor2,gradStripY,amplTrans,offsTrans, corr45degAA, chartPtr, gridType,gridSizeX,gridSizeY,gridColor,gridCoeff);
 }
 
