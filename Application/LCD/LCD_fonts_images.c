@@ -275,6 +275,7 @@ static uint8_t StructSpaceCount=0;
 
 static uint32_t CounterBusyBytesForFontsImages=0;
 static int TempSpaceCorr=0;
+static u8 shadowInText=0;
 
 extern uint32_t pLcd[];
 
@@ -2056,6 +2057,9 @@ int GETVAL_array32(uint32_t nrVal, uint32_t* val, uint32_t len){
 	}
 	return 0;
 }
+
+void LCD_SetShadowInText(void){	shadowInText=1; }
+void LCD_ClrShadowInText(void){	shadowInText=0; }
 
 void LCD_SetStrVar_bkColor(int idVar, uint32_t bkColor){
 	FontVar[idVar].bkColor=bkColor;
@@ -4212,7 +4216,7 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, u32 *buff, int displayOn, int fontID
 				if(displayOn) posTemp = posBuff + 	 j*lenTxtInPixel + posTxtX + i;
 				else			  posTemp = posBuff + (y+j)*winW   +   x + posTxtX + i;
 
-				if(pTxt[h]==' '){	 if(bkColor!=0 && isDsplRect==0) _SendToBuffOut(j,bkColor);	}
+				if(pTxt[h]==' '){	 if(bkColor!=0 && isDsplRect==0 && shadowInText==0) _SendToBuffOut(j,bkColor);	}
 				else
 				{
 					if(data == 0)	data = _GetDataFromInput(pFileCFF,&posReadFileCFF,&type);
@@ -4604,6 +4608,7 @@ StructTxtPxlLen LCD_StrDependOnColorsWindow(uint32_t posBuff,uint32_t BkpSizeX,u
 		lenStr=LCD_StrWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,0,constWidth);
 	else
 		lenStr=LCD_StrChangeColorWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+	shadowInText=0;
 	return lenStr;
 }
 
@@ -4881,7 +4886,7 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 			bkX=0; bkY=0;
 			break;
 	}
-
+	if(deep) shadowInText=1;
 	switch((int)act)
 	{
 		case noDisplay:

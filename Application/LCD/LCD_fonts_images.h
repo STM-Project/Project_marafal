@@ -272,6 +272,8 @@ uint32_t GETVAL_int32(uint32_t nrVal);
 int GETVAL_array16(uint32_t nrVal, uint16_t* val, uint32_t len);
 int GETVAL_array32(uint32_t nrVal, uint32_t* val, uint32_t len);
 
+void LCD_SetShadowInText(void);
+void LCD_ClrShadowInText(void);
 void LCD_SetStrVar_bkColor(int idVar, uint32_t bkColor);
 void LCD_SetStrVar_fontColor(int idVar, uint32_t fontColor);
 void LCD_SetStrVar_x(int idVar,int x);
