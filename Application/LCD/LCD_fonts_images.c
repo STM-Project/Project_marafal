@@ -285,6 +285,8 @@ static int RealizeTempSpaceCorrect(char *txt, int id){
 		case 0: break;
 		case 1:
 			if((IS_RANGE(txt[0],'0','9')&&(txt[1]==','))||((txt[0]==',')&&IS_RANGE(txt[1],'0','9'))) return 2;
+			if(txt[0]==',' && txt[1]=='-') return 2;
+			if(txt[0]==',' && txt[1]==' ') return -4;
 			if((IS_RANGE(txt[0],'0','9')&&(txt[1]=='.'))||((txt[0]=='.')&&IS_RANGE(txt[1],'0','9'))) return -2;
 			break;
 		default: break;
@@ -4608,7 +4610,6 @@ StructTxtPxlLen LCD_StrDependOnColorsWindow(uint32_t posBuff,uint32_t BkpSizeX,u
 		lenStr=LCD_StrWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,0,constWidth);
 	else
 		lenStr=LCD_StrChangeColorWindow(posBuff,BkpSizeX,BkpSizeY,fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
-	shadowInText=0;
 	return lenStr;
 }
 
@@ -4850,7 +4851,7 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 												case LeftDown:  _x=p->txt.pos.x + p->shadow.deep; _y=p->txt.pos.y; 	  					sx=-1, sy= 1; break;
 												case LeftUp: 	 _x=p->txt.pos.x + p->shadow.deep; _y=p->txt.pos.y + p->shadow.deep; sx=-1, sy=-1; break;	 }
 	}
-	StructTxtPxlLen _ShadowFunc(void){
+	StructTxtPxlLen _ShadowFunc(void){		shadowInText=1;
 		_PosDirFunc();
 		bkShape=LCD_GetStrVar_bkRoundRect(idVar);
 		LCD_SetBkFontShape(idVar, BK_None);
@@ -4858,10 +4859,10 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 		for(i=1; i<deep; ++i)
 			LCD_StrDependOnColorsWindow	(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,shadeColor,shadeColor,maxVal,constWidth);
 		LCD_StrDependOnColorsWindow		(0,bkX,bkY,FONT_ID_VAR(fontID,idVar), _x+i*sx, _y+i*sy, txt,OnlyDigits,space,0,			 fontColor, maxVal,constWidth);
-		LCD_SetBkFontShape(idVar,bkShape);
+		LCD_SetBkFontShape(idVar,bkShape);	shadowInText=0;
 		return temp;
 	}
-	StructTxtPxlLen _ShadowStructFunc(void){
+	StructTxtPxlLen _ShadowStructFunc(void){		shadowInText=1;
 		_PosDirStructFunc();
 		bkShape=LCD_GetStrVar_bkRoundRect(p->fontVar);
 		LCD_SetBkFontShape(p->fontVar, BK_None);
@@ -4869,7 +4870,7 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 		for(i=1; i < p->shadow.deep; ++i)
 			LCD_StrDependOnColorsWindow	(0, bkX,bkY, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, p->shadow.shadeColor,	p->shadow.shadeColor, p->maxV, p->constW);
 		LCD_StrDependOnColorsWindow		(0, bkX,bkY, FONT_ID_VAR(p->fontId,p->fontVar), _x+i*sx, _y+i*sy, p->str, p->onlyDig, p->spac, 0, 							p->fontCol, 			 p->maxV, p->constW);
-		LCD_SetBkFontShape(p->fontVar,bkShape);
+		LCD_SetBkFontShape(p->fontVar,bkShape);	shadowInText=0;
 		return temp;
 	}
 
@@ -4886,7 +4887,7 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 			bkX=0; bkY=0;
 			break;
 	}
-	if(deep) shadowInText=1;
+
 	switch((int)act)
 	{
 		case noDisplay:
