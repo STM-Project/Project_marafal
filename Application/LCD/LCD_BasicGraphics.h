@@ -56,9 +56,9 @@
 #define XYPOS_YMIN_YMAX(x,y,yMIn,yMax) 	x,y,yMIn,yMax
 #define NR_MEM(offs,nr) 		offs,nr
 
-#define CHART_PTR_NONE																																											GRAPH_SetPtr(0,0,0,0,0, 0,0,0,0,0,0,0,0)
-#define CHART_PTR_DEFAULT(posPtr,fontID)																																					GRAPH_SetPtr(LIGHTBLUE,DARKBLUE,18,posPtr,1, WHITE,DARKYELLOW,80,30,10,10,1,fontID)
-#define CHART_PTR_PARAM(colorPtr1,colorPtr2,sizePtr,posPtr,hideShowPtr, colorRct1,colorRct2,xSizeRct,ySizeRct,xPosRct,yPosRct,hideShowRct,fontID)		GRAPH_SetPtr(colorPtr1,colorPtr2,sizePtr,posPtr,hideShowPtr, colorRct1,colorRct2,xSizeRct,ySizeRct,xPosRct,yPosRct,hideShowRct,fontID)
+#define CHART_PTR_NONE																																											 GRAPH_SetPtr(0,0,0,0,0, 0,0,0,0,0,0,0,0)
+#define CHART_PTR_DEFAULT(posPtr,fontID)																																					 GRAPH_SetPtr(LIGHTBLUE,DARKBLUE,18,posPtr,1, WHITE,DARKYELLOW,80,30,10,10,1,fontID)
+#define CHART_PTR_PARAM(fromColorPtr,ToColorPtr,sizePtr,posPtr,hideShowPtr, colorRct1,colorRct2,xSizeRct,ySizeRct,xPosRct,yPosRct,hideShowRct,fontID)	 GRAPH_SetPtr(fromColorPtr,ToColorPtr,sizePtr,posPtr,hideShowPtr, colorRct1,colorRct2,xSizeRct,ySizeRct,xPosRct,yPosRct,hideShowRct,fontID)
 
 typedef enum{
 	Disp_no,
