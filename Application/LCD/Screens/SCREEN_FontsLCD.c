@@ -2341,16 +2341,27 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 //-----CHART  opt 1 --------    //LCD_STR_PARAM txt dla tekstu wskaznika xy !!!! jako arg dla GRAPH_GetSamplesAndDraw() i LCD_Chart() !!!!
 
-//	if(testGraph.grad.bkType == 0){   /* Uwaga gdy dajesz itestowe wykresy inne niz Disp_AA to uwazaj b przekracza granice i jest nadpisanie fontow !!!!!!*/
-//		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, 		WHITE,WHITE, 0/*70*LCD_X-0*/, 0/*140*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE),  GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[0],v.FONT_ID_Descr) );
-//	}
-//	else if(testGraph.grad.bkType == 1){
-//		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,1), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 140*LCD_X-0), GRAD_Ystrip(GREEN,51),GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr) );
-//
-//	}
-//	else if(testGraph.grad.bkType == 2){
-//		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,2), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY/*|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 0*LCD_X-0), GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[2],v.FONT_ID_Descr) );
-//	}
+	if(testGraph.grad.bkType == 0){   /* Uwaga gdy dajesz itestowe wykresy inne niz Disp_AA to uwazaj b przekracza granice i jest nadpisanie fontow !!!!!!*/
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, 		WHITE,WHITE, 0/*70*LCD_X-0*/, 0/*140*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE),  GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[0],v.FONT_ID_Descr) );
+		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_1);
+		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_2);
+		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_3);
+		LCDTOUCH_Set(50,250-100, 700,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_1, pressRelease);
+	}
+	else if(testGraph.grad.bkType == 1){
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,1), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 140*LCD_X-0), GRAD_Ystrip(GREEN,51),GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr) );
+		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_1);
+		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_2);
+		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_3);
+		LCDTOUCH_Set(50,250-100, 700,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_2, pressRelease);
+	}
+	else if(testGraph.grad.bkType == 2){
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,2), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY/*|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 0*LCD_X-0), GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[2],v.FONT_ID_Descr) );
+		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_1);
+		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_2);
+		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_3);
+		LCDTOUCH_Set(50,250-100, 700,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_3, pressRelease);
+	}
 
 
 //WYPROBUJ OPT FAST FONTY wyswieltanie ieCREATING!!!!
@@ -2358,22 +2369,22 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 //ZROBIC OPT Fast !!!!!!!!!!  URUCHOM przewijanie wykresu po X !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //-----CHART  common --------
-	GRAPH_GetSamples(NR_MEM(3000000,0), XYPOS_YMIN_YMAX( 50,250, -100,100), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
-	GRAPH_GetSamples(NR_MEM(4000000,1), XYPOS_YMIN_YMAX(300,250,  -80, 80), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
-	GRAPH_GetSamples(NR_MEM(5000000,2), XYPOS_YMIN_YMAX(  0,100, -100,100), POINTS_STEP_XYSCALE(240,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
+//	GRAPH_GetSamples(NR_MEM(3000000,0), XYPOS_YMIN_YMAX( 50,250, -100,100), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
+//	GRAPH_GetSamples(NR_MEM(4000000,1), XYPOS_YMIN_YMAX(300,250,  -80, 80), POINTS_STEP_XYSCALE(200,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
+//	GRAPH_GetSamples(NR_MEM(5000000,2), XYPOS_YMIN_YMAX(  0,100, -100,100), POINTS_STEP_XYSCALE(240,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(Func_sin));
+//
+//	USER_GRAPH_PARAM par1, par2, par3;				//Wazen wycieki pamieci (brak ogr) dla 	pomocnych krzywych Disp_posXY i Disp_posXYrep !!!!!!!!!!!!!!!
+//																								/* alternative: LINE_AACOLOR(WHITE,0,0) */
+//	par1 = LCD_Chart(ToStructAndReturn, 0, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*40*LCD_X-0, 80*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[0],v.FONT_ID_Descr));
+//	par2 = LCD_Chart(ToStructAndReturn, 1, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*40*LCD_X-0, 80*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr));
+//
+//	int widthBk = GRAPH_GetNmbrPoints(2);  ///naprawic wyciek gdy coraz wieksaz ampl !!!!! dla indirect
+//	par3 = LCD_Chart(ToStructAndReturn, 2, XY_WIN(550,250), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*widthBk-0, 0*widthBk-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[2],v.FONT_ID_Descr));
+//
 
-	USER_GRAPH_PARAM par1, par2, par3;				//Wazen wycieki pamieci (brak ogr) dla 	pomocnych krzywych Disp_posXY i Disp_posXYrep !!!!!!!!!!!!!!!
-																								/* alternative: LINE_AACOLOR(WHITE,0,0) */
-	par1 = LCD_Chart(ToStructAndReturn, 0, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*40*LCD_X-0, 80*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[0],v.FONT_ID_Descr));
-	par2 = LCD_Chart(ToStructAndReturn, 1, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*40*LCD_X-0, 80*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr));
-
-	int widthBk = GRAPH_GetNmbrPoints(2);  ///naprawic wyciek gdy coraz wieksaz ampl !!!!! dla indirect
-	par3 = LCD_Chart(ToStructAndReturn, 2, XY_WIN(550,250), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*widthBk-0, 0*widthBk-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[2],v.FONT_ID_Descr));
-
-
-	LCDTOUCH_Set( 50,250-100, 200,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_1, pressRelease);
-	LCDTOUCH_Set(300,250- 80, 200,160, ID_TOUCH_GET_ANY_POINT, Touch_Chart_2, pressRelease);
-	LCDTOUCH_Set(550,250-100, 240,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_3, pressRelease);
+//	LCDTOUCH_Set( 50,250-100, 200,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_1, pressRelease);
+//	LCDTOUCH_Set(300,250- 80, 200,160, ID_TOUCH_GET_ANY_POINT, Touch_Chart_2, pressRelease);
+//	LCDTOUCH_Set(550,250-100, 240,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_3, pressRelease);
 
 //-----CHART  opt 1 --------
 //	LCD_Chart(0, MEM_3,				 LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(50,v.FONT_ID_Descr));
@@ -2381,8 +2392,8 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 //	LCD_Chart(0, NR_MEM(2000000,0),LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*50*LCD_X-0, 100*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[0],v.FONT_ID_Descr));
 
 //-----CHART  opt 2 --------
-	LCDSHAPE_Chart(0,par1);
-	LCDSHAPE_Chart(0,par2);
+//	LCDSHAPE_Chart(0,par1);
+//	LCDSHAPE_Chart(0,par2);
 //
 ////-----CHART  opt 3 --------
 //	LCDSHAPE_Chart_Indirect(par3);
@@ -2405,7 +2416,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
-	LCDSHAPE_Chart_Indirect(par3);
+	//LCDSHAPE_Chart_Indirect(par3);
 
 
 
