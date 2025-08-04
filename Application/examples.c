@@ -245,9 +245,19 @@ void DBGEXAMPLE_KeyFunctions(void)
 																																																	/* for 'b' decrement value by step 0.1 but for 'B' decrement value by step 1.5 */
 }
 
-void LCDEXAMPLE_Graph(USER_GRAPH_PARAM graph, int touchStart, int FONT_ID_Descr)
+void LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int touchStart, int FONT_ID_Descr)
 {
-	/* GRAPH - various options */
+	switch(displayOption)
+	{
+	case 0:
+		break;
+
+
+	case 1:
+		break;
+	}
+
+	/* 1 - GRAPH option */
 	int offsMem = 0;
 	int nrChart = 0;											/* must be always negative 	  must be always positive */
 	int xPosChart = 50, 	yMiddPosChart = 250;			int yOffsToTopChart = -100,  yOffsToBottomChart = 100;				int widthChart = 700;
@@ -263,17 +273,17 @@ void LCDEXAMPLE_Graph(USER_GRAPH_PARAM graph, int touchStart, int FONT_ID_Descr)
 
 	switch(graph.grad.bkType)		/* Alternating display of charts */
 	{																																																																								  			/* Draw line (colorLine) but OutColor and InColor (needed for AA) is read from bkColor */
-																																																																																		/* Alternative options:  0,0  ->  means READ_BK							 			Disp_no																															 										GRAD_None 																			 CHART_PTR_NONE */
+																																																																																/* Alternative options:  0,0  ->  means READ_BK							 						Disp_no																															 							GRAD_None 																			 CHART_PTR_NONE */
 	case 0:	GRAPH_GetSamplesAndDraw(0, NR_MEM(offsMem,nrChart), LCD_X, XYPOS_YMIN_YMAX(xPosChart,yMiddPosChart, yOffsToTopChart,yOffsToBottomChart), POINTS_STEP_XYSCALE(widthChart,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(graph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), 	DRAW_OPT(Disp_AA, 								  colorLine45degCorrectOFF, colorLineAAoff,   offsK_45degCorrectOFF, offsK_AAoff	  ), 	GRAD_YmaxYmin(ORANGE), 		GRAD_COEFF(1.0,0.0), graph.corr45degAA, CHART_PTR_DEFAULT(							  chartPtrPos,												FONT_ID_Descr) );		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart, yMiddPosChart-ABS(yOffsToTopChart), widthChart, ABS(yOffsToTopChart)+yOffsToBottomChart, ID_TOUCH_GET_ANY_POINT, touchStart+0, pressRelease); }	break;
 	case 1:	GRAPH_GetSamplesAndDraw(0, NR_MEM(offsMem,nrChart), LCD_X, XYPOS_YMIN_YMAX(xPosChart,yMiddPosChart, yOffsToTopChart,yOffsToBottomChart), POINTS_STEP_XYSCALE(widthChart,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(graph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), 	DRAW_OPT(Disp_AA,  							     colorLine45degCorrectOFF, colorLineAAoff,   offsK_45degCorrectOFF, offsK_AAoff	  ), 	GRAD_Ystrip(DARKGREEN,51),	GRAD_COEFF(1.0,0.0), graph.corr45degAA, CHART_PTR_DEFAULT(							  chartPtrPos,												FONT_ID_Descr) );		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart, yMiddPosChart-ABS(yOffsToTopChart), widthChart, ABS(yOffsToTopChart)+yOffsToBottomChart, ID_TOUCH_GET_ANY_POINT, touchStart+1, pressRelease); }	break;
-	case 2:  GRAPH_GetSamplesAndDraw(0, NR_MEM(offsMem,nrChart), LCD_X, XYPOS_YMIN_YMAX(xPosChart,yMiddPosChart, yOffsToTopChart,yOffsToBottomChart), POINTS_STEP_XYSCALE(widthChart,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(graph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), 	DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, colorPosXY, 				  	 colorPosXYrep,    offsK_PosXY, 			 	offsK_PosXYrep), 	GRAD_Ycolor(RED,BLUE), 		GRAD_COEFF(1.0,0.0), graph.corr45degAA, CHART_PTR_PARAM  (LIGHTBLUE,DARKBLUE,18,chartPtrPos,1, WHITE,DARKYELLOW,80,30,10,10,1,FONT_ID_Descr) );		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart, yMiddPosChart-ABS(yOffsToTopChart), widthChart, ABS(yOffsToTopChart)+yOffsToBottomChart, ID_TOUCH_GET_ANY_POINT, touchStart+2, pressRelease); }	break;
-																																																																																									 	 	 /* AA_VAL(0.0,0.0) and AA_ON  is the same 		DRAW_AA */			/*	Disp_all */
-																																																																																											 /* AA_VAL(1.0,1.0) and AA_OFF is the same 		DRAW_NO  only get samples without draw graph */
+	case 2:  GRAPH_GetSamplesAndDraw(0, NR_MEM(offsMem,nrChart), LCD_X, XYPOS_YMIN_YMAX(xPosChart,yMiddPosChart, yOffsToTopChart,yOffsToBottomChart), POINTS_STEP_XYSCALE(widthChart,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(graph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), 	DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep,  colorPosXY, 				  	 colorPosXYrep,    offsK_PosXY, 			 	offsK_PosXYrep), 	GRAD_Ycolor(RED,BLUE), 		GRAD_COEFF(1.0,0.0), graph.corr45degAA, CHART_PTR_PARAM  (LIGHTBLUE,DARKBLUE,18,chartPtrPos,1, WHITE,DARKYELLOW,80,30,10,10,1,FONT_ID_Descr) );		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart, yMiddPosChart-ABS(yOffsToTopChart), widthChart, ABS(yOffsToTopChart)+yOffsToBottomChart, ID_TOUCH_GET_ANY_POINT, touchStart+2, pressRelease); }	break;
+																																																																																									 /* AA_VAL(0.0,0.0) and AA_ON  is the same 		DRAW_AA */			/*	Disp_all 																																 	GRAD_PARAM(...) */
+																																																																																									 /* AA_VAL(1.0,1.0) and AA_OFF is the same 		DRAW_NO  only get samples without draw graph */
 	}
 
 
-	/* Simultaneous display of charts */
-	//-----CHART  common --------
+
+	/* 2 - GRAPH option */
 
 	int offsMem2[3] = { 0, 0, 0 };
 	int nrChart2[3] = { 0, 1, 2 };																	/* must be always negative 	  must be always positive */
@@ -281,9 +291,9 @@ void LCDEXAMPLE_Graph(USER_GRAPH_PARAM graph, int touchStart, int FONT_ID_Descr)
 	int chartPtrPos2[3] = {70,70,70};
 
 //
-		GRAPH_GetSamples(NR_MEM(offsMem2[0],nrChart2[0]), XYPOS_YMIN_YMAX( 50,250, -100,100), POINTS_STEP_XYSCALE(200,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(Func_sin));
-		GRAPH_GetSamples(NR_MEM(offsMem2[1],nrChart2[1]), XYPOS_YMIN_YMAX(300,250,  -80, 80), POINTS_STEP_XYSCALE(200,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(Func_sin));
-		GRAPH_GetSamples(NR_MEM(offsMem2[2],nrChart2[2]), XYPOS_YMIN_YMAX(  0,100, -100,100), POINTS_STEP_XYSCALE(240,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(Func_sin));
+		GRAPH_GetSamples(NR_MEM(offsMem2[0],nrChart2[0]), XYPOS_YMIN_YMAX(xPosChart2[0],yMiddPosChart2[0], yOffsToTopChart2[0],yOffsToBottomChart2[0]), POINTS_STEP_XYSCALE(widthChart2[0],1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(Func_sin));
+		GRAPH_GetSamples(NR_MEM(offsMem2[1],nrChart2[1]), XYPOS_YMIN_YMAX(xPosChart2[1],yMiddPosChart2[1], yOffsToTopChart2[1],yOffsToBottomChart2[1]), POINTS_STEP_XYSCALE(widthChart2[1],1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(Func_sin));
+		GRAPH_GetSamples(NR_MEM(offsMem2[2],nrChart2[2]), XYPOS_YMIN_YMAX(xPosChart2[2],yMiddPosChart2[2], yOffsToTopChart2[2],yOffsToBottomChart2[2]), POINTS_STEP_XYSCALE(widthChart2[2],1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(Func_sin));
 	//
 	//	USER_GRAPH_PARAM par1, par2, par3;				//Wazen wycieki pamieci (brak ogr) dla 	pomocnych krzywych Disp_posXY i Disp_posXYrep !!!!!!!!!!!!!!!
 	//																								/* alternative: LINE_AACOLOR(WHITE,0,0) */
@@ -298,7 +308,7 @@ void LCDEXAMPLE_Graph(USER_GRAPH_PARAM graph, int touchStart, int FONT_ID_Descr)
 	//	LCDTOUCH_Set(300,250- 80, 200,160, ID_TOUCH_GET_ANY_POINT, Touch_Chart_2, pressRelease);
 	//	LCDTOUCH_Set(550,250-100, 240,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_3, pressRelease);
 
-	//-----CHART  opt 1 --------
+	//-----CHART  opt 1 --------  /* Simultaneous display of charts */
 	//	LCD_Chart(0, MEM_3,				 LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(50,v.FONT_ID_Descr));
 	//	LCD_Chart(0, NR_MEM(4000000,1),LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*50*LCD_X-0, 100*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr));
 	//	LCD_Chart(0, NR_MEM(2000000,0),LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*50*LCD_X-0, 100*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[0],v.FONT_ID_Descr));
