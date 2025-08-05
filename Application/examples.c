@@ -281,6 +281,16 @@ void LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int touchStart,
 																																																																																									 /* AA_VAL(1.0,1.0) and AA_OFF is the same 		DRAW_NO  only get samples without draw graph */
 	}
 
+	/* Touch Test GRAPH		---	 use only if debug is necessary in function FILE_NAME(setTouch)() */
+	/*
+		case Touch_Chart_1:	if(GRAPH_IsMemReloaded(nrChart)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart);	break;		// Attention:  Charts use memory for samples pointed by CounterBusyBytesForFontsImages what is changed by load fonts function...
+		case Touch_Chart_2:	if(GRAPH_IsMemReloaded(nrChart)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart);	break;		// 				... and you must reloaded charts if you have changed CounterBusyBytesForFontsImages before.
+		case Touch_Chart_3:	if(GRAPH_IsMemReloaded(nrChart)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart);	break;
+	 */
+
+
+
+
 
 
 	/* 2 - GRAPH option */

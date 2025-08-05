@@ -2349,21 +2349,21 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 		LCDTOUCH_Set(50,250-100, 700,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_1, pressRelease);
 	}
 	else if(testGraph.grad.bkType == 1){
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 140*LCD_X-0), GRAD_Ystrip(GREEN,51),GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr) );
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,1), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 140*LCD_X-0), GRAD_Ystrip(GREEN,51),GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr) );
 		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_1);
 		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_2);
 		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_3);
 		LCDTOUCH_Set(50,250-100, 700,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_2, pressRelease);
 	}
 	else if(testGraph.grad.bkType == 2){
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY/*|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 0*LCD_X-0), GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[2],v.FONT_ID_Descr) );
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,2), LCD_X, XYPOS_YMIN_YMAX(50,250, -100,100), POINTS_STEP_XYSCALE(700,1.0, testGraph.par.scaleX,testGraph.par.scaleY), FUNC_TYPE(testGraph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY/*|Disp_posXYrep*/,  WHITE,WHITE, 70*LCD_X-0, 0*LCD_X-0), GRAD_Ycolor(RED,BLUE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[2],v.FONT_ID_Descr) );
 		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_1);
 		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_2);
 		LCD_TOUCH_DeleteSelectTouch(Touch_Chart_3);
 		LCDTOUCH_Set(50,250-100, 700,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_3, pressRelease);
 	}
 
-	LCDEXAMPLE_Graph(testGraph, v.FONT_ID_Descr, Touch_Chart_1);
+	//LCDEXAMPLE_Graph(testGraph, v.FONT_ID_Descr, Touch_Chart_1);
 
 
 //WYPROBUJ OPT FAST FONTY wyswieltanie ieCREATING!!!!
