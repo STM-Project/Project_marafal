@@ -245,101 +245,89 @@ void DBGEXAMPLE_KeyFunctions(void)
 																																																	/* for 'b' decrement value by step 0.1 but for 'B' decrement value by step 1.5 */
 }
 
-void LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int touchStart, int FONT_ID_Descr)
+void LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int touchStart, int FONT_ID_Descr, int COLOR_BkScreen)
 {
-	switch(displayOption)
-	{
-	case 0:
-		break;
-
-
-	case 1:
-		break;
-	}
-
-	/* 1 - GRAPH option */
-	int offsMem = 0;
-	int nrChart = 0;											/* must be always negative 	  must be always positive */
-	int xPosChart = 50, 	yMiddPosChart = 250;			int yOffsToTopChart = -100,  yOffsToBottomChart = 100;				int widthChart = 700;
-	int chartPtrPos = 70;
-
-	u32 colorPosXY 	= RED;			int offsK_PosXY 	 = 20*LCD_X+0;
-	u32 colorPosXYrep = DARKGREEN;	int offsK_PosXYrep = 40*LCD_X+0;
-
-	u32 colorLine45degCorrectOFF = graph.colorLinePosXY;			 int offsK_45degCorrectOFF = graph.KoffsPosXY;
-	u32 colorLineAAoff 			  = graph.colorLinePosXYrep;	 	 int offsK_AAoff 			   = graph.KoffsPosXYrep;
-
 	void _ResetChartsTouchs(void){	LOOP_FOR(i,3){	LCD_TOUCH_DeleteSelectTouch(touchStart+i); }	 }
 
-	switch(graph.grad.bkType)		/* Alternating display of charts */
-	{																																																																								  			/* Draw line (colorLine) but OutColor and InColor (needed for AA) is read from bkColor */
-																																																																																/* Alternative options:  0,0  ->  means READ_BK							 						Disp_no																															 							GRAD_None 																			 CHART_PTR_NONE */
-	case 0:	GRAPH_GetSamplesAndDraw(0, NR_MEM(offsMem,nrChart), LCD_X, XYPOS_YMIN_YMAX(xPosChart,yMiddPosChart, yOffsToTopChart,yOffsToBottomChart), POINTS_STEP_XYSCALE(widthChart,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(graph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), 	DRAW_OPT(Disp_AA, 								  colorLine45degCorrectOFF, colorLineAAoff,   offsK_45degCorrectOFF, offsK_AAoff	  ), 	GRAD_YmaxYmin(ORANGE), 		GRAD_COEFF(1.0,0.0), graph.corr45degAA, CHART_PTR_DEFAULT(							  chartPtrPos,												FONT_ID_Descr) );		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart, yMiddPosChart-ABS(yOffsToTopChart), widthChart, ABS(yOffsToTopChart)+yOffsToBottomChart, ID_TOUCH_GET_ANY_POINT, touchStart+0, pressRelease); }	break;
-	case 1:	GRAPH_GetSamplesAndDraw(0, NR_MEM(offsMem,nrChart), LCD_X, XYPOS_YMIN_YMAX(xPosChart,yMiddPosChart, yOffsToTopChart,yOffsToBottomChart), POINTS_STEP_XYSCALE(widthChart,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(graph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), 	DRAW_OPT(Disp_AA,  							     colorLine45degCorrectOFF, colorLineAAoff,   offsK_45degCorrectOFF, offsK_AAoff	  ), 	GRAD_Ystrip(DARKGREEN,51),	GRAD_COEFF(1.0,0.0), graph.corr45degAA, CHART_PTR_DEFAULT(							  chartPtrPos,												FONT_ID_Descr) );		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart, yMiddPosChart-ABS(yOffsToTopChart), widthChart, ABS(yOffsToTopChart)+yOffsToBottomChart, ID_TOUCH_GET_ANY_POINT, touchStart+1, pressRelease); }	break;
-	case 2:  GRAPH_GetSamplesAndDraw(0, NR_MEM(offsMem,nrChart), LCD_X, XYPOS_YMIN_YMAX(xPosChart,yMiddPosChart, yOffsToTopChart,yOffsToBottomChart), POINTS_STEP_XYSCALE(widthChart,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(graph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), 	DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep,  colorPosXY, 				  	 colorPosXYrep,    offsK_PosXY, 			 	offsK_PosXYrep), 	GRAD_Ycolor(RED,BLUE), 		GRAD_COEFF(1.0,0.0), graph.corr45degAA, CHART_PTR_PARAM  (LIGHTBLUE,DARKBLUE,18,chartPtrPos,1, WHITE,DARKYELLOW,80,30,10,10,1,FONT_ID_Descr) );		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart, yMiddPosChart-ABS(yOffsToTopChart), widthChart, ABS(yOffsToTopChart)+yOffsToBottomChart, ID_TOUCH_GET_ANY_POINT, touchStart+2, pressRelease); }	break;
-																																																																																									 /* AA_VAL(0.0,0.0) and AA_ON  is the same 		DRAW_AA */			/*	Disp_all 																																 	GRAD_PARAM(...) */
-																																																																																									 /* AA_VAL(1.0,1.0) and AA_OFF is the same 		DRAW_NO  only get samples without draw graph */
-	}
+	switch(displayOption)
+	{
+	case 1:		/* 1 - GRAPH option */
 
-	/* Touch Test GRAPH		---	 use only if debug is necessary in function FILE_NAME(setTouch)() */
-	/*
-		case Touch_Chart_1:	if(GRAPH_IsMemReloaded(nrChart)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart);	break;		// Attention:  Charts use memory for samples pointed by CounterBusyBytesForFontsImages what is changed by load fonts function...
-		case Touch_Chart_2:	if(GRAPH_IsMemReloaded(nrChart)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart);	break;		// 				... and you must reloaded charts if you have changed CounterBusyBytesForFontsImages before.
-		case Touch_Chart_3:	if(GRAPH_IsMemReloaded(nrChart)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart);	break;
-	 */
+		int offsMem = 0;
+		int nrChart = 0;										/* must be always negative  	  must be always positive */
+		int xPosChart = 50, 	yMiddPosChart = 250;			int yOffsToTopChart = -100,  yOffsToBottomChart = 100;				int widthChart = 700;
+		int chartPtrPos = 70;
+
+		u32 colorPosXY 	= RED;			int offsK_PosXY 	 = 20*LCD_X+0;
+		u32 colorPosXYrep = DARKGREEN;	int offsK_PosXYrep = 40*LCD_X+0;
+
+		u32 colorLine45degCorrectOFF = graph.colorLinePosXY;			 int offsK_45degCorrectOFF = graph.KoffsPosXY;
+		u32 colorLineAAoff 			  = graph.colorLinePosXYrep;	 	 int offsK_AAoff 			   = graph.KoffsPosXYrep;
+
+		switch(graph.grad.bkType)		/* Alternating display of charts */
+		{																																																																								  			/* Draw line (colorLine) but OutColor and InColor (needed for AA) is read from bkColor */
+																																																																																	/* Alternative options:  0,0  ->  means READ_BK							 						Disp_no																															 							GRAD_None 																			 CHART_PTR_NONE */
+		case 0:	GRAPH_GetSamplesAndDraw(0, NR_MEM(offsMem,nrChart), LCD_X, XYPOS_YMIN_YMAX(xPosChart,yMiddPosChart, yOffsToTopChart,yOffsToBottomChart), POINTS_STEP_XYSCALE(widthChart,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(graph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), 	DRAW_OPT(Disp_AA, 								  colorLine45degCorrectOFF, colorLineAAoff,   offsK_45degCorrectOFF, offsK_AAoff	  ), 	GRAD_YmaxYmin(ORANGE), 		GRAD_COEFF(1.0,0.0), graph.corr45degAA, CHART_PTR_DEFAULT(							  chartPtrPos,												FONT_ID_Descr) );		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart, yMiddPosChart-ABS(yOffsToTopChart), widthChart, ABS(yOffsToTopChart)+yOffsToBottomChart, ID_TOUCH_GET_ANY_POINT, touchStart+0, pressRelease); }	break;
+		case 1:	GRAPH_GetSamplesAndDraw(0, NR_MEM(offsMem,nrChart), LCD_X, XYPOS_YMIN_YMAX(xPosChart,yMiddPosChart, yOffsToTopChart,yOffsToBottomChart), POINTS_STEP_XYSCALE(widthChart,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(graph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), 	DRAW_OPT(Disp_AA,  							     colorLine45degCorrectOFF, colorLineAAoff,   offsK_45degCorrectOFF, offsK_AAoff	  ), 	GRAD_Ystrip(DARKGREEN,51),	GRAD_COEFF(1.0,0.0), graph.corr45degAA, CHART_PTR_DEFAULT(							  chartPtrPos,												FONT_ID_Descr) );		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart, yMiddPosChart-ABS(yOffsToTopChart), widthChart, ABS(yOffsToTopChart)+yOffsToBottomChart, ID_TOUCH_GET_ANY_POINT, touchStart+1, pressRelease); }	break;
+		case 2:  GRAPH_GetSamplesAndDraw(0, NR_MEM(offsMem,nrChart), LCD_X, XYPOS_YMIN_YMAX(xPosChart,yMiddPosChart, yOffsToTopChart,yOffsToBottomChart), POINTS_STEP_XYSCALE(widthChart,1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(graph.funcType), LINE_COLOR(WHITE,0,0), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), 	DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep,  colorPosXY, 				  	 colorPosXYrep,    offsK_PosXY, 			 	offsK_PosXYrep), 	GRAD_Ycolor(RED,BLUE), 		GRAD_COEFF(1.0,0.0), graph.corr45degAA, CHART_PTR_PARAM  (LIGHTBLUE,DARKBLUE,18,chartPtrPos,1, WHITE,DARKYELLOW,80,30,10,10,1,FONT_ID_Descr) );		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart, yMiddPosChart-ABS(yOffsToTopChart), widthChart, ABS(yOffsToTopChart)+yOffsToBottomChart, ID_TOUCH_GET_ANY_POINT, touchStart+2, pressRelease); }	break;
+																																																																																										 /* AA_VAL(0.0,0.0) and AA_ON  is the same 		DRAW_AA				   Disp_all 																																 	GRAD_PARAM(...) */
+																																																																																										 /* AA_VAL(1.0,1.0) and AA_OFF is the same 		DRAW_NO  only get samples without draw graph */
+		}
+		/* Touch Test GRAPH	-	use only if debug is necessary in function FILE_NAME(setTouch)() */
+		/*
+			case Touch_Chart_1:	if(GRAPH_IsMemReloaded(nrChart)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart);	break;		// Attention:  Charts use memory for samples pointed by CounterBusyBytesForFontsImages what is changed by load fonts function...
+			case Touch_Chart_2:	if(GRAPH_IsMemReloaded(nrChart)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart);	break;		// 				... and you must reloaded charts if you have changed CounterBusyBytesForFontsImages before.
+			case Touch_Chart_3:	if(GRAPH_IsMemReloaded(nrChart)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart);	break;
+		 */
+		break;
 
 
+	case 2:		/* 2 - GRAPH option */
 
+		USER_GRAPH_PARAM par1, par2, par3;
+		int offsMem2[3] = { 1000000, 2000000, 3000000 };
+		int nrChart2[3] = { 0, 1, 2 };															/* must be always negative 	  						 must be always positive */
+		int xPosChart2[3] = {50, 300, 0}, 	yMiddPosChart2[3] = {250, 250, 100};		int yOffsToTopChart2[3] = {-100, -80, -100},  yOffsToBottomChart2[3] = {100, 80, 100};			int widthChart2[3] = {200, 200, 240};
+		int chartPtrPos2[3] = {70,70,70};
 
-
-
-	/* 2 - GRAPH option */
-
-	int offsMem2[3] = { 0, 0, 0 };
-	int nrChart2[3] = { 0, 1, 2 };																	/* must be always negative 	  must be always positive */
-	int xPosChart2[3] = {50, 300, 0}, 	yMiddPosChart2[3] = {250, 250, 100};		int yOffsToTopChart2[3] = {-100, -80, -100},  yOffsToBottomChart2[3] = {100, 80, 100};			int widthChart2[3] = {200, 200, 240};
-	int chartPtrPos2[3] = {70,70,70};
-
-//
 		GRAPH_GetSamples(NR_MEM(offsMem2[0],nrChart2[0]), XYPOS_YMIN_YMAX(xPosChart2[0],yMiddPosChart2[0], yOffsToTopChart2[0],yOffsToBottomChart2[0]), POINTS_STEP_XYSCALE(widthChart2[0],1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(Func_sin));
 		GRAPH_GetSamples(NR_MEM(offsMem2[1],nrChart2[1]), XYPOS_YMIN_YMAX(xPosChart2[1],yMiddPosChart2[1], yOffsToTopChart2[1],yOffsToBottomChart2[1]), POINTS_STEP_XYSCALE(widthChart2[1],1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(Func_sin));
 		GRAPH_GetSamples(NR_MEM(offsMem2[2],nrChart2[2]), XYPOS_YMIN_YMAX(xPosChart2[2],yMiddPosChart2[2], yOffsToTopChart2[2],yOffsToBottomChart2[2]), POINTS_STEP_XYSCALE(widthChart2[2],1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(Func_sin));
-	//
-	//	USER_GRAPH_PARAM par1, par2, par3;				//Wazen wycieki pamieci (brak ogr) dla 	pomocnych krzywych Disp_posXY i Disp_posXYrep !!!!!!!!!!!!!!!
-	//																								/* alternative: LINE_AACOLOR(WHITE,0,0) */
-	//	par1 = LCD_Chart(ToStructAndReturn, 0, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*40*LCD_X-0, 80*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[0],v.FONT_ID_Descr));
-	//	par2 = LCD_Chart(ToStructAndReturn, 1, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*40*LCD_X-0, 80*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr));
-	//
-	//	int widthBk = GRAPH_GetNmbrPoints(2);  ///naprawic wyciek gdy coraz wieksaz ampl !!!!! dla indirect
-	//	par3 = LCD_Chart(ToStructAndReturn, 2, XY_WIN(550,250), LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0*widthBk-0, 0*widthBk-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[2],v.FONT_ID_Descr));
-	//
 
-	//	LCDTOUCH_Set( 50,250-100, 200,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_1, pressRelease);
-	//	LCDTOUCH_Set(300,250- 80, 200,160, ID_TOUCH_GET_ANY_POINT, Touch_Chart_2, pressRelease);
-	//	LCDTOUCH_Set(550,250-100, 240,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_3, pressRelease);
+		/* 1 option:  Via structure displaying of charts */
+															 /* alternative: LINE_AACOLOR(WHITE,0,0) */
+		par1 = LCD_Chart(ToStructAndReturn, 0, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,COLOR_BkScreen), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), DRAW_AA, GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),graph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos2[0],FONT_ID_Descr));
+		par2 = LCD_Chart(ToStructAndReturn, 1, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,COLOR_BkScreen), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), DRAW_AA, GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),graph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos2[1],FONT_ID_Descr));
+		/* int widthBk = GRAPH_GetNmbrPoints(2);																																		DRAW_OPT(Disp_all, RED,DARKGREEN, 20*widthBk+0, 40*widthBk+0) */
+		par3 = LCD_Chart(ToStructAndReturn, 2, XY_WIN(550,250), LINE_AA_BKCOLOR(WHITE,0,0,COLOR_BkScreen), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), DRAW_AA, GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),graph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos2[2],FONT_ID_Descr));
 
-	//-----CHART  opt 1 --------  /* Simultaneous display of charts */
-	//	LCD_Chart(0, MEM_3,				 LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA|Disp_posXY|Disp_posXYrep, WHITE,WHITE, 50*LCD_X-0, 100*LCD_X-0), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(50,v.FONT_ID_Descr));
-	//	LCD_Chart(0, NR_MEM(4000000,1),LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*50*LCD_X-0, 100*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[1],v.FONT_ID_Descr));
-	//	LCD_Chart(0, NR_MEM(2000000,0),LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,v.COLOR_BkScreen), AA_VAL(testGraph.AAoutCoeff,testGraph.AAinCoeff), DRAW_OPT(Disp_AA/*|Disp_posXY|Disp_posXYrep*/, WHITE,WHITE, 0,0/*50*LCD_X-0, 100*LCD_X-0*/), /*GRAD_None*/GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),testGraph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos[0],v.FONT_ID_Descr));
+		LCDSHAPE_Chart(0,par1);
+		LCDSHAPE_Chart(0,par2);
+		LCDSHAPE_Chart_Indirect(par3);	/* ATTENTION !   This put after LCD_Display() as indirect displaying */
 
-	//-----CHART  opt 2 --------
-	//	LCDSHAPE_Chart(0,par1);
-	//	LCDSHAPE_Chart(0,par2);
-	//
-	////-----CHART  opt 3 --------
-	//	LCDSHAPE_Chart_Indirect(par3);
+		/* 2 option:  Simultaneous displaying of charts */
+	/*	LCD_Chart(0, nrChart2[0],LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,COLOR_BkScreen), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), DRAW_AA, GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),graph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos2[0],FONT_ID_Descr));
+		LCD_Chart(0, nrChart2[1],LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,COLOR_BkScreen), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), DRAW_AA, GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),graph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos2[1],FONT_ID_Descr));
+		LCD_Chart(0, nrChart2[2],LCD_X, LINE_AA_BKCOLOR(WHITE,0,0,COLOR_BkScreen), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), DRAW_AA, GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),graph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos2[2],FONT_ID_Descr));
+	 */
+		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart2[0], yMiddPosChart2[0]-ABS(yOffsToTopChart2[0]), widthChart2[0], ABS(yOffsToTopChart2[0])+yOffsToBottomChart2[0], ID_TOUCH_GET_ANY_POINT, touchStart+0, pressRelease); }
+		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart2[1], yMiddPosChart2[1]-ABS(yOffsToTopChart2[1]), widthChart2[1], ABS(yOffsToTopChart2[1])+yOffsToBottomChart2[1], ID_TOUCH_GET_ANY_POINT, touchStart+1, pressRelease); }
+		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart2[2], yMiddPosChart2[2]-ABS(yOffsToTopChart2[2]), widthChart2[2], ABS(yOffsToTopChart2[2])+yOffsToBottomChart2[2], ID_TOUCH_GET_ANY_POINT, touchStart+2, pressRelease); }
 
+		/* Touch Test GRAPH	-	use only if debug is necessary in function FILE_NAME(setTouch)() */
+		/*
+			case Touch_Chart_1:	if(GRAPH_IsMemReloaded(nrChart+0)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart+0);	break;		// Attention:  Charts use memory for samples pointed by CounterBusyBytesForFontsImages what is changed by load fonts function...
+			case Touch_Chart_2:	if(GRAPH_IsMemReloaded(nrChart+1)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart+1);	break;		// 				... and you must reloaded charts if you have changed CounterBusyBytesForFontsImages before.
+			case Touch_Chart_3:	if(GRAPH_IsMemReloaded(nrChart+2)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart+2);	break;
+		 */
+		break;
 
+	default:
+		break;
+	}
 
-
-
-
-
-
-	/* Debug Test GRAPH		---	 use only if debug is necessary in function FILE_NAME(debugRcvStr)() */
-	/*
- 	 int startFuncType = Func_sin,	stopFuncType = Func_lines6;
+	/* Debug Test GRAPH common for 1 and 2 GRAPH option	-  use only if debug is necessary in function FILE_NAME(debugRcvStr)() */
+/* int startFuncType = Func_sin,	stopFuncType = Func_lines6;
 
 	_DBG3_PARAM_NOWRAP("a","A","z","Z",&graph.par.scaleX,_float,_Float(0.1),_Float( 1.5),_Float( 20.0),_Float(1.0),"Test Graph scaleX: ",MainFuncRefresh,NULL)
 	_DBG3_PARAM_NOWRAP("s","S","x","X",&graph.par.scaleY,_float,_Float(1.0),_Float(10.0),_Float(100.0),_Float(1.0),"Test Graph scaleY: ",MainFuncRefresh,NULL)
@@ -356,16 +344,7 @@ void LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int touchStart,
 	_DBG_PARAM_WRAP("y",&graph.corr45degAA,_int,_Wrap,_Int(1), _Int(0),_Int(1), "Test Graph AA 45deg: ",MainFuncRefresh)
 
 	_DBG_PARAM_WRAP("q",&graph.grad.bkType,_int,_Wrap,_Int(1), _Int(Grad_YmaxYmin),_Int(Grad_Ycolor), "Test Graph grad type: ",MainFuncRefresh)
-
-	 */
-
-	/* Touch Test GRAPH		---	 use only if debug is necessary in function FILE_NAME(setTouch)() */
-	/*
-		case Touch_Chart_1:	if(GRAPH_IsMemReloaded(0)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart+0);	break;		// Attention:  Charts use memory for samples pointed by CounterBusyBytesForFontsImages what is changed by load fonts function...
-		case Touch_Chart_2:	if(GRAPH_IsMemReloaded(1)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart+1);	break;		// 				... and you must reloaded charts if you have changed CounterBusyBytesForFontsImages before.
-		case Touch_Chart_3:	if(GRAPH_IsMemReloaded(2)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart+2);	break;
-	 */
-
+*/
 }
 
 void LCDEXAMPLE_CreateLoadDisplayFonts(u32 COLOR_BkScreen)
