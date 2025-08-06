@@ -2363,7 +2363,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 		LCDTOUCH_Set(50,250-100, 700,200, ID_TOUCH_GET_ANY_POINT, Touch_Chart_3, pressRelease);
 	}
 
-	//LCDEXAMPLE_Graph(testGraph, v.FONT_ID_Descr, Touch_Chart_1);
+	LCDEXAMPLE_Graph(0, testGraph, Touch_Chart_1, v.FONT_ID_Descr, v.COLOR_BkScreen);
 
 
 //WYPROBUJ OPT FAST FONTY wyswieltanie ieCREATING!!!!
