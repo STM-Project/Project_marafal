@@ -41,6 +41,8 @@
 #define AA_OFF	 1.0,1.0
 #define AA_VAL(outRatio,inRatio)	 outRatio,inRatio
 #define DRAW_OPT(flag,color1,color2,offs1,offs2)		flag,color1,color2,offs1,offs2
+#define DRAW_AA	 												Disp_AA,0,0,0,0
+#define DRAW_NO													0,0,0,0,0
 #define WIDTH_BK(w)		w
 #define XY_WIN(x,y)		(x)<<16|(y)
 
@@ -51,8 +53,6 @@
 #define GRAD_None												-1,unUsed,unUsed,unUsed
 #define GRAD_COEFF(amplTrans,offsTrans)				amplTrans,offsTrans
 
-#define DRAW_NO	 0,0,0,0,0
-#define DRAW_AA	 Disp_AA,0,0,0,0
 #define XYPOS_YMIN_YMAX(x,y,yMIn,yMax) 	x,y,yMIn,yMax
 #define NR_MEM(offs,nr) 		offs,nr
 
