@@ -273,7 +273,7 @@ void LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int touchStart,
 																																																																																										 /* AA_VAL(0.0,0.0) and AA_ON  is the same 		DRAW_AA				   Disp_all 																																 	GRAD_PARAM(...) */
 																																																																																										 /* AA_VAL(1.0,1.0) and AA_OFF is the same 		DRAW_NO  only get samples without draw graph */
 		}
-		/* Touch Test GRAPH	-	use only if debug is necessary in function FILE_NAME(setTouch)() */
+		/* Touch Test GRAPH	-	use only if touch is necessary in function FILE_NAME(setTouch)() */
 		/*
 			case Touch_Chart_1:	if(GRAPH_IsMemReloaded(nrChart)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart);	break;		// Attention:  Charts use memory for samples pointed by CounterBusyBytesForFontsImages what is changed by load fonts function...
 			case Touch_Chart_2:	if(GRAPH_IsMemReloaded(nrChart)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart);	break;		// 				... and you must reloaded charts if you have changed CounterBusyBytesForFontsImages before.
@@ -295,11 +295,11 @@ void LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int touchStart,
 		GRAPH_GetSamples(NR_MEM(offsMem2[2],nrChart2[2]), XYPOS_YMIN_YMAX(xPosChart2[2],yMiddPosChart2[2], yOffsToTopChart2[2],yOffsToBottomChart2[2]), POINTS_STEP_XYSCALE(widthChart2[2],1.0, graph.par.scaleX,graph.par.scaleY), FUNC_TYPE(Func_sin));
 
 		/* 1 option:  Via structure displaying of charts */
-															 /* alternative: LINE_AACOLOR(WHITE,0,0) */
-		par1 = LCD_Chart(ToStructAndReturn, 0, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,COLOR_BkScreen), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), DRAW_AA, GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),graph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos2[0],FONT_ID_Descr));
-		par2 = LCD_Chart(ToStructAndReturn, 1, WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,COLOR_BkScreen), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), DRAW_AA, GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),graph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos2[1],FONT_ID_Descr));
-		/* int widthBk = GRAPH_GetNmbrPoints(2);																																		DRAW_OPT(Disp_all, RED,DARKGREEN, 20*widthBk+0, 40*widthBk+0) */
-		par3 = LCD_Chart(ToStructAndReturn, 2, XY_WIN(550,250), LINE_AA_BKCOLOR(WHITE,0,0,COLOR_BkScreen), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), DRAW_AA, GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),graph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos2[2],FONT_ID_Descr));
+																		  /* alternative: LINE_AACOLOR(WHITE,0,0) */
+		par1 = LCD_Chart(ToStructAndReturn, nrChart2[0], WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,COLOR_BkScreen), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), DRAW_AA, GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),graph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos2[0],FONT_ID_Descr));
+		par2 = LCD_Chart(ToStructAndReturn, nrChart2[1], WIDTH_BK(LCD_X), LINE_AA_BKCOLOR(WHITE,0,0,COLOR_BkScreen), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), DRAW_AA, GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),graph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos2[1],FONT_ID_Descr));
+		/* int widthBk = GRAPH_GetNmbrPoints(2);																																					 DRAW_OPT(Disp_all, RED,DARKGREEN, 20*widthBk+0, 40*widthBk+0) */
+		par3 = LCD_Chart(ToStructAndReturn, nrChart2[2], XY_WIN(550,250), LINE_AA_BKCOLOR(WHITE,0,0,COLOR_BkScreen), AA_VAL(graph.AAoutCoeff,graph.AAinCoeff), DRAW_AA, GRAD_YmaxYmin(ORANGE), GRAD_COEFF(1.0,0.0),graph.corr45degAA, CHART_PTR_DEFAULT(chartPtrPos2[2],FONT_ID_Descr));
 
 		LCDSHAPE_Chart(0,par1);
 		LCDSHAPE_Chart(0,par2);
@@ -314,11 +314,11 @@ void LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int touchStart,
 		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart2[1], yMiddPosChart2[1]-ABS(yOffsToTopChart2[1]), widthChart2[1], ABS(yOffsToTopChart2[1])+yOffsToBottomChart2[1], ID_TOUCH_GET_ANY_POINT, touchStart+1, pressRelease); }
 		if(touchStart){ _ResetChartsTouchs(); LCDTOUCH_Set(xPosChart2[2], yMiddPosChart2[2]-ABS(yOffsToTopChart2[2]), widthChart2[2], ABS(yOffsToTopChart2[2])+yOffsToBottomChart2[2], ID_TOUCH_GET_ANY_POINT, touchStart+2, pressRelease); }
 
-		/* Touch Test GRAPH	-	use only if debug is necessary in function FILE_NAME(setTouch)() */
+		/* Touch Test GRAPH	-	use only if touch is necessary in function FILE_NAME(setTouch)() */
 		/*
-			case Touch_Chart_1:	if(GRAPH_IsMemReloaded(nrChart+0)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart+0);	break;		// Attention:  Charts use memory for samples pointed by CounterBusyBytesForFontsImages what is changed by load fonts function...
-			case Touch_Chart_2:	if(GRAPH_IsMemReloaded(nrChart+1)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart+1);	break;		// 				... and you must reloaded charts if you have changed CounterBusyBytesForFontsImages before.
-			case Touch_Chart_3:	if(GRAPH_IsMemReloaded(nrChart+2)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,nrChart+2);	break;
+			case Touch_Chart_1:	if(GRAPH_IsMemReloaded(0)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,0);	break;		// Attention:  Charts use memory for samples pointed by CounterBusyBytesForFontsImages what is changed by load fonts function...
+			case Touch_Chart_2:	if(GRAPH_IsMemReloaded(1)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,1);	break;		// 				... and you must reloaded charts if you have changed CounterBusyBytesForFontsImages before.
+			case Touch_Chart_3:	if(GRAPH_IsMemReloaded(2)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,2);	break;
 		 */
 		break;
 
