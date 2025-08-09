@@ -6158,11 +6158,11 @@ void GRAPH_Draw(int posBuff,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOu
 
 		_2LOOP(i,j, ptrPrev[nrMem].sizeX, height__)
 
-			if(GRAPH_IsIndirect(nrMem)){
+			if(GRAPH_IsIndirect(nrMem)){		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				if(i%15==0 || j%15==0)	_PLCD(posBuff,i,j) = GetTransitionColor(_PLCD(posBuff,i,j), WHITE, 0.1);
 			}
 			else{
-				if(i%15==0 && j%15==0)	_PLCD(posBuff,ptrPrev[nrMem].startXYchart.x+i,ptrPrev[nrMem].yMinMaxchart[0]+j) = GetTransitionColor(_PLCD(posBuff,ptrPrev[nrMem].startXYchart.x+i,ptrPrev[nrMem].yMinMaxchart[0]+j), WHITE, 0.1);
+				if(i%15==0 && j%15==0)	_PLCD(posBuff,ptrPrev[nrMem].startXYchart.x+i,ptrPrev[nrMem].yMinMaxchart[0]+j) = GetTransitionColor(_PLCD(posBuff,ptrPrev[nrMem].startXYchart.x+i,ptrPrev[nrMem].yMinMaxchart[0]+j), WHITE, 0.5);  //dots
 			}
 		_2LOOP_END
 	}
