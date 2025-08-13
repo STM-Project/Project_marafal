@@ -2333,7 +2333,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 	StartMeasureTime_us();
 
-	LCDEXAMPLE_Graph(1, testGraph, Touch_Chart_1, v.FONT_ID_Descr, v.COLOR_BkScreen);
+	LCDEXAMPLE_Graph(1, testGraph, Touch_Chart_1, v.FONT_ID_Descr, v.COLOR_BkScreen);  //PRZELICZNIK wartosci dac jeszcze !!!!
 
 
 //WYPROBUJ OPT FAST FONTY wyswieltanie ieCREATING!!!!
