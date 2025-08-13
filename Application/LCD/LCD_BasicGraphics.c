@@ -6152,13 +6152,16 @@ void GRAPH_Draw(int posBuff,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOu
 		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (posBuff,		 	widthBk, posXY_par[0].len_posXYrep, colorLineAA, colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
 	}
 
-	if(1)
+	/* Draw grid of the chart */
+	if(Grid_None != gridType)
 	{
-		int height__ = ptrPrev[nrMem].yMinMaxchart[1] - ptrPrev[nrMem].yMinMaxchart[0];
-		_2LOOP(i,j, ptrPrev[nrMem].sizeX, height__)
+		int offsX = CONDITION( GRAPH_IsIndirect(nrMem), 0, ptrPrev[nrMem].startXYchart.x  );
+		int offsY = CONDITION( GRAPH_IsIndirect(nrMem), 0, ptrPrev[nrMem].yMinMaxchart[0] );
+		int SizeY = ptrPrev[nrMem].yMinMaxchart[1] - ptrPrev[nrMem].yMinMaxchart[0];
+		_2LOOP(i,j, ptrPrev[nrMem].sizeX, SizeY)
 			switch(gridType){
-				case Grid_Dots: 		if(i%gridSizeX==0 && j%gridSizeY==0)	_PLCD(posBuff,ptrPrev[nrMem].startXYchart.x+i,ptrPrev[nrMem].yMinMaxchart[0]+j) = GetTransitionColor(_PLCD(posBuff,ptrPrev[nrMem].startXYchart.x+i,ptrPrev[nrMem].yMinMaxchart[0]+j), gridColor, gridCoeff);		break;
-				case Grid_Line:  		if(i%gridSizeX==0 || j%gridSizeY==0)	_PLCD(posBuff,i,j) 																				  = GetTransitionColor(_PLCD(posBuff,i,j), 																				  gridColor, gridCoeff); 		break;
+				case Grid_Dots: 		if(i%gridSizeX==0 && j%gridSizeY==0)	_PLCD(posBuff,offsX+i,offsY+j) = GetTransitionColor(_PLCD(posBuff,offsX+i,offsY+j), gridColor,gridCoeff);	break;
+				case Grid_Line:  		if(i%gridSizeX==0 || j%gridSizeY==0)	_PLCD(posBuff,offsX+i,offsY+j) = GetTransitionColor(_PLCD(posBuff,offsX+i,offsY+j), gridColor,gridCoeff); 	break;
 				default: break;
 			}
 		_2LOOP_END
