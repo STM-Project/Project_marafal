@@ -138,6 +138,7 @@ typedef enum{
 }GRADIENT_GRAPH_TYPE;
 
 typedef enum{
+	Grid_None,
 	Grid_Dots,
 	Grid_Line
 }GRID_TYPE;
