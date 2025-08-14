@@ -2344,7 +2344,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	StopMeasureTime_us("Time GRAPH:");
 
 
-
+	LCD_ShapeExample(0,LCD_X, 50,300, 60, WHITE, unUsed, v.COLOR_BkScreen, 0);
 
 
 
