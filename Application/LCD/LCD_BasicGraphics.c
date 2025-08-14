@@ -74,7 +74,7 @@ ALIGN_32BYTES(uint32_t pLcd[LCD_BUFF_XSIZE*LCD_BUFF_YSIZE] __attribute__ ((secti
 static uint32_t k, kCopy;
 static uint32_t buff_AA[MAX_SIZE_TAB_AA];
 static uint32_t buff2_AA[MAX_SIZE_TAB_AA];
-static structPosition pos;
+static structPosition pos,pos_prev;
 
 typedef struct
 {	float c1;
@@ -4196,6 +4196,10 @@ void LCD_BoldRoundFrameTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSi
 	LCD_DrawRoundRectangleFrameTransp(0,posBuff,BkpSizeX,BkpSizeY,x+k1,y+k1,width-k2,height-k2,FrameColor,FillColor,AA_OUT_OFF,transpCoeff);
 }
 
+
+static structPosU16 posLinePoints[2*LCD_BUFF_XSIZE] = {0};
+static u16 nmbrLinePoints = 0;
+
 structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len, uint16_t degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
 {
 	#define LINES_BUFF_SIZE		len+6
@@ -4204,7 +4208,7 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len,
 	uint8_t linesBuff[LINES_BUFF_SIZE];
 	int k_iteration=0, searchDirection=0;
 	int nrPointsPerLine=0, iteration=1;
-	int findNoPoint=0, rot;
+	int findNoPoint=0, rot, pointsIt=0;
 	float param_y;
 	float param_x;
 	float decision;
@@ -4232,7 +4236,12 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len,
 
 
 	do
-	{
+	{	pos_prev = pos;
+		if(pointsIt < STRUCT_TAB_SIZE(posLinePoints)){
+			posLinePoints[pointsIt].x = (u16)pos.x;
+			posLinePoints[pointsIt].y = (u16)pos.y;		nmbrLinePoints = ++pointsIt;
+		}
+
 		if(LCD_SearchLinePoints(0,posBuff,x0,y0,degree_copy,BkpSizeX)==1)
 		{
 			nrPointsPerLine++;
@@ -4555,7 +4564,7 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len,
 
 	#undef LINES_BUFF_SIZE
 
-	return pos;
+	return pos_prev;
 }
 
 SHAPE_PARAMS LCD_KeyBackspace(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor)
