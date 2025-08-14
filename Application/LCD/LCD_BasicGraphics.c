@@ -4197,8 +4197,12 @@ void LCD_BoldRoundFrameTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSi
 }
 
 
-static structPosU16 posLinePoints[2*LCD_BUFF_XSIZE] = {0};
-static u16 nmbrLinePoints = 0;
+structPosU16 posLinePoints[2*LCD_BUFF_XSIZE] = {0};
+u16 nmbrLinePoints = 0;
+
+void GetLinePoint(u16 ){
+	posLinePoints[nmbrLinePoints++] =
+}
 
 structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len, uint16_t degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
 {
@@ -4564,6 +4568,11 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len,
 
 	#undef LINES_BUFF_SIZE
 
+
+	pLcd[posLinePoints[50].y*BkpSizeX + posLinePoints[50].x] = RED;
+	pLcd[posLinePoints[51].y*BkpSizeX + posLinePoints[51].x] = RED;
+	pLcd[posLinePoints[52].y*BkpSizeX + posLinePoints[52].x] = RED;
+
 	return pos_prev;
 }
 
@@ -4776,11 +4785,12 @@ void LCD_SimpleTriangle(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t 
 	}
 }
 
-structPosition LCD_ShapeExample(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t y, uint32_t lineLen, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int angleInclination)
+structPosition LCD_ShapeExample(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t y, uint32_t lineLen, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int angleInclination, int iterix)
 {
 	structPosition pos={x,y};
-	 for(int i=angleInclination; i<360+angleInclination; i+=45)
-		 pos = DrawLine(0,pos.x,pos.y, lineLen, i, FrameColor,BkpSizeX, 0.1, 0.1 ,BkpColor,BkpColor);
+	CorrectLineAA_on();
+	 for(int i=angleInclination; i<360+angleInclination; i+=iterix)
+		 pos = DrawLine(0,pos.x,pos.y, lineLen, i, FrameColor,BkpSizeX, 0.34, 0.34 ,BkpColor,BkpColor);
 	 return pos;
 }
 

@@ -1787,6 +1787,9 @@ static void* MainFuncRefresh(void *p1,void *p2){
 	return NULL;
 }
 
+
+
+int iiterix=45;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -1823,6 +1826,9 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_WRAP("q",&testGraph.grad.bkType,_int,_Wrap,_Int(1), _Int(Grad_YmaxYmin),_Int(Grad_Ycolor), "Test Graph grad type: ",MainFuncRefresh)
 
 	/* ----- END Test GRAPH ------- */
+
+	_DBG_PARAM_NOWRAP("m",&iiterix,_uint16,_Incr,_Uint16(1),_Uint16(360),"Test incr Line: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("n",&iiterix,_uint16,_Decr,_Uint16(1),_Uint16(0),"Test decr Line: ",MainFuncRefresh)
 
 
 	else if(DEBUG_RcvStr("p"))
@@ -2333,7 +2339,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 	StartMeasureTime_us();
 
-	LCDEXAMPLE_Graph(1, testGraph, Touch_Chart_1, v.FONT_ID_Descr, v.COLOR_BkScreen);  //PRZELICZNIK wartosci dac jeszcze !!!!
+	//LCDEXAMPLE_Graph(1, testGraph, Touch_Chart_1, v.FONT_ID_Descr, v.COLOR_BkScreen);  //PRZELICZNIK wartosci dac jeszcze !!!!
 
 
 //WYPROBUJ OPT FAST FONTY wyswieltanie ieCREATING!!!!
@@ -2341,11 +2347,14 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 //ZROBIC OPT Fast !!!!!!!!!!  URUCHOM przewijanie wykresu po X !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+
+	structPosition pos={250,300};
+	//CorrectLineAA_on();
+	pos = DrawLine(0,pos.x,pos.y, 100, 45, WHITE,LCD_X, 1.0, 1.0 ,v.COLOR_BkScreen,v.COLOR_BkScreen);
+
+
+
 	StopMeasureTime_us("Time GRAPH:");
-
-
-	LCD_ShapeExample(0,LCD_X, 50,300, 60, WHITE, unUsed, v.COLOR_BkScreen, 0);
-
 
 
 
