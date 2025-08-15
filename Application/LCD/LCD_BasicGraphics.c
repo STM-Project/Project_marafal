@@ -1395,7 +1395,7 @@ static void OffsetKfromLineBuff(int itBuff, uint32_t BkpSizeX){
 	k+=offs;
 }
 
-static uint8_t LCD_SearchLinePoints(int startMeasure, int posBuff, int x0,int y0, int deg, uint32_t BkpSizeX)
+static uint8_t LCD_SearchLinePoints(int startMeasure, int posBuff, int x0,int y0, float deg, uint32_t BkpSizeX)
 {
 	static float tang, coeff;
 
@@ -4204,11 +4204,11 @@ u16 nmbrLinePoints = 0;
 //	posLinePoints[nmbrLinePoints++] =
 //}
 
-structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len, uint16_t degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
+structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
 {
 	#define LINES_BUFF_SIZE		len+6
 
-	uint16_t degree_copy=degree;
+	float degree_copy=degree;
 	uint8_t linesBuff[LINES_BUFF_SIZE];
 	int k_iteration=0, searchDirection=0;
 	int nrPointsPerLine=0, iteration=1;

@@ -1789,7 +1789,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 
 
 
-int deg_Line=8, len_Line=12; float AA_Line=0.5;
+float deg_Line=45.0, len_Line=12; float AA_Line=0.0;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -1827,14 +1827,16 @@ void FILE_NAME(debugRcvStr)(void)
 
 	/* ----- END Test GRAPH ------- */
 
-	_DBG_PARAM_NOWRAP("m",&deg_Line,_uint16,_Incr,_Uint16(1),_Uint16(360),"incr deg: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("n",&deg_Line,_uint16,_Decr,_Uint16(1),_Uint16(1),	"decr deg: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("v",&len_Line,_uint16,_Incr,_Uint16(1),_Uint16(100),"incr len: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("b",&len_Line,_uint16,_Decr,_Uint16(1),_Uint16(1),	 "decr len: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("n",&deg_Line,_float,_Incr,_Float(0.1),_Float(360),"1a: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("m",&deg_Line,_float,_Decr,_Float(0.1),_Float(0.0),"1b: ",MainFuncRefresh)
+
+	_DBG_PARAM_NOWRAP("h",&deg_Line,_float,_Incr,_Float(0.5),_Float(360),"1a..: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("j",&deg_Line,_float,_Decr,_Float(0.5),_Float(0.0),"1b..: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("x",&AA_Line,_float,_Incr,_Float(0.1),_Float(1.0),"incr AA: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("c",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
+
 
 
 	else if(DEBUG_RcvStr("p"))
@@ -2355,8 +2357,8 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 	structPosition pos={250,300};
-	CorrectLineAA_on();
-	pos = DrawLine(0,pos.x,pos.y, 100, 45, WHITE,LCD_X, 1.0, 1.0 ,v.COLOR_BkScreen,v.COLOR_BkScreen);
+	if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
+	pos = DrawLine(0,pos.x,pos.y, 100, deg_Line, WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
 
 
 
