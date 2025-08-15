@@ -14,6 +14,7 @@ void 				  LCDEXAMPLE_LcdTxt									(int FONT_ID_Fonts, int FONT_VAR_Fonts, u32
 void 				  LCDEXAMPLE_DrawLine								(u32 COLOR_Frame, u32 COLOR_BkScreen);
 USER_GRAPH_PARAM LCDEXAMPLE_Graph									(int displayOption, USER_GRAPH_PARAM graph, int touchStart, int FONT_ID_Descr, int COLOR_BkScreen);
 void 				  LCDEXAMPLE_CreateLoadDisplayFonts				(u32 COLOR_BkScreen);
+void 				  LCDEXAMPLE_SpecificCircle						(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t y, uint32_t lineLen, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int angleInclination, int iterix, float aa);
 
 void MEMEXAMPLE_MemoryFunc	(void);
 void DBGEXAMPLE_Graph		(void);

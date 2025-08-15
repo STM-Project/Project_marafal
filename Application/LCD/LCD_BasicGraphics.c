@@ -4200,9 +4200,9 @@ void LCD_BoldRoundFrameTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSi
 structPosU16 posLinePoints[2*LCD_BUFF_XSIZE] = {0};
 u16 nmbrLinePoints = 0;
 
-void GetLinePoint(u16 ){
-	posLinePoints[nmbrLinePoints++] =
-}
+//void GetLinePoint(u16 ){
+//	posLinePoints[nmbrLinePoints++] =
+//}
 
 structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len, uint16_t degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
 {
@@ -4563,16 +4563,8 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len,
 				}
 			}
 		}
-
 	}
-
 	#undef LINES_BUFF_SIZE
-
-
-	pLcd[posLinePoints[50].y*BkpSizeX + posLinePoints[50].x] = RED;
-	pLcd[posLinePoints[51].y*BkpSizeX + posLinePoints[51].x] = RED;
-	pLcd[posLinePoints[52].y*BkpSizeX + posLinePoints[52].x] = RED;
-
 	return pos_prev;
 }
 
@@ -4783,15 +4775,6 @@ void LCD_SimpleTriangle(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t 
 			else _DrawLeft(2*halfBaseWidth,FrameColor);
 			break;
 	}
-}
-
-structPosition LCD_ShapeExample(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t y, uint32_t lineLen, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int angleInclination, int iterix)
-{
-	structPosition pos={x,y};
-	CorrectLineAA_on();
-	 for(int i=angleInclination; i<360+angleInclination; i+=iterix)
-		 pos = DrawLine(0,pos.x,pos.y, lineLen, i, FrameColor,BkpSizeX, 0.34, 0.34 ,BkpColor,BkpColor);
-	 return pos;
 }
 
 int ChangeElemSliderColor(SLIDER_PARAMS sel, uint32_t color){

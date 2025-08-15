@@ -330,11 +330,11 @@ USER_GRAPH_PARAM LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int
 		return USER_GRAPH_PARAM_Zero;
 
 	default:
-		break;
+		return USER_GRAPH_PARAM_Zero;
 	}
 
 	/* Debug Test GRAPH common for 1 and 2 GRAPH option	-  use only if debug is necessary in function FILE_NAME(debugRcvStr)() */
-/* int startFuncType = Func_sin,	stopFuncType = Func_lines6;
+	/* int startFuncType = Func_sin,	stopFuncType = Func_lines6;
 
 	_DBG3_PARAM_NOWRAP("a","A","z","Z",&graph.par.scaleX,_float,_Float(0.1),_Float( 1.5),_Float( 20.0),_Float(1.0),"Test Graph scaleX: ",MainFuncRefresh,NULL)
 	_DBG3_PARAM_NOWRAP("s","S","x","X",&graph.par.scaleY,_float,_Float(1.0),_Float(10.0),_Float(100.0),_Float(1.0),"Test Graph scaleY: ",MainFuncRefresh,NULL)
@@ -351,7 +351,7 @@ USER_GRAPH_PARAM LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int
 	_DBG_PARAM_WRAP("y",&graph.corr45degAA,_int,_Wrap,_Int(1), _Int(0),_Int(1), "Test Graph AA 45deg: ",MainFuncRefresh)
 
 	_DBG_PARAM_WRAP("q",&graph.grad.bkType,_int,_Wrap,_Int(1), _Int(Grad_YmaxYmin),_Int(Grad_Ycolor), "Test Graph grad type: ",MainFuncRefresh)
-*/
+	 */
 }
 
 void LCDEXAMPLE_CreateLoadDisplayFonts(u32 COLOR_BkScreen)
@@ -390,4 +390,26 @@ void LCDEXAMPLE_CreateLoadDisplayFonts(u32 COLOR_BkScreen)
 	LCD_Show();
 	while(1);
 }
+
+void LCDEXAMPLE_SpecificCircle(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t y, uint32_t lineLen, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int angleInclination, int iterix, float aa)
+{
+	structPosition pos={x,y};
+	if(aa>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
+	for(int i=angleInclination; i<360+angleInclination; i+=iterix)
+		pos = DrawLine(0,pos.x,pos.y, lineLen, i, FrameColor,BkpSizeX, aa,aa ,BkpColor,BkpColor);
+
+	/* Debug Test 	-  use only if debug is necessary in function FILE_NAME(debugRcvStr)() */
+	/* int deg_Line=8, len_Line=12; float AA_Line=0.5;
+
+	_DBG_PARAM_NOWRAP("m",&deg_Line,_uint16,_Incr,_Uint16(1),_Uint16(360),"incr deg: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("n",&deg_Line,_uint16,_Decr,_Uint16(1),_Uint16(1),	"decr deg: ",MainFuncRefresh)
+
+	_DBG_PARAM_NOWRAP("v",&len_Line,_uint16,_Incr,_Uint16(1),_Uint16(100),"incr len: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("b",&len_Line,_uint16,_Decr,_Uint16(1),_Uint16(1),	 "decr len: ",MainFuncRefresh)
+
+	_DBG_PARAM_NOWRAP("x",&AA_Line,_float,_Incr,_Float(0.1),_Float(1.0),"incr AA: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("c",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
+	*/
+}
+
 
