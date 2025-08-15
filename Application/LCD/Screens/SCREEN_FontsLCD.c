@@ -2355,10 +2355,10 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 	structPosition pos={250,300};
-	//CorrectLineAA_on();
-	//pos = DrawLine(0,pos.x,pos.y, 100, 45, WHITE,LCD_X, 1.0, 1.0 ,v.COLOR_BkScreen,v.COLOR_BkScreen);
+	CorrectLineAA_on();
+	pos = DrawLine(0,pos.x,pos.y, 100, 45, WHITE,LCD_X, 1.0, 1.0 ,v.COLOR_BkScreen,v.COLOR_BkScreen);
 
-	LCDEXAMPLE_SpecificCircle(0,LCD_X, 210,400, len_Line, WHITE, unUsed, v.COLOR_BkScreen, 0,deg_Line,AA_Line);
+
 
 	StopMeasureTime_us("Time GRAPH:");
 

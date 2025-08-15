@@ -393,6 +393,7 @@ void LCDEXAMPLE_CreateLoadDisplayFonts(u32 COLOR_BkScreen)
 
 void LCDEXAMPLE_SpecificCircle(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t y, uint32_t lineLen, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int angleInclination, int iterix, float aa)
 {
+  /* Call as:  LCDEXAMPLE_SpecificCircle(0,LCD_X, 210,400, len_Line, WHITE, unUsed, v.COLOR_BkScreen, 0,deg_Line,AA_Line); */
 	structPosition pos={x,y};
 	if(aa>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
 	for(int i=angleInclination; i<360+angleInclination; i+=iterix)
