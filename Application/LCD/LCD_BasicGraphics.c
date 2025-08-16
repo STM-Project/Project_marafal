@@ -146,6 +146,8 @@ static int 					chartMemOffsForMemNr		[ MAX_CHARTS_SIMULTANEOUSLY ] = {0};
 
 #endif
 
+u32 posLinePoints[LCD_BUFF_XSIZE] = {0};
+u16 nmbrLinePoints = 0;
 
 uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
 uint16_t* GET_CIRCLE_correctPercDeg(int nr){	return &Circle.correctPercDeg[nr]; }
@@ -2137,7 +2139,7 @@ static void _DrawArrayBuffRightDown_AA(uint32_t _drawColor, uint32_t outColor, u
 		while(j--)
 		{
 			i_prev=i;
-			while(i--){
+			while(i--){		posLinePoints[nmbrLinePoints++]=k;
 				pLcd[k++]=drawColor;
 			}
 			if(0==outColor) _outColor=pLcd[k];
@@ -2160,7 +2162,7 @@ static void _DrawArrayBuffRightDown_AA(uint32_t _drawColor, uint32_t outColor, u
 		while(j--)
 		{
 			i_prev=i;
-			while(i--){
+			while(i--){		posLinePoints[nmbrLinePoints++]=k;
 				pLcd[k]=drawColor;
 				k+=BkpSizeX;
 			}
@@ -2190,8 +2192,8 @@ static void _DrawArrayBuffLeftDown_AA(uint32_t drawColor, uint32_t outColor, uin
 		while(j--)
 		{
 			i_prev=i;
-			while(i--)
-				pLcd[k--]=drawColor;
+			while(i--){		posLinePoints[nmbrLinePoints++]=k;
+				pLcd[k--]=drawColor;	}
 
 			if(j){
 				i=buf[p++];
@@ -2212,7 +2214,7 @@ static void _DrawArrayBuffLeftDown_AA(uint32_t drawColor, uint32_t outColor, uin
 		while(j--)
 		{
 			i_prev=i;
-			while(i--){
+			while(i--){		posLinePoints[nmbrLinePoints++]=k;
 				pLcd[k]=drawColor;
 				k+=BkpSizeX;
 			}
@@ -2242,8 +2244,8 @@ static void _DrawArrayBuffLeftUp_AA(uint32_t drawColor, uint32_t outColor, uint3
 		while(j--)
 		{
 			i_prev=i;
-			while(i--)
-				pLcd[k--]=drawColor;
+			while(i--){		posLinePoints[nmbrLinePoints++]=k;
+				pLcd[k--]=drawColor;	}
 
 			if(0==outColor) _outColor=pLcd[k];
 			if(j){
@@ -2265,7 +2267,7 @@ static void _DrawArrayBuffLeftUp_AA(uint32_t drawColor, uint32_t outColor, uint3
 		while(j--)
 		{
 			i_prev=i;
-			while(i--){
+			while(i--){		posLinePoints[nmbrLinePoints++]=k;
 				pLcd[k]=drawColor;
 				k-=BkpSizeX;
 			}
@@ -2296,8 +2298,8 @@ static void _DrawArrayBuffRightUp_AA(uint32_t drawColor, uint32_t outColor, uint
 		while(j--)
 		{
 			i_prev=i;
-			while(i--)
-				pLcd[k++]=drawColor;
+			while(i--){		posLinePoints[nmbrLinePoints++]=k;
+				pLcd[k++]=drawColor;	}
 
 			if(j){
 				i=buf[p++];
@@ -2319,7 +2321,7 @@ static void _DrawArrayBuffRightUp_AA(uint32_t drawColor, uint32_t outColor, uint
 		while(j--)
 		{
 			i_prev=i;
-			while(i--){
+			while(i--){		posLinePoints[nmbrLinePoints++]=k;
 				pLcd[k]=drawColor;
 				k-=BkpSizeX;
 			}
@@ -4197,12 +4199,10 @@ void LCD_BoldRoundFrameTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSi
 }
 
 
-structPosU16 posLinePoints[2*LCD_BUFF_XSIZE] = {0};
-u16 nmbrLinePoints = 0;
 
-//void GetLinePoint(u16 ){
-//	posLinePoints[nmbrLinePoints++] =
-//}
+
+void LCD_ResetNmbrLinePoints(void){	 		 nmbrLinePoints = 0;	}
+u16  LCD_GetNmbrLinePoints	 (void){	return nmbrLinePoints; 		}
 
 structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
 {
@@ -4212,7 +4212,7 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len,
 	uint8_t linesBuff[LINES_BUFF_SIZE];
 	int k_iteration=0, searchDirection=0;
 	int nrPointsPerLine=0, iteration=1;
-	int findNoPoint=0, rot, pointsIt=0;
+	int findNoPoint=0, rot;
 	float param_y;
 	float param_x;
 	float decision;
@@ -4241,11 +4241,6 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len,
 
 	do
 	{	pos_prev = pos;
-		if(pointsIt < STRUCT_TAB_SIZE(posLinePoints)){
-			posLinePoints[pointsIt].x = (u16)pos.x;
-			posLinePoints[pointsIt].y = (u16)pos.y;		nmbrLinePoints = ++pointsIt;
-		}
-
 		if(LCD_SearchLinePoints(0,posBuff,x0,y0,degree_copy,BkpSizeX)==1)
 		{
 			nrPointsPerLine++;
