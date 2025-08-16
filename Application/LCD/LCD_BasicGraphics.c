@@ -4203,6 +4203,16 @@ void LCD_BoldRoundFrameTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSi
 
 void LCD_ResetNmbrLinePoints(void){	 		 nmbrLinePoints = 0;	}
 u16  LCD_GetNmbrLinePoints	 (void){	return nmbrLinePoints; 		}
+structPosU16 LCD_GetPosLinePoint(u16 nrLinePoint,u32 BkpSizeX){
+	int kOffs = posLinePoints[nrLinePoint];
+	structPosU16 temp;
+	temp.y = (kOffs/BkpSizeX);
+	temp.x = (kOffs-temp.y*BkpSizeX);
+	return temp;
+}
+void LCD_SetLinePointToBuffLcd(u16 nrLinePoint,u32 pointColor){
+	pLcd[ posLinePoints[nrLinePoint] ] = pointColor;
+}
 
 structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
 {
