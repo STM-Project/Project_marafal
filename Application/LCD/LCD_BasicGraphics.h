@@ -220,6 +220,7 @@ float* 	 GET_CIRCLE_errorDecision(int nr);
 void SET_CIRCLE_errorDecision(int nr, float decis);
 void CIRCLE_errorDecision(int nr, ON_OFF action);
 
+void LCD_Buffer(u16 BkSizeX, u16 x,u16 y, u32 color);
 void LCD_ResetAllBasicGraphicsParams(void);
 void CorrectLineAA_on(void);
 void CorrectLineAA_off(void);

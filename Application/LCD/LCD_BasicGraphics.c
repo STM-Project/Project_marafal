@@ -3840,6 +3840,9 @@ static void GRAPH_Display(int offs_k, int widthBk, int lenStruct, u32 color, u32
 }
 
 /* ################################## -- Global Declarations -- ######################################################### */
+void LCD_Buffer(u16 BkSizeX, u16 x,u16 y, u32 color){
+	pLcd[BkSizeX*(y)+(x)] = color;
+}
 void LCD_ResetAllBasicGraphicsParams(void){
 	LOOP_FOR(i,MAX_CHARTS_SIMULTANEOUSLY){
 		chartMemOffsForMemNr[i] = -1;

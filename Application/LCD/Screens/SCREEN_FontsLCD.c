@@ -2365,6 +2365,10 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 	LCD_SetLinePointToBuffLcd( LCD_GetNmbrLinePoints()/2, BLACK );
 
+	LCD_Buffer(LCD_X, 50,420, RED);
+	LCD_Buffer(LCD_X, 60,420, YELLOW);
+	LCD_Buffer(LCD_X, 70,420, BLACK);
+
 	StopMeasureTime_us("Time GRAPH:");
 
 
