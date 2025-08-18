@@ -1831,8 +1831,8 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("n",&deg_Line,_float,_Incr,_Float(0.1),_Float(360),"1a: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("m",&deg_Line,_float,_Decr,_Float(0.1),_Float(0.0),"1b: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("h",&deg_Line,_float,_Incr,_Float(0.5),_Float(360),"1a..: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("j",&deg_Line,_float,_Decr,_Float(0.5),_Float(0.0),"1b..: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("h",&deg_Line,_float,_Incr,_Float(1.0),_Float(360),"1a..: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("j",&deg_Line,_float,_Decr,_Float(1.0),_Float(0.0),"1b..: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("x",&AA_Line,_float,_Incr,_Float(0.1),_Float(1.0),"incr AA: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("c",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
@@ -2356,7 +2356,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 //ZROBIC OPT Fast !!!!!!!!!!  URUCHOM przewijanie wykresu po X !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-	structPosition pos={250,300};
+	structPosition pos={250,300},pos0;
 	if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
 
 	LCD_ResetNmbrLinePoints();
@@ -2365,9 +2365,16 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 	LCD_SetLinePointToBuffLcd( LCD_GetNmbrLinePoints()/2, BLACK );
 
-	LCD_Buffer(LCD_X, 50,420, RED);
-	LCD_Buffer(LCD_X, 60,420, YELLOW);
-	LCD_Buffer(LCD_X, 70,420, BLACK);
+
+
+
+	pos.x=50; pos.y=270;			pos0.x=380; pos0.y=460;
+	LCD_Buffer(LCD_X, pos.x, pos.y,  RED);
+	LCD_Buffer(LCD_X, pos0.x,pos0.y, BLACK);
+
+
+	DrawLine(0, pos0.x,pos0.y,  LCD_GetLenFrom2Points(pos.x,pos.y, pos0.x,pos0.y),  LCD_GetDegFrom2Points(pos.x,pos.y, pos0.x,pos0.y),  WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
+
 
 	StopMeasureTime_us("Time GRAPH:");
 
