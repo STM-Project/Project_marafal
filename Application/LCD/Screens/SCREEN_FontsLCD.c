@@ -1789,7 +1789,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 
 
 
-float deg_Line=45.0, len_Line=12; float AA_Line=0.0;
+float deg_Line=45.0, len_Line=12; float AA_Line=0.0;  u32 xxPPPooss=130;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -1837,7 +1837,8 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("x",&AA_Line,_float,_Incr,_Float(0.1),_Float(1.0),"incr AA: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("c",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
 
-
+	_DBG_PARAM_NOWRAP("q",&xxPPPooss,_uint32,_Incr,_Uint32(1),_Uint32(780),"poX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("a",&xxPPPooss,_uint32,_Decr,_Uint32(1),_Uint32(2),"poX: ",MainFuncRefresh)
 
 	else if(DEBUG_RcvStr("p"))
 	{
@@ -2368,13 +2369,21 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 
 
-	pos.x=50; pos.y=270;			pos0.x=380; pos0.y=460;
+	pos.x=xxPPPooss; pos.y=250;			pos0.x=400; pos0.y=460;
 	LCD_Buffer(LCD_X, pos.x, pos.y,  RED);
 	LCD_Buffer(LCD_X, pos0.x,pos0.y, BLACK);
 
 
-	DrawLine(0, pos0.x,pos0.y,  LCD_GetLenFrom2Points(pos.x,pos.y, pos0.x,pos0.y),  LCD_GetDegFrom2Points(pos.x,pos.y, pos0.x,pos0.y),  WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
+	float ddddddd = LCD_GetDegFrom2Points(pos.x,pos.y, pos0.x,pos0.y);
 
+	int precyzja = 1;
+	float czynnik = pow(10, precyzja);
+	float nowa_liczba = round(ddddddd * czynnik) / czynnik;
+
+
+	DrawLine(0, pos0.x,pos0.y,  LCD_GetLenFrom2Points(pos.x,pos.y, pos0.x,pos0.y),  nowa_liczba,  WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
+	LCD_Buffer(LCD_X, pos.x, pos.y,  RED);
+	LCD_Buffer(LCD_X, pos0.x,pos0.y, BLACK);
 
 	StopMeasureTime_us("Time GRAPH:");
 
