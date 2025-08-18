@@ -3843,6 +3843,27 @@ static void GRAPH_Display(int offs_k, int widthBk, int lenStruct, u32 color, u32
 void LCD_Buffer(u16 BkSizeX, u16 x,u16 y, u32 color){
 	pLcd[BkSizeX*(y)+(x)] = color;
 }
+float LCD_GetDegFrom2Points(int x,int y, int x0,int y0){
+	if(x == x0){
+		if(y >= y0) return 270;
+		else			return 90;
+	}
+	else if(y == y0){
+		if(x >= x0) return 180;
+		else			return 0;
+	}
+	else{
+		int deg = DEG(atan(ABS((float)(y-y0)/(float)(x-x0))));
+			  if(x < x0 && y > y0) return 270+(90-deg);
+		else if(x > x0 && y > y0) return 180+deg;
+		else if(x > x0 && y < y0) return 90+(90-deg);
+		else if(x < x0 && y < y0) return deg;
+		return 0;
+}}
+float LCD_GetLenFrom2Points(int x,int y, int x0,int y0){  //zamien na structure !!
+	return  sqrt( pow(x-x0,2) + pow(y-y0,2) );
+}
+
 void LCD_ResetAllBasicGraphicsParams(void){
 	LOOP_FOR(i,MAX_CHARTS_SIMULTANEOUSLY){
 		chartMemOffsForMemNr[i] = -1;
@@ -4217,9 +4238,9 @@ void LCD_SetLinePointToBuffLcd(u16 nrLinePoint,u32 pointColor){
 	pLcd[ posLinePoints[nrLinePoint] ] = pointColor;
 }
 
-structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
+structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, float len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
 {
-	#define LINES_BUFF_SIZE		len+6
+	#define LINES_BUFF_SIZE		(u16)len+6
 
 	float degree_copy=degree;
 	uint8_t linesBuff[LINES_BUFF_SIZE];
@@ -4283,7 +4304,7 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, uint16_t len,
 
 		param_y = pow(y0-pos.y,2);
 		param_x = pow(x0-pos.x,2);
-		decision = pow((float)(len+1),2);
+		decision = pow(len,2);  //pow((float)(len+1),2);
 
 	}while((param_x+param_y) <= decision);
 
