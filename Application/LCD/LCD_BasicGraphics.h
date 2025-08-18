@@ -221,6 +221,9 @@ void SET_CIRCLE_errorDecision(int nr, float decis);
 void CIRCLE_errorDecision(int nr, ON_OFF action);
 
 void LCD_Buffer(u16 BkSizeX, u16 x,u16 y, u32 color);
+float LCD_GetDegFrom2Points(int x,int y, int x0,int y0);
+float LCD_GetLenFrom2Points(int x,int y, int x0,int y0);
+
 void LCD_ResetAllBasicGraphicsParams(void);
 void CorrectLineAA_on(void);
 void CorrectLineAA_off(void);
@@ -270,7 +273,7 @@ void 			 	LCD_ResetNmbrLinePoints		(void);
 u16  			 	LCD_GetNmbrLinePoints		(void);
 structPosU16 	LCD_GetPosLinePoint			(u16 nrLinePoint,u32 BkpSizeX);
 void 				LCD_SetLinePointToBuffLcd	(u16 nrLinePoint,u32 pointColor);
-structPosition DrawLine							(uint32_t posBuff,uint16_t x, uint16_t y, uint16_t len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color);
+structPosition DrawLine							(uint32_t posBuff,uint16_t x, uint16_t y, float len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color);
 
 void LCD_SetCircleParam(float outRatio, float inRatio, int len, ...);
 void LCD_SetCircleDegrees(int len, ...);
