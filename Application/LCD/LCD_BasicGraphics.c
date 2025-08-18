@@ -4304,7 +4304,7 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, float len, fl
 
 		param_y = pow(y0-pos.y,2);
 		param_x = pow(x0-pos.x,2);
-		decision = pow(len,2);  //pow((float)(len+1),2);
+		decision = pow(len+1,2);  //pow((float)(len+1),2);
 
 	}while((param_x+param_y) <= decision);
 
