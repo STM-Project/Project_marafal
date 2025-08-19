@@ -2360,10 +2360,10 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	structPosition pos={250,300},pos0;
 	if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
 
-	LCD_ResetNmbrLinePoints();
-	pos = DrawLine(0,pos.x,pos.y, 100, deg_Line, WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
-
-	LCD_SetLinePointToBuffLcd( LCD_GetNmbrLinePoints()/2, BLACK );
+//	LCD_ResetNmbrLinePoints();
+//	pos = DrawLine(0,pos.x,pos.y, 100, deg_Line, WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
+//
+//	LCD_SetLinePointToBuffLcd( LCD_GetNmbrLinePoints()/2, BLACK );
 
 
 
@@ -2374,7 +2374,9 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 	pos.x=xxPPPooss; pos.y=250;			pos0.x=400; pos0.y=460;
 
+	LCD_ResetNmbrLinePoints();
 	LCD_Line(0, pos0.x,pos0.y,  pos.x,pos.y,  WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
+	LCD_SetLinePointToBuffLcd( LCD_GetNmbrLinePoints()/2, BLACK );
 	//DrawLine(0, pos0.x,pos0.y,  GetNewfloatValue(LCD_GetLenFrom2Points(pos.x,pos.y, pos0.x,pos0.y),1),  GetNewfloatValue(LCD_GetDegFrom2Points(pos.x,pos.y,pos0.x,pos0.y),1),  WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
 	LCD_Buffer(LCD_X, pos.x, pos.y,  RED);
 	LCD_Buffer(LCD_X, pos0.x,pos0.y, BLUE);
