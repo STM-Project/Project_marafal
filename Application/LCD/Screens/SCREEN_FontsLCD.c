@@ -2363,29 +2363,26 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	LCD_ResetNmbrLinePoints();
 	pos = DrawLine(0,pos.x,pos.y, 100, deg_Line, WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
 
-
 	LCD_SetLinePointToBuffLcd( LCD_GetNmbrLinePoints()/2, BLACK );
 
 
 
 
+
+
+
+
 	pos.x=xxPPPooss; pos.y=250;			pos0.x=400; pos0.y=460;
+
+	LCD_Line(0, pos0.x,pos0.y,  pos.x,pos.y,  WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
+	//DrawLine(0, pos0.x,pos0.y,  GetNewfloatValue(LCD_GetLenFrom2Points(pos.x,pos.y, pos0.x,pos0.y),1),  GetNewfloatValue(LCD_GetDegFrom2Points(pos.x,pos.y,pos0.x,pos0.y),1),  WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
 	LCD_Buffer(LCD_X, pos.x, pos.y,  RED);
-	LCD_Buffer(LCD_X, pos0.x,pos0.y, BLACK);
-
-
-	float ddddddd = LCD_GetDegFrom2Points(pos.x,pos.y, pos0.x,pos0.y);
-
-	int precyzja = 1;
-	float czynnik = pow(10, precyzja);
-	float nowa_liczba = round(ddddddd * czynnik) / czynnik;
-
-
-	DrawLine(0, pos0.x,pos0.y,  LCD_GetLenFrom2Points(pos.x,pos.y, pos0.x,pos0.y),  nowa_liczba,  WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
-	LCD_Buffer(LCD_X, pos.x, pos.y,  RED);
-	LCD_Buffer(LCD_X, pos0.x,pos0.y, BLACK);
+	LCD_Buffer(LCD_X, pos0.x,pos0.y, BLUE);
 
 	StopMeasureTime_us("Time GRAPH:");
+
+
+
 
 
 
