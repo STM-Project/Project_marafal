@@ -326,6 +326,8 @@ USER_GRAPH_PARAM LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int
 		 */
 		return par3;
 	case 3:		/* Indirect display option for  2-GRAPH option  */
+					/* In Main() set:  USER_GRAPH_PARAM par3 = LCDEXAMPLE_Graph(2, testGraph, Touch_Chart_1, v.FONT_ID_Descr, v.COLOR_BkScreen);  */
+					/* and after LCD_Display() put call indirect displaying as:  LCDEXAMPLE_Graph(3,par3,unUsed,unUsed,unUsed) 						*/
 		LCDSHAPE_Chart_Indirect(graph);
 		return USER_GRAPH_PARAM_Zero;
 
