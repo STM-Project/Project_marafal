@@ -4305,9 +4305,9 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, float len, fl
 
 		param_y = pow((float)(y0-pos.y),2);
 		param_x = pow((float)(x0-pos.x),2);
-		decision = pow(len+1,2);  //pow((float)(len+1),2);
+		decision = pow(len+1,2);
 
-	}while((param_x+param_y) <= decision);
+	}while((param_x+param_y) <= decision);		/* When precision of float 'degree' is greater than 0.1 then 'decision' may have to big decimal value for float for this precision and never return from the loop while() - endless loop */
 
 	if(nrPointsPerLine)
 		linesBuff[iteration++]=nrPointsPerLine;
