@@ -274,6 +274,7 @@ u16  			 	LCD_GetNmbrLinePoints		(void);
 structPosU16 	LCD_GetPosLinePoint			(u16 nrLinePoint,u32 BkpSizeX);
 void 				LCD_SetLinePointToBuffLcd	(u16 nrLinePoint,u32 pointColor);
 structPosition DrawLine							(uint32_t posBuff,uint16_t x, uint16_t y, float len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color);
+void 				LCD_Line							(uint32_t posBuff, u16 x0,u16 y0, u16 x1,u16 y1, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color);
 
 void LCD_SetCircleParam(float outRatio, float inRatio, int len, ...);
 void LCD_SetCircleDegrees(int len, ...);
