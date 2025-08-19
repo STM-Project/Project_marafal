@@ -208,3 +208,9 @@ void float2stri(char *buffer, float value, unsigned int dec_digits)
 	*output = 0;
 }
 
+float GetNewfloatValue(float value, int precision)
+{
+	float coeff = pow(10, precision);
+	return  round(value * coeff) / coeff;
+}
+
