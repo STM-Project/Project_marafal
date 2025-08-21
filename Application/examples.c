@@ -14,6 +14,7 @@
 
 void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLOR_BkScreen, int FONT_ID_Descr)
 {
+	/* Call as:  LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen, v.FONT_ID_Descr); */
 	SHAPE_PARAMS par1,par2,par3,par4,par5,par6;		/* for LCD_RoundRectangle2() for 'AllEdge' argument 'DIRECTIONS' has no effect */
 
 	void _Str(int x,int y, char* txt){ LCD_StrDependOnColors(FONT_ID_VAR(FONT_ID_Descr,fontVar_40), x,y, txt, fullHight,0, unUsed, WHITE, 255, NoConstWidth); }
@@ -71,6 +72,7 @@ void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLO
 
 void LCDEXAMPLE_GradientCircleButtonAndSlider(int FONT_ID_Title, int FONT_VAR_Title, u32 COLOR_FillMainFrame, u32 COLOR_Frame, u32 COLOR_BkScreen)
 {
+	/* Call as:  LCDEXAMPLE_GradientCircleButtonAndSlider(v.FONT_ID_Title,v.FONT_VAR_Title,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen); */
 	/* Common for noIndirect an Indirect */
 	uint32_t CircleWidth= 150;
 	SHAPE_PARAMS par={0}, par2={0};
@@ -113,6 +115,7 @@ void LCDEXAMPLE_GradientCircleButtonAndSlider(int FONT_ID_Title, int FONT_VAR_Ti
 
 void LCDEXAMPLE_LcdTxt(int FONT_ID_Fonts, int FONT_VAR_Fonts, u32 COLOR_FillMainFrame, u32 COLOR_Frame, u32 COLOR_BkScreen)
 {
+	/* Call as:  LCDEXAMPLE_LcdTxt(v.FONT_ID_Fonts,v.FONT_VAR_Fonts,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen); */
 	/* 5 Methods for noIndirect */
 	LCD_STR_PARAM temp, new;		/* For all methods below 'new' =='temp' */
 	new =  LCD_Txt(noDisplay, NULL, 0,0, LCD_X,LCD_Y, FONT_ID_Fonts, FONT_VAR_Fonts, 320,200, "12345", BLACK, COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);	/* load parameters to 'new' */
@@ -140,6 +143,10 @@ void LCDEXAMPLE_LcdTxt(int FONT_ID_Fonts, int FONT_VAR_Fonts, u32 COLOR_FillMain
 	temp2 = LCD_Txt(DisplayIndirect, NULL,  50,250, BK_SIZE_IS_TXT_SIZE, FONT_ID_Fonts, FONT_VAR_Fonts, 0,0, "abcde", WHITE, COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 6, RightDown);		/* 5 method */
 	temp2 = temp2;
 	/* -------  END -------- */
+
+	/* In future:
+	 * - check if get we space sign as space shadow color in shadow option ?
+	 */
 }
 
 void LCDEXAMPLE_DrawLine(u32 COLOR_Frame, u32 COLOR_BkScreen)
@@ -161,6 +168,10 @@ void LCDEXAMPLE_DrawLine(u32 COLOR_Frame, u32 COLOR_BkScreen)
 	CorrectLineAA_on();
 	for(int i=0; i<15; i++)
 		DrawLine(0,620+i*10,350, 150, 45+i, COLOR_Frame,LCD_X, 0.0, 0.0 ,COLOR_BkScreen,COLOR_BkScreen);		/* for i=12,13,14 we don`t have yet special correct (thicker line) */
+
+	/* In future:
+	 * - if we haven`t 45 degree correct range we should give AA coefficient as  0.4 - 0.6	 and not 0.0  ->	This gives a better visual effect.
+	 */
 }
 
 void MEMEXAMPLE_MemoryFunc(void)
@@ -247,6 +258,7 @@ void DBGEXAMPLE_KeyFunctions(void)
 
 USER_GRAPH_PARAM LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int touchStart, int FONT_ID_Descr, int COLOR_BkScreen)
 {
+	/* Call as:  LCDEXAMPLE_Graph(1, testGraph, Touch_Chart_1, v.FONT_ID_Descr, v.COLOR_BkScreen); */
 	void _ResetChartsTouchs(void){	LOOP_FOR(i,3){	LCD_TOUCH_DeleteSelectTouch(touchStart+i); }	 }
 
 	switch(displayOption)
@@ -354,6 +366,12 @@ USER_GRAPH_PARAM LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int
 
 	_DBG_PARAM_WRAP("q",&graph.grad.bkType,_int,_Wrap,_Int(1), _Int(Grad_YmaxYmin),_Int(Grad_Ycolor), "Test Graph grad type: ",MainFuncRefresh)
 	 */
+
+	/* In future:
+	 * - conversion factor in displayed value
+	 * - scrolling the chart
+	 * - opt fast for the chart
+	 */
 }
 
 void LCDEXAMPLE_CreateLoadDisplayFonts(u32 COLOR_BkScreen)
@@ -391,6 +409,10 @@ void LCDEXAMPLE_CreateLoadDisplayFonts(u32 COLOR_BkScreen)
 
 	LCD_Show();
 	while(1);
+
+	/* In future:
+	 * - opt fast for displaying or and creating fonts
+	 */
 }
 
 void LCDEXAMPLE_SpecificCircle(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t y, uint32_t lineLen, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int angleInclination, int iterix, float aa)
