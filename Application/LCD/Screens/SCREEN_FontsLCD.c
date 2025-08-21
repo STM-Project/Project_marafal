@@ -565,6 +565,9 @@ typedef struct{
 } RGB_BK_FONT;
 static RGB_BK_FONT Test;
 
+static void EXPER_FUNC_beforeDispBuffLcd(void);
+static void EXPER_FUNC_afterDispBuffLcd(void);
+
 static void FRAMES_GROUP_combined(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY,  int bold);
 static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY,  int boldFrame);
 
@@ -1789,7 +1792,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 
 
 
-float deg_Line=45.0, len_Line=12; float AA_Line=0.0;  u32 xxPPPooss=130;
+float len_Line=12; float AA_Line=0.0;  u32 xPP=250;	u8 perVal = 50;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -1809,36 +1812,34 @@ void FILE_NAME(debugRcvStr)(void)
 
 
 	/* ----- Debug Test GRAPH ----- */
-//	_DBG3_PARAM_NOWRAP("a","A","z","Z",&testGraph.par.scaleX,_float,_Float(0.1),_Float( 1.5),_Float( 20.0),_Float(1.0),"Test Graph scaleX: ",MainFuncRefresh,NULL)
-//	_DBG3_PARAM_NOWRAP("s","S","x","X",&testGraph.par.scaleY,_float,_Float(1.0),_Float(10.0),_Float(100.0),_Float(1.0),"Test Graph scaleY: ",MainFuncRefresh,NULL)
-//
-//	_DBG_PARAM_NOWRAP("d",&testGraph.funcType,_uint8,_Incr,_Uint8(1),_Uint8(Func_lines6),"Test Graph funcType: ",MainFuncRefresh)
-//	_DBG_PARAM_NOWRAP("c",&testGraph.funcType,_uint8,_Decr,_Uint8(1),_Uint8(Func_sin),	 "Test Graph funcType: ",MainFuncRefresh)
-//
-//	_DBG_PARAM_NOWRAP("f",&testGraph.AAoutCoeff,_float,_Incr,_Float(0.1),_Float(1.0),"Test Graph AA out: ",MainFuncRefresh)
-//	_DBG_PARAM_NOWRAP("v",&testGraph.AAoutCoeff,_float,_Decr,_Float(0.1),_Float(0.0),"Test Graph AA out: ",MainFuncRefresh)
-//
-//	_DBG_PARAM_NOWRAP("g",&testGraph.AAinCoeff,_float,_Incr,_Float(0.1),_Float(1.0),"Test Graph AA in: ",MainFuncRefresh)
-//	_DBG_PARAM_NOWRAP("b",&testGraph.AAinCoeff,_float,_Decr,_Float(0.1),_Float(0.0),"Test Graph AA in: ",MainFuncRefresh)
-//
-//	_DBG_PARAM_WRAP("y",&testGraph.corr45degAA,_int,_Wrap,_Int(1), _Int(0),_Int(1), "Test Graph AA 45deg: ",MainFuncRefresh)
-//
-//	_DBG_PARAM_WRAP("q",&testGraph.grad.bkType,_int,_Wrap,_Int(1), _Int(Grad_YmaxYmin),_Int(Grad_Ycolor), "Test Graph grad type: ",MainFuncRefresh)
+/*	_DBG3_PARAM_NOWRAP("a","A","z","Z",&testGraph.par.scaleX,_float,_Float(0.1),_Float( 1.5),_Float( 20.0),_Float(1.0),"Test Graph scaleX: ",MainFuncRefresh,NULL)
+	_DBG3_PARAM_NOWRAP("s","S","x","X",&testGraph.par.scaleY,_float,_Float(1.0),_Float(10.0),_Float(100.0),_Float(1.0),"Test Graph scaleY: ",MainFuncRefresh,NULL)
 
+	_DBG_PARAM_NOWRAP("d",&testGraph.funcType,_uint8,_Incr,_Uint8(1),_Uint8(Func_lines6),"Test Graph funcType: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("c",&testGraph.funcType,_uint8,_Decr,_Uint8(1),_Uint8(Func_sin),	 "Test Graph funcType: ",MainFuncRefresh)
+
+	_DBG_PARAM_NOWRAP("f",&testGraph.AAoutCoeff,_float,_Incr,_Float(0.1),_Float(1.0),"Test Graph AA out: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("v",&testGraph.AAoutCoeff,_float,_Decr,_Float(0.1),_Float(0.0),"Test Graph AA out: ",MainFuncRefresh)
+
+	_DBG_PARAM_NOWRAP("g",&testGraph.AAinCoeff,_float,_Incr,_Float(0.1),_Float(1.0),"Test Graph AA in: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("b",&testGraph.AAinCoeff,_float,_Decr,_Float(0.1),_Float(0.0),"Test Graph AA in: ",MainFuncRefresh)
+
+	_DBG_PARAM_WRAP("y",&testGraph.corr45degAA,_int,_Wrap,_Int(1), _Int(0),_Int(1), "Test Graph AA 45deg: ",MainFuncRefresh)
+
+	_DBG_PARAM_WRAP("q",&testGraph.grad.bkType,_int,_Wrap,_Int(1), _Int(Grad_YmaxYmin),_Int(Grad_Ycolor), "Test Graph grad type: ",MainFuncRefresh)
+*/
 	/* ----- END Test GRAPH ------- */
 
 
-	_DBG_PARAM_NOWRAP("n",&deg_Line,_float,_Incr,_Float(0.1),_Float(360),"1a: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("m",&deg_Line,_float,_Decr,_Float(0.1),_Float(0.0),"1b: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("h",&deg_Line,_float,_Incr,_Float(1.0),_Float(360),"1a..: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("j",&deg_Line,_float,_Decr,_Float(1.0),_Float(0.0),"1b..: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("m",&AA_Line,_float,_Incr,_Float(0.1),_Float(1.0),"incr AA: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("n",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("x",&AA_Line,_float,_Incr,_Float(0.1),_Float(1.0),"incr AA: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("c",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("q",&xPP,_uint32,_Incr,_Uint32(1),_Uint32(780),"poX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("a",&xPP,_uint32,_Decr,_Uint32(1),_Uint32(2),"poX: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("q",&xxPPPooss,_uint32,_Incr,_Uint32(1),_Uint32(780),"poX: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("a",&xxPPPooss,_uint32,_Decr,_Uint32(1),_Uint32(2),"poX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("x",&perVal,_uint8,_Incr,_Uint8(1),_Uint8(100),"Line: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("z",&perVal,_uint8,_Decr,_Uint8(1),_Uint8(0),  "Line: ",MainFuncRefresh)
 
 	else if(DEBUG_RcvStr("p"))
 	{
@@ -2334,90 +2335,70 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	 else  						lenStr= LCD_StrVar			  (v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, argNmb==0 ? v.COLOR_BkScreen : LCD_GetStrVar_bkColor(v.FONT_VAR_Fonts), Test.coeff, Test.constWidth, v.COLOR_BkScreen);
 	Test.speed=StopMeasureTime_us("");
 
-/*
-	LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen, v.FONT_ID_Descr);
-	LCDEXAMPLE_GradientCircleButtonAndSlider(v.FONT_ID_Title,v.FONT_VAR_Title,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
-	LCDEXAMPLE_LcdTxt(v.FONT_ID_Fonts,v.FONT_VAR_Fonts,v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
-*/
+	EXPER_FUNC_beforeDispBuffLcd();
+
+	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
+	if(LoadNoDispScreen != argNmb) LCD_Show();
+
+	EXPER_FUNC_afterDispBuffLcd();
+}
 
 
 
 
-//DOEOBIC w GRAH grida !!!!#################################!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
+
+
+static void EXPER_FUNC_beforeDispBuffLcd(void)
+{
 	StartMeasureTime_us();
-
-	//LCDEXAMPLE_Graph(1, testGraph, Touch_Chart_1, v.FONT_ID_Descr, v.COLOR_BkScreen);  //PRZELICZNIK wartosci dac jeszcze !!!!
-
-
-//WYPROBUJ OPT FAST FONTY wyswieltanie ieCREATING!!!!
-//SIATKE zrobic !!!!zastanowic sie moze taka delikatna przezroczysta!!!!
-
-//ZROBIC OPT Fast !!!!!!!!!!  URUCHOM przewijanie wykresu po X !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
 	structPosition pos={250,300},pos0;
 	if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
 
-//	LCD_ResetNmbrLinePoints();
-//	pos = DrawLine(0,pos.x,pos.y, 100, deg_Line, WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
-//
-//	LCD_SetLinePointToBuffLcd( LCD_GetNmbrLinePoints()/2, BLACK );
+
+	pos.x=xPP; pos.y=250;			pos0.x=180; pos0.y=460;
+
+
+	LCD_ResetNmbrLinePoints(); 	LCD_Line(0, 150,350, xPP,240, WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen); 	LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal    ), BLACK );
+	LCD_ResetNmbrLinePoints(); 	LCD_Line(0, xPP,240, 315,325, WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen); 	LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),100-perVal), BLACK );
 
 
 
 
 
-
-
-
-	pos.x=xxPPPooss; pos.y=250;			pos0.x=400; pos0.y=460;
-
-	LCD_ResetNmbrLinePoints();
-	LCD_Line(0, pos0.x,pos0.y,  pos.x,pos.y,  WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
-	LCD_SetLinePointToBuffLcd( LCD_GetNmbrLinePoints()/2, BLACK );
-	//DrawLine(0, pos0.x,pos0.y,  GetNewfloatValue(LCD_GetLenFrom2Points(pos.x,pos.y, pos0.x,pos0.y),1),  GetNewfloatValue(LCD_GetDegFrom2Points(pos.x,pos.y,pos0.x,pos0.y),1),  WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen);
 	LCD_Buffer(LCD_X, pos.x, pos.y,  RED);
 	LCD_Buffer(LCD_X, pos0.x,pos0.y, BLUE);
+
+
+
+
+
+
 
 	StopMeasureTime_us("Time GRAPH:");
 
 
-
-
-
-
-	// UWAGA jesli masz shadow to nie dawaj spacji bo z spacji robi shadow !!!!!
 	LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 20,200, "12345", BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
 
-	//ZROBIC CIRCLE zmienna grubosc DRAWLINE !!!!!!!!!!!! z AA z 0.0 na 0.5 np!!!!
-	//ZROBIC cieniowanie pol i text 3d na nim jak w biletcie automatu na muzeum naradowe
-	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
-	if(LoadNoDispScreen != argNmb) LCD_Show();
 
 
-	//LCDEXAMPLE_Graph(3,par3,unUsed,unUsed,unUsed);
-
-
-//ROBIMY :  1. LISTVIEW  tabelko z lista   2. klawiature i koniec !!!
-	//GRAPH ZADANIA  : delikatna siateczka, okienko XY, wskaznik pionowy
-	//pobawic sie w selektywna optymalizacje
-
-	//ATTENTION IN FUTURE   tylko w jednej funkcji umieszczamy zmienne odswiezane reularnie i ta funkcja idzie do jakiegos watku !!!!!
-
-
-	//1
-//	  union {
-//	    const void * p;     /* Message specific data pointer */
-//	    int v;
-//	    GUI_COLOR Color;
-//	    void (* pFunc)(void);
-//	  } Data;
-//2 struktura dynamicznej allokacji pamieci ja kw GUI
 
 
 }
+
+
+
+
+static void EXPER_FUNC_afterDispBuffLcd(void)
+{
+
+}
+
+
+
+
 
 #undef POS_X_TXT
 #undef POS_Y_TXT
@@ -2446,6 +2427,30 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 #undef NONE_TYPE_REQ
 #undef MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY
 #undef SELECT_CURRENT_FONT
+
+
+
+
+
+//ZROBIC cieniowanie pol i text 3d na nim jak w biletcie automatu na muzeum naradowe
+
+
+//ROBIMY :  1. LISTVIEW  tabelko z lista   2. klawiature i koniec !!!
+
+	//ATTENTION IN FUTURE   tylko w jednej funkcji umieszczamy zmienne odswiezane reularnie i ta funkcja idzie do jakiegos watku !!!!!
+
+
+	//1
+//	  union {
+//	    const void * p;     /* Message specific data pointer */
+//	    int v;
+//	    GUI_COLOR Color;
+//	    void (* pFunc)(void);
+//	  } Data;
+//2 struktura dynamicznej allokacji pamieci ja kw GUI
+
+
+
 
 //w harfoult interrup ddacv mozliwosc odczyti linijki kodu poprzedniego !!!!
 //Zrobic szablon nowego okna -pliku LCD !!!! aby latwo wystartowac !!!
