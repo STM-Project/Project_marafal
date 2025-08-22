@@ -36,7 +36,6 @@
 #define LINE_AA_BKCOLOR(line,outLine,inLine,bkRect)	 line,outLine,inLine,bkRect
 #define LINE_AACOLOR(line,outLine,inLine)	 	 		 	 line,outLine,inLine,0
 #define READ_BK	 0,0
-#define OUT_IN_COLOR(out,in)	 out,in
 #define AA_ON	 0.0,0.0
 #define AA_OFF	 1.0,1.0
 #define AA_VAL(outRatio,inRatio)	 outRatio,inRatio
@@ -65,6 +64,12 @@
 #define CHART_PTR_NONE																																											 GRAPH_SetPtr(0,0,0,0,0, 0,0,0,0,0,0,0,0)
 #define CHART_PTR_DEFAULT(posPtr,fontID)																																					 GRAPH_SetPtr(LIGHTBLUE,DARKBLUE,18,posPtr,1, WHITE,DARKYELLOW,80,30,10,10,1,fontID)
 #define CHART_PTR_PARAM(fromColorPtr,ToColorPtr,sizePtr,posPtr,hideShowPtr, colorRct1,colorRct2,xSizeRct,ySizeRct,xPosRct,yPosRct,hideShowRct,fontID)	 GRAPH_SetPtr(fromColorPtr,ToColorPtr,sizePtr,posPtr,hideShowPtr, colorRct1,colorRct2,xSizeRct,ySizeRct,xPosRct,yPosRct,hideShowRct,fontID)
+
+#define POS_START_STOP(posStart,posStop)					posStart.x,posStart.y, posStop.x,posStop.y
+#define BKCOLOR_IN_OUT(bkColorIn,bkColorOut)				bkColorIn, bkColorOut
+#define BKCOLOR_INOUT(bkColorInOut)							bkColorInOut, bkColorInOut
+#define AA_IN_OUT(ratioIn,ratioOut)	 						ratioIn,ratioOut
+#define AA_INOUT(ratioInOut)	 								ratioInOut,ratioInOut
 
 typedef enum{
 	Disp_no,
