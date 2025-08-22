@@ -4598,6 +4598,7 @@ structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, float len, fl
 	return pos_prev;
 }
 void LCD_Line(uint32_t posBuff, u16 x0,u16 y0, u16 x1,u16 y1, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color){		/* here we don`t read BkColor */
+	nmbrLinePoints = 0;
 	DrawLine(posBuff, x0, y0, GetNewfloatValue(LCD_GetLenFrom2Points(x1,y1, x0,y0),1),  GetNewfloatValue(LCD_GetDegFrom2Points(x1,y1, x0,y0),1), lineColor,BkpSizeX, ratioAA1, ratioAA2 ,bk1Color, bk2Color);
 }
 
