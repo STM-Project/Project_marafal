@@ -2353,23 +2353,23 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 static void EXPER_FUNC_beforeDispBuffLcd(void)
 {
 	StartMeasureTime_us();
+	structPosU16 pos[3]= { {150,350}, {xPP,240}, {315,325} };				structPosU16 pos2[3]={0};
 
-	structPosition pos={250,300},pos0;
+	//structPosition pos={250,300},pos0;
 	if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
 
 
-	pos.x=xPP; pos.y=250;			pos0.x=180; pos0.y=460;
-
-
-	LCD_ResetNmbrLinePoints(); 	LCD_Line(0, 150,350, xPP,240, WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen); 	LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal    ), BLACK );
-	LCD_ResetNmbrLinePoints(); 	LCD_Line(0, xPP,240, 315,325, WHITE,LCD_X, AA_Line, AA_Line ,v.COLOR_BkScreen,v.COLOR_BkScreen); 	LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),100-perVal), BLACK );
+	//pos.x=xPP; pos.y=250;			pos0.x=180; pos0.y=460;
 
 
 
 
+	LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[0] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); //LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal    ), BLACK );
+	LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[1] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); //LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),100-perVal), BLACK );
+	LCD_Line(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));																													  LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal		), BLACK );
 
-	LCD_Buffer(LCD_X, pos.x, pos.y,  RED);
-	LCD_Buffer(LCD_X, pos0.x,pos0.y, BLUE);
+
+//	LCD_Buffer(LCD_X, pos0.x,pos0.y, BLUE);
 
 
 
