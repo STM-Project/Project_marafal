@@ -1792,7 +1792,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 
 
 
-float len_Line=12; float AA_Line=0.0;  u32 xPP=250;	u8 perVal = 50;
+float len_Line=12; float AA_Line=0.0;  u32 xPP=250;	float perVal = 50;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -1838,8 +1838,8 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("q",&xPP,_uint32,_Incr,_Uint32(1),_Uint32(780),"poX: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("a",&xPP,_uint32,_Decr,_Uint32(1),_Uint32(2),"poX: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("x",&perVal,_uint8,_Incr,_Uint8(1),_Uint8(100),"Line: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("z",&perVal,_uint8,_Decr,_Uint8(1),_Uint8(0),  "Line: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("x",&perVal,_float,_Incr,_Float(0.1),_Float(99),"Line: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("z",&perVal,_float,_Decr,_Float(0.1),_Float(0),  "Line: ",MainFuncRefresh)
 
 	else if(DEBUG_RcvStr("p"))
 	{
