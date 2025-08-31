@@ -1792,7 +1792,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 
 
 
-float len_Line=12; float AA_Line=0.0;  u32 xPP=250;	float perVal = 50;
+float len_Line=12; float AA_Line=0.0;  u32 xPP=250;	float perVal = 94;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -2352,48 +2352,62 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 
 static void EXPER_FUNC_beforeDispBuffLcd(void)
 {
-	StartMeasureTime_us();
-	structPosU16 pos[3]= { {150,350}, {xPP,240}, {315,325} };				structPosU16 pos2[3]={0};
-
-	//structPosition pos={250,300},pos0;
-	if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
-
-
-	//pos.x=xPP; pos.y=250;			pos0.x=180; pos0.y=460;
-
-	static int posAi = 0;
-	static structPosU16 posA[500] = {0};
-
-
-	LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[0] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); //LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal    ), BLACK );
-	LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[1] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); //LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),100-perVal), BLACK );
-	LCD_Line(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		pos2[2] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );  LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal		), BLACK );
-
-
-	posA[posAi++]=pos2[2];
-
-	for(  int i=0; i<posAi; ++i)
+	#define ONLY_ONE_AT_START		0
+	static int only_one = 0;
+	if(only_one==0)
 	{
-		LCD_Buffer(LCD_X, 500+posA[i].x,posA[i].y, WHITE);
+		StartMeasureTime_us();
+		structPosU16 pos[3]= { {150,350}, {xPP,240}, {315,325} };				structPosU16 pos2[3]={0};
+
+		//structPosition pos={250,300},pos0;
+		if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
+
+
+		//pos.x=xPP; pos.y=250;			pos0.x=180; pos0.y=460;
+
+		static int posAi = 0;
+		static structPosU16 posA[500] = {0};
+
+		//CorrectLineAA_off();
+		//perVal=0.0;
+		//for(  int i=0; i<999; ++i)
+		//{
+			LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[0] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); //LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal    ), BLACK );
+			LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[1] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); //LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),100-perVal), BLACK );
+			LCD_Line(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		pos2[2] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );  LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal		), BLACK );
+
+			if(posAi>0 && posA[posAi-1].x == pos2[2].x){
+				posAi--;
+			}
+			Dbg(1,"i");
+
+				  if(posAi>2 && posA[posAi-2].x == pos2[2].x);
+			else if(posAi>3 && posA[posAi-3].x == pos2[2].x);
+			else
+				posA[posAi++]=pos2[2];
+			//perVal+=0.1;
+		//}
+
+
+
+
+
+		for(  int i=0; i<posAi; ++i)
+		{
+			LCD_Buffer(LCD_X, 400+posA[i].x,posA[i].y, WHITE);
+		}
+
+
+		StopMeasureTime_us("Time GRAPH:");
 	}
+	only_one = ONLY_ONE_AT_START;
 
-
-
-
-
-
-
-
-
-	StopMeasureTime_us("Time GRAPH:");
 
 
 	LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 20,200, "12345", BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
 
 
-
-
-
+	#undef ONLY_ONE_AT_START
 }
 
 
