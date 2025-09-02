@@ -1,6338 +1,2513 @@
-/*
- * LCD_BasicGaphics.c
- *
- *  Created on: 11.04.2021
- *      Author: Elektronika RM
- */
 
-#include <LCD_BasicGraphics.h>
-#include <stdarg.h>
-#include <math.h>
-#include <stdbool.h>
-#include "LCD_Hardware.h"
+#include "SCREEN_FontsLCD.h"
+#include "LCD_BasicGraphics.h"
+#include "SCREEN_ReadPanel.h"
 #include "LCD_Common.h"
-#include "rng.h"
-#include "double_float.h"
+#include "timer.h"
+#include "lang.h"
+#include "debug.h"
+#include "string_oper.h"
+#include "cpu_utils.h"
+#include "tim.h"
+#include "touch.h"
+#include "common.h"
+#include "mini_printf.h"
+#include "TouchLcdTask.h"
+#include "stmpe811.h"
 
-/*	#pragma GCC push_options
-	#pragma GCC optimize ("-Ofast")	*/
+#include "FreeRTOS.h"
+#include "task.h"
+#include "Keyboard.h"
+#include "examples.h"
 
-#define MAX_SIZE_TAB_AA		365
-#define MAX_LINE_BUFF_CIRCLE_SIZE  100
-#define MAX_DEGREE_CIRCLE  10
-#define GRAPH_MAX_SIZE_POSXY	10000
-#define SIZE_ONE_CHART		sizeof(structGetSmpl) + GRAPH_MAX_SIZE_POSXY*sizeof(structPosU16) + 2*GRAPH_MAX_SIZE_POSXY*sizeof(structRepPos)
-#define CHART_PTR_MEM_SIZE		32*32
-#define CHART_RCT_MEM_SIZE		120*60
-#define MAX_CHARTS_SIMULTANEOUSLY	8
 
-/* Select one memory type for graphic of chart */
-/* #define GRAPH_MEMORY_RAM */
-/* #define GRAPH_MEMORY_SDRAM */
-#define GRAPH_MEMORY_SDRAM2
+/*----------------- Main Settings ------------------*/
+#define FILE_NAME(extend) SCREEN_Fonts_##extend
 
-#define AA_NO_FRAME	 (1<<28)
-#define AA_OUT_OFF  	 (1<<24)
-#define AA_IN_OFF  	 (1<<26)
-#define READ_BKCOLOR  (1<<25)
-#define COLOR_TEST		0x12345678		/* Reserved colors - Not use this color in other applications */
-#define COLOR_TEST_1		0x12345677
-#define COLOR_TEST_2		0x12345679
+#define SCREEN_FONTS_LANG \
+	X(LANG_nazwa_0, "Czcionki LCD", "Fonts LCD") \
+	X(LANG_nazwa_1, "Zmiana kolor"ó"w czcionki", "Press to change color fonts") \
+	X(LANG_nazwa_2, "1.", "1.") \
+	X(LANG_nazwa_3, "Czer", "Red") \
+	X(LANG_nazwa_4, "Ziel", "Green") \
+	X(LANG_nazwa_5, "Nieb", "Blue") \
+	X(LANG_nazwa_6, "Zmiana kolor"ó"w t"ł"a", "Press to change color fonts background") \
+	X(LANG_nazwa_7, "2.", "2.") \
+	X(LANG_nazwa_8, "Klawiatura RGB", "Keyboard RGB") \
+	X(LANG_FontTypeAbove, "Zmiana typu czcionki", "Press to change type fonts") \
+	X(LANG_FontTypeLeft, "3.", "3.") \
+	X(LANG_FontTypeUnder, "kolor t"ł"a i czcionki", "background - font") \
+	X(LANG_FontSizeAbove,    "Zmiana rozmiaru czcionki", "Press to change size fonts") \
+	X(LANG_FontSizeLeft, 	 "4.", "4.") \
+	X(LANG_FontSizeUnder, 	 "normalna, t"ł"usta, pochy"ł"a", "normal,bold,italics") \
+	X(LANG_FontStyleAbove, "Zmiana stylu czcionki", "Press to change style fonts") \
+	X(LANG_FontStyleLeft, 	 "5.", "5.") \
+	X(LANG_FontStyleUnder, 	 "Nazwa stylu pod czcionk"ą"", "---2") \
+	X(LANG_FontCoeffAbove, "Wsp"ó""ł"czynnik", "Coefficient") \
+	X(LANG_FontCoeffLeft, 	 "6.", "6.") \
+	X(LANG_FontCoeffUnder, 	 "naci"ś"nij", "press me") \
+	X(LANG_CoeffKeyName, "Wsp"ó""ł"czyn", "Coeff") \
+	X(LANG_LenOffsWin1, "Okre"ś"lenie odst"ę"p"ó"w pom"ę"dzy literami", "Specifying the spacing between letters") \
+	X(LANG_LenOffsWin2, "Przesuwanie tekstu, zmiana pozycji kursora i zapis zmian", "Moving text, changing cursor position, editing and saving changes") \
+	X(LANG_LenOffsWin3, "Szeroko"ś""ć" tekstu", "xxxxxxx") \
+	X(LANG_LenOffsWin4, "i jego przesuni"ę"cie", "xxxxxxx") \
+	X(LANG_TimeSpeed1, "Czas za"ł"adowania czcionek", "xxxxxxx") \
+	X(LANG_TimeSpeed2, "i szybko"ś""ć" wy"ś"wietlenia", "xxxxxxx") \
+	X(LANG_WinInfo, "Zmiany odst"ę"p"ó"w mi"ę"dzy literami zosta"ł"y zapisane", "xxxxxxx") \
+	X(LANG_WinInfo2, "Reset wszystkich ustawie"ń" dla odst"ę"p"ó"w mi"ę"dzy literami", "xxxxxxx") \
+	X(LANG_MainFrameType, "Zmie"ń" wygl"ą"d", "Change appearance") \
 
-#define _IS_NOT_PXL(i,color1,color2,color3,color4)		(pLcd[i]!=color1 && pLcd[i]!=color2 && pLcd[i]!=color3 && pLcd[i]!=color4)
-#define _IS_NEXT_PXL(bkX,i,color)	(pLcd[(i)+1]==color || pLcd[(i)-1]==color || pLcd[(i)+bkX]==color || pLcd[(i)-bkX]==color || pLcd[(i)+bkX+1]==color || pLcd[(i)+bkX-1]==color || pLcd[(i)-bkX+1]==color || pLcd[(i)-bkX-1]==color)
+/* MYGRAY2 in below because function 'LoadFont' must load font type of 'MYGRAY-MYGREEN' to enable to change font colors (not MYGRAY-WHITE and not enable to change font colors) */
+#define SCREEN_FONTS_SET_PARAMETERS \
+/* id   name							default value */ \
+	X(0, FONT_SIZE_Title, 	 		FONT_24_bold) \
+	X(1, FONT_SIZE_FontColor, 	 	FONT_14) \
+	X(2, FONT_SIZE_BkColor,			FONT_14) \
+	X(3, FONT_SIZE_FontType,		FONT_14) \
+	X(4, FONT_SIZE_FontSize,		FONT_14) \
+	X(5, FONT_SIZE_FontStyle,		FONT_14) \
+	X(6, FONT_SIZE_Coeff,			FONT_14) \
+	X(7, FONT_SIZE_LenWin,			FONT_14) \
+	X(8, FONT_SIZE_OffsWin,			FONT_10) \
+	X(9, FONT_SIZE_LoadFontTime,	FONT_10) \
+	X(10, FONT_SIZE_PosCursor,		FONT_10) \
+	X(11, FONT_SIZE_CPUusage,		FONT_10) \
+	X(12, FONT_SIZE_Speed,			FONT_10) \
+	X(13, FONT_SIZE_Descr, 	 		FONT_12) \
+	X(14, FONT_SIZE_Press, 	 		FONT_14) \
+	X(15, FONT_SIZE_Fonts,			FONT_20) \
+	\
+	X(16, FONT_STYLE_Title, 	 	Arial) \
+	X(17, FONT_STYLE_FontColor, 	Arial) \
+	X(18, FONT_STYLE_BkColor, 		Arial) \
+	X(19, FONT_STYLE_FontType, 	Arial) \
+	X(20, FONT_STYLE_FontSize, 	Arial) \
+	X(21, FONT_STYLE_FontStyle, 	Arial) \
+	X(22, FONT_STYLE_Coeff, 		Arial) \
+	X(23, FONT_STYLE_LenWin, 		Arial) \
+	X(24, FONT_STYLE_OffsWin, 		Arial) \
+	X(25, FONT_STYLE_LoadFontTime,Arial) \
+	X(26, FONT_STYLE_PosCursor,	Arial) \
+	X(27, FONT_STYLE_CPUusage,		Arial) \
+	X(28, FONT_STYLE_Speed,			Arial) \
+	X(29, FONT_STYLE_Descr, 		Times_New_Roman) \
+	X(30, FONT_STYLE_Press, 		Arial) \
+	X(31, FONT_STYLE_Fonts, 		Arial) \
+	\
+	X(32, FONT_COLOR_Title,  	 	WHITE) \
+	X(33, FONT_COLOR_FontColor, 	WHITE) \
+	X(34, FONT_COLOR_BkColor, 	 	WHITE) \
+	X(35, FONT_COLOR_FontType,  	WHITE) \
+	X(36, FONT_COLOR_FontSize,  	WHITE) \
+	X(37, FONT_COLOR_FontStyle,  	WHITE) \
+	X(38, FONT_COLOR_Coeff,  		WHITE) \
+	X(39, FONT_COLOR_LenWin,  		WHITE) \
+	X(40, FONT_COLOR_OffsWin,  	WHITE) \
+	X(41, FONT_COLOR_LoadFontTime,WHITE) \
+	X(42, FONT_COLOR_PosCursor,	WHITE) \
+	X(43, FONT_COLOR_CPUusage,		WHITE) \
+	X(44, FONT_COLOR_Speed,			WHITE) \
+	X(45, FONT_COLOR_Descr, 		COLOR_GRAY(0x99)) \
+	X(46, FONT_COLOR_Press, 		DARKRED) \
+	X(47, FONT_COLOR_Fonts,  		0xFFE1A000) \
+	\
+	X(48, FONT_BKCOLOR_Title,  	 	MYGRAY2) \
+	X(49, FONT_BKCOLOR_FontColor, 	MYGRAY2) \
+	X(50, FONT_BKCOLOR_BkColor, 	 	MYGRAY2) \
+	X(51, FONT_BKCOLOR_FontType,  	MYGRAY2) \
+	X(52, FONT_BKCOLOR_FontSize,  	MYGRAY2) \
+	X(53, FONT_BKCOLOR_FontStyle,  	MYGRAY2) \
+	X(54, FONT_BKCOLOR_Coeff,  		MYGRAY2) \
+	X(55, FONT_BKCOLOR_LenWin,  		MYGRAY2) \
+	X(56, FONT_BKCOLOR_OffsWin,  		MYGRAY2) \
+	X(57, FONT_BKCOLOR_LoadFontTime,	MYGRAY2) \
+	X(58, FONT_BKCOLOR_PosCursor,		MYGRAY2) \
+	X(59, FONT_BKCOLOR_CPUusage,		MYGRAY2) \
+	X(60, FONT_BKCOLOR_Speed,			MYGRAY2) \
+	X(61, FONT_BKCOLOR_Descr, 			MYGRAY2) \
+	X(62, FONT_BKCOLOR_Press, 			WHITE) \
+	X(63, FONT_BKCOLOR_Fonts,  		0x090440) \
+	\
+	X(64, COLOR_BkScreen,  			COLOR_GRAY(0x38)) \
+	X(65, COLOR_MainFrame,  		COLOR_GRAY(0xD0)) \
+	X(66, COLOR_FillMainFrame, 	COLOR_GRAY(0x31)) \
+	X(67, COLOR_Frame,  				COLOR_GRAY(0xD0)) \
+	X(68, COLOR_FillFrame, 			COLOR_GRAY(0x3B)) \
+	X(69, COLOR_FramePress, 		COLOR_GRAY(0xBA)) \
+	X(70, COLOR_FillFramePress,	COLOR_GRAY(0x60)) \
+	X(71, DEBUG_ON,  	1) \
+	X(72, BK_FONT_ROUND,  	1) \
+	X(73, LANG_SELECT,  	Polish) \
+	\
+	X(74, FONT_ID_Title,			fontID_1) \
+	X(75, FONT_ID_FontColor,	fontID_2) \
+	X(76, FONT_ID_BkColor, 		fontID_3) \
+	X(77, FONT_ID_FontType, 	fontID_4) \
+	X(78, FONT_ID_FontSize, 	fontID_5) \
+	X(79, FONT_ID_FontStyle,  	fontID_6) \
+	X(80, FONT_ID_Coeff,  		fontID_7) \
+	X(81, FONT_ID_LenWin,  		fontID_8) \
+	X(82, FONT_ID_OffsWin,  	fontID_9) \
+	X(83, FONT_ID_LoadFontTime,fontID_10) \
+	X(84, FONT_ID_PosCursor,	fontID_11) \
+	X(85, FONT_ID_CPUusage,		fontID_12) \
+	X(86, FONT_ID_Speed,			fontID_13) \
+	X(87, FONT_ID_Descr,  		fontID_14) \
+	X(88, FONT_ID_Press,  		fontID_15) \
+	X(89, FONT_ID_Fonts,  		fontID_16) \
+	\
+	X(90, FONT_VAR_Title,			fontVar_1) \
+	X(91, FONT_VAR_FontColor,		fontVar_2) \
+	X(92, FONT_VAR_BkColor, 		fontVar_3) \
+	X(93, FONT_VAR_FontType, 		fontVar_4) \
+	X(94, FONT_VAR_FontSize, 		fontVar_5) \
+	X(95, FONT_VAR_FontStyle,  	fontVar_6) \
+	X(96, FONT_VAR_Coeff,  			fontVar_7) \
+	X(97, FONT_VAR_LenWin,  		fontVar_8) \
+	X(98, FONT_VAR_OffsWin,  		fontVar_9) \
+	X(99, FONT_VAR_LoadFontTime,	fontVar_10) \
+	X(100, FONT_VAR_PosCursor,		fontVar_11) \
+	X(101, FONT_VAR_CPUusage,		fontVar_12) \
+	X(102, FONT_VAR_Speed,			fontVar_13) \
+	X(103, FONT_VAR_Fonts,  		fontVar_14) \
+	X(104, FONT_VAR_Press,  		fontVar_15) \
+/*------------ End Main Settings -----------------*/
 
-#define _PLCD(offs,x,y)	 	pLcd[(offs)+widthBk*(y)+(x)]
-#define _K(x,y)	 			widthBk*(y)+(x)
-
-#define _2LOOP(ix,iy,widthX,widthY)								for(int (iy)=0;(iy)<(widthY);(iy)++){ for(int (ix)=0;(ix)<(widthX);(ix)++){
-#define _2LOOP_INIT(init,ix,iy,widthX,widthY)				init;  		 _2LOOP(ix,iy,widthX,widthY)
-#define _2LOOP_2INIT(init,init2,ix,iy,widthX,widthY)		init; init2; _2LOOP(ix,iy,widthX,widthY)
-#define _2LOOP_END		}}
-#define _1LOOP_END		}
+/*------------ Main Screen MACROs -----------------*/
+#define SL(name)	(char*)FILE_NAME(Lang)[ v.LANG_SELECT==Polish ? 2*(name) : 2*(name)+1 ]
 
 typedef enum{
-	RightUpDir1,
-	RightUpDir0,
-	RightDownDir0,
-	RightDownDir1,
-	LeftUpDir1,
-	LeftUpDir0,
-	LeftDownDir0,
-	LeftDownDir1,
-	Equal,
-	RightUpDownDir1,
-	RightDownUpDir1
-}GRAPH_FUNCTION_TYPE;
+	#define X(a,b,c) a,
+		SCREEN_FONTS_LANG
+	#undef X
+}FILE_NAME(Lang_enum);
+
+static const char *FILE_NAME(Lang)[]={
+	#define X(a,b,c) b"\x00",c"\x00",
+		SCREEN_FONTS_LANG
+	#undef X
+};
 
 typedef enum{
-	DegTo45,
-	DegAbove45,
-}GRAPH_CORRECT45DEG_AA;
-
-ALIGN_32BYTES(uint32_t pLcd[LCD_BUFF_XSIZE*LCD_BUFF_YSIZE] __attribute__ ((section(".sdram"))));
-
-static uint32_t k, kCopy;
-static uint32_t buff_AA[MAX_SIZE_TAB_AA];
-static uint32_t buff2_AA[MAX_SIZE_TAB_AA];
-static structPosition pos,pos_prev;
-
-typedef struct
-{	float c1;
-	float c2;
-}AACoeff_RoundFrameRectangle;
-
-typedef struct
-{	uint8_t lineBuff[MAX_LINE_BUFF_CIRCLE_SIZE];
-	float outRatioStart;
-	float inRatioStart;
-	float outRatioStart_prev;
-	float inRatioStart_prev;
-	uint16_t width;
-	uint16_t width_prev;
-	uint16_t x0;
-	uint16_t y0;
-	uint16_t degree[MAX_DEGREE_CIRCLE+1];
-	uint32_t degColor[MAX_DEGREE_CIRCLE];
-	float tang[MAX_DEGREE_CIRCLE];
-	float coeff[MAX_DEGREE_CIRCLE];
-	uint8_t rot[MAX_DEGREE_CIRCLE];
-	uint16_t correctForWidth;
-	uint16_t correctPercDeg[2];
-	float errorDecision[2];
-}Circle_Param;
+	#define X(a,b,c) b,
+		SCREEN_FONTS_SET_PARAMETERS
+	#undef X
+}FILE_NAME(enum);
 
 typedef struct{
-	structPosU16 startXYchart;		/* win of chart position (x,y) starts from middle of Y (not on top Y) */
-	u16 yMinMaxchart[2];				/* Y of top win of chart  and  Y of bottom win of chart */
-	u16 sizeX;
-	structPosU16 pos;			/* calculated position of only pointer */
-	structSizeU16 size;		/* calculated size of only pointer */
-	structPointParam ptr;
-	u8 memInUse;
-	u16 chartBkW;
-	u32 *ptrMem;
-	u32 *rctMem;
-	u32 CounterBusyBytesForFontsImages_copy;
-}CHART_PTR_PREV;
+	#define X(a,b,c) int b;
+		SCREEN_FONTS_SET_PARAMETERS
+	#undef X
+}FILE_NAME(struct);
 
-static AACoeff_RoundFrameRectangle AA;
-static uint8_t correctLine_AA=0;
-static Circle_Param Circle = {.correctForWidth= 80, .correctPercDeg= {70, 80}, .errorDecision= {0.1, 0.4}};
+static FILE_NAME(struct) v ={
+	#define X(a,b,c) c,
+		SCREEN_FONTS_SET_PARAMETERS
+	#undef X
+};
 
-USER_GRAPH_PARAM USER_GRAPH_PARAM_Zero = {0};
+#define SEL_BITS_SIZE	5
+static uint32_t FILE_NAME(SelBits)[SEL_BITS_SIZE] = {0};
+static uint32_t FILE_NAME(SelTouch)[SEL_BITS_SIZE] = {0};
+/*
+static int FILE_NAME(SetDefaultParam)(int param){
+	int temp;
+	#define X(a,b,c) \
+		if(b==param){ v.b=c; temp=c; }
+		SCREEN_FONTS_SET_PARAMETERS
+	#undef X
+		return temp;
+}
+*/
+static int FILE_NAME(GetDefaultParam)(int param){
+	int temp;
+	#define X(a,b,c) \
+		if(b==param) temp=c;
+		SCREEN_FONTS_SET_PARAMETERS
+	#undef X
+		return temp;
+}
 
-SDRAM static u32 			chartPtrMem					[ MAX_CHARTS_SIMULTANEOUSLY ][ CHART_PTR_MEM_SIZE ];			/* in future allocate as dynamic memory as for fonts memory */
-SDRAM static u32 			chartRctMem					[ MAX_CHARTS_SIMULTANEOUSLY ][ CHART_RCT_MEM_SIZE ];
-static CHART_PTR_PREV 	ptrPrev						[ MAX_CHARTS_SIMULTANEOUSLY ] = {0};
-static int 					chartMemOffsForMemNr		[ MAX_CHARTS_SIMULTANEOUSLY ] = {0};
+void FILE_NAME(printInfo)(void){
+	if(v.DEBUG_ON){
+		Dbg(1,Clr_ CoG2_"\r\ntypedef struct{\r\n"_X);
+		DbgVar2(1,200,CoGr_"%*s %*s %*s %s\r\n"_X, -8,"id", -18,"name", -15,"default value", "value");
+		#define X(a,b,c) DbgVar2(1,200,CoGr_"%*d"_X	"%*s" 	CoGr_"= "_X	 	"%*s" 	"(%s0x%x)\r\n",-4,a,		-23,getName(b),	-15,getName(c), 	CHECK_bit( FILE_NAME(SelBits)[a/32], (a-32*(a/32)) )?CoR_"change to: "_X:"", v.b);
+			SCREEN_FONTS_SET_PARAMETERS
+		#undef X
+		DbgVar(1,200,CoG2_"}%s;\r\n"_X,getName(FILE_NAME(struct)));
+	}
+}
+//ZROBIC szablon z macro by dla kazdego pliku szybko skopioowac !!!!!!!!!!!!!!!
+int FILE_NAME(funcGet)(int offs){
+	return *( (int*)((int*)(&v) + offs) );
+}
 
-#if defined(GRAPH_MEMORY_RAM)
+void FILE_NAME(funcSet)(int offs, int val){
+	*( (int*)((int*)(&v) + offs) ) = val;
+	SET_bit( FILE_NAME(SelBits)[offs/32], (offs-32*(offs/32)) );
+}
 
-	static structGetSmpl posXY_par [1]= {0};
-	static structPosU16  posXY	  	 [GRAPH_MAX_SIZE_POSXY] = {0};
-	static structRepPos 	posXY_rep [GRAPH_MAX_SIZE_POSXY] = {0};
+void FILE_NAME(setDefaultAllParam)(int rst){
+	#define X(a,b,c) FILE_NAME(funcSet)(b,c);
+		SCREEN_FONTS_SET_PARAMETERS
+	#undef X
+	if(rst){
+		for(int i=0;i<SEL_BITS_SIZE;++i)
+			FILE_NAME(SelBits)[i]=0;
+	}
+}
 
-#elif defined(GRAPH_MEMORY_SDRAM)
+void FILE_NAME(debugRcvStr)(void);
+void FILE_NAME(setTouch)(void);
 
-	SDRAM static structGetSmpl posXY_par [1];
-	SDRAM static structPosU16  posXY	  	 [GRAPH_MAX_SIZE_POSXY];
-	SDRAM static structRepPos 	posXY_rep [GRAPH_MAX_SIZE_POSXY];
+void 	FILE_NAME(main)(int argNmb, char **argVal);
+/*------------ End Main Screen MACRO -----------------*/
 
-#elif defined(GRAPH_MEMORY_SDRAM2)
+#define USE_DBG_CLR	0
 
-	static structGetSmpl *posXY_par = NULL;
-	static structPosU16  *posXY 	  = NULL;
-	static structRepPos  *posXY_rep = NULL;
+#define TEXT_TO_SHOW		"+-456.7890"//"Rafa"ł" Markielowski"
 
+#define ID_MIDDLE_TXT	LCD_XY_MIDDLE_MAX_NUMBER_USE-1
+#define POS_X_TXT		LCD_Xmiddle(ID_MIDDLE_TXT,GetPos,v.FONT_ID_Fonts,Test.txt,Test.spaceBetweenFonts,Test.constWidth)
+#define POS_Y_TXT		LCD_Ymiddle(ID_MIDDLE_TXT,GetPos,v.FONT_ID_Fonts)
+
+#define TXT_FONT_COLOR 	StrAll(7," ",INT2STR(Test.font[0])," ",INT2STR(Test.font[1])," ",INT2STR(Test.font[2])," ")
+#define TXT_BK_COLOR 	StrAll(7," ",INT2STR(Test.bk[0]),  " ",INT2STR(Test.bk[1]),  " ",INT2STR(Test.bk[2])," ")
+#define TXT_FONT_TYPE	StrAll(3," ",LCD_FontType2Str(bufTemp,0,Test.type+1)+1," ")
+#define TXT_FONT_SIZE	StrAll(3," ",LCD_FontSize2Str(bufTemp+25,Test.size)," ")
+#define TXT_FONT_STYLE	StrAll(3," ",LCD_FontStyle2Str(bufTemp,Test.style)," ")
+#define TXT_COEFF			StrAll(3," ",Int2Str(Test.coeff,Space,3,Sign_plusMinus)," ")
+#define TXT_LEN_WIN		Int2Str(Test.lenWin ,' ',3,Sign_none)
+#define TXT_OFFS_WIN		Int2Str(Test.offsWin,' ',3,Sign_none)
+#define TXT_LENOFFS_WIN StrAll(5," ",TXT_LEN_WIN," ",TXT_OFFS_WIN," ")
+#define TXT_TIMESPEED 			StrAll(4,Int2Str(Test.loadFontTime,' ',5,Sign_none)," ms   ",Int2Str(Test.speed,' ',6,Sign_none)," us")
+#define TXT_CPU_USAGE		   StrAll(2,INT2STR(osGetCPUUsage()),"c")
+
+#define RGB_FONT 	RGB2INT(Test.font[0],Test.font[1],Test.font[2])
+#define RGB_BK    RGB2INT(Test.bk[0],  Test.bk[1],  Test.bk[2])
+
+#define CHECK_TOUCH(state)		CHECK_bit(FILE_NAME(SelTouch)[state/32],(state-32*(state/32)-1))
+#define SET_TOUCH(state) 		SET_bit(FILE_NAME(SelTouch)[state/32],(state-32*(state/32)-1))
+#define CLR_TOUCH(state) 		RST_bit(FILE_NAME(SelTouch)[state/32],(state-32*(state/32)-1))
+#define CLR_ALL_TOUCH 			for(int i=0;i<SEL_BITS_SIZE;++i) FILE_NAME(SelTouch)[i]=0
+#define GET_TOUCH 				FILE_NAME(SelTouch)[0]!=0 || FILE_NAME(SelTouch)[1]!=0 || FILE_NAME(SelTouch)[2]!=0 || FILE_NAME(SelTouch)[3]!=0 || FILE_NAME(SelTouch)[4]!=0		/* determine by 'SEL_BITS_SIZE' */
+
+#define NONE_TYPE_REQ	-1
+#define MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY		20
+/* #define TOUCH_MAINFONTS_WITHOUT_DESCR */
+
+#define SELECT_CURRENT_FONT(src,dst,txt,coeff) \
+	LCD_SetStrVar_fontID		(v.FONT_VAR_##src, v.FONT_ID_##dst);\
+	LCD_SetStrVar_fontColor	(v.FONT_VAR_##src, v.FONT_COLOR_##dst);\
+	LCD_SetStrVar_bkColor  	(v.FONT_VAR_##src, v.FONT_BKCOLOR_##dst);\
+	LCD_SetStrVar_coeff		(v.FONT_VAR_##src, coeff);\
+	LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_##src, txt)
+
+#define ROLL_1		0
+
+typedef enum{
+	NoTouch = NO_TOUCH,
+	Touch_FontColor,
+	Touch_FontColor2,
+	Touch_FontColorMoveRight,
+	Touch_FontColorMoveLeft,
+	Touch_BkColor,
+	Touch_BkColor2,
+	Touch_BkColorMove,
+	Touch_FontType,
+	Touch_FontType2,
+	Touch_FontSize,
+	Touch_FontSize2,
+	Touch_FontSizeMove,
+	Touch_FontStyle,
+	Touch_FontStyle2,
+	Touch_FontCoeff,
+	Touch_FontLenOffsWin,
+
+	Touch_fontRp,
+	Touch_fontGp,
+	Touch_fontBp,
+	Touch_fontRm,
+	Touch_fontGm,
+	Touch_fontBm,
+
+	Touch_bkRp,
+	Touch_bkGp,
+	Touch_bkBp,
+	Touch_bkRm,
+	Touch_bkGm,
+	Touch_bkBm,
+
+	Touch2_bkSliderR_left,
+	Touch2_bkSliderR,
+	Touch2_bkSliderR_right,
+	Touch2_bkSliderG_left,
+	Touch2_bkSliderG,
+	Touch2_bkSliderG_right,
+	Touch2_bkSliderB_left,
+	Touch2_bkSliderB,
+	Touch2_bkSliderB_right,
+	Touch2_fontSliderR_left,
+	Touch2_fontSliderR,
+	Touch2_fontSliderR_right,
+	Touch2_fontSliderG_left,
+	Touch2_fontSliderG,
+	Touch2_fontSliderG_right,
+	Touch2_fontSliderB_left,
+	Touch2_fontSliderB,
+	Touch2_fontSliderB_right,
+
+	Touch_fontCircleSliderR,
+	Touch_fontCircleSliderG,
+	Touch_fontCircleSliderB,
+	Touch_CircleSliderStyle,
+	Touch_CircleSlider3D,
+	Touch_bkCircleSliderR,
+	Touch_bkCircleSliderG,
+	Touch_bkCircleSliderB,
+
+	Touch_style1,
+	Touch_style2,
+	Touch_style3,
+	Touch_type1,
+	Touch_type2,
+	Touch_type3,
+	Touch_type4,
+	Touch_size_plus,
+	Touch_size_minus,
+	Touch_size_norm,
+	Touch_size_bold,
+	Touch_size_italic,
+	Touch_FontSizeRoll,
+	Touch_coeff_plus,
+	Touch_coeff_minus,
+	Touch_LenWin_plus,
+	Touch_LenWin_minus,
+	Touch_OffsWin_plus,
+	Touch_OffsWin_minus,
+	Touch_PosInWin_plus,
+	Touch_PosInWin_minus,
+	Touch_SpaceFonts_plus,
+	Touch_SpaceFonts_minus,
+	Touch_DispSpaces,
+	Touch_WriteSpaces,
+	Touch_ResetSpaces,
+	Touch_SpacesInfoUp,
+	Touch_SpacesInfoDown,
+	Touch_SpacesInfoStyle,
+	Touch_SpacesInfoRoll,
+	Touch_SpacesInfoSel,
+	Touch_SpacesInfoTest,
+	Touch_MainFramesType,
+	Touch_SetTxt,
+	Touch_Chart_1,
+	Touch_Chart_2,
+	Touch_Chart_3,
+	Move_1,
+	Move_2,
+	Move_3,
+	Point_1,
+	AnyPress,
+	AnyPressWithWait,
+	Touch_Q,Touch_W,Touch_E,Touch_R,Touch_T,Touch_Y,Touch_U,Touch_I,Touch_O,Touch_P,Touch_A,Touch_S,Touch_D,Touch_F,Touch_G,Touch_H,Touch_J,Touch_K,TOouch_L,Touch_big,Touch_Z,Touch_X,Touch_C,Touch_V,Touch_B,Touch_N,Touch_M,Touch_back,Touch_alt,Touch_exit,Touch_space,Touch_comma,Touch_dot,Touch_enter
+}TOUCH_POINTS;		/* MAX_OPEN_TOUCH_SIMULTANEOUSLY */
+
+typedef enum{
+	KEYBOARD_none,
+	KEYBOARD_fontRGB,
+	KEYBOARD_bkRGB,
+	KEYBOARD_fontSize,
+	KEYBOARD_fontSize2,
+	KEYBOARD_fontType,
+	KEYBOARD_fontStyle,
+	KEYBOARD_fontCoeff,
+	KEYBOARD_LenOffsWin,
+	KEYBOARD_sliderRGB,
+	KEYBOARD_sliderBkRGB,
+	KEYBOARD_circleSliderRGB,
+	KEYBOARD_circleSliderBkRGB,
+	KEYBOARD_setTxt,
+}KEYBOARD_TYPES;	/* MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY */
+
+typedef enum{
+	KEY_NO_RELEASE,
+	KEY_All_release,
+	KEY_Select_one,
+	KEY_Timer,
+	KEY_Timer2,
+
+	KEY_Red_plus,
+	KEY_Green_plus,
+	KEY_Blue_plus,
+	KEY_Red_minus,
+	KEY_Green_minus,
+	KEY_Blue_minus,
+
+	KEY2_bkSliderR_left,
+	KEY2_bkSliderR,
+	KEY2_bkSliderR_right,
+	KEY2_bkSliderG_left,
+	KEY2_bkSliderG,
+	KEY2_bkSliderG_right,
+	KEY2_bkSliderB_left,
+	KEY2_bkSliderB,
+	KEY2_bkSliderB_right,
+	KEY2_fontSliderR_left,
+	KEY2_fontSliderR,
+	KEY2_fontSliderR_right,
+	KEY2_fontSliderG_left,
+	KEY2_fontSliderG,
+	KEY2_fontSliderG_right,
+	KEY2_fontSliderB_left,
+	KEY2_fontSliderB,
+	KEY2_fontSliderB_right,
+
+	KEY_fontCircleSliderR,
+	KEY_fontCircleSliderG,
+	KEY_fontCircleSliderB,
+	KEY_CircleSliderStyle,
+	KEY_CircleSlider3D,
+	KEY_bkCircleSliderR,
+	KEY_bkCircleSliderG,
+	KEY_bkCircleSliderB,
+
+	KEY_Style_1,
+	KEY_Style_2,
+	KEY_Style_3,
+
+	KEY_Size_plus,
+	KEY_Size_minus,
+	KEY_Size_norm,
+	KEY_Size_bold,
+	KEY_Size_italic,
+
+	KEY_Coeff_plus,
+	KEY_Coeff_minus,
+
+	KEY_LenWin_plus,
+	KEY_LenWin_minus,
+	KEY_OffsWin_plus,
+	KEY_OffsWin_minus,
+	KEY_PosInWin_plus,
+	KEY_PosInWin_minus,
+	KEY_SpaceFonts_plus,
+	KEY_SpaceFonts_minus,
+	KEY_DispSpaces,
+	KEY_WriteSpaces,
+	KEY_ResetSpaces,
+	KEY_InfoSpacesUp,
+	KEY_InfoSpacesDown,
+	KEY_InfoSpacesStyle,
+	KEY_InfoSpacesRoll,
+	KEY_InfoSpacesSel,
+
+	KEY_Q,KEY_W,KEY_E,KEY_R,KEY_T,KEY_Y,KEY_U,KEY_I,KEY_O,KEY_P,KEY_A,KEY_S,KEY_D,KEY_F,KEY_G,KEY_H,KEY_J,KEY_K,KEY_L,KEY_big,KEY_Z,KEY_X,KEY_C,KEY_V,KEY_B,KEY_N,KEY_M,KEY_back,KEY_alt,KEY_exit,KEY_space,KEY_comma,KEY_dot,KEY_enter,
+
+}SELECT_PRESS_BLOCK;
+
+typedef enum{
+	PARAM_TYPE,
+	PARAM_SIZE,
+	PARAM_COLOR_BK,
+	PARAM_COLOR_FONT,
+	PARAM_LEN_WINDOW,
+	PARAM_OFFS_WINDOW,
+	PARAM_STYLE,
+	PARAM_COEFF,
+	PARAM_SPEED,
+	PARAM_LOAD_FONT_TIME,
+	PARAM_POS_CURSOR,
+	PARAM_CPU_USAGE,
+	PARAM_MOV_TXT,
+	FONTS
+}REFRESH_DATA;
+
+typedef enum{
+	TIMER_Cpu,
+	TIMER_InfoWrite,
+	TIMER_Release,
+	TIMER_BlockTouch,
+	TIMER_Scroll,
+}TIMER_FOR_THIS_SCREEN;
+
+static int temp;
+static char bufTemp[50];
+static int lenTxt_prev;
+static StructTxtPxlLen lenStr;
+static KEYBOARD_TYPES actualKeyboardType = KEYBOARD_none;
+
+typedef struct{
+	int32_t bk[3];
+	int32_t font[3];
+	uint16_t xFontsField;
+	uint16_t yFontsField;
+	int8_t step;
+	int16_t coeff;
+	int16_t coeff_prev[2];
+	int8_t size;
+	uint8_t style;
+	uint32_t time;
+	int8_t type;
+	char txt[200];  //!!!!!!!!!!!!!!!!! ZMIANA TEXTU NA INNY DOWOLNY
+	int16_t lenWin;
+	int16_t offsWin;
+	int16_t lenWin_prev;
+	int16_t offsWin_prev;
+	uint8_t normBoldItal;
+	uint32_t speed;
+	uint32_t loadFontTime;
+	uint8_t posCursor;
+	uint8_t spaceCoursorY;
+	uint8_t heightCursor;
+	uint8_t spaceBetweenFonts;
+	uint8_t constWidth;
+} RGB_BK_FONT;
+static RGB_BK_FONT Test;
+
+static void EXPER_FUNC_beforeDispBuffLcd(void);
+static void EXPER_FUNC_afterDispBuffLcd(void);
+
+static void FRAMES_GROUP_combined(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY,  int bold);
+static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY,  int boldFrame);
+
+static int *ppMain[7] = {(int*)FRAMES_GROUP_combined,(int*)FRAMES_GROUP_separat,(int*)"Rafal", (int*)&Test, NULL, NULL, NULL };
+/*
+static char* TXT_PosCursor(void){
+	return Test.posCursor>0 ? Int2Str(Test.posCursor-1,' ',3,Sign_none) : StrAll(1,"off");
+}
+*/
+static void ClearCursorField(void){
+	LCD_ShapeIndirect(LCD_GetStrVar_x(v.FONT_VAR_Fonts),LCD_GetStrVar_y(v.FONT_VAR_Fonts)+LCD_GetFontHeight(v.FONT_ID_Fonts)+Test.spaceCoursorY,LCD_Rectangle, lenStr.inPixel,Test.heightCursor, v.COLOR_BkScreen,v.COLOR_BkScreen,v.COLOR_BkScreen);
+}
+static void TxtTouch(TOUCH_SET_UPDATE type){
+	switch((int)type){
+		case TouchSetNew:
+			LCD_TOUCH_DeleteSelectTouch(Touch_SetTxt);
+			LCDTOUCH_Set(POS_X_TXT, POS_Y_TXT, lenStr.inPixel, lenStr.height, ID_TOUCH_POINT,Touch_SetTxt,press);
+			break;
+		case TouchUpdate:
+			LCDTOUCH_Update(POS_X_TXT, POS_Y_TXT, lenStr.inPixel, lenStr.height, ID_TOUCH_POINT,Touch_SetTxt,press);
+			break;
+	}
+}
+
+static void SetCursor(void)  //KURSOR DLA BIG FONT DAC PODWOJNY !!!!!
+{
+	ClearCursorField();
+	if(Test.posCursor)
+	{
+		uint32_t color;
+		switch(Test.type)
+		{
+			case RGB_RGB:  	color=RGB_FONT; break;
+			case Gray_Green:  color=MYGREEN;  break;
+			case RGB_White:  	color=WHITE; 	 break;
+			case White_Black:
+			default: 			color=BLACK; 	 break;
+		}
+		if(Test.posCursor>Test.lenWin)
+			Test.posCursor=Test.lenWin;
+		LCD_ShapeIndirect(LCD_GetStrVar_x(v.FONT_VAR_Fonts)+LCD_GetStrPxlWidth(v.FONT_ID_Fonts,Test.txt,Test.posCursor-1,Test.spaceBetweenFonts,Test.constWidth),LCD_GetStrVar_y(v.FONT_VAR_Fonts)+LCD_GetFontHeight(v.FONT_ID_Fonts)+Test.spaceCoursorY,LCD_Rectangle, LCD_GetFontWidth(v.FONT_ID_Fonts,Test.txt[Test.posCursor-1]),Test.heightCursor, color,color,color);
+	}
+}
+
+static void Data2Refresh(int nr)
+{
+	switch(nr)
+	{
+	case PARAM_TYPE:
+		lenStr=LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontType,TXT_FONT_TYPE);
+#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
+		SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontType,0, lenStr);
 #endif
-
-static u32 posLinePoints[LCD_BUFF_XSIZE] = {0};
-static u16 nmbrLinePoints = 0;
-
-uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
-uint16_t* GET_CIRCLE_correctPercDeg(int nr){	return &Circle.correctPercDeg[nr]; }
-float* 	 GET_CIRCLE_errorDecision(int nr) {	return &Circle.errorDecision[nr];  }
-
-void SET_CIRCLE_errorDecision(int nr, float decis){ Circle.errorDecision[nr]= decis; }
-
-void CIRCLE_errorDecision(int nr, ON_OFF action){
-	static float decis[2]= {0.0};
-	switch((int)action){
-		case _ON:
-			Circle.errorDecision[nr]= decis[nr];
+		break;
+	case PARAM_SIZE:
+		lenStr=LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontSize,TXT_FONT_SIZE);
+#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
+		SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontSize,0, lenStr);
+#endif
+		break;
+	case FONTS:
+		switch(Test.type)
+		{
+		case RGB_RGB:
+			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
+			LCD_SetStrVar_fontColor(v.FONT_VAR_Fonts,RGB_FONT);
+			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,RGB_BK);
+			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
+			StartMeasureTime_us();
+			 lenStr=LCD_StrChangeColorVarIndirect(v.FONT_VAR_Fonts,Test.txt);
+			Test.speed=StopMeasureTime_us("");
+		   TxtTouch(TouchUpdate);
 			break;
-		case _OFF:
-			decis[nr]= Circle.errorDecision[nr];
-			Circle.errorDecision[nr]= 0.0;
+		case Gray_Green:
+			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
+			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,MYGRAY);
+			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
+			StartMeasureTime_us();
+			lenStr=LCD_StrVarIndirect(v.FONT_VAR_Fonts,Test.txt);
+			Test.speed=StopMeasureTime_us("");
+		   TxtTouch(TouchUpdate);
 			break;
-	}
-}
-
-static void Set_AACoeff(int pixelsInOneSide, uint32_t colorFrom, uint32_t colorTo, float ratioStart)
-{
-	float incr= (1-ratioStart)/pixelsInOneSide;
-	buff_AA[0]=pixelsInOneSide;
-	for(int i=0;i<pixelsInOneSide;++i){
-		if(1+i>=MAX_SIZE_TAB_AA)
+		case RGB_White:
+			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
+			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,RGB_BK);
+			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
+			StartMeasureTime_us();
+			lenStr=LCD_StrVarIndirect(v.FONT_VAR_Fonts,Test.txt);
+		   Test.speed=StopMeasureTime_us("");
+		   TxtTouch(TouchUpdate);
+		   break;
+		case White_Black:
+			LCD_SetStrVar_fontID(v.FONT_VAR_Fonts,v.FONT_ID_Fonts);
+			LCD_SetStrVar_bkColor(v.FONT_VAR_Fonts,WHITE);
+			LCD_SetStrVar_coeff(v.FONT_VAR_Fonts,Test.coeff);
+			StartMeasureTime_us();
+			lenStr=LCD_StrVarIndirect(v.FONT_VAR_Fonts,Test.txt);
+		   Test.speed=StopMeasureTime_us("");
+		   TxtTouch(TouchUpdate);
 			break;
-		buff_AA[1+i]= GetTransitionColor(colorFrom,colorTo, ratioStart+i*incr);
-}}
-static void Set_AACoeff2(int pixelsInOneSide, uint32_t colorFrom, uint32_t colorTo, float ratioStart)
+		}
+		break;
+	case PARAM_COLOR_BK:
+		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_BkColor,TXT_BK_COLOR);
+		break;
+	case PARAM_COLOR_FONT:
+		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontColor,TXT_FONT_COLOR);
+		break;
+	case PARAM_OFFS_WINDOW:
+	case PARAM_LEN_WINDOW:
+		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_LenWin, TXT_LENOFFS_WIN);
+		break;
+	case PARAM_STYLE:
+		lenStr=LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontStyle, TXT_FONT_STYLE);
+#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
+		SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontStyle,0, lenStr);
+#endif
+		break;
+	case PARAM_COEFF:
+		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_Coeff,TXT_COEFF);
+		break;
+	case PARAM_SPEED:
+	case PARAM_LOAD_FONT_TIME:
+		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_LoadFontTime, TXT_TIMESPEED);
+		break;
+	case PARAM_CPU_USAGE:
+		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_CPUusage,TXT_CPU_USAGE);
+		break;
+/*	case PARAM_POS_CURSOR:
+		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_PosCursor,TXT_PosCursor());
+		break; */
+	}
+}
+/*
+static void RefreshAllParam(void)
 {
-	float incr= (1-ratioStart)/pixelsInOneSide;
-	buff2_AA[0]=pixelsInOneSide;
-	for(int i=0;i<pixelsInOneSide;++i){
-		if(1+i>=MAX_SIZE_TAB_AA)
-			break;
-		buff2_AA[1+i]= GetTransitionColor(colorFrom,colorTo, ratioStart+i*incr);
-}}
-
-static void _FillBuff(int itCount, uint32_t color)
+	Data2Refresh(FONTS);
+	Data2Refresh(PARAM_COLOR_FONT);
+	Data2Refresh(PARAM_COLOR_BK);
+	Data2Refresh(PARAM_TYPE);
+	Data2Refresh(PARAM_SIZE);
+	Data2Refresh(PARAM_STYLE);
+	Data2Refresh(PARAM_COEFF);
+	Data2Refresh(PARAM_LEN_WINDOW);
+	Data2Refresh(PARAM_OFFS_WINDOW);
+	Data2Refresh(PARAM_LOAD_FONT_TIME);
+	Data2Refresh(PARAM_SPEED);
+	Data2Refresh(PARAM_POS_CURSOR);
+}
+*/
+static void RefreshValRGB(void){
+	Data2Refresh(FONTS);
+	Data2Refresh(PARAM_COLOR_FONT);
+	Data2Refresh(PARAM_COLOR_BK);
+	Data2Refresh(PARAM_SPEED);
+}
+static void ChangeValRGB(char font_bk, char rgb, int32_t sign)
 {
-	if(itCount>10)
+	int32_t *color;
+	int idx;
+
+	switch(font_bk)
 	{
-		int j=itCount/2;
-		int a=j;
-
-		uint64_t *pLcd64=(uint64_t*) (pLcd+k);
-		uint64_t color64=(((uint64_t)color)<<32)|((uint64_t)color);
-
-		j--;
-		while (j)
-			pLcd64[j--]=color64;
-
-		pLcd64[j]=color64;
-		k+=a+itCount/2;
-
-		if (itCount%2)
-			pLcd[k++]=color;
+	case 'b': color=&Test.bk[0];	break;
+	case 'f': color=&Test.font[0];	break;
 	}
-	else
+
+	switch (rgb)
 	{
-		for(int i=0;i<itCount;++i)
-			pLcd[k++]=color;
+	case 'R': idx=0; break;
+	case 'G': idx=1; break;
+	case 'B': idx=2; break;
 	}
-}
 
-static void _SetColorToPLCD(uint32_t color){
-	pLcd[k++]=color;
-}
-
-static void _CopyDrawPos(void){
-	kCopy=k;
-}
-static void _SetCopyDrawPos(void){
-	k=kCopy;
-}
-static void _IncDrawPos(int pos){
-	k+=pos;
-}
-
-static void _StartDrawLine(uint32_t posBuff,uint32_t BkpSizeX,uint32_t x,uint32_t y){
-	k=posBuff+(y*BkpSizeX+x);
-}
-static uint32_t _GetPosK(uint32_t posBuff,uint32_t BkpSizeX,uint32_t x,uint32_t y){
-	return (posBuff+(y*BkpSizeX+x));
-}
-static uint32_t _GetPosY(uint32_t posBuff,uint32_t BkpSizeX){
-	return ((k-posBuff)/BkpSizeX);
-}
-static uint32_t _GetPosX(uint32_t posBuff,uint32_t BkpSizeX){
-	return ((k-posBuff)-_GetPosY(posBuff,BkpSizeX)*BkpSizeX);
-}
-static structPosition _GetPosXY(uint32_t posBuff, uint32_t BkpSizeX){
-	structPosition temp;
-	int kOffs = k-posBuff;
-	temp.y = (kOffs/BkpSizeX);
-	temp.x = (kOffs-temp.y*BkpSizeX);
-	return temp;
-}
-static structPosition _GetPosXY___(uint32_t posBuff, int k, uint32_t BkpSizeX){
-	structPosition temp;
-	int kOffs = k-posBuff;
-	temp.y = (kOffs/BkpSizeX);
-	temp.x = (kOffs-temp.y*BkpSizeX);
-	return temp;
-}
-static void _NextDrawLine(uint32_t BkpSizeX,uint32_t width){
-	k+=(BkpSizeX-width);
-}
-
-static void _DrawRight(int width, uint32_t color)
-{
-	int j=width;
-	uint32_t *p = pLcd+k;
-	while(j--)
-		*(p++)=color;
-	k+=width;
-}
-
-static void _DrawLeft(int width, uint32_t color)
-{
-	int j=width;
-	uint32_t *p = pLcd+k;
-	while(j--)
-		*(p--)=color;
-	k-=width;
-}
-
-static void _DrawDown(int height, uint32_t color,uint32_t BkpSizeX)
-{
-	int j=height;
-	while(j--)
+	switch (sign)
 	{
-		pLcd[k]=color;
-		k+=BkpSizeX;
-	}
-}
-
-static void _DrawUp(int height, uint32_t color,uint32_t BkpSizeX)
-{
-	int j=height;
-	while(j--)
-	{
-		pLcd[k]=color;
-		k-=BkpSizeX;
-	}
-}
-
-static void _DrawRightDown(int width,int height, uint32_t color,uint32_t BkpSizeX)
-{
-	int j,i,x;
-
-	if(width >= height)
-	{
-		x=width/height;
-		j=height;
-		while(j--)
-		{
-			i=x;
-			while(i--)
-				pLcd[k++]=color;
-			k+=BkpSizeX;
-		}
-	}
-	else
-	{
-		x=height/width;
-		j=width;
-		while(j--)
-		{
-			i=x;
-			while(i--)
-			{
-				pLcd[k]=color;
-				k+=BkpSizeX;
-			}
-			k++;
-		}
-	}
-}
-
-static void _DrawRightDown_AA(int width,int height, uint32_t color,uint32_t BkpSizeX)
-{
-	int j,i,x;
-
-	if(width >= height)
-	{
-		x=width/height;
-		j=height;
-		while(j--)
-		{
-			i=x;
-			while(i--)
-				pLcd[k++]=color;
-
-			if(j){
-				for(int a=0;a<buff_AA[0];++a)
-					pLcd[k+a]=buff_AA[1+a];
-			}
-			k+=BkpSizeX;
-
-			for(int a=0;a<buff_AA[0];++a)
-				pLcd[k-1-a]=buff_AA[1+a];
-		}
-	}
-	else
-	{
-		x=height/width;
-		j=width;
-		while(j--)
-		{
-			i=x;
-			while(i--){
-				pLcd[k]=color;
-				k+=BkpSizeX;
-			}
-
-			if(j){
-			for(int a=0;a<buff_AA[0];++a)
-				pLcd[k+a*BkpSizeX]=buff_AA[1+a];
-			}
-			k++;
-
-			for(int a=0;a<buff_AA[0];++a)
-				pLcd[k-(a+1)*BkpSizeX]=buff_AA[1+a];
-		}
-	}
-}
-
-static void _DrawArrayRightDown(uint32_t color,uint32_t BkpSizeX, int direction, int len, ...)
-{
-	int j=len,i;
-	va_list va;
-	va_start(va,0);
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i=va_arg(va,int);
-			while(i--)
-				pLcd[k++]=color;
-			k+=BkpSizeX;
-		}
-	}
-	else
-	{
-		while(j--)
-		{
-			i=va_arg(va,int);
-			while(i--){
-				pLcd[k]=color;
-				k+=BkpSizeX;
-			}
-			k++;
-		}
-	}
-	va_end(va);
-}
-
-static void _DrawArrayRightDown_AA(uint32_t drawColor, uint32_t bkColor, float ratioStart, uint32_t BkpSizeX, int direction, int len, ...)
-{
-	va_list va;
-	va_start(va,0);
-	int j=len,start=0, i=va_arg(va,int), i_prev;
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--)
-				pLcd[k++]=drawColor;
-
-			i=va_arg(va,int);
-			if(j){
-				Set_AACoeff_Draw(i,drawColor,bkColor,ratioStart);
-				for(int a=0;a<i&&ratioStart<1.0;++a)
-					pLcd[k+a]=buff_AA[1+a];
-			}
-			k+=BkpSizeX;
-			Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-			for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-				pLcd[k-1-a]=buff_AA[1+a];
-
-			if(0==start){  start=1;
-				k-=2*BkpSizeX;
-				Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-				for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-					pLcd[k-i_prev+a]=buff_AA[1+a];
-				k+=2*BkpSizeX;
-			}
-		}
-		k-=BkpSizeX;
-	}
-	else
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){
-				pLcd[k]=drawColor;
-				k+=BkpSizeX;
-			}
-
-			i=va_arg(va,int);
-			if(j){
-				Set_AACoeff_Draw(i,drawColor,bkColor,ratioStart);
-				for(int a=0;a<buff_AA[0]&&ratioStart<1.0;++a)
-					pLcd[k+a*BkpSizeX]=buff_AA[1+a];
-			}
-			k++;
-
-			Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-			for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-				pLcd[k-(a+1)*BkpSizeX]=buff_AA[1+a];
-
-			if(0==start){  start=1;
-				k-=2;
-				Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-				for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-					pLcd[k-(i_prev-a)*BkpSizeX]=buff_AA[1+a];
-				k+=2;
-			}
-		}
-		k--;
-	}
-	va_end(va);
-}
-
-static void _DrawRightUp(int width,int height, uint32_t color,uint32_t BkpSizeX)
-{
-	int j,i,x;
-
-	if(width >= height)
-	{
-		x=width/height;
-		j=height;
-		while(j--)
-		{
-			i=x;
-			while(i--)
-				pLcd[k++]=color;
-			k-=BkpSizeX;
-		}
-	}
-	else
-	{
-		x=height/width;
-		j=width;
-		while(j--)
-		{
-			i=x;
-			while(i--)
-			{
-				pLcd[k]=color;
-				k-=BkpSizeX;
-			}
-			k++;
-		}
-	}
-}
-
-static void _DrawRightUp_AA(int width,int height, uint32_t color,uint32_t BkpSizeX)
-{
-	int j,i,x;
-
-	if(width >= height)
-	{
-		x=width/height;
-		j=height;
-		while(j--)
-		{
-			i=x;
-			while(i--)
-				pLcd[k++]=color;
-
-			if(j){
-				for(int a=0;a<buff_AA[0];++a)
-					pLcd[k+a]=buff_AA[1+a];
-			}
-			k-=BkpSizeX;
-
-			for(int a=0;a<buff_AA[0];++a)
-				pLcd[k-1-a]=buff_AA[1+a];
-		}
-	}
-	else
-	{
-		x=height/width;
-		j=width;
-		while(j--)
-		{
-			i=x;
-			while(i--){
-				pLcd[k]=color;
-				k-=BkpSizeX;
-			}
-
-			if(j){
-				for(int a=0;a<buff_AA[0];++a)
-					pLcd[k-a*BkpSizeX]=buff_AA[1+a];
-			}
-			k++;
-
-			for(int a=0;a<buff_AA[0];++a)
-				pLcd[k+(a+1)*BkpSizeX]=buff_AA[1+a];
-		}
-	}
-}
-
-static void _DrawArrayRightUp(uint32_t color,uint32_t BkpSizeX, int direction, int len, ...)
-{
-	int j=len,i;
-	va_list va;
-	va_start(va,0);
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i=va_arg(va,int);
-			while(i--)
-				pLcd[k++]=color;
-			k-=BkpSizeX;
-		}
-	}
-	else
-	{
-		while(j--)
-		{
-			i=va_arg(va,int);
-			while(i--){
-				pLcd[k]=color;
-				k-=BkpSizeX;
-			}
-			k++;
-		}
-	}
-	va_end(va);
-}
-
-static void _DrawArrayRightUp_AA(uint32_t drawColor, uint32_t bkColor, float ratioStart, uint32_t BkpSizeX, int direction, int len, ...)
-{
-	va_list va;
-	va_start(va,0);
-	int j=len,start=0, i=va_arg(va,int), i_prev;
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--)
-				pLcd[k++]=drawColor;
-
-			i=va_arg(va,int);
-			if(j){
-				Set_AACoeff_Draw(i,drawColor,bkColor,ratioStart);
-				for(int a=0;a<i&&ratioStart<1.0;++a)
-					pLcd[k+a]=buff_AA[1+a];
-			}
-			k-=BkpSizeX;
-			Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-			for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-				pLcd[k-1-a]=buff_AA[1+a];
-
-			if(0==start){  start=1;
-				k+=2*BkpSizeX;
-				Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-				for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-					pLcd[k-i_prev+a]=buff_AA[1+a];
-				k-=2*BkpSizeX;
-			}
-		}
-		k+=BkpSizeX;
-	}
-	else
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){
-				pLcd[k]=drawColor;
-				k-=BkpSizeX;
-			}
-
-			i=va_arg(va,int);
-			if(j){
-				Set_AACoeff_Draw(i,drawColor,bkColor,ratioStart);
-				for(int a=0;a<buff_AA[0]&&ratioStart<1.0;++a)
-					pLcd[k-a*BkpSizeX]=buff_AA[1+a];
-			}
-			k++;
-
-			Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-			for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-				pLcd[k+(a+1)*BkpSizeX]=buff_AA[1+a];
-
-			if(0==start){  start=1;
-				k-=2;
-				Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-				for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-					pLcd[k+(i_prev-a)*BkpSizeX]=buff_AA[1+a];
-				k+=2;
-			}
-		}
-		k--;
-	}
-	va_end(va);
-}
-
-static void _DrawLeftDown(int width,int height, uint32_t color,uint32_t BkpSizeX)
-{
-	int j,i,x;
-
-	if(width >= height)
-	{
-		x=width/height;
-		j=height;
-		while(j--)
-		{
-			i=x;
-			while(i--)
-				pLcd[k--]=color;
-			k+=BkpSizeX;
-		}
-	}
-	else
-	{
-		x=height/width;
-		j=width;
-		while(j--)
-		{
-			i=x;
-			while(i--)
-			{
-				pLcd[k]=color;
-				k+=BkpSizeX;
-			}
-			k--;
-		}
-	}
-}
-
-static void _DrawLeftDown_AA(int width,int height, uint32_t color,uint32_t BkpSizeX)
-{
-	int j,i,x;
-
-	if(width >= height)
-	{
-		x=width/height;
-		j=height;
-		while(j--)
-		{
-			i=x;
-			while(i--)
-				pLcd[k--]=color;
-
-			if(j){
-				for(int a=0;a<buff_AA[0];++a)
-					pLcd[k-a]=buff_AA[1+a];
-			}
-			k+=BkpSizeX;
-
-			for(int a=0;a<buff_AA[0];++a)
-				pLcd[k+1+a]=buff_AA[1+a];
-		}
-	}
-	else
-	{
-		x=height/width;
-		j=width;
-		while(j--)
-		{
-			i=x;
-			while(i--){
-				pLcd[k]=color;
-				k+=BkpSizeX;
-			}
-
-			if(j){
-				for(int a=0;a<buff_AA[0];++a)
-					pLcd[k+a*BkpSizeX]=buff_AA[1+a];
-			}
-			k--;
-
-			for(int a=0;a<buff_AA[0];++a)
-				pLcd[k-(a+1)*BkpSizeX]=buff_AA[1+a];
-		}
-	}
-}
-
-static void _DrawArrayLeftDown(uint32_t color,uint32_t BkpSizeX, int direction, int len, ...)
-{
-	int j=len,i;
-	va_list va;
-	va_start(va,0);
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i=va_arg(va,int);
-			while(i--)
-				pLcd[k--]=color;
-			k+=BkpSizeX;
-		}
-	}
-	else
-	{
-		while(j--)
-		{
-			i=va_arg(va,int);
-			while(i--){
-				pLcd[k]=color;
-				k+=BkpSizeX;
-			}
-			k--;
-		}
-	}
-	va_end(va);
-}
-
-static void _DrawArrayLeftDown_AA(uint32_t drawColor, uint32_t bkColor, float ratioStart, uint32_t BkpSizeX, int direction, int len, ...)
-{
-	va_list va;
-	va_start(va,0);
-	int j=len,start=0, i=va_arg(va,int), i_prev;
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--)
-				pLcd[k--]=drawColor;
-
-			i=va_arg(va,int);
-			if(j){
-				Set_AACoeff_Draw(i,drawColor,bkColor,ratioStart);
-				for(int a=0;a<i&&ratioStart<1.0;++a)
-					pLcd[k-a]=buff_AA[1+a];
-			}
-			k+=BkpSizeX;
-
-			Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-			for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-				pLcd[k+1+a]=buff_AA[1+a];
-
-			if(0==start){  start=1;
-				k-=2*BkpSizeX;
-				Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-				for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-					pLcd[k+i_prev-a]=buff_AA[1+a];
-				k+=2*BkpSizeX;
-			}
-		}
-		k-=BkpSizeX;
-	}
-	else
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){
-				pLcd[k]=drawColor;
-				k+=BkpSizeX;
-			}
-
-			i=va_arg(va,int);
-			if(j){
-				Set_AACoeff_Draw(i,drawColor,bkColor,ratioStart);
-				for(int a=0;a<buff_AA[0]&&ratioStart<1.0;++a)
-					pLcd[k+a*BkpSizeX]=buff_AA[1+a];
-			}
-			k--;
-
-			Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-			for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-				pLcd[k-(a+1)*BkpSizeX]=buff_AA[1+a];
-
-			if(0==start){  start=1;
-				k+=2;
-				Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-				for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-					pLcd[k-(i_prev-a)*BkpSizeX]=buff_AA[1+a];
-				k-=2;
-			}
-		}
-		k++;
-	}
-	va_end(va);
-}
-
-static void _DrawLeftUp(int width,int height, uint32_t color,uint32_t BkpSizeX)
-{
-	int j,i,x;
-
-	if(width >= height)
-	{
-		x=width/height;
-		j=height;
-		while(j--)
-		{
-			i=x;
-			while(i--)
-				pLcd[k--]=color;
-			k-=BkpSizeX;
-		}
-	}
-	else
-	{
-		x=height/width;
-		j=width;
-		while(j--)
-		{
-			i=x;
-			while(i--)
-			{
-				pLcd[k]=color;
-				k-=BkpSizeX;
-			}
-			k--;
-		}
-	}
-}
-
-static void _DrawLeftUp_AA(int width,int height, uint32_t color,uint32_t BkpSizeX)
-{
-	int j,i,x;
-
-	if(width >= height)
-	{
-		x=width/height;
-		j=height;
-		while(j--)
-		{
-			i=x;
-			while(i--)
-				pLcd[k--]=color;
-
-			if(j){
-				for(int a=0;a<buff_AA[0];++a)
-					pLcd[k-a]=buff_AA[1+a];
-			}
-			k-=BkpSizeX;
-
-			for(int a=0;a<buff_AA[0];++a)
-				pLcd[k+1+a]=buff_AA[1+a];
-		}
-	}
-	else
-	{
-		x=height/width;
-		j=width;
-		while(j--)
-		{
-			i=x;
-			while(i--){
-				pLcd[k]=color;
-				k-=BkpSizeX;
-			}
-
-			if(j){
-				for(int a=0;a<buff_AA[0];++a)
-					pLcd[k-a*BkpSizeX]=buff_AA[1+a];
-			}
-			k--;
-
-			for(int a=0;a<buff_AA[0];++a)
-				pLcd[k+(a+1)*BkpSizeX]=buff_AA[1+a];
-		}
-	}
-}
-
-static void _DrawArrayLeftUp(uint32_t color,uint32_t BkpSizeX, int direction, int len, ...)
-{
-	int j=len,i;
-	va_list va;
-	va_start(va,0);
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i=va_arg(va,int);
-			while(i--)
-				pLcd[k--]=color;
-			k-=BkpSizeX;
-		}
-	}
-	else
-	{
-		while(j--)
-		{
-			i=va_arg(va,int);
-			while(i--){
-				pLcd[k]=color;
-				k-=BkpSizeX;
-			}
-			k--;
-		}
-	}
-	va_end(va);
-}
-
-static void _DrawArrayLeftUp_AA(uint32_t drawColor, uint32_t bkColor, float ratioStart, uint32_t BkpSizeX, int direction, int len, ...)
-{
-	va_list va;
-	va_start(va,0);
-	int j=len,start=0, i=va_arg(va,int), i_prev;
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--)
-				pLcd[k--]=drawColor;
-
-			i=va_arg(va,int);
-			if(j){
-				Set_AACoeff_Draw(i,drawColor,bkColor,ratioStart);
-				for(int a=0;a<i&&ratioStart<1.0;++a)
-					pLcd[k-a]=buff_AA[1+a];
-			}
-			k-=BkpSizeX;
-
-			Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-			for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-				pLcd[k+1+a]=buff_AA[1+a];
-
-			if(0==start){  start=1;
-				k+=2*BkpSizeX;
-				Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-				for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-					pLcd[k+i_prev-a]=buff_AA[1+a];
-				k-=2*BkpSizeX;
-			}
-		}
-		k+=BkpSizeX;
-	}
-	else
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){
-				pLcd[k]=drawColor;
-				k-=BkpSizeX;
-			}
-
-			i=va_arg(va,int);
-			if(j){
-				Set_AACoeff_Draw(i,drawColor,bkColor,ratioStart);
-				for(int a=0;a<buff_AA[0]&&ratioStart<1.0;++a)
-					pLcd[k-a*BkpSizeX]=buff_AA[1+a];
-			}
-			k--;
-
-			Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-			for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-				pLcd[k+(a+1)*BkpSizeX]=buff_AA[1+a];
-
-			if(0==start){  start=1;
-				k+=2;
-				Set_AACoeff_Draw(i_prev,drawColor,bkColor,ratioStart);
-				for(int a=0;a<i_prev&&ratioStart<1.0;++a)
-					pLcd[k+(i_prev-a)*BkpSizeX]=buff_AA[1+a];
-				k-=2;
-			}
-		}
-		k++;
-	}
-	va_end(va);
-}
-
-static void _Middle_RoundRectangleFrame(int rectangleFrame, int fillHeight, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpSizeX, uint32_t width, uint32_t height){
-	int _height = height-fillHeight;
-	int _width = width-2;
-	if(rectangleFrame)
-	{
-		for (int j=0; j<_height; j++)
-		{
-			_FillBuff(1, FrameColor);
-			_FillBuff(_width, FillColor);
-			_FillBuff(1, FrameColor);
-			_NextDrawLine(BkpSizeX,width);
-		}
-	}
-	else
-	{
-		for (int j=0; j<_height; j++)
-		{
-			_FillBuff(1, FrameColor);
-			k+=_width;
-			_FillBuff(1, FrameColor);
-			_NextDrawLine(BkpSizeX,width);
-		}
-	}
-}
-
-/* Transparent version of Rectangle-Frame */
-static void LCD_DrawRoundRectangleFrameTransp(int rectangleFrame, uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor_, uint32_t FillColor_, uint32_t BkpColor_, float transpCoeff)
-{
-	#define BkColor    	CONDITION( (0xFFFFFF&BkpColor_)==0, pLcd[k], BkpColor_ )						/* if(BkpColor_!=0) we don`t mixer colors (BkpColor_ with pLcd[k]) via transparent coefficient */
-	#define FrameColor 	GetTransitionColor( FrameColor_,pLcd[k],  transpCoeff )
-	#define FillColor 	CONDITION( rectangleFrame, GetTransitionColor( FillColor_,pLcd[k],transpCoeff ), pLcd[k] )
-	#define i1 				CONDITION( BkpColor_&AA_IN_OFF, FrameColor, GetTransitionColor( FrameColor, FillColor, AA.c1 ) )
-	#define i2 				CONDITION( BkpColor_&AA_IN_OFF, pLcd[k], GetTransitionColor( FrameColor, FillColor, AA.c2 ) )
-	#define o1 				GetTransitionColor( FrameColor, BkColor,  AA.c1 )
-	#define o2 				GetTransitionColor( FrameColor, BkColor,  AA.c2 )
-	typedef enum{ frC,i1C,i2C,o1C,o2C,bkC }TypeOfColor;
-
-	u32 outAAoff = BkpColor_ & AA_OUT_OFF;
-	u32 noFrame  = BkpColor_ & AA_NO_FRAME;
-
-	void _Fill(int x){
-		if(rectangleFrame){
-			for(int i=0;i<x;++i)
-				_SetColorToPLCD(FillColor);
-		}
-		else k+=x;
-	}
-
-	void A(int itCount, TypeOfColor type){
-		switch((int)type){
-			case frC:
-				for(int i=0;i<itCount;++i){ if(0==noFrame) _SetColorToPLCD(FrameColor); else k++; }
-				break;
-			case i1C:
-				for(int i=0;i<itCount;++i) _SetColorToPLCD(i1);
-				break;
-			case i2C:
-				for(int i=0;i<itCount;++i) _SetColorToPLCD(i2);
-				break;
-			case o1C:
-				for(int i=0;i<itCount;++i) _SetColorToPLCD(o1);
-				break;
-			case o2C:
-				for(int i=0;i<itCount;++i) _SetColorToPLCD(o2);
-				break;
-			case bkC:
-				for(int i=0;i<itCount;++i) _SetColorToPLCD(BkColor);
-				break;
-		}
-	}
-
-	void _Out_AA_left(int stage)
-	{
-		if(0==outAAoff)
-		{	switch(stage)
-			{
-			case 0:	A(3,bkC); A(1,o2C); A(1,o1C);  break;
-			case 1:	A(2,bkC); A(1,o1C);  break;
-			case 2:	A(1,bkC); A(1,o1C);  break;
-			case 3:	A(1,o2C); break;
-			case 4:	A(1,o1C); break;
-			}
-		}
+	case 1:
+		if(color[idx] <= 255-Test.step)
+			color[idx]+=Test.step;
 		else
-		{  switch(stage)
-			{
-			case 0:	k+=5; break;
-			case 1:	k+=3; break;
-			case 2:	k+=2; break;
-			case 3:	k+=1; break;
-			case 4:	k+=1; break;
-			}
-		}
-	}
-
-	void _Out_AA_right(int stage)
-	{
-		if(0==outAAoff)
-		{	switch(stage)
-			{
-			case 0:	A(1,o1C); A(1,o2C); A(3,bkC);  break;
-			case 1:	A(1,o1C); A(2,bkC);  break;
-			case 2:	A(1,o1C); A(1,bkC);  break;
-			case 3:	A(1,o2C); break;
-			case 4:	A(1,o1C); break;
-			}
-		}
+			color[idx]=255;
+		break;
+	case -1:
+		if(color[idx] >= Test.step)
+			color[idx]-=Test.step;
 		else
-		{	switch(stage)
-			{
-			case 0:	k+=5; break;
-			case 1:	k+=3; break;
-			case 2:	k+=2; break;
-			case 3:	k+=1; break;
-			case 4:	k+=1; break;
-			}
+			color[idx]=0;
+		break;
+	}
+	RefreshValRGB();
+}
+/*
+static void IncStepRGB(void){
+	Test.step>=255 ? 255 : Test.step++;
+}
+static void DecStepRGB(void){
+	Test.step<=0 ? 0 : Test.step--;
+}
+*/
+static void IncCoeffRGB(void){
+	switch(Test.type){
+		case RGB_RGB:
+			Test.coeff>=255 ? 255 : Test.coeff++;
+			break;
+		case RGB_White:
+			Test.coeff>=127 ? 127 : Test.coeff++;
+			break;
+		case Gray_Green:
+		case White_Black:
+			Test.coeff=0;
+			break;
+	}
+	Data2Refresh(FONTS);
+	Data2Refresh(PARAM_COEFF);
+	Data2Refresh(PARAM_SPEED);
+}
+static void DecCoeefRGB(void){
+	switch(Test.type){
+		case RGB_RGB:
+			Test.coeff<=0 ? 0 : Test.coeff--;
+			break;
+		case RGB_White:
+			Test.coeff<=-127 ? -127 : Test.coeff--;
+			break;
+		case Gray_Green:
+		case White_Black:
+			Test.coeff=0;
+			break;
+	}
+	Data2Refresh(FONTS);
+	Data2Refresh(PARAM_COEFF);
+	Data2Refresh(PARAM_SPEED);
+}
+
+static int ChangeTxt(void){ //wprowadzanie z klawiatury textu !!!!!!
+	//return CopyCharsTab(Test.txt,Test.lenWin,Test.offsWin,Test.size);
+
+	const char *pChar;
+	int i, j, lenChars;
+
+	pChar= TEXT_TO_SHOW;
+
+	lenChars=mini_strlen(pChar);
+	for(i=0;i < Test.lenWin;++i)
+	{
+		j=Test.offsWin + i;
+		if(j < lenChars)
+			Test.txt[i]=pChar[j];
+		else
+			break;
+	}
+	Test.txt[i]=0;
+
+	if(i == Test.lenWin)
+		return 0;
+	else
+		return 1;
+}
+
+static void FONTS_LCD_ResetParam(void)
+{
+	Test.xFontsField=0;
+	Test.yFontsField=240;
+
+	Test.bk[0]=R_PART(v.FONT_BKCOLOR_Fonts);
+	Test.bk[1]=G_PART(v.FONT_BKCOLOR_Fonts);
+	Test.bk[2]=B_PART(v.FONT_BKCOLOR_Fonts);
+
+	Test.font[0]=R_PART(v.FONT_COLOR_Fonts);
+	Test.font[1]=G_PART(v.FONT_COLOR_Fonts);
+	Test.font[2]=B_PART(v.FONT_COLOR_Fonts);
+
+	Test.step=1;
+	Test.coeff=255;
+	Test.coeff_prev[0]=255;		/* for RGB-RGB */
+	Test.coeff_prev[1]=0;		/* for RGB-White */
+
+	Test.type=RGB_RGB;
+	Test.speed=0;
+
+	Test.size=v.FONT_SIZE_Fonts;
+	Test.style=v.FONT_STYLE_Fonts;
+
+	//strcpy(Test.txt,"Rafa"ł" Markielowski");
+
+	Test.lenWin=mini_strlen(TEXT_TO_SHOW);
+	Test.offsWin=0;
+
+	Test.lenWin_prev=Test.lenWin;
+	Test.offsWin_prev=Test.offsWin;
+
+   Test.posCursor=0;
+	Test.normBoldItal=0;
+
+	Test.spaceCoursorY=0;
+	Test.heightCursor=1;
+	Test.spaceBetweenFonts=0;
+	Test.constWidth=0;
+
+	ChangeTxt();
+}
+
+static void LCD_LoadFontVar(void)
+{
+	if(TakeMutex(Semphr_cardSD,1000))
+	{
+		if(v.FONT_ID_Fonts == FILE_NAME(GetDefaultParam)(FONT_ID_Fonts))
+			LCD_DeleteFont(FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
+
+		StartMeasureTime(0);
+		switch(Test.type)
+		{
+		case RGB_RGB:
+		case Gray_Green:
+			v.FONT_ID_Fonts = LCD_LoadFont_DarkgrayGreen(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
+			break;
+		case RGB_White:
+			v.FONT_ID_Fonts = LCD_LoadFont_DarkgrayWhite(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
+			break;
+		case White_Black:
+			v.FONT_ID_Fonts = LCD_LoadFont_WhiteBlack(Test.size,Test.style,FILE_NAME(GetDefaultParam)(FONT_ID_Fonts));
+			break;
+		}
+		Test.loadFontTime=StopMeasureTime(0,"");
+
+		if(v.FONT_ID_Fonts<0){
+			Dbg(1,"\r\nERROR_LoadFontVar ");
+			v.FONT_ID_Fonts=0;
+		}
+		DisplayFontsStructState();
+
+		GiveMutex(Semphr_cardSD);
+	}
+}
+
+static void AdjustMiddle_X(void){
+	LCD_SetStrVar_x(v.FONT_VAR_Fonts,POS_X_TXT);
+}
+static void AdjustMiddle_Y(void){
+	LCD_SetStrVar_y(v.FONT_VAR_Fonts,POS_Y_TXT);
+}
+
+static void ChangeFontStyle(int8_t typeReq)
+{
+	if(typeReq > NONE_TYPE_REQ)
+	{
+		if(Test.style == typeReq)
+			return;
+		else
+			Test.style = typeReq;
+	}
+	else
+	{
+		switch(Test.style)
+		{
+		case Arial:   			 Test.style=Times_New_Roman; break;
+		case Times_New_Roman: Test.style=Comic_Saens_MS;  break;
+		case Comic_Saens_MS:  Test.style=Arial; 			  break;
+		default:              Test.style=Arial;           break;
 		}
 	}
 
-	_StartDrawLine(posBuff,BkpSizeX,x,y);
-	_Out_AA_left(0); A(width-10,frC); _Out_AA_right(0);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(1); A(2,frC); A(1,i1C);A(1,i2C); _Fill(width-14); A(1,i2C);A(1,i1C);A(2,frC); _Out_AA_right(1);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(2); A(1,frC); A(1,i1C); _Fill(width-8); A(1,i1C); A(1,frC); _Out_AA_right(2);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(3); A(1,frC); A(1,i1C); _Fill(width-6); A(1,i1C); A(1,frC); _Out_AA_right(3);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(4); A(1,frC); _Fill(width-4); A(1,frC); _Out_AA_right(4);
-	_NextDrawLine(BkpSizeX,width);
+	ClearCursorField();
+	LCD_LoadFontVar();
+	AdjustMiddle_X();
+	AdjustMiddle_Y();
+	Data2Refresh(FONTS);
+	Test.lenWin=lenStr.inChar;
+	SetCursor();
+	Data2Refresh(PARAM_LOAD_FONT_TIME);
+	Data2Refresh(PARAM_LEN_WINDOW);
+	Data2Refresh(PARAM_STYLE);
+	Data2Refresh(PARAM_SPEED);
+}
 
-	A(1,frC);  A(1,i1C); _Fill(width-4); A(1,i1C); A(1,frC);
-	_NextDrawLine(BkpSizeX,width);
-	A(1,frC);  A(1,i2C); _Fill(width-4); A(1,i2C); A(1,frC);
-	_NextDrawLine(BkpSizeX,width);
-
-	int _height = height-14;
-	int _width = width-2;
-	if(rectangleFrame){
-		for (int j=0; j<_height; j++){	A(1,frC);  for(int i=0;i<_width;++i) _SetColorToPLCD(FillColor);	 A(1,frC); _NextDrawLine(BkpSizeX,width); }
+static void Inc_lenWin(void){
+	Test.lenWin++;
+	if(ChangeTxt()){
+		Test.lenWin--;
+		ChangeTxt();
 	}
 	else{
-		for (int j=0; j<_height; j++){	A(1,frC);  k+=_width; 															 A(1,frC); _NextDrawLine(BkpSizeX,width); }
+		lenTxt_prev=lenStr.inChar;
+		AdjustMiddle_X();
+		Data2Refresh(FONTS);
+		if(lenTxt_prev==lenStr.inChar)
+			Test.lenWin--;
+		else
+			Data2Refresh(PARAM_LEN_WINDOW);
 	}
-
-	A(1,frC);  A(1,i2C); _Fill(width-4); A(1,i2C); A(1,frC);
-	_NextDrawLine(BkpSizeX,width);
-	A(1,frC);  A(1,i1C); _Fill(width-4); A(1,i1C); A(1,frC);
-	_NextDrawLine(BkpSizeX,width);
-
-	_Out_AA_left(4); A(1,frC); _Fill(width-4); A(1,frC); _Out_AA_right(4);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(3); A(1,frC); A(1,i1C); _Fill(width-6); A(1,i1C); A(1,frC); _Out_AA_right(3);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(2); A(1,frC); A(1,i1C); _Fill(width-8); A(1,i1C); A(1,frC); _Out_AA_right(2);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(1); A(2,frC); A(1,i1C);A(1,i2C); _Fill(width-14); A(1,i2C);A(1,i1C);A(2,frC); _Out_AA_right(1);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(0); A(width-10,frC); _Out_AA_right(0);
-
-	#undef BkColor
-	#undef FrameColor
-	#undef FillColor
-	#undef  i1
-	#undef  i2
-	#undef  o1
-	#undef  o2
+	ClearCursorField();
+	SetCursor();
+	Data2Refresh(PARAM_SPEED);
+}
+static void Dec_lenWin(void){
+	Test.lenWin<=1 ? 1 : Test.lenWin--;
+	ChangeTxt();
+	ClearCursorField();
+	AdjustMiddle_X();
+	Data2Refresh(FONTS);
+	Test.lenWin=lenStr.inChar;
+	SetCursor();
+	Data2Refresh(PARAM_LEN_WINDOW);
+	Data2Refresh(PARAM_SPEED);
 }
 
-static void LCD_DrawRoundRectangleFrame(int rectangleFrame, uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor)
+static void Inc_offsWin(void){
+	Test.offsWin++;
+	if(ChangeTxt()){
+		Test.offsWin--;
+		ChangeTxt();
+	}
+	ClearCursorField();
+	AdjustMiddle_X();
+	Data2Refresh(FONTS);
+	Test.lenWin=lenStr.inChar;
+	SetCursor();
+	Data2Refresh(PARAM_LEN_WINDOW);
+	Data2Refresh(PARAM_OFFS_WINDOW);
+	Data2Refresh(PARAM_SPEED);
+}
+static void Dec_offsWin(void){
+	Test.offsWin<=0 ? 0 : Test.offsWin--;
+	ChangeTxt();
+	ClearCursorField();
+	AdjustMiddle_X();
+	Data2Refresh(FONTS);
+	Test.lenWin=lenStr.inChar;
+	SetCursor();
+	Data2Refresh(PARAM_LEN_WINDOW);
+	Data2Refresh(PARAM_OFFS_WINDOW);
+	Data2Refresh(PARAM_SPEED);
+}
+
+static void IncFontSize(int8_t typeReq)
 {
-	#define A(a,b) 	_FillBuff(a,b)
+	int sizeLimit;
 
-	uint8_t thickness = BkpColor>>24;
-	uint32_t o1,o2;
-	uint32_t i1 = GetTransitionColor(FrameColor,FillColor,AA.c1);
-	uint32_t i2 = GetTransitionColor(FrameColor,FillColor,AA.c2);
-
-	if((thickness==0)||(thickness==255)){
-		o1 = GetTransitionColor(FrameColor,BkpColor,AA.c1);
-		o2 = GetTransitionColor(FrameColor,BkpColor,AA.c2);
-	}
-
-	void _Fill(int x)
-	{
-		if(rectangleFrame)
-			A(x,FillColor);
-		else
-			k+=x;
-	}
-
-	void _Out_AA_left(int stage)
-	{
-		if((thickness==0)||(thickness==255))
-		{	switch(stage)
-			{
-			case 0:	A(3,BkpColor); A(1,o2); A(1,o1);  break;
-			case 1:	A(2,BkpColor); A(1,o1);  break;
-			case 2:	A(1,BkpColor); A(1,o1);  break;
-			case 3:	A(1,o2); break;
-			case 4:	A(1,o1); break;
-			}
-		}
-		else
-		{  switch(stage)
-			{
-			case 0:	k+=5; break;
-			case 1:	k+=3; break;
-			case 2:	k+=2; break;
-			case 3:	k+=1; break;
-			case 4:	k+=1; break;
-			}
-		}
-	}
-
-	void _Out_AA_right(int stage)
-	{
-		if((thickness==0)||(thickness==255))
-		{	switch(stage)
-			{
-			case 0:	A(1,o1); A(1,o2); A(3,BkpColor);  break;
-			case 1:	A(1,o1); A(2,BkpColor);  break;
-			case 2:	A(1,o1); A(1,BkpColor);  break;
-			case 3:	A(1,o2); break;
-			case 4:	A(1,o1); break;
-			}
-		}
-		else
-		{	switch(stage)
-			{
-			case 0:	k+=5; break;
-			case 1:	k+=3; break;
-			case 2:	k+=2; break;
-			case 3:	k+=1; break;
-			case 4:	k+=1; break;
-			}
-		}
-	}
-
-	_StartDrawLine(posBuff,BkpSizeX,x,y);
-	_Out_AA_left(0); A(width-10,FrameColor); _Out_AA_right(0);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(1); A(2,FrameColor); A(1,i1);A(1,i2); _Fill(width-14); A(1,i2);A(1,i1);A(2,FrameColor); _Out_AA_right(1);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(2); A(1,FrameColor); A(1,i1); _Fill(width-8); A(1,i1); A(1,FrameColor); _Out_AA_right(2);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(3); A(1,FrameColor); A(1,i1); _Fill(width-6); A(1,i1); A(1,FrameColor); _Out_AA_right(3);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(4); A(1,FrameColor); _Fill(width-4); A(1,FrameColor); _Out_AA_right(4);
-	_NextDrawLine(BkpSizeX,width);
-
-	A(1,FrameColor);  A(1,i1); _Fill(width-4); A(1,i1); A(1,FrameColor);
-	_NextDrawLine(BkpSizeX,width);
-	A(1,FrameColor);  A(1,i2); _Fill(width-4); A(1,i2); A(1,FrameColor);
-	_NextDrawLine(BkpSizeX,width);
-
-	_Middle_RoundRectangleFrame(rectangleFrame,14,FrameColor,FillColor,BkpSizeX,width,height);
-
-	A(1,FrameColor);  A(1,i2); _Fill(width-4); A(1,i2); A(1,FrameColor);
-	_NextDrawLine(BkpSizeX,width);
-	A(1,FrameColor);  A(1,i1); _Fill(width-4); A(1,i1); A(1,FrameColor);
-	_NextDrawLine(BkpSizeX,width);
-
-	_Out_AA_left(4); A(1,FrameColor); _Fill(width-4); A(1,FrameColor); _Out_AA_right(4);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(3); A(1,FrameColor); A(1,i1); _Fill(width-6); A(1,i1); A(1,FrameColor); _Out_AA_right(3);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(2); A(1,FrameColor); A(1,i1); _Fill(width-8); A(1,i1); A(1,FrameColor); _Out_AA_right(2);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(1); A(2,FrameColor); A(1,i1);A(1,i2); _Fill(width-14); A(1,i2);A(1,i1);A(2,FrameColor); _Out_AA_right(1);
-	_NextDrawLine(BkpSizeX,width);
-	_Out_AA_left(0); A(width-10,FrameColor); _Out_AA_right(0);
-
-	#undef  A
-}
-
-static void PixelCorrect(uint32_t drawColor, uint32_t bkColor, float ratioStart, uint16_t pxlLen, int multiplier){
-	Set_AACoeff_Draw(pxlLen,drawColor,bkColor,ratioStart);
-	for(int a=0;a<pxlLen;++a)
-		pLcd[k+multiplier*a]=buff_AA[1+a];
-}
-
-static void InverseAndCopyBuff(uint8_t *buf_inv, uint8_t *buf){
-	buf_inv[0]=buf[0];
-	for(int i=0;i<buf[0];i++)
-		buf_inv[1+i]=buf[buf[0]-i];
-}
-
-static void _OffsetRightDown(uint32_t BkpSizeX, int direction, uint8_t *buf){
-	int j=buf[0], i=buf[1], p=2;
-	if(0==direction)
-	{
-		while(j--){
-			k+=i;
-			if(j) i=buf[p++];
-			k+=BkpSizeX;
-		}
+	if(typeReq > NONE_TYPE_REQ){
+		Test.size = typeReq;
+		if(0==(typeReq%3)) Test.normBoldItal = 0;
+		else if(0==((typeReq-1)%3)) Test.normBoldItal = 1;
+		else if(0==((typeReq-2)%3)) Test.normBoldItal = 2;
 	}
 	else
+		Test.size+=3;
+
+	switch(Test.normBoldItal)
 	{
-		while(j--){
-			k+=i*BkpSizeX;
-			if(j) i=buf[p++];
-			k++;
-		}
-	}
-}
-
-static void _OffsetLeftDown(uint32_t BkpSizeX, int direction, uint8_t *buf){
-	int j=buf[0], i=buf[1], p=2;
-	if(0==direction)
-	{
-		while(j--){
-			k-=i;
-			if(j) i=buf[p++];
-			k+=BkpSizeX;
-		}
-	}
-	else
-	{
-		while(j--){
-			k+=i*BkpSizeX;
-			if(j) i=buf[p++];
-			k--;
-		}
-	}
-}
-
-static void _OffsetLeftUp(uint32_t BkpSizeX, int direction, uint8_t *buf){
-	int j=buf[0], i=buf[1], p=2;
-	if(0==direction)
-	{
-		while(j--){
-			k-=i;
-			if(j) i=buf[p++];
-			k-=BkpSizeX;
-		}
-	}
-	else
-	{
-		while(j--){
-			k-=i*BkpSizeX;
-			if(j) i=buf[p++];
-			k--;
-		}
-	}
-}
-
-static void LCD_CircleCorrect(void)
-{
-/*	LCD_OffsCircleLine(1,1);  LCD_OffsCircleLine(2,-1);
-	LCD_OffsCircleLine(1,2);  LCD_OffsCircleLine(2,-1); LCD_OffsCircleLine(3,-1);
-	LCD_OffsCircleLine(1,4);  LCD_OffsCircleLine(2,3); LCD_OffsCircleLine(3,2);  LCD_OffsCircleLine(3,1); */
-}
-
-static int16_t GetDegFromPosK( uint32_t posBuff, uint16_t x0, uint16_t y0, uint32_t BkpSizeX)
-{
-	pos = _GetPosXY(posBuff,BkpSizeX);
-	float deg = DEG(atan2(pos.y-y0, pos.x-x0));
-	return (int16_t)deg + 180;	 /* <0 ? 180.0+deg : deg; */
-}
-
-static void OffsetKfromLineBuff(int itBuff, uint32_t BkpSizeX){
-	uint32_t offs= (itBuff-1)*BkpSizeX;
-	for(int i=1;i<itBuff;++i){
-		if(i>=MAX_LINE_BUFF_CIRCLE_SIZE) break;
-		offs += Circle.lineBuff[i];
-	}
-	k+=offs;
-}
-
-static uint8_t LCD_SearchLinePoints(int startMeasure, int posBuff, int x0,int y0, float deg, uint32_t BkpSizeX)
-{
-	static float tang, coeff;
-
-	if(startMeasure)
-	{
-		tang= tan(TANG_ARG(deg));
-		coeff = 1/ABS(tang);
-
-		if(deg>0 && deg<=45)
-			return 1;
-		else if(deg>45 && deg<=90)
-			return 2;
-		else if(deg>90 && deg<=135)
-			return 3;
-		else if(deg>135 && deg<=180)
-			return 4;
-		else if(deg>180 && deg<=225)
-			return 5;
-		else if(deg>225 && deg<=270)
-			return 6;
-		else if(deg>270 && deg<=315)
-			return 7;
-		else if(deg>315 && deg<=360)
-			return 8;
-	}
-	else
-	{
-   	pos = _GetPosXY(posBuff,BkpSizeX);
-   	float xxx = pos.x - x0;
-		float yyy = pos.y - y0;
-		float _yyy = tang*xxx;
-
-		if(deg>0 && deg<=45)
-		{
-				  if(yyy<_yyy)	                                return 0;
-			else if( (yyy>=_yyy) && (yyy<tang*(xxx+coeff)) )  return 1;
-			else															  return 2;
-		}
-		else if(deg>45 && deg<=90)
-		{
-			  if(yyy<_yyy)	                                return 0;
-		else if( (yyy>=_yyy) && (yyy<tang*(xxx+1)) )      return 1;
-		else															  return 2;
-		}
-
-		else if(deg>90 && deg<=135)
-		{
-			  if(yyy>_yyy)	                                return 0;
-		else if( (yyy<=_yyy) && (yyy>tang*(xxx+1)) )      return 1;
-		else															  return 2;
-		}
-		else if(deg>135 && deg<=180)
-		{
-			  if(yyy>_yyy)	                                return 0;
-		else if( (yyy<=_yyy) && (yyy>tang*(xxx+coeff)) )  return 1;
-		else															  return 2;
-		}
-
-		else if(deg>180 && deg<=225)
-		{
-				  if(yyy<_yyy)	                                return 2;
-			else if( (yyy>=_yyy) && (yyy<tang*(xxx+coeff)) )  return 1;
-			else															  return 0;
-		}
-		else if(deg>225 && deg<=270)
-		{
-			  if(yyy<_yyy)	                                return 2;
-		else if( (yyy>=_yyy) && (yyy<tang*(xxx+1)) )      return 1;
-		else															  return 0;
-		}
-
-		else if(deg>270 && deg<=315)
-		{
-			  if(yyy>_yyy)	                                return 2;
-		else if( (yyy<=_yyy) && (yyy>tang*(xxx+1)) )      return 1;
-		else															  return 0;
-		}
-		else if(deg>315 && deg<=360)
-		{
-			  if(yyy>_yyy)	                                return 2;
-		else if( (yyy<=_yyy) && (yyy>tang*(xxx+coeff)) )  return 1;
-		else															  return 0;
-		}
-
-		else
-			return 3;
-	}
-	return 0;
-}
-
-static uint8_t LCD_SearchRadiusPoints(int posBuff, int nrDeg, uint32_t BkpSizeX)
-{
-	float tang= Circle.tang[nrDeg];
-	float coeff=Circle.coeff[nrDeg];
-	uint16_t deg = Circle.degree[1+nrDeg];
-
-   	pos = _GetPosXY(posBuff,BkpSizeX);
-   	float xxx = pos.x - Circle.x0;
-		float yyy = pos.y - Circle.y0;
-		float _yyy = tang*xxx;
-
-		if(deg>0 && deg<=45)
-		{
-				  if(yyy<_yyy)	                                return 0;
-			else if( (yyy>=_yyy) && (yyy<tang*(xxx+coeff)) )  return 1;
-			else															  return 2;
-		}
-		else if(deg>45 && deg<=90)
-		{
-			  if(yyy<_yyy)	                                return 0;
-		else if( (yyy>=_yyy) && (yyy<tang*(xxx+1)) )      return 1;
-		else															  return 2;
-		}
-
-		else if(deg>90 && deg<=135)
-		{
-			  if(yyy>_yyy)	                                return 0;
-		else if( (yyy<=_yyy) && (yyy>tang*(xxx+1)) )      return 1;
-		else															  return 2;
-		}
-		else if(deg>135 && deg<=180)
-		{
-			  if(yyy>_yyy)	                                return 0;
-		else if( (yyy<=_yyy) && (yyy>tang*(xxx+coeff)) )  return 1;
-		else															  return 2;
-		}
-
-		else if(deg>180 && deg<=225)
-		{
-				  if(yyy<_yyy)	                                return 2;
-			else if( (yyy>=_yyy) && (yyy<tang*(xxx+coeff)) )  return 1;
-			else															  return 0;
-		}
-		else if(deg>225 && deg<=270)
-		{
-			  if(yyy<_yyy)	                                return 2;
-		else if( (yyy>=_yyy) && (yyy<tang*(xxx+1)) )      return 1;
-		else															  return 0;
-		}
-
-		else if(deg>270 && deg<=315)
-		{
-			  if(yyy>_yyy)	                                return 2;
-		else if( (yyy<=_yyy) && (yyy>tang*(xxx+1)) )      return 1;
-		else															  return 0;
-		}
-		else if(deg>315 && deg<=360)
-		{
-			  if(yyy>_yyy)	                                return 2;
-		else if( (yyy<=_yyy) && (yyy>tang*(xxx+coeff)) )  return 1;
-		else															  return 0;
-		}
-
-		else
-			return 3;
-}
-
-static void _DrawArrayBuffRightDownUp2_AA(DIRECTIONS upDwn, uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf, int corr45degAA)
-{
-	int j=buf[0], i=buf[1], p=2, i_prev, start=0;   int flagss=0;
-	uint32_t _outColor=outColor;
-	uint32_t _inColor=inColor;
-	u32 k_temp;
-
-	void _ReadBK(int lenAAbuff, int offsKin,int offsKout){
-		if(0==inColor) {	_inColor =pLcd[k+offsKin];  Set_AACoeff(lenAAbuff,drawColor,_inColor,inRatioStart);	   }
-		if(0==outColor){	_outColor=pLcd[k+offsKout]; Set_AACoeff2(lenAAbuff,drawColor,_outColor,outRatioStart); }
-	}
-
-	void _DrawAAfor2pxl(int sign){
-		if(0==direction){
-			if(p-2>0){
-				_ReadBK(buf[p-2], -i_prev-1-buf[p-2],0);
-				for(int a=0;a<buff_AA[0];++a){
-					pLcd[k-i_prev-1-a]=buff_AA[1+a];
-		}}}
-		else{
-			k-=2*BkpSizeX*sign;
-			_ReadBK(2, -2,3);
-			pLcd[k-1]=buff_AA[1];   pLcd[k+1]=buff2_AA[1];
-			k+=BkpSizeX*sign;
-			pLcd[k+1]=buff2_AA[1];	pLcd[k+2]=buff2_AA[1];
-			k+=BkpSizeX*sign;
-	}}
-
-	void _StartPxlsCorrect(int sign){
-		if(0==direction){
-			if(0==flagss){
-				k-=(i_prev-1); k-=2;
-				_ReadBK(3, -1,0);
-				pLcd[k]=buff_AA[1+0];
-				k+=2;  k+=(i_prev-1);	k-=BkpSizeX*(-1*sign);	k-=(i_prev-1);
-				pLcd[k]=_inColor;
-				k+=(i_prev-1);  k+=BkpSizeX*(-1*sign);
-			}
-		}
-		else{
-			if(0==flagss){
-				k-=3*BkpSizeX*sign;	k-=(i_prev-1);  k+=1;
-				_ReadBK(3, -1,0);
-				pLcd[k]=buff_AA[1];
-				k-=1; k+=(i_prev-1);  k+=3*BkpSizeX*sign;
-	}}}
-
-	/*	Correct AA for 45deg H pixels */							/*	Correct AA for 45deg V pixels */
-	/*	------.															|
-				 .															|
-			 	  .__  staPxl`s										|
-				 	  .	 	 	 	 									 .
-				  	   .	 	 	 	 									  .
-				   	 .__  stoPxl`s	 	 	 	 						|  staPxl`s
-				 	 	 	  .												|
-				  	  	  	   .												 .
-				   			 ._______									  .
-				   			 	 	 	 	 	 	 	 	 	 	 	 	 	.
-		 	 	 	      														 |  stoPxl`s
-	 	 	 	      															 |
-	 	 	 	       	 	 	 	 	 	 	 	 	 	 	 	 	 	 	  .
-	 	 	 	        	  	  	  	  	  	  	  	  	  	  	  	  	  	  	   .
-	 	 	 	         															 .
-	 	 	 	         															  |
-	 	 	 	         															  |
-	 	 	 	         															  |
-	 	 	 	         															  |
-	*/
-
-	int __SearchHVpxlsInLine45deg(int staPxl,int stoPxl, int offs){
-		if(buf[(p+offs)-1]/*i_prev*/==staPxl){
-			for(int a=0;a<j;++a){		/* how many left to iteration indicates 'j' */
-				if(buf[(p+offs)+a]!=1){
-					if(buf[(p+offs)+a]==stoPxl) return a;
-					else return 0;
-				}
-			}
-			return 0;
-		}
-		return 0;
-	}
-	int __ArePoints45degInRange(int minNmbr,int maxNmbr, int staPxl,int stoPxl, int offs, int* nmbr45degPoints){
-		int temp = __SearchHVpxlsInLine45deg(staPxl,stoPxl,offs);
-		if(nmbr45degPoints!=NULL) *nmbr45degPoints=temp;
-		if(IS_RANGE(temp,minNmbr,maxNmbr)) return 1;
-		else										  return 0;
-	}
-	int __ArePoints45degInScheme(int staPxl,		int minNr1,int maxNr1, int midPxl, int minNr2,int maxNr2,	  int stoPxl,     int offs, int* nmbr45degPoints1, int* nmbr45degPoints2){
-		int scheme1 = __ArePoints45degInRange(minNr1,maxNr1, staPxl,midPxl, offs, 			  nmbr45degPoints1==NULL?NULL:nmbr45degPoints1);
-		int scheme2 = __ArePoints45degInRange(minNr2,maxNr2, midPxl,stoPxl, offs+minNr1+1, nmbr45degPoints2==NULL?NULL:nmbr45degPoints2);
-		if		 (scheme1==0) 					 return 0;
-		else if(scheme1==1 && scheme2==0) return 1;
-		else if(scheme1==1 && scheme2==1) return 2;
-		return -1;
-	}
-
-	int _AAcorrectFor45degH(DIRECTIONS upDwn)
-	{
-		int len45degLine, sign=CONDITION(upDwn==Down,1,-1);
-      int scheme = __ArePoints45degInRange(3,150, 2,2, 0,&len45degLine);
-		if(scheme)
-		{
-			_StartPxlsCorrect(sign);
-			_DrawAAfor2pxl(sign);
-			for(int a=0;a<len45degLine;++a){  k+=BkpSizeX*sign; _ReadBK(len45degLine,-3,3);  pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff2_AA[1+(len45degLine-1)-a]; pLcd[k+2]=_outColor;    pLcd[k++]=drawColor;  }
-			k+=BkpSizeX*sign;
-			p+=len45degLine;  j-=(len45degLine+1);
-			i=buf[p++];   flagss=1;
-			return 1;
-		}
-		else
-		{
-			int len45degLine;
-			if(__ArePoints45degInRange(3,150, 2,3, 0,&len45degLine))
-			{
-				_StartPxlsCorrect(sign);
-				_DrawAAfor2pxl(sign);
-				for(int a=0;a<len45degLine;++a){  k+=BkpSizeX*sign; _ReadBK(len45degLine,-4,3);   pLcd[k-3]=_inColor; pLcd[k-2]=buff_AA[1+a]; 		pLcd[k-1]=drawColor;   pLcd[k+1]=buff2_AA[1+(len45degLine-1)-a];  pLcd[k+2]=(a==(len45degLine-1)?buff2_AA[1+len45degLine/2]:_outColor);     pLcd[k++]=drawColor;  }
-				k+=BkpSizeX*sign;
-				p+=len45degLine;  j-=(len45degLine+1);
-				i=buf[p++];   flagss=1;
-				return 1;
-			}
-			else
-			{
-				if(__ArePoints45degInRange(3,150, 3,2, 0,&len45degLine))
-				{
-					_StartPxlsCorrect(sign);
-					_DrawAAfor2pxl(sign);
-					for(int a=0;a<len45degLine;++a){  k+=BkpSizeX*sign; _ReadBK(len45degLine,-4,3);   pLcd[k-3]=(a==0?buff_AA[1+len45degLine/2]:_inColor); pLcd[k-2]=buff_AA[1+a]; pLcd[k-1]=drawColor;   pLcd[k+1]=buff2_AA[1+(len45degLine-1)-a]; pLcd[k+2]=_outColor;    pLcd[k++]=drawColor; }
-					k+=BkpSizeX*sign;
-					p+=len45degLine;  j-=(len45degLine+1);
-					i=buf[p++];		flagss=1;
-					return 1;
-				}
-				else
-				{
-					if(flagss){
-						flagss=0;
-						_ReadBK(3, -i_prev-2,0);
-						pLcd[k-i_prev-1]=buff_AA[1+0];
-						k-=BkpSizeX*(-1*sign);	k-=(i_prev-0);
-						pLcd[k+0]=buff_AA[1+0];
-						pLcd[k+1]=buff_AA[1+1];
-						k+=(i_prev-0); k+=BkpSizeX*(-1*sign);
-					}
-				}
-			}
-		}
-		return 0;
-	}
-
-	int _AAcorrectFor45degV(DIRECTIONS upDwn)
-	{
-		int len45degLine, sign=CONDITION(upDwn==Down,1,-1);
-		int scheme = __ArePoints45degInScheme(2,  3,150, 2, 1,2,   2,  0,&len45degLine,NULL);
-		if(scheme)
-		{
-			if(scheme==2) goto GOTO_ToEndAAcorrect45degV;
-			_StartPxlsCorrect(sign);
-			_DrawAAfor2pxl(sign);
-			k++;
-			for(int a=0;a<len45degLine;++a){  _ReadBK(len45degLine,-3,3);   pLcd[k+2]=buff2_AA[1+a]; pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(len45degLine-1)-a]; pLcd[k-2]=_inColor;    pLcd[k++]=drawColor;  k+=BkpSizeX*sign; }
-			p+=len45degLine;  j-=(len45degLine+1);
-			i=buf[p++];   flagss=1;
-			return 1;
-		}
-		else
-		{
-			int len45degLine;
-			if(__ArePoints45degInRange(3,150, 2,3, 0,&len45degLine))
-			{
-				_StartPxlsCorrect(sign);
-				_DrawAAfor2pxl(sign);
-				k++;
-				for(int a=0;a<len45degLine;++a){  _ReadBK(len45degLine,-3,4);    pLcd[k+3]=_outColor; pLcd[k+2]=buff2_AA[1+a]; 		pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(len45degLine-1)-a];  pLcd[k-2]=(a==(len45degLine-1)?buff_AA[1+len45degLine/2]:_inColor);     pLcd[k++]=drawColor;   k+=BkpSizeX*sign; }
-				p+=len45degLine;  j-=(len45degLine+1);
-				i=buf[p++];   flagss=1;
-				return 1;
-			}
-			else
-			{
-				if(__ArePoints45degInRange(3,150, 3,2, 0,&len45degLine))
-				{
-					_StartPxlsCorrect(sign);
-					_DrawAAfor2pxl(sign);
-					k++;
-					for(int a=0;a<len45degLine;++a){   _ReadBK(len45degLine,-3,4);    pLcd[k+3]=(a==0?buff2_AA[1+len45degLine/2]:_outColor); pLcd[k+2]=buff2_AA[1+a]; pLcd[k+1]=drawColor;   pLcd[k-1]=buff_AA[1+(len45degLine-1)-a]; pLcd[k-2]=_inColor;     pLcd[k++]=drawColor;   k+=BkpSizeX*sign; }
-					p+=len45degLine;  j-=(len45degLine+1);
-					i=buf[p++];   flagss=1;
-					return 1;
-				}
-				else
-				{
-					if(flagss){
-						flagss=0;
-						k-=2*BkpSizeX*sign;	k-=(i_prev-0);
-						_ReadBK(3, 0,0);
-						pLcd[k+1]=buff_AA[1+0];
-						pLcd[k+1+BkpSizeX*sign]=buff_AA[1+0];
-						k+=(i_prev-0); k+=2*BkpSizeX*sign;
-					}
-				}
-			}
-		}
-		GOTO_ToEndAAcorrect45degV:
-		return 0;
-	}
-
-	switch((int)upDwn)
-	{
-	case Down:
-
-		if(0==direction)
-		{
-			while(j--)
-			{
-				GOTO_ToDrawAAforH_Down:
-				i_prev=i;
-				while(i--) pLcd[k++]=drawColor;
-
-				if(corr45degAA && outRatioStart < 1.0 && inRatioStart < 1.0){
-					if(_AAcorrectFor45degH(upDwn))
-						goto GOTO_ToDrawAAforH_Down;
-				}
-				i=buf[p++];
-
-				if(outRatioStart<1.0){
-					if(0==start){
-						k-=BkpSizeX;
-						k_temp=k-i_prev;
-						if(0==outColor) _outColor=pLcd[k_temp];
-						Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-						for(int a=0;a<i_prev;++a){	 	if(0==outColor){ if(pLcd[k_temp+a]!=_outColor){ _outColor=pLcd[k_temp+a]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} }
-																if(0==start){start=1; pLcd[k_temp+a-1+BkpSizeX]=drawColor; }	/* add one pixel to full the hole at the beginning of drawing */
-																pLcd[k_temp+a]=buff_AA[1+a]; 	  }
-						k+=BkpSizeX;
-						start=1;
-					}
-
-					if(j){
-						if(0==outColor) _outColor=pLcd[k];
-						Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);
-						for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k+a]!=_outColor){ _outColor=pLcd[k+a]; Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);} }
-							pLcd[k+a]=buff_AA[1+a];
-					}}
-				}
-				k+=BkpSizeX;
-
-				if(inRatioStart<1.0){
-					if(0==inColor) _inColor=pLcd[k-1];
-					Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);
-					for(int a=0;a<buff_AA[0];++a){	 if(0==inColor){ if(pLcd[k-1-a]!=_inColor){ _inColor=pLcd[k-1-a]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} }
-						pLcd[k-1-a]=buff_AA[1+a];  }
-				}
-			}
-			k-=BkpSizeX;
-		}
-		else
-		{
-			while(j--)
-			{
-				GOTO_ToDrawAAforV_Down:
-				i_prev=i;
-				while(i--){ pLcd[k]=drawColor; k+=BkpSizeX; }
-
-				if(corr45degAA && outRatioStart < 1.0 && inRatioStart < 1.0){
-					if(_AAcorrectFor45degV(upDwn))
-						goto GOTO_ToDrawAAforV_Down;
-				}
-				i=buf[p++];
-
-				if(inRatioStart<1.0){
-					if(0==start){
-						k--;
-						if(0==inColor) _inColor=pLcd[k-i_prev*BkpSizeX];
-						Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);
-						for(int a=0;a<i_prev;++a){	  if(0==inColor){ if(pLcd[k-(i_prev-a)*BkpSizeX]!=_inColor){ _inColor=pLcd[k-(i_prev-a)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} }
-															  if(0==start){start=1; pLcd[k-(i_prev-a)*BkpSizeX+1-BkpSizeX]=drawColor; }	/* add one pixel to full the hole at the beginning of drawing */
-															  pLcd[k-(i_prev-a)*BkpSizeX]=buff_AA[1+a]; 	 }
-						k++;
-						start=1;
-					}
-
-					if(j){
-						if(0==inColor) _inColor=pLcd[k];
-						Set_AACoeff_Draw(i,drawColor,_inColor,inRatioStart);
-						for(int a=0;a<buff_AA[0];++a){ 	if(0==inColor){ if(pLcd[k+a*BkpSizeX]!=_inColor){ _inColor=pLcd[k+a*BkpSizeX]; Set_AACoeff_Draw(i,drawColor,_inColor,inRatioStart);} }
-							pLcd[k+a*BkpSizeX]=buff_AA[1+a]; }
-					}
-				}
-				k++;
-
-				if(outRatioStart<1.0){
-					if(0==outColor) _outColor=pLcd[k-BkpSizeX];
-					Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-					for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k-(a+1)*BkpSizeX]!=_outColor){ _outColor=pLcd[k-(a+1)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} }
-						pLcd[k-(a+1)*BkpSizeX]=buff_AA[1+a];
-					}
-				}
-			}
-			k--;
-		}
-		break;
-
-	case Up:
-
-		if(0==direction)
-		{
-			while(j--)
-			{
-				GOTO_ToDrawAAforH_Up:
-				i_prev=i;
-				while(i--) pLcd[k++]=drawColor;
-
-				if(corr45degAA && outRatioStart < 1.0 && inRatioStart < 1.0){
-					if(_AAcorrectFor45degH(upDwn))
-						goto GOTO_ToDrawAAforH_Up;
-				}
-				i=buf[p++];
-
-				if(inRatioStart<1.0){
-					if(0==start){
-						k+=BkpSizeX;
-						k_temp=k-i_prev;
-						if(0==inColor) _inColor=pLcd[k_temp];
-						Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);
-						for(int a=0;a<i_prev;++a){	 	if(0==inColor){ if(pLcd[k_temp+a]!=_inColor){ _inColor=pLcd[k_temp+a]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} }
-																if(0==start){start=1; pLcd[k_temp+a-1-BkpSizeX]=drawColor; }	/* add one pixel to full the hole at the beginning of drawing */
-																pLcd[k_temp+a]=buff_AA[1+a]; 	 }
-						k-=BkpSizeX;
-						start=1;
-					}
-
-					if(j){
-						if(0==inColor) _inColor=pLcd[k];
-						Set_AACoeff_Draw(i,drawColor,_inColor,inRatioStart);
-						for(int a=0;a<buff_AA[0];++a){ 	if(0==inColor){ if(pLcd[k+a]!=_inColor){ _inColor=pLcd[k+a]; Set_AACoeff_Draw(i,drawColor,_inColor,inRatioStart);} }
-							pLcd[k+a]=buff_AA[1+a];  }
-					}
-				}
-
-				if(k > BkpSizeX) k -= BkpSizeX;
-				{	if(outRatioStart<1.0){
-						if(0==outColor) _outColor=pLcd[k-1];
-						Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-						for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k-1-a]!=_outColor){ _outColor=pLcd[k-1-a]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} }
-							pLcd[k-1-a]=buff_AA[1+a];
-						}
-				}}
-			}
-			k+=BkpSizeX;
-		}
-		else
-		{
-			while(j--)
-			{
-				GOTO_ToDrawAAforV_Up:
-				i_prev=i;
-				while(i--){ pLcd[k]=drawColor; k-=BkpSizeX; }
-
-				if(corr45degAA && outRatioStart < 1.0 && inRatioStart < 1.0){
-					if(_AAcorrectFor45degV(upDwn))
-						goto GOTO_ToDrawAAforV_Up;
-				}
-
-				i=buf[p++];
-
-				if(inRatioStart<1.0){
-					if(0==start){
-						k--;
-						if(0==inColor) _inColor=pLcd[k+i_prev*BkpSizeX];
-						Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);
-						for(int a=0;a<i_prev;++a){	   if(0==inColor){ if(pLcd[k+(i_prev-a)*BkpSizeX]!=_inColor){ _inColor=pLcd[k+(i_prev-a)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} }
-																if(0==start){start=1; pLcd[k+(i_prev-a)*BkpSizeX+1+BkpSizeX]=drawColor; }	/* add one pixel to full the hole at the beginning of drawing */
-																pLcd[k+(i_prev-a)*BkpSizeX]=buff_AA[1+a];   }
-						k++;
-						start=1;
-					}
-
-					if(j){
-						if(0==inColor) _inColor=pLcd[k];
-						Set_AACoeff_Draw(i,drawColor,_inColor,inRatioStart);
-						for(int a=0;a<buff_AA[0];++a){	 if(0==inColor){ if(pLcd[k-a*BkpSizeX]!=_inColor){ _inColor=pLcd[k-a*BkpSizeX]; Set_AACoeff_Draw(i,drawColor,_inColor,inRatioStart);} }
-							pLcd[k-a*BkpSizeX]=buff_AA[1+a];
-						}
-					}
-				}
-				k++;
-
-				if(outRatioStart<1.0){
-					if(0==outColor) _outColor=pLcd[k+BkpSizeX];
-					Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-					for(int a=0;a<buff_AA[0];++a){ 	if(0==outColor){ if(pLcd[k+(a+1)*BkpSizeX]!=_outColor){ _outColor=pLcd[k+(a+1)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} }
-						pLcd[k+(a+1)*BkpSizeX]=buff_AA[1+a];   }
-				}
-			}
-			k--;
-		}
-		break;
-
 	default:
-		break;
+	case 0:  sizeLimit=FONT_130; 			break;
+	case 1:  sizeLimit=FONT_130_bold; 	break;
+	case 2:  sizeLimit=FONT_130_italics; break;
 	}
+	if(Test.size>sizeLimit){
+		Test.size=sizeLimit;
+		return;
+	}
+	ClearCursorField();
+	LCD_LoadFontVar();
+	if((Test.size==FONT_72)||(Test.size==FONT_72_bold)||(Test.size==FONT_72_italics)||
+	   (Test.size==FONT_130)||(Test.size==FONT_130_bold)||(Test.size==FONT_130_italics)){
+		Test.lenWin_prev=Test.lenWin;
+		Test.offsWin_prev=Test.offsWin;
+		Test.lenWin=8;
+		Test.offsWin=0;
+		ChangeTxt();
+	}
+	AdjustMiddle_X();
+	AdjustMiddle_Y();
+	Data2Refresh(FONTS);
+	Test.lenWin=lenStr.inChar;
+	SetCursor();
+	Data2Refresh(PARAM_LOAD_FONT_TIME);
+	Data2Refresh(PARAM_LEN_WINDOW);
+	Data2Refresh(PARAM_TYPE);
+	Data2Refresh(PARAM_SIZE);
+	Data2Refresh(PARAM_SPEED);
 }
 
-static void _DrawArrayBuffLeftDown2_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
+static void DecFontSize(void)
 {
-	int j=buf[0], i=buf[1], p=2, i_prev, start=0;
-	uint32_t _outColor=outColor;
-	uint32_t _inColor=inColor;
-	u32 k_temp;
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--) pLcd[k--]=drawColor;
-			i=buf[p++];
-
-			if(outRatioStart<1.0){
-				if(0==start){  start=1;
-					k-=BkpSizeX;
-					k_temp=k+i_prev;
-					if(0==outColor) _outColor=pLcd[k_temp];
-					Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-					for(int a=0;a<i_prev;++a){	  if(0==outColor){ if(pLcd[k_temp-a]!=_outColor){ _outColor=pLcd[k_temp-a]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} }
-														  pLcd[k_temp-a]=buff_AA[1+a];   }	  /* Here it is not one pixel of correct to full the hole at the beginning of drawing as in _DrawArrayBuffRightDown2_AA() */
-					k+=BkpSizeX;
-				}
-
-				if(j){
-					if(0==outColor) _outColor=pLcd[k];
-					Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);
-					for(int a=0;a<buff_AA[0];++a){ 	if(0==outColor){ if(pLcd[k-a]!=_outColor){ _outColor=pLcd[k-a]; Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);} }
-						pLcd[k-a]=buff_AA[1+a];  }
-				}
-			}
-			k+=BkpSizeX;
-
-			if(inRatioStart<1.0){
-				if(0==inColor) _inColor=pLcd[k+1];
-				Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);
-				for(int a=0;a<buff_AA[0];++a){	if(0==inColor){ if(pLcd[k+1+a]!=_inColor){ _inColor=pLcd[k+1+a]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} }
-					pLcd[k+1+a]=buff_AA[1+a];
-				}
-			}
-		}
-		k-=BkpSizeX;
+	int sizeLimit;
+	if((Test.size==FONT_72)||(Test.size==FONT_72_bold)||(Test.size==FONT_72_italics)||
+	   (Test.size==FONT_130)||(Test.size==FONT_130_bold)||(Test.size==FONT_130_italics)){
+		Test.lenWin=Test.lenWin_prev;
+		Test.offsWin=Test.offsWin_prev;
 	}
-	else
+	Test.size-=3;
+	switch(Test.normBoldItal)
 	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){  pLcd[k]=drawColor;  k+=BkpSizeX;  }
-			i=buf[p++];
-
-			if(outRatioStart<1.0){
-				if(0==start){  start=1;
-					k++;
-					if(0==outColor) _outColor=pLcd[k-i_prev*BkpSizeX];
-					Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-					for(int a=0;a<i_prev;++a){	   if(0==outColor){ if(pLcd[k-(i_prev-a)*BkpSizeX]!=_outColor){ _outColor=pLcd[k-(i_prev-a)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} }
-															pLcd[k-(i_prev-a)*BkpSizeX]=buff_AA[1+a];   }	 /* Here it is not one pixel of correct to full the hole at the beginning of drawing as in _DrawArrayBuffRightDown2_AA() */
-					k--;
-				}
-
-				if(j){
-					if(0==outColor) _outColor=pLcd[k];
-					Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);
-					for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k+a*BkpSizeX]!=_outColor){ _outColor=pLcd[k+a*BkpSizeX]; Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);} }
-						pLcd[k+a*BkpSizeX]=buff_AA[1+a];
-				}}
-			}
-			k--;
-
-			if(inRatioStart<1.0){
-				if(0==inColor) _inColor=pLcd[k-BkpSizeX];
-				Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);
-				for(int a=0;a<buff_AA[0];++a){ 	 if(0==inColor){ if(pLcd[k-(a+1)*BkpSizeX]!=_inColor){ _inColor=pLcd[k-(a+1)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} }
-					pLcd[k-(a+1)*BkpSizeX]=buff_AA[1+a];  }
-			}
-		}
-		k++;
+	default:
+	case 0:  sizeLimit=FONT_8; 		  break;
+	case 1:  sizeLimit=FONT_8_bold; 	  break;
+	case 2:  sizeLimit=FONT_8_italics; break;
 	}
+	if(Test.size<sizeLimit) Test.size=sizeLimit;
+
+	ClearCursorField();
+	LCD_LoadFontVar();
+	ChangeTxt();
+	AdjustMiddle_X();
+	AdjustMiddle_Y();
+	Data2Refresh(FONTS);
+	Test.lenWin=lenStr.inChar;
+	SetCursor();
+	Data2Refresh(PARAM_LOAD_FONT_TIME);
+	Data2Refresh(PARAM_TYPE);
+	Data2Refresh(PARAM_SIZE);
+	Data2Refresh(PARAM_LEN_WINDOW);
+	Data2Refresh(PARAM_SPEED);
 }
 
-static void _DrawArrayBuffLeftUp2_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint16_t *buf)
+static void ChangeFontBoldItalNorm(int8_t typeReq)
 {
-	int j=buf[0], i=buf[1], p=2, i_prev, start=0;
-	uint32_t _outColor=outColor;
-	uint32_t _inColor=inColor;
-	u32 k_temp;
-
-	if(0==direction)
+	if(typeReq > NONE_TYPE_REQ)
 	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--)  pLcd[k--]=drawColor;
-			i=buf[p++];
-
-			if(inRatioStart<1.0){
-				if(0==start){  start=1;
-					k+=BkpSizeX;
-					k_temp=k+i_prev;
-					if(0==inColor) _inColor=pLcd[k_temp];
-					Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);
-					for(int a=0;a<i_prev;++a){	  if(0==inColor){ if(pLcd[k_temp-a]!=_inColor){ _inColor=pLcd[k_temp-a]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} }
-														  pLcd[k_temp-a]=buff_AA[1+a];   }	 /* Here it is not one pixel of correct to full the hole at the beginning of drawing as in _DrawArrayBuffRightUp2_AA() */
-					k-=BkpSizeX;
-				}
-
-				if(j){
-					if(0==inColor) _inColor=pLcd[k];
-					Set_AACoeff_Draw(i,drawColor,_inColor,inRatioStart);
-					for(int a=0;a<buff_AA[0];++a){	 if(0==inColor){ if(pLcd[k-a]!=_inColor){ _inColor=pLcd[k-a]; } Set_AACoeff_Draw(i,drawColor,_inColor,inRatioStart);}
-						pLcd[k-a]=buff_AA[1+a];
-					}
-				}
-			}
-			k-=BkpSizeX;
-
-			if(outRatioStart<1.0){
-				if(0==outColor) _outColor=pLcd[k+1];
-				Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-				for(int a=0;a<buff_AA[0];++a){ 	if(0==outColor){ if(pLcd[k+1+a]!=_outColor){ _outColor=pLcd[k+1+a]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} }
-					pLcd[k+1+a]=buff_AA[1+a];  }
-			}
-		}
-		k+=BkpSizeX;
-	}
-	else
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){  pLcd[k]=drawColor;  k-=BkpSizeX;  }
-			i=buf[p++];
-
-			if(outRatioStart<1.0){
-				if(0==start){  start=1;
-					k++;
-					if(0==outColor) _outColor=pLcd[k+i_prev*BkpSizeX];
-					Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-					for(int a=0;a<i_prev;++a){	   if(0==outColor){ if(pLcd[k+(i_prev-a)*BkpSizeX]!=_outColor){ _outColor=pLcd[k+(i_prev-a)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} }
-															pLcd[k+(i_prev-a)*BkpSizeX]=buff_AA[1+a];   }	 /* Here it is not one pixel of correct to full the hole at the beginning of drawing as in _DrawArrayBuffRightUp2_AA() */
-					k--;
-				}
-
-				if(j){
-					if(0==outColor) _outColor=pLcd[k];
-					Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);
-					for(int a=0;a<buff_AA[0];++a){ 	if(0==outColor){ if(pLcd[k-a*BkpSizeX]!=_outColor){ _outColor=pLcd[k-a*BkpSizeX]; Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);} }
-						pLcd[k-a*BkpSizeX]=buff_AA[1+a];  }
-				}
-			}
-			k--;
-
-			if(inRatioStart<1.0){
-				if(0==inColor) _inColor=pLcd[k+BkpSizeX];
-				Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);
-				for(int a=0;a<buff_AA[0];++a){	 if(0==inColor){ if(pLcd[k+(a+1)*BkpSizeX]!=_inColor){ _inColor=pLcd[k+(a+1)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_inColor,inRatioStart);} }
-					pLcd[k+(a+1)*BkpSizeX]=buff_AA[1+a];
-				}
-			}
-		}
-		k++;
-	}
-}
-
-static void _DrawArrayBuffRightDown_AA(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)		/* ! Attention !  number of pixels in one line H or V must not exceed value 255 because declaration 'uint8_t *buf'. In the future declare 'uint16_t *buf' */
-{
-	int j=buf[0], i=buf[1], p=2, i_prev;
-	uint32_t drawColor=_drawColor;
-	uint32_t _outColor=outColor;
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;
-				pLcd[k++]=drawColor;
-			}
-			if(0==outColor) _outColor=pLcd[k];
-			if(j){
-				i=buf[p++];
-				Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);
-				for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k+a]!=_outColor){ _outColor=pLcd[k+a]; Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);} } else if(pLcd[k+a]==drawColor) break;		/* if(0==outColor){ if(pLcd[k+a] != _outColor) break; } */
-					pLcd[k+a]=buff_AA[1+a];
-				}
-			}
-			k+=BkpSizeX;
-
-			Set_AACoeff_Draw(i_prev,drawColor,inColor,inRatioStart);
-			for(int a=0;a<buff_AA[0];++a){ 	if(0!=outColor){ if(pLcd[k-1-a]==drawColor) break; }
-				pLcd[k-1-a]=buff_AA[1+a];  }
-		}
-	}
-	else
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;
-				pLcd[k]=drawColor;
-				k+=BkpSizeX;
-			}
-			if(j){
-				i=buf[p++];
-				Set_AACoeff_Draw(i,drawColor,inColor,inRatioStart);
-				for(int a=0;a<buff_AA[0];++a){ 	if(0!=outColor){ if(pLcd[k+a*BkpSizeX]==drawColor) break; }
-					pLcd[k+a*BkpSizeX]=buff_AA[1+a]; }
-			}
-			k++;
-			if(0==outColor) _outColor=pLcd[k-BkpSizeX];
-			Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-			for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k-(a+1)*BkpSizeX]!=_outColor){ _outColor=pLcd[k-(a+1)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} } else if(pLcd[k-(a+1)*BkpSizeX]==drawColor) break;		/* if(0==outColor){ if(pLcd[k-(a+1)*BkpSizeX] != _outColor) break; } */
-				pLcd[k-(a+1)*BkpSizeX]=buff_AA[1+a];
-			}
-		}
-	}
-}
-
-static void _DrawArrayBuffLeftDown_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
-{
-	int j=buf[0], i=buf[1], p=2, i_prev;
-	uint32_t _outColor=outColor;
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;
-				pLcd[k--]=drawColor;	}
-
-			if(j){
-				i=buf[p++];
-				Set_AACoeff_Draw(i,drawColor,inColor,inRatioStart);
-				for(int a=0;a<buff_AA[0];++a){ 	if(0!=outColor){ if(pLcd[k-a]==drawColor) break; }
-					pLcd[k-a]=buff_AA[1+a];  }
-			}
-			k+=BkpSizeX;
-			if(0==outColor) _outColor=pLcd[k];
-			Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-			for(int a=0;a<buff_AA[0];++a){	if(0==outColor){ if(pLcd[k+1+a]!=_outColor){ _outColor=pLcd[k+1+a]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} } else if(pLcd[k+1+a]==drawColor) break;		/* if(0==outColor){ if(pLcd[k+1+a] != _outColor) break; } */
-				pLcd[k+1+a]=buff_AA[1+a];
-			}
-		}
-	}
-	else
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;
-				pLcd[k]=drawColor;
-				k+=BkpSizeX;
-			}
-			if(0==outColor) _outColor=pLcd[k];
-			if(j){
-				i=buf[p++];
-				Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);
-				for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k+a*BkpSizeX]!=_outColor){ _outColor=pLcd[k+a*BkpSizeX]; Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);} } else if(pLcd[k+a*BkpSizeX]==drawColor) break;		/* if(0==outColor){ if(pLcd[k+a*BkpSizeX] != _outColor) break; }*/
-					pLcd[k+a*BkpSizeX]=buff_AA[1+a];
-				}
-			}
-			k--;
-			Set_AACoeff_Draw(i_prev,drawColor,inColor,inRatioStart);
-			for(int a=0;a<buff_AA[0];++a){ 	if(0!=outColor){ if(pLcd[k-(a+1)*BkpSizeX]==drawColor) break; }
-				pLcd[k-(a+1)*BkpSizeX]=buff_AA[1+a];  }
-		}
-	}
-}
-
-static void _DrawArrayBuffLeftUp_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
-{
-	int j=buf[0], i=buf[1], p=2, i_prev;
-	uint32_t _outColor=outColor;
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;
-				pLcd[k--]=drawColor;	}
-
-			if(0==outColor) _outColor=pLcd[k];
-			if(j){
-				i=buf[p++];
-				Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);
-				for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k-a]!=_outColor){ _outColor=pLcd[k-a]; } Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);} else if(pLcd[k-a]==drawColor) break;		/* if(0==outColor){ if(pLcd[k-a] != _outColor) break; } */
-					pLcd[k-a]=buff_AA[1+a];
-				}
-			}
-			k-=BkpSizeX;
-
-			Set_AACoeff_Draw(i_prev,drawColor,inColor,inRatioStart);
-			for(int a=0;a<buff_AA[0];++a){ 	if(0!=outColor){ if(pLcd[k+1+a]==drawColor) break; }
-				pLcd[k+1+a]=buff_AA[1+a];  }
-		}
-	}
-	else
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;
-				pLcd[k]=drawColor;
-				k-=BkpSizeX;
-			}
-
-			if(j){
-				i=buf[p++];
-				Set_AACoeff_Draw(i,drawColor,inColor,inRatioStart);
-				for(int a=0;a<buff_AA[0];++a){ 	if(0!=outColor){ if(pLcd[k-a*BkpSizeX]==drawColor) break; }
-					pLcd[k-a*BkpSizeX]=buff_AA[1+a];  }
-			}
-			k--;
-			if(0==outColor) _outColor=pLcd[k+BkpSizeX];
-			Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-			for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k+(a+1)*BkpSizeX]!=_outColor){ _outColor=pLcd[k+(a+1)*BkpSizeX]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} } else if(pLcd[k+(a+1)*BkpSizeX]==drawColor) break; 		/* if(0==outColor){ if(pLcd[k+(a+1)*BkpSizeX] != _outColor) break; } */
-				pLcd[k+(a+1)*BkpSizeX]=buff_AA[1+a];
-			}
-		}
-	}
-}
-
-static void _DrawArrayBuffRightUp_AA(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
-{
-	int j=buf[0], i=buf[1], p=2, i_prev;
-	uint32_t _outColor=outColor;
-
-	if(0==direction)
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;
-				pLcd[k++]=drawColor;	}
-
-			if(j){
-				i=buf[p++];
-				Set_AACoeff_Draw(i,drawColor,inColor,inRatioStart);
-				for(int a=0;a<buff_AA[0];++a){ 	if(0!=outColor){ if(pLcd[k+a]==drawColor) break; }
-					pLcd[k+a]=buff_AA[1+a];  }
-			}
-
-			if(k > BkpSizeX) k -= BkpSizeX;
-			{	if(0==outColor) _outColor=pLcd[k-1];
-				Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);
-				for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k-1-a]!=_outColor){ _outColor=pLcd[k-1-a]; Set_AACoeff_Draw(i_prev,drawColor,_outColor,outRatioStart);} } else if(pLcd[k-1-a]==drawColor) break; 		/* if(0==outColor){ if(pLcd[k-1-a] != _outColor) break; } */ 	if(k < 1+a) break;
-					pLcd[k-1-a]=buff_AA[1+a];
-			}}
-		}
-	}
-	else
-	{
-		while(j--)
-		{
-			i_prev=i;
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;
-				pLcd[k]=drawColor;
-				k-=BkpSizeX;
-			}
-			if(0==outColor) _outColor=pLcd[k];
-			if(j){
-				i=buf[p++];
-				Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);
-				for(int a=0;a<buff_AA[0];++a){	 if(0==outColor){ if(pLcd[k-a*BkpSizeX]!=_outColor){ _outColor=pLcd[k-a*BkpSizeX]; Set_AACoeff_Draw(i,drawColor,_outColor,outRatioStart);} } else if(pLcd[k-a*BkpSizeX]==drawColor) break; 		/* if(0==outColor){ if(pLcd[k-a*BkpSizeX] != _outColor) break; } */
-					pLcd[k-a*BkpSizeX]=buff_AA[1+a];
-				}
-			}
-			k++;
-			Set_AACoeff_Draw(i_prev,drawColor,inColor,inRatioStart);
-			for(int a=0;a<buff_AA[0];++a){ 	if(0!=outColor){ if(pLcd[k+(a+1)*BkpSizeX]==drawColor) break; }
-				pLcd[k+(a+1)*BkpSizeX]=buff_AA[1+a];   }
-		}
-	}
-}
-
-static void LCD_DrawCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t __x, uint32_t __y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, int outColorRead)
-{
-	int matchWidth=0, circleFlag=0;													/* Circle.degColor[0] - is free space for future variable */			/* 'FrameColor' must not equal 'FillColor' (if equal then AA is zero) */
-	uint16_t param =width>>16;
-	uint32_t _FillColor, _width=(width&0x0000FFFF)-matchWidth;
-
-	if(FillColor!=TRANSPARENT) _FillColor=FillColor;
-	else								_FillColor=BkpColor;
-
-	#define PARAM 		FrameColor, BkpColor, Circle.outRatioStart
-	#define PARAM_AA 	FrameColor, BkpColor, _FillColor, Circle.outRatioStart, Circle.inRatioStart, BkpSizeX
-	#define buf			Circle.lineBuff
-
-	uint32_t bkX = BkpSizeX;
-	uint32_t x=__x, y=__y;
-
-	if((_width==height)&&(_width>0)&&(height>0))
-	{
-		GOTO_ToCalculateRadius:
-	   _width=(width&0x0000FFFF)-matchWidth;
-
-		float R=((float)_width)/2;
-		uint32_t pxl_width = R/3;
-
-		x=__x+_width/2 + matchWidth/2;
-		if(_width%2) x++;
-		y=__y;
-
-		float _x=(float)x, _y=(float)y;
-		float x0=(float)x, y0=(float)y+R;
-
-		float param_y = pow(y0-_y,2);
-		float param_x = pow(_x-x0,2);
-		float decision = pow(R,2);
-
-		int pxl_line=0,i=0;
-		uint8_t block=1;
-
-		void _CorrectDecision(void){
-			if(block){	 int ni= CONDITION(R<=Circle.correctForWidth,0,1);
-				if(i >= VALPERC(pxl_width,Circle.correctPercDeg[ni])){	block=0;   decision= pow(R+Circle.errorDecision[ni],2);  }
-		}}
-
-		buf[0]=pxl_width;
-		do{
-			_x++;  pxl_line++;
-			param_x = pow(_x-x0,2);		_CorrectDecision();
-			if((param_x+param_y) > decision){
-				_y++;
-				param_y = pow(y0-_y,2);
-				buf[1+i++]=pxl_line-1;
-				pxl_line=1;
-			}
-		}while(i<pxl_width);
-
-		LCD_CircleCorrect();
-
-  	 uint16_t _height=buf[0];
-  	 for(int i=0;i<buf[0];++i) _height+=buf[buf[0]-i];
-  	 _height = 2*_height;
-
-		if(height>=_height)
-			y= y+(height-_height)/2;
-		else{
-			matchWidth+=1;
-			goto GOTO_ToCalculateRadius;
-		}
-
-		x-=(x-__x-_height/2);
-		y-=(y-__y);
-
-		Circle.width=_height;
-		Circle.x0=x;
-		Circle.y0=y+Circle.width/2;
-		circleFlag=1;
-	}
-	else if((_width==0)&&(height==0));
-	else return;
-
-	uint8_t buf_Inv[buf[0]+1];
-	InverseAndCopyBuff(buf_Inv,buf);
-	_StartDrawLine(posBuff,bkX,x,y);
-
-	uint32_t BkpColor_copy = BkpColor;
-	if(outColorRead) BkpColor=0;
-		_DrawArrayBuffRightDown_AA(PARAM_AA,0,buf); 	    _CopyDrawPos(); _IncDrawPos(-bkX); PixelCorrect(PARAM, 1,      1);    _SetCopyDrawPos();
-		_DrawArrayBuffRightDown_AA(PARAM_AA,1,buf_Inv);                      				   PixelCorrect(PARAM, buf[1],bkX);   _IncDrawPos(-1);
-
-		_DrawArrayBuffLeftDown_AA (PARAM_AA,1,buf); 		 _CopyDrawPos(); _IncDrawPos(1);    PixelCorrect(PARAM, 1,      1);    _SetCopyDrawPos();
-		_DrawArrayBuffLeftDown_AA (PARAM_AA,0,buf_Inv);                      					PixelCorrect(PARAM, buf[1],-1);    _IncDrawPos(-bkX);
-
-		_DrawArrayBuffLeftUp_AA  (PARAM_AA,0,buf);       _CopyDrawPos(); _IncDrawPos(bkX);  PixelCorrect(PARAM, 1,     -bkX);  _SetCopyDrawPos();
-		_DrawArrayBuffLeftUp_AA  (PARAM_AA,1,buf_Inv);  						    					PixelCorrect(PARAM, buf[1],-bkX);  _IncDrawPos(1);
-
-		_DrawArrayBuffRightUp_AA (PARAM_AA,1,buf);       _CopyDrawPos(); _IncDrawPos(-1);  	PixelCorrect(PARAM, 1,      1);    _SetCopyDrawPos();
-		_DrawArrayBuffRightUp_AA (PARAM_AA,0,buf_Inv);                       					PixelCorrect(PARAM, buf[1], 1);
-	if(outColorRead) BkpColor = BkpColor_copy;
-
-		if(FillColor!=TRANSPARENT)
-		{
-	   	 uint16_t fillWidth, fillHeight=0;
-
-	   	 void _RemoveUnnecessaryDots(int i, int nrDeg){			/* Remove 4 dots in Frame at 45, 135, 225, 315 degree for 'Percent_Circle' */
-	   		 switch(nrDeg){
-	   		 	 case 0:  if(i==buf[0]-1){ k--; 			 	 _DrawRight(1,FrameColor); 				   } break;
-	   		 	 case 1:  if(i==0)		 { k--;  k-=bkX;	 _DrawRight(1,FrameColor); k+=bkX; 		   } break;
-	   		 	 case 2:  if(i==buf[0]-1){ k-=2; k-=bkX; 	 _DrawRight(1,FrameColor); k++; k+=bkX;   } break;
-	   		 	 case 3:  if(i==0)		 { k-=2; k+=2*bkX; _DrawRight(1,FrameColor); k-=2*bkX; k++; } break;
-	   	}}
-
-			_StartDrawLine(posBuff,bkX,x,y);
-			fillWidth=0;
-			for(int i=0;i<buf[0];++i){
-				_IncDrawPos(bkX-buf[i+1]);	_CopyDrawPos(); k+=buf[i+1];	_RemoveUnnecessaryDots(i,0);  if(i>0)_DrawRight(2*fillWidth,FillColor);	  _SetCopyDrawPos();	fillHeight++;
-				fillWidth += buf[i+1];
-			}
-
-			for(int i=0;i<buf[0];++i){
-				fillWidth++;
-				_IncDrawPos(-1);
-				for(int j=0; j<buf[buf[0]-i]; ++j){
-					_IncDrawPos(bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){k+=1;_DrawRight(2*(fillWidth-1),FillColor); _RemoveUnnecessaryDots(i,1); }else{k+=2;_DrawRight(2*(fillWidth-2),FillColor);}	_SetCopyDrawPos();	fillHeight++;
-				}
-			}
-
-			fillHeight = 2*fillHeight-1;
-
-			_StartDrawLine(posBuff,bkX,x,y+fillHeight);
-			fillWidth=0;
-			for(int i=0;i<buf[0];++i){
-				_IncDrawPos(-bkX-buf[i+1]); _CopyDrawPos();	k+=buf[i+1];	_RemoveUnnecessaryDots(i,2);  if(i>0)_DrawRight(2*fillWidth,FillColor);	_SetCopyDrawPos();
-				fillWidth += buf[i+1];
-			}
-
-			for(int i=0;i<buf[0];++i){
-				fillWidth++;
-				_IncDrawPos(-1);
-				for(int j=0; j<buf[buf[0]-i]; ++j){
-					_IncDrawPos(-bkX);	_CopyDrawPos();  if(j==buf[buf[0]-i]-1){k+=1;_DrawRight(2*(fillWidth-1),FillColor); _RemoveUnnecessaryDots(i,3); }else{k+=2;_DrawRight(2*(fillWidth-2),FillColor);}	 _SetCopyDrawPos();
-				}
-			}
-		}
-
-	if(param==Percent_Circle && circleFlag)
-	{
-		int circleLinesLenCorrect;
-		uint16_t fillWidth=0, fillHeight=0;
-
-		for(int i=0;i<Circle.degree[0];++i)
-		{
-			circleLinesLenCorrect=0;
-			if(IS_RANGE(Circle.degree[1+i],  34,  56)){
-				if(Circle.width/2 < 100)
-					circleLinesLenCorrect = 0;
-				else
-					circleLinesLenCorrect = 2;
-			}
-			else if(IS_RANGE(Circle.degree[1+i], 122, 149))
-			{
-				if(Circle.width/2 < 100)
-					circleLinesLenCorrect = 0;
-				else
-					circleLinesLenCorrect = 4;
-			}
-			else if(IS_RANGE(Circle.degree[1+i], 206, 244)){
-				if(Circle.width/2 < 100)
-					circleLinesLenCorrect = 2;
-				else
-					circleLinesLenCorrect = 6;
-			}
-			else if(IS_RANGE(Circle.degree[1+i], 300, 330))
-			{
-				if(Circle.width/2 < 100)
-					circleLinesLenCorrect = 0;
-				else
-					circleLinesLenCorrect = 4;
-			}
-
-			if(i==0)
-				DrawLine(0,Circle.x0,Circle.y0,(Circle.width-4-circleLinesLenCorrect)/2-1,Circle.degree[1+i],FrameColor,BkpSizeX, Circle.outRatioStart,Circle.inRatioStart,_FillColor,Circle.degColor[i+1]);
-			else if(i==Circle.degree[0]-1)
-				DrawLine(0,Circle.x0,Circle.y0,(Circle.width-4-circleLinesLenCorrect)/2-1,Circle.degree[1+i],FrameColor,BkpSizeX, Circle.outRatioStart,Circle.inRatioStart,Circle.degColor[i],_FillColor);
-			else
-				DrawLine(0,Circle.x0,Circle.y0,(Circle.width-4-circleLinesLenCorrect)/2-1,Circle.degree[1+i],FrameColor,BkpSizeX, Circle.outRatioStart,Circle.inRatioStart,Circle.degColor[i],Circle.degColor[i+1]);
-		}
-
-		void _Fill(int width)
-		{
-			int j=width;
-			uint8_t threshold[Circle.degree[0]];
-			int subj=0, deltaDeg;
-			uint32_t colorDeg=0;	uint8_t flagPermission=0;
-
-			int _GGGG(void){
-				for(int i=0;i<Circle.degree[0]-1;++i){
-					deltaDeg=Circle.degree[1+i+1]-Circle.degree[1+i];
-					if( ((deltaDeg>0)&&(deltaDeg<=180)) || (deltaDeg<-180) ){
-						if((threshold[i]==0)&&(threshold[i+1]==2)){
-							colorDeg= Circle.degColor[1+i];
-							return 1;
-						}
-					}
-					else{
-						if((threshold[i]==0)||(threshold[i+1]==2)){
-							colorDeg= Circle.degColor[1+i];
-							return 2;
-				}}}
-				return 0;
-			}
-
-			while(j--)
-			{
-				if(pLcd[k]==FillColor){
-					for(int i=0;i<Circle.degree[0];++i)
-						threshold[i]=LCD_SearchRadiusPoints(posBuff,i,bkX);
-					flagPermission=_GGGG();
-				}
-
-				GOTO_ToFillCircle:
-				if(pLcd[k]==FillColor)
-				{
-					if(flagPermission) pLcd[k]= colorDeg;
-					k++; subj=1;
-				}
-				if(pLcd[k]==FillColor){ if(j==0){ k--; break; } j--; subj=0; goto GOTO_ToFillCircle; }
-				k++;
-				if(subj==1){ subj=0; if(j>0) j--; else{ k--; break; }}
-			}
-		}
-
-		void _Change_AA(int width)
-		{
-			int j=width;
-			int threshold[Circle.degree[0]];
-			int deltaDeg;
-
-			while(j--)
-			{
-				for(int i=0;i<Circle.degree[0];++i)
-					threshold[i]=LCD_SearchRadiusPoints(posBuff,i,bkX);
-
-				for(int i=0;i<Circle.degree[0]-1;++i)
-				{
-					deltaDeg=Circle.degree[1+i+1]-Circle.degree[1+i];
-					if( ((deltaDeg>0)&&(deltaDeg<=180)) || (deltaDeg<-180) )
-					{
-						if((threshold[i]==0)&&(threshold[i+1]==2)){
-							pLcd[k]=GetTransitionColor(FrameColor, Circle.degColor[1+i], GetTransitionCoeff(FrameColor,FillColor,pLcd[k]));	/* 'FrameColor' must not equal 'FillColor' !!! */
-							break;
-						}
-					}
-					else
-					{
-						if((threshold[i]==0)||(threshold[i+1]==2)){
-							pLcd[k]=GetTransitionColor(FrameColor, Circle.degColor[1+i], GetTransitionCoeff(FrameColor,FillColor,pLcd[k]));	/* 'FrameColor' must not equal 'FillColor' !!! */
-							break;
-				}}}
-				k++;
-		}}
-
-		_StartDrawLine(posBuff,bkX,x,y);
-		for(int i=0;i<buf[0];++i){
-			_IncDrawPos(bkX-buf[i+1]);	  _CopyDrawPos();   _Change_AA(buf[i+1]); 	if(i>0) _Fill(2*fillWidth); _Change_AA(buf[i+1]); _SetCopyDrawPos();	fillHeight++;
-			fillWidth += buf[i+1];
-		}
-		for(int i=0;i<buf[0];++i){
-			fillWidth++;
-			_IncDrawPos(-1);
-			for(int j=0; j<buf[buf[0]-i]; ++j){
-				_IncDrawPos(bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){ _Change_AA(1); _Fill(2*(fillWidth-1)); _Change_AA(1); }else{  _Change_AA(2); _Fill(2*(fillWidth-2)); _Change_AA(2); }	_SetCopyDrawPos();	fillHeight++;
-			}
-		}
-
-		fillHeight = 2*fillHeight-1;
-		_StartDrawLine(posBuff,bkX,x,y+fillHeight);
-		fillWidth=0;
-		for(int i=0;i<buf[0];++i){
-			_IncDrawPos(-bkX-buf[i+1]);	_CopyDrawPos();	_Change_AA(buf[i+1]); if(i>0) _Fill(2*fillWidth); _Change_AA(buf[i+1]);	_SetCopyDrawPos();
-			fillWidth += buf[i+1];
-		}
-
-		for(int i=0;i<buf[0];++i){
-			fillWidth++;
-			_IncDrawPos(-1);
-			for(int j=0; j<buf[buf[0]-i]; ++j){
-				_IncDrawPos(-bkX);	_CopyDrawPos();  if(j==buf[buf[0]-i]-1){ _Change_AA(1); _Fill(2*(fillWidth-1)); _Change_AA(1);}else{ _Change_AA(2); _Fill(2*(fillWidth-2)); _Change_AA(2);}	 _SetCopyDrawPos();
-			}
-		}
-	}
-	#undef PARAM
-	#undef PARAM_AA
-	#undef buf
-}
-
-static void LCD_DrawHalfCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t __x, uint32_t __y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor)
-{
-	int matchWidth=0;
-	uint32_t _FillColor, _width=(width&0x0000FFFF)-matchWidth;
-
-	if(FillColor!=TRANSPARENT) _FillColor=FillColor;
-	else								_FillColor=BkpColor;
-
-	#define PARAM 		FrameColor, BkpColor, Circle.outRatioStart
-	#define PARAM_AA 	FrameColor, BkpColor, _FillColor, Circle.outRatioStart, Circle.inRatioStart, BkpSizeX
-	#define buf			Circle.lineBuff
-
-	uint32_t bkX = BkpSizeX;
-	uint32_t x=__x, y=__y;
-
-	if((_width==height)&&(_width>0)&&(height>0))
-	{
-		GOTO_ToCalculateRadius:
-	   _width=(width&0x0000FFFF)-matchWidth;
-
-	   float R=((float)_width)/2;
-		uint32_t pxl_width = R/3;
-
-		x=__x+_width/2 + matchWidth/2;
-		if(_width%2) x++;
-		y=__y;
-
-		float _x=(float)x, _y=(float)y;
-		float x0=(float)x, y0=(float)y+R;
-
-		float param_y = pow(y0-_y,2);
-		float param_x = pow(_x-x0,2);
-		float decision = pow(R,2);
-
-		int pxl_line=0,i=0;
-		uint8_t block=1;
-
-		void _CorrectDecision(void){
-			if(block){	 int ni= CONDITION(R<=Circle.correctForWidth,0,1);
-				if(i >= VALPERC(pxl_width,Circle.correctPercDeg[ni])){	block=0;   decision= pow(R+Circle.errorDecision[ni],2);  }
-		}}
-
-		buf[0]=pxl_width;
-		do{
-			_x++;  pxl_line++;
-			param_x = pow(_x-x0,2);		_CorrectDecision();
-			if((param_x+param_y) > decision){
-				_y++;
-				param_y = pow(y0-_y,2);
-				buf[1+i++]=pxl_line-1;
-				pxl_line=1;
-			}
-		}while(i<pxl_width);
-
-		LCD_CircleCorrect();
-
-  	 uint16_t _height=buf[0];
-  	 for(int i=0;i<buf[0];++i) _height+=buf[buf[0]-i];
-  	 _height = 2*_height;
-
-		if(height>=_height)
-			y= y+(height-_height)/2;
-		else{
-			matchWidth+=1;
-			goto GOTO_ToCalculateRadius;
-		}
-
-		x-=(x-__x-_height/2);
-		y-=(y-__y);
-
-		Circle.width=_height;
-
-	}
-	else if((_width==0)&&(height==0));
-	else return;
-
-	uint8_t buf_Inv[buf[0]+1];
-	InverseAndCopyBuff(buf_Inv,buf);
-
-	_StartDrawLine(0,bkX,x,y);
-
-	switch(width>>16)
-	{
-	case Half_Circle_0:
-		_DrawArrayBuffRightDown_AA(PARAM_AA,0,buf); 		 _CopyDrawPos(); _IncDrawPos(-bkX); PixelCorrect(PARAM, 1,      1);    _SetCopyDrawPos();
-		_DrawArrayBuffRightDown_AA(PARAM_AA,1,buf_Inv);                      				   PixelCorrect(PARAM, buf[1],bkX);   _IncDrawPos(-1);
-
-		_OffsetLeftDown(BkpSizeX,1,buf);
-		_OffsetLeftDown(BkpSizeX,0,buf_Inv);  _IncDrawPos(-bkX);
-
-		_OffsetLeftUp(BkpSizeX,0,buf);
-		_OffsetLeftUp(BkpSizeX,1,buf_Inv);	_IncDrawPos(1);
-
-		_DrawArrayBuffRightUp_AA (PARAM_AA,1,buf);       _CopyDrawPos(); _IncDrawPos(-1);  	PixelCorrect(PARAM, 1,      1);    _SetCopyDrawPos();
-		_DrawArrayBuffRightUp_AA (PARAM_AA,0,buf_Inv);                       					PixelCorrect(PARAM, buf[1], 1);
-		break;
-
-	case Half_Circle_90:
-		_DrawArrayBuffRightDown_AA(PARAM_AA,0,buf); 		 _CopyDrawPos(); _IncDrawPos(-bkX); PixelCorrect(PARAM, 1,      1);    _SetCopyDrawPos();
-		_DrawArrayBuffRightDown_AA(PARAM_AA,1,buf_Inv);                      				   PixelCorrect(PARAM, buf[1],bkX);   _IncDrawPos(-1);
-
-		_DrawArrayBuffLeftDown_AA (PARAM_AA,1,buf); 		 _CopyDrawPos(); _IncDrawPos(1);    PixelCorrect(PARAM, 1,      1);    _SetCopyDrawPos();
-		_DrawArrayBuffLeftDown_AA (PARAM_AA,0,buf_Inv);                      					PixelCorrect(PARAM, buf[1],-1);    _IncDrawPos(-bkX);
-		break;
-
-	case Half_Circle_180:
-		_OffsetRightDown(BkpSizeX,0,buf);
-		_OffsetRightDown(BkpSizeX,1,buf_Inv);    _IncDrawPos(-1);
-
-		_DrawArrayBuffLeftDown_AA (PARAM_AA,1,buf); 		 _CopyDrawPos(); _IncDrawPos(1);    PixelCorrect(PARAM, 1,      1);    _SetCopyDrawPos();
-		_DrawArrayBuffLeftDown_AA (PARAM_AA,0,buf_Inv);                      					PixelCorrect(PARAM, buf[1],-1);    _IncDrawPos(-bkX);
-
-		_DrawArrayBuffLeftUp_AA  (PARAM_AA,0,buf);       _CopyDrawPos(); _IncDrawPos(bkX);  PixelCorrect(PARAM, 1,     -bkX);  _SetCopyDrawPos();
-		_DrawArrayBuffLeftUp_AA  (PARAM_AA,1,buf_Inv);  						    					PixelCorrect(PARAM, buf[1],-bkX);  _IncDrawPos(1);
-		break;
-
-	case Half_Circle_270:
-		_OffsetRightDown(BkpSizeX,0,buf);
-		_OffsetRightDown(BkpSizeX,1,buf_Inv);    _IncDrawPos(-1);
-
-		_OffsetLeftDown(BkpSizeX,1,buf);
-		_OffsetLeftDown(BkpSizeX,0,buf_Inv);    _IncDrawPos(-bkX);
-
-		_DrawArrayBuffLeftUp_AA  (PARAM_AA,0,buf);       _CopyDrawPos(); _IncDrawPos(bkX);  PixelCorrect(PARAM, 1,     -bkX);  _SetCopyDrawPos();
-		_DrawArrayBuffLeftUp_AA  (PARAM_AA,1,buf_Inv);  						    					PixelCorrect(PARAM, buf[1],-bkX);  _IncDrawPos(1);
-
-		_DrawArrayBuffRightUp_AA (PARAM_AA,1,buf);       _CopyDrawPos(); _IncDrawPos(-1);  	PixelCorrect(PARAM, 1,      1);    _SetCopyDrawPos();
-		_DrawArrayBuffRightUp_AA (PARAM_AA,0,buf_Inv);                       					PixelCorrect(PARAM, buf[1], 1);
-		break;
-	}
-
-	if(FillColor!=TRANSPARENT)
-	{
-   	 uint16_t fillWidth, fillHeight=0;
-
-   		switch(width>>16)
-   		{
-   		case Half_Circle_0:
-   			_StartDrawLine(0,bkX,x,y);
-   			fillWidth=0;
-   			for(int i=0;i<buf[0];++i){
-   				_IncDrawPos(bkX-buf[i+1]);	_CopyDrawPos(); k+=buf[i+1]; 	if(i>0) _DrawRight(2*fillWidth,FillColor);	_SetCopyDrawPos(); fillHeight++;
-   				fillWidth += buf[i+1];
-   			}
-
-   			for(int i=0;i<buf[0];++i){
-   				fillWidth++;
-   				_IncDrawPos(-1);
-   				for(int j=0; j<buf[buf[0]-i]; ++j){
-   					_IncDrawPos(bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){if(i<buf[0]-2){k+=1;_DrawRight(2*(fillWidth-1),FillColor);}}else{k+=2;_DrawRight(2*(fillWidth-2),FillColor);}	_SetCopyDrawPos();	fillHeight++;
-   				}
-   			}
-   			break;
-
-   		case Half_Circle_90:
-   			_StartDrawLine(0,bkX,x,y);
-   			fillWidth=0;
-   			for(int i=0;i<buf[0];++i){
-   				_IncDrawPos(bkX-buf[i+1]);	_CopyDrawPos(); k+=buf[i+1]+fillWidth; 	if(i>0) _DrawRight(1*fillWidth,FillColor);	_SetCopyDrawPos(); fillHeight++;
-   				fillWidth += buf[i+1];
-   			}
-
-   			for(int i=0;i<buf[0];++i){
-   				fillWidth++;
-   				_IncDrawPos(-1);
-   				for(int j=0; j<buf[buf[0]-i]; ++j){
-   					_IncDrawPos(bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){k+=1+fillWidth-1;_DrawRight(1*(fillWidth-1),FillColor);}else{k+=fillWidth;_DrawRight(1*(fillWidth-2),FillColor);}	_SetCopyDrawPos();	fillHeight++;
-   				}
-   			}
-
-   			fillHeight = 2*fillHeight-1;
-
-   			_StartDrawLine(0,bkX,x,y+fillHeight);
-   			fillWidth=0;
-   			for(int i=0;i<buf[0];++i){
-   				_IncDrawPos(-bkX-buf[i+1]);_CopyDrawPos(); k+=buf[i+1]+fillWidth; 	if(i>0) _DrawRight(1*fillWidth,FillColor);  _SetCopyDrawPos();
-   				fillWidth += buf[i+1];
-   			}
-
-   			for(int i=0;i<buf[0];++i){
-   				fillWidth++;
-   				_IncDrawPos(-1);
-   				for(int j=0; j<buf[buf[0]-i]; ++j){
-   					_IncDrawPos(-bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){k+=1+fillWidth-1;_DrawRight(1*(fillWidth-1),FillColor);}else{k+=fillWidth;_DrawRight(1*(fillWidth-2),FillColor);}	_SetCopyDrawPos();	fillHeight++;
-   				}
-   			}
-   			break;
-
-   			case Half_Circle_180:
-   			_StartDrawLine(0,bkX,x,y);
-   			fillWidth=0;
-   			for(int i=0;i<buf[0];++i){
-   				_IncDrawPos(bkX-buf[i+1]);	 fillHeight++;
-   				fillWidth += buf[i+1];
-   			}
-
-   			for(int i=0;i<buf[0];++i){
-   				fillWidth++;
-   				_IncDrawPos(-1);
-   				for(int j=0; j<buf[buf[0]-i]; ++j){
-   					_IncDrawPos(bkX);	 fillHeight++;
-   				}
-   			}
-
-   			fillHeight = 2*fillHeight-1;
-
-   			_StartDrawLine(0,bkX,x,y+fillHeight);
-   			fillWidth=0;
-   			for(int i=0;i<buf[0];++i){
-   				_IncDrawPos(-bkX-buf[i+1]);	_CopyDrawPos(); k+=buf[i+1]; 	if(i>0) _DrawRight(2*fillWidth,FillColor);	_SetCopyDrawPos();
-   				fillWidth += buf[i+1];
-   			}
-
-   			for(int i=0;i<buf[0];++i){
-   				fillWidth++;
-   				_IncDrawPos(-1);
-   				for(int j=0; j<buf[buf[0]-i]; ++j){
-   					_IncDrawPos(-bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){if(i<buf[0]-2){k+=1;_DrawRight(2*(fillWidth-1),FillColor);}}else{k+=2;_DrawRight(2*(fillWidth-2),FillColor);}	_SetCopyDrawPos();
-   				}
-   			}
-   			break;
-
-   		case Half_Circle_270:
-   			_StartDrawLine(0,bkX,x,y);
-   			fillWidth=0;
-   			for(int i=0;i<buf[0];++i){
-   				_IncDrawPos(bkX-buf[i+1]);	_CopyDrawPos(); k+=buf[i+1]; 	if(i>0) _DrawRight(1*fillWidth,FillColor);	_SetCopyDrawPos(); fillHeight++;
-   				fillWidth += buf[i+1];
-   			}
-
-   			for(int i=0;i<buf[0];++i){
-   				fillWidth++;
-   				_IncDrawPos(-1);
-   				for(int j=0; j<buf[buf[0]-i]; ++j){
-   					_IncDrawPos(bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){k+=1;_DrawRight(1*(fillWidth-1),FillColor);}else{k+=2;_DrawRight(1*(fillWidth-2),FillColor);}	_SetCopyDrawPos();	fillHeight++;
-   				}
-   			}
-
-   			fillHeight = 2*fillHeight-1;
-
-   			_StartDrawLine(0,bkX,x,y+fillHeight);
-   			fillWidth=0;
-   			for(int i=0;i<buf[0];++i){
-   				_IncDrawPos(-bkX-buf[i+1]);_CopyDrawPos(); k+=buf[i+1]; 	if(i>0) _DrawRight(1*fillWidth,FillColor);  _SetCopyDrawPos();
-   				fillWidth += buf[i+1];
-   			}
-
-   			for(int i=0;i<buf[0];++i){
-   				fillWidth++;
-   				_IncDrawPos(-1);
-   				for(int j=0; j<buf[buf[0]-i]; ++j){
-   					_IncDrawPos(-bkX);	_CopyDrawPos(); if(j==buf[buf[0]-i]-1){k+=1;_DrawRight(1*(fillWidth-1),FillColor);}else{k+=2;_DrawRight(1*(fillWidth-2),FillColor);}	_SetCopyDrawPos();	fillHeight++;
-   				}
-   			}
-   			break;
-   		}
-	}
-
-	#undef PARAM
-	#undef PARAM_AA
-	#undef buf
-}
-
-static void LCD_DrawRoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct)
-{
-	#define A(a,b) 	_FillBuff(a,b)
-
-	int stepGrad = SHIFT_RIGHT(rectangleFrame,24,FF);	/* effect 3D */
-	int shapeType = MASK(rectangleFrame,FF);
-	uint8_t AAoutOff    = SHIFT_RIGHT(BkpColor,24,1);
-	uint8_t readBkColor = SHIFT_RIGHT(BkpColor,25,1);
-	uint32_t o1=0,o2=0,  i1=0,i2=0,i3=0,i4=0,	FrameColorTemp=0;
-	int iFrameHeight=0, iFillHeight=0;
-
-	if(EQUAL2_OR( SHIFT_RIGHT(BkpColor,24,FF),0,255)){ AAoutOff=0; readBkColor=0; }
-
-	void _CalcInternalTransColor(u32 colorFrame, int offs){
-		if(direct==Up || direct==Down){
-			i1 = GetTransitionColor(colorFrame,buff_AA[1+iFillHeight],AA.c1);
-			i2 = GetTransitionColor(colorFrame,buff_AA[1+iFillHeight],AA.c2);
-			i3=i2;
-			i4=i1;
-		}
-		else if(direct==Right){
-			i1 = GetTransitionColor(colorFrame,buff_AA[1+offs],AA.c1);
-			i2 = GetTransitionColor(colorFrame,buff_AA[1+offs],AA.c2);
-			i3 = GetTransitionColor(colorFrame,buff_AA[1+(width-1)-offs],AA.c2);
-			i4 = GetTransitionColor(colorFrame,buff_AA[1+(width-1)-offs],AA.c1);
-		}
-		else if(direct==Left){
-			i1 = GetTransitionColor(colorFrame,buff_AA[1+(width-1)-offs],AA.c1);
-			i2 = GetTransitionColor(colorFrame,buff_AA[1+(width-1)-offs],AA.c2);
-			i3 = GetTransitionColor(colorFrame,buff_AA[1+offs],AA.c2);
-			i4 = GetTransitionColor(colorFrame,buff_AA[1+offs],AA.c1);
-	}}
-
-	void _Fill(int x,int offs){
-		if(shapeType){
-			switch((int)direct){
-				case Down:
-					A(x,buff_AA[1+iFillHeight++]);
-					break;
-				case Up:
-					A(x,buff_AA[1+iFillHeight--]);
-					break;
-				case Right:
-					LOOP_FOR(i,x){ A(1,buff_AA[1+offs+i]); }
-					break;
-				case Left:
-					LOOP_FOR(i,x){ A(1,buff_AA[1+(width-1)-offs-i]); }
-					break;
-		}}
-		else
-			k+=x;
-	}
-
-	void _Out_AA_left(int stage){		/*FrameColor*/
-		#define _A(i)	 if(0==readBkColor) A(i,BkpColor); else k+=i
-		if(0==AAoutOff){
-			if(readBkColor) BkpColor=pLcd[k-1];
-			o1 = GetTransitionColor(FrameColorTemp,BkpColor,AA.c1);		/* _CalcOutTransColor */
-			o2 = GetTransitionColor(FrameColorTemp,BkpColor,AA.c2);
-		}
-		if(0==AAoutOff)
-		{	switch(stage)
-			{
-			case 0:	_A(3); A(1,o2); A(1,o1);  break;
-			case 1:	_A(2); A(1,o1);  break;
-			case 2:	_A(1); A(1,o1);  break;
-			case 3:	A(1,o2); break;
-			case 4:	A(1,o1); break;
-			}
-		}
-		else
-		{  switch(stage)
-			{
-			case 0:	k+=5; break;
-			case 1:	k+=3; break;
-			case 2:	k+=2; break;
-			case 3:	k+=1; break;
-			case 4:	k+=1; break;
-	}}
-	#undef _A
-	}
-
-	void _Out_AA_right(int stage){		/*FrameColor*/
-		#define _A(i)	 if(0==readBkColor) A(i,BkpColor); else k+=i
-		if(readBkColor){
-			BkpColor=pLcd[k+5];
-			o1 = GetTransitionColor(FrameColorTemp,BkpColor,AA.c1);		/* _CalcOutTransColor */
-			o2 = GetTransitionColor(FrameColorTemp,BkpColor,AA.c2);
-		}
-		if(0==AAoutOff)
-		{	switch(stage)
-			{
-			case 0:	A(1,o1); A(1,o2); _A(3);  break;
-			case 1:	A(1,o1); _A(2);  break;
-			case 2:	A(1,o1); _A(1);  break;
-			case 3:	A(1,o2); break;
-			case 4:	A(1,o1); break;
-			}
-		}
-		else
-		{	switch(stage)
-			{
-			case 0:	k+=5; break;
-			case 1:	k+=3; break;
-			case 2:	k+=2; break;
-			case 3:	k+=1; break;
-			case 4:	k+=1; break;
-	}}
-	#undef _A
-	}
-
-	void _SetFillColor(u32 FillStart, u32 FillStop){
-		switch((int)direct){
-			case Down: case Up:		Set_AACoeff(height,FillStart,FillStop,ratioStart);  break;
-			case Right: case Left:	Set_AACoeff(width, FillStart,FillStop,ratioStart);	 break;
-	}}
-
-	Set_AACoeff2(height,FrameColorStart,FrameColorStop,ratioStart);		/* careful for 'height' < MAX_SIZE_TAB_AA */
-	_SetFillColor(FillColorStart,FillColorStop);
-
-	switch((int)direct){
-		case Down:	iFillHeight=0;				break;
-		case Up:		iFillHeight=height-1;	break;
-		case Right: case Left:	break;
-		}
-
-	_StartDrawLine(posBuff,BkpSizeX,x,y);
-	FrameColorTemp=buff2_AA[1+iFrameHeight++]; 															_Out_AA_left(0); 												A(width-10,FrameColorTemp);			 							 	  _Out_AA_right(0);
-	_NextDrawLine(BkpSizeX,width);
-	FrameColorTemp=buff2_AA[1+iFrameHeight++]; _CalcInternalTransColor(FrameColorTemp,7);	_Out_AA_left(1); A(2,FrameColorTemp); A(1,i1);A(1,i2); _Fill(width-14,7); A(1,i3); A(1,i4); A(2,FrameColorTemp); _Out_AA_right(1);
-	_NextDrawLine(BkpSizeX,width);
-	FrameColorTemp=buff2_AA[1+iFrameHeight++]; _CalcInternalTransColor(FrameColorTemp,4);	_Out_AA_left(2); A(1,FrameColorTemp); A(1,i1); 			 _Fill(width-8,4); 			  A(1,i4); A(1,FrameColorTemp); _Out_AA_right(2);
-	_NextDrawLine(BkpSizeX,width);
-	FrameColorTemp=buff2_AA[1+iFrameHeight++]; _CalcInternalTransColor(FrameColorTemp,3);	_Out_AA_left(3); A(1,FrameColorTemp); A(1,i1); 			 _Fill(width-6,3); 			  A(1,i4); A(1,FrameColorTemp); _Out_AA_right(3);
-	_NextDrawLine(BkpSizeX,width);
-	FrameColorTemp=buff2_AA[1+iFrameHeight++]; _CalcInternalTransColor(FrameColorTemp,2);	_Out_AA_left(4); A(1,FrameColorTemp); 						 _Fill(width-4,2); 			  			  A(1,FrameColorTemp); _Out_AA_right(4);
-	_NextDrawLine(BkpSizeX,width);
-	FrameColorTemp=buff2_AA[1+iFrameHeight++]; _CalcInternalTransColor(FrameColorTemp,2);						  A(1,FrameColorTemp); A(1,i1); 			 _Fill(width-4,2);  		  	  A(1,i4); A(1,FrameColorTemp);
-	_NextDrawLine(BkpSizeX,width);
-	FrameColorTemp=buff2_AA[1+iFrameHeight++]; _CalcInternalTransColor(FrameColorTemp,2);						  A(1,FrameColorTemp); 			 A(1,i2); _Fill(width-4,2); 	A(1,i3);			  A(1,FrameColorTemp);
-	_NextDrawLine(BkpSizeX,width);
-
-	int _height = height-14;
-	int _width = width-2;
-	if(shapeType)
-	{
-		for (int j=0; j<_height; j++){
-			FrameColorTemp=buff2_AA[1+iFrameHeight++];
-			A(1, FrameColorTemp);
-			_Fill(_width,0);
-			A(1, BrightDecr(FrameColorTemp,stepGrad));
-			_NextDrawLine(BkpSizeX,width);
-	}}
-	else
-	{
-		for (int j=0; j<_height; j++){
-			FrameColorTemp=buff2_AA[1+iFrameHeight++];
-			A(1, FrameColorTemp);
-			k+=_width;
-			A(1, BrightDecr(FrameColorTemp,stepGrad));
-			_NextDrawLine(BkpSizeX,width);
-	}}
-
-	if(stepGrad) _SetFillColor(BrightDecr(FillColorStart,stepGrad),BrightDecr(FillColorStop,stepGrad));
-
-	FrameColorTemp=BrightDecr(buff2_AA[1+iFrameHeight++],stepGrad); _CalcInternalTransColor(FrameColorTemp,2);						  A(1,FrameColorTemp);  		 A(1,i2); _Fill(width-4,2); A(1,i3); 			  A(1,FrameColorTemp);
-	_NextDrawLine(BkpSizeX,width);
-	FrameColorTemp=BrightDecr(buff2_AA[1+iFrameHeight++],stepGrad); _CalcInternalTransColor(FrameColorTemp,2);						  A(1,FrameColorTemp); A(1,i1); 			 _Fill(width-4,2); 			  A(1,i4); A(1,FrameColorTemp);
-	_NextDrawLine(BkpSizeX,width);
-	FrameColorTemp=BrightDecr(buff2_AA[1+iFrameHeight++],stepGrad); _CalcInternalTransColor(FrameColorTemp,2);	_Out_AA_left(4); A(1,FrameColorTemp); 						 _Fill(width-4,2); 						  A(1,FrameColorTemp); _Out_AA_right(4);
-	_NextDrawLine(BkpSizeX,width);
-	FrameColorTemp=BrightDecr(buff2_AA[1+iFrameHeight++],stepGrad); _CalcInternalTransColor(FrameColorTemp,3);	_Out_AA_left(3); A(1,FrameColorTemp); A(1,i1); 			 _Fill(width-6,3); 			  A(1,i4); A(1,FrameColorTemp); _Out_AA_right(3);
-	_NextDrawLine(BkpSizeX,width);
-	FrameColorTemp=BrightDecr(buff2_AA[1+iFrameHeight++],stepGrad); _CalcInternalTransColor(FrameColorTemp,4);	_Out_AA_left(2); A(1,FrameColorTemp); A(1,i1); 			 _Fill(width-8,4); 			  A(1,i4); A(1,FrameColorTemp); _Out_AA_right(2);
-	_NextDrawLine(BkpSizeX,width);
-	FrameColorTemp=BrightDecr(buff2_AA[1+iFrameHeight++],stepGrad); _CalcInternalTransColor(FrameColorTemp,7);	_Out_AA_left(1); A(2,FrameColorTemp); A(1,i1);A(1,i2); _Fill(width-14,7); A(1,i3); A(1,i4); A(2,FrameColorTemp); _Out_AA_right(1);
-	_NextDrawLine(BkpSizeX,width);
-	FrameColorTemp=BrightDecr(buff2_AA[1+iFrameHeight++],stepGrad);															_Out_AA_left(0); 												A(width-10,FrameColorTemp); 											  _Out_AA_right(0);
-
-	#undef  A
-}
-
-static structK GetPxlAround(u32 k, u32 bkX, int maxPxls, u32 colorPxl){		/* not used */
-	structPosition pos={0};
-	structK posK={0};
-	int radiusMin=2*(maxPxls+1), p=0;
-	for(int j=-maxPxls; j<maxPxls+1; ++j){
-		p=k+j*bkX;
-		for(int i=-maxPxls; i<maxPxls+1; ++i){
-			if(pLcd[p+i]==colorPxl){
-				if(ABS(i)+ABS(j) < radiusMin){
-					radiusMin=ABS(i)+ABS(j);
-					pos.x=i;
-					pos.y=j;
-	}}}}
-	posK.k[0]= k +  (pos.y)	 *bkX +  (pos.x);
-	posK.k[1]= k +  (pos.y/2)*bkX +  (pos.x/2);
-	posK.k[2]= k + (-pos.y/2)*bkX + (-pos.x/2);
-	posK.k[3]= k + (-pos.y)	 *bkX + (-pos.x);
-
-	return posK;
-}
-
-static int LCD_CIRCLE_GetDegFromPosXY(int x,int y, int x0,int y0)
-{
-	if(x == x0){
-		if(y >= y0) return 90;
-		else			return 270;
-	}
-	if(y == y0){
-		if(x >= x0) return 180;
-		else			return 0;
-	}
-
-	int deg = DEG(atan(ABS((float)y/(float)x)));
-
-		  if(x < x0 && y > y0) return deg;
-	else if(x > x0 && y > y0) return 90+(90-deg);
-	else if(x > x0 && y < y0) return 180+deg;
-	else if(x < x0 && y < y0) return 270+(90-deg);
-
-	return 0;
-}
-
-static int LCD_CIRCLE_GetRadiusFromPosXY(int x,int y, int x0,int y0){
-	return sqrt(ABS((x-x0)*(x-x0)) + ABS((y-y0)*(y-y0)));
-}
-
-static void GRAPH_ClearPosXYpar(void){
-	for(int i=0;i<1;i++){ posXY_par[i].startX=0; posXY_par[i].startY=0; posXY_par[i].yMin=0; posXY_par[i].yMax=0; posXY_par[i].nmbrPoints=0; posXY_par[i].precision=0; posXY_par[i].scaleX=0; posXY_par[i].scaleY=0; posXY_par[i].funcPatternType=0; posXY_par[i].len_posXY=0; posXY_par[i].len_posXYrep=0; }
-}
-static void GRAPH_ClearPosXY(void){
-	for(int i=0;i<GRAPH_MAX_SIZE_POSXY;i++){ posXY[i].x=0; posXY[i].y=0; }
-}
-static void GRAPH_ClearPosXYrep(void){
-	for(int i=0;i<GRAPH_MAX_SIZE_POSXY;i++){ posXY_rep[i].x=0; posXY_rep[i].y=0; 	posXY_rep[i].rx=0; posXY_rep[i].ry=0; }
-}
-
-static int GRAPH_SetPointers(int offsMem, int nrMem)
-{
-	#if defined(GRAPH_MEMORY_SDRAM2)
-		extern char* GETVAL_ptr(uint32_t nrVal);
-		extern uint32_t GETVAL_freeMemSize(uint32_t offs);
-
-		int size_param		= sizeof(structGetSmpl);
-		int size_posXY 	= 	 GRAPH_MAX_SIZE_POSXY*sizeof(structPosU16);
-		int size_posXYrep = 2*GRAPH_MAX_SIZE_POSXY*sizeof(structRepPos);				/* size of structRepPos is 2 times larger then size of structPosU16,   2 * size of structRepPos is for pixels correct for GRAPH_Display() */
-
-		int ptr2Mem = offsMem + (SIZE_ONE_CHART * nrMem);
-
-		if(GETVAL_freeMemSize(ptr2Mem) > size_param + size_posXY + size_posXYrep){
-			posXY_par = (structGetSmpl*) GETVAL_ptr (ptr2Mem);
-			posXY 	 = (structPosU16*)  GETVAL_ptr (ptr2Mem + size_param);
-			posXY_rep = (structRepPos*)  GETVAL_ptr (ptr2Mem + size_param + size_posXY); 	return 0; }
-		else return 1;
-	#endif
-	return 0;
-}
-
-static double GRAPHFUNC_UpDownUp(double posX){
-	if(posX <350) 		 return 0;
-	else if(posX==350) return 51;
-	else if(posX==351) return 10;
-	else if(posX==352) return 49;
-	else if(posX>352)  return 46;
-	return 0;
-}
-static double GRAPHFUNC_DownUpDown(double posX){
-	if(posX <350) 		 return 0;
-	else if(posX==350) return -51;
-	else if(posX==351) return -10;
-	else if(posX==352) return -57;
-	else if(posX>352)  return -54;
-	else if(posX==354) return 113;
-	else if(posX==355) return -113;
-	else if(posX>355)  return 0;
-	return 0;
-}
-static double GRAPHFUNC_DownUpDown2(double posX){
-	if(posX <350) 		 return 0;
-	else if(posX==350) return -51;
-	else if(posX==351) return -10;
-	else if(posX>351)  return -10;
-	return 0;
-}
-static double GRAPHFUNC_Example1(double posX){
-	if(posX<350) 		 return 0;
-	else if(posX==350) return 51;
-	else if(posX==351) return 10;
-	else if(posX>351 ) return 9;
-	return 0;
-}
-static double GRAPHFUNC_Example2(double posX){
-	if(posX <350) 						return 0;
-	else if(posX==350) 				return -51;
-	else if(posX>350 && posX<450) return -51;
-	else if(posX==450)				return -101;
-	else if(posX>450 && posX<500) return -101;
-	else if(posX==500)				return -103;
-	else									return -106;
-	return 0;
-}
-static double GRAPHFUNC_Example3(double posX){
-/*	if(posX <350) 		 return 0;
-	else if(posX==350) return 10;
-	else if(posX==351) return 0;
-	else if(posX==352) return 8;
-	else if(posX==353) return 1;
-	else if(posX==354) return 7;
-	else if(posX==355) return 2;
-	else if(posX==356) return 6;
-	else if(posX==357) return 3;
-	else if(posX==358) return 44;
-	else if(posX>358)  return 41;
-	return 0;
-*/
-/*
-	if(posX <350) 		 return 0;
-	else if(posX==350) return 10;
-	else if(posX==351) return 0;
-	else if(posX==352) return 4;
-	else if(posX==353) return 2;
-	else if(posX>353)  return 41;
-	return 0;
-*/
-	if(posX <350) 		 return 0;
-	else if(posX==350) return 4;
-	else if(posX==351) return 2;
-	else if(posX==352) return 4;
-	else if(posX==353) return 2;
-	else if(posX>353)  return 41;
-	return 0;
-}
-static double GRAPHFUNC_Square(double posX){
-	if		 (IS_RANGE(posX, 0,  50)) return  0;
-	else if(IS_RANGE(posX, 51,100)) return  1;
-	else if(IS_RANGE(posX,101,150)) return -1;
-	else if(IS_RANGE(posX,151,200)) return  1;
-	else if(IS_RANGE(posX,201,250)) return -1;
-	else if(IS_RANGE(posX,251,300)) return  1;
-	else if(IS_RANGE(posX,301,350)) return -1;
-	else if(IS_RANGE(posX,351,400)) return  1;
-	else if(IS_RANGE(posX,401,450)) return -1;
-	else if(IS_RANGE(posX,451,500)) return  1;
-	else 									  return  0;
-}
-static double GRAPHFUNC_Owner(double posX){
-	/* return bufferY[posX]; */
-	extern char* GETVAL_ptr(uint32_t nrVal);
-	structPosU16 *pos;
-	pos = (structPosU16*) GETVAL_ptr (0);
-	return (double) (pos[(int)posX].y);		/* return (double) ((pos+(int)posX)->x); */
-}
-
-static double GRAPHFUNC_Noise(void){
-	static uint32_t aRandom32bit=0;
-	static int cnt=0, cnt2=0, flag=0, randMask=0;
-
-	if(flag){	cnt2++;	if(cnt2%5==0) aRandom32bit=300-(cnt2/5);								  }
-	else	  {  				if(cnt%2==0)  HAL_RNG_GenerateRandomNumber(&hrng,&aRandom32bit); }
-
-		  if(cnt%50==0) randMask = 0x2F;
-	else if(cnt%51==0) randMask = 0x0F;
-	else if(cnt%52==0) randMask = 0x1F;
-
-	if(cnt%32==0){	 flag=1-flag;	cnt2=0;  }
-	cnt++;
-	return aRandom32bit & randMask;
-}
-
-static double GRAPHFUNC_Noise2(void){
-	static uint32_t aRandom32bit=0;
-	HAL_RNG_GenerateRandomNumber(&hrng,&aRandom32bit);
-	return aRandom32bit & 0x2F;
-}
-
-static double GRAPH_GetFuncPosY(int funcPatternType, double posX){
-	switch(funcPatternType){
-		case Func_sin:		return sin(TANG_ARG(posX));
-		case Func_cos:		return cos(TANG_ARG(posX));
-		case Func_sin1:	return (sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX)));
-		case Func_sin2:	return (sin(TANG_ARG(posX))+0.3*sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX))+0.2*cos(20*TANG_ARG(posX)));
-		case Func_sin3:	return ABS(sin(TANG_ARG(posX)));
-		case Func_log:		return log((sin(3*TANG_ARG(posX))+cos(2*TANG_ARG(posX))));
-		case Func_tan:		return tan(TANG_ARG(posX));
-
-		case Func_noise:  return GRAPHFUNC_Noise();
-		case Func_noise2: return GRAPHFUNC_Noise2();
-		case Func_square: return GRAPHFUNC_Square(posX);
-
-		case Func_lines1: return GRAPHFUNC_UpDownUp(posX);
-		case Func_lines2: return GRAPHFUNC_DownUpDown(posX);
-		case Func_lines3: return GRAPHFUNC_DownUpDown2(posX);
-		case Func_lines4: return GRAPHFUNC_Example1(posX);
-		case Func_lines5: return GRAPHFUNC_Example2(posX);
-		case Func_lines6: return GRAPHFUNC_Example3(posX);
-
-		case Func_owner:	return GRAPHFUNC_Owner(posX);
-
-		default:
-			return 0;
-}}
-
-static int GRAPH_GetFuncPosXY(int startX,int startY, int yMin,int yMax, int nmbrPoints,double precision, double scaleX,double scaleY, int funcPatternType)
-{
-	structPosU16 posXY_prev={0};
-	int temp_x, temp_y, diff_Y, delta, n=0;
-	double funcVal;
-
-	posXY[n].x = startX;
-	posXY[n].y = startY;
-	posXY_prev.x = posXY[n].x;
-	posXY_prev.y = posXY[n].y;
-	n++;
-
-	LOOP_FOR2(i,nmbrPoints,precision)
-	{
-		funcVal = scaleY * GRAPH_GetFuncPosY(funcPatternType, scaleX*i);
-		funcVal *=-1;
-		funcVal = SET_IN_RANGE(funcVal,yMin,yMax);
-
-		temp_x = posXY[0].x + (int)i;
-		temp_y = posXY[0].y + (int)funcVal;
-
-		if(posXY_prev.x != temp_x)
-		{
-			if(temp_y > posXY_prev.y +1)
-			{
-				delta = temp_y - (posXY_prev.y +1);
-				diff_Y=0;
-				while(1){
-					posXY[n].x = temp_x;
-					posXY[n].y = diff_Y + (posXY_prev.y +1);
-					n++;
-					if(n >= GRAPH_MAX_SIZE_POSXY-1) return n;
-					delta--; diff_Y++;
-					if(delta==0) break;
-				}
-			}
-			else if(temp_y < posXY_prev.y -1)
-			{
-				delta = (posXY_prev.y -1) - temp_y;
-				diff_Y=0;
-				while(1){
-					posXY[n].x = temp_x;
-					posXY[n].y = (posXY_prev.y -1) - diff_Y;
-					n++;
-					if(n >= GRAPH_MAX_SIZE_POSXY-1) return n;
-					delta--; diff_Y++;
-					if(delta==0) break;
-				}
-			}
-			posXY[n].x = temp_x;
-			posXY[n].y = temp_y;
-			posXY_prev.x = temp_x;
-			posXY_prev.y = temp_y;
-			n++;
-			if(n >= GRAPH_MAX_SIZE_POSXY-1) return n;
-		}
-	}
-	return n;
-}
-
-static void GRAPH_DispPosXY(int offs_k, int widthBk, int numberOfPoints, u32 color){
-	LOOP_FOR(i,numberOfPoints){
-		pLcd[offs_k + posXY[i].y * widthBk + posXY[i].x] = color;
-}}
-
-static int GRAPH_RepetitionRedundancyOfPosXY(int nmbrPoints)
-{
-	int j=0,i,prevState=0;
-
-	for(i=0; i<nmbrPoints-1; ++i)
-	{
-		if(prevState==1)
-		{
-			if(posXY[i].x+1==posXY[i+1].x && posXY[i].y==posXY[i+1].y);
-			else{
-				posXY_rep[j].rx=0;
-				posXY_rep[j].ry++;
-				prevState=0;
-				j++;   goto TempEnd_RepetitionRedundancy;
-			}
-		}
-		else if(prevState==2)
-		{
-			if(posXY[i].x-1==posXY[i+1].x && posXY[i].y==posXY[i+1].y);
-			else{
-				posXY_rep[j].rx=0;
-				posXY_rep[j].ry--;
-				prevState=0;
-				j++;   goto TempEnd_RepetitionRedundancy;
-			}
-		}
-		else if(prevState==3)
-		{
-			if(posXY[i].y+1==posXY[i+1].y && posXY[i].x==posXY[i+1].x);
-			else{
-				posXY_rep[j].rx++;
-				posXY_rep[j].ry=0;
-				prevState=0;
-				j++;   goto TempEnd_RepetitionRedundancy;
-			}
-		}
-		else if(prevState==4)
-		{
-			if(posXY[i].y-1==posXY[i+1].y && posXY[i].x==posXY[i+1].x);
-			else{
-				posXY_rep[j].rx--;
-				posXY_rep[j].ry=0;
-				prevState=0;
-				j++;   goto TempEnd_RepetitionRedundancy;
-			}
-		}
-
-		if(posXY[i].x+1==posXY[i+1].x && posXY[i].y==posXY[i+1].y)
-		{
-			if(prevState==0){
-				prevState=1;
-				posXY_rep[j].x = posXY[i].x;
-				posXY_rep[j].y = posXY[i].y;
-			}
-			posXY_rep[j].ry++;
-		}
-		else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y==posXY[i+1].y)
-		{
-			if(prevState==0){
-				prevState=2;
-				posXY_rep[j].x = posXY[i].x;
-				posXY_rep[j].y = posXY[i].y;
-			}
-			posXY_rep[j].ry--;
-		}
-		else if(posXY[i].y+1==posXY[i+1].y && posXY[i].x==posXY[i+1].x)
-		{
-			if(prevState==0){
-				prevState=3;
-				posXY_rep[j].x = posXY[i].x;
-				posXY_rep[j].y = posXY[i].y;
-			}
-			posXY_rep[j].rx++;
-		}
-		else if(posXY[i].y-1==posXY[i+1].y && posXY[i].x==posXY[i+1].x)
-		{
-			if(prevState==0){
-				prevState=4;
-				posXY_rep[j].x = posXY[i].x;
-				posXY_rep[j].y = posXY[i].y;
-			}
-			posXY_rep[j].rx--;
-		}
-		else if(posXY[i].x+1==posXY[i+1].x && posXY[i].y+1==posXY[i+1].y)
-		{
-			posXY_rep[j].x = posXY[i].x;
-			posXY_rep[j].y = posXY[i].y;
-			posXY_rep[j].rx = 1;
-			posXY_rep[j].ry = 1;
-			j++;
-		}
-		else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y+1==posXY[i+1].y)
-		{
-			posXY_rep[j].x = posXY[i].x;
-			posXY_rep[j].y = posXY[i].y;
-			posXY_rep[j].rx = 1;
-			posXY_rep[j].ry = -1;
-			j++;
-		}
-		else if(posXY[i].x+1==posXY[i+1].x && posXY[i].y-1==posXY[i+1].y)
-		{
-			posXY_rep[j].x = posXY[i].x;
-			posXY_rep[j].y = posXY[i].y;
-			posXY_rep[j].rx = -1;
-			posXY_rep[j].ry = 1;
-			j++;
-		}
-		else if(posXY[i].x-1==posXY[i+1].x && posXY[i].y-1==posXY[i+1].y)
-		{
-			posXY_rep[j].x = posXY[i].x;
-			posXY_rep[j].y = posXY[i].y;
-			posXY_rep[j].rx = -1;
-			posXY_rep[j].ry = -1;
-			j++;
-		}
-		else
-		{
-			posXY_rep[j].x = posXY[i].x; 		/* here it is never ? */
-			posXY_rep[j].y = posXY[i].y;
-			posXY_rep[j].rx = 0;
-			posXY_rep[j].ry = 0;
-			j++;
-		}
-
-		TempEnd_RepetitionRedundancy:
-		if(j>=GRAPH_MAX_SIZE_POSXY-1) return j;
-	}
-
-	if(prevState==0){
-		posXY_rep[j].x = posXY[i].x;
-		posXY_rep[j].y = posXY[i].y;
-		posXY_rep[j].rx = 1;
-		posXY_rep[j].ry = 1;
-	}
-	j++;
-
-	return j;
-}
-
-static void GRAPH_DispPosXYrep(int offs_k, int widthBk, int lenStruct, u32 color){
-	LOOP_FOR(a,lenStruct){
-		if(posXY_rep[a].ry!=0){
-			LOOP_FOR(b,ABS(posXY_rep[a].ry)){
-				if(posXY_rep[a].ry > 0)	 pLcd[offs_k + posXY_rep[a].y*widthBk + posXY_rep[a].x + b]=color;
-				else							 pLcd[offs_k + posXY_rep[a].y*widthBk + posXY_rep[a].x - b]=color;
-		}}
-		else if(posXY_rep[a].rx!=0){
-			LOOP_FOR(b,ABS(posXY_rep[a].rx)){
-				if(posXY_rep[a].rx > 0)	 pLcd[offs_k + (posXY_rep[a].y+b)*widthBk + posXY_rep[a].x]=color;
-				else							 pLcd[offs_k + (posXY_rep[a].y-b)*widthBk + posXY_rep[a].x]=color;
-		}}
-		else{
-			if(posXY_rep[a].ry==0 && posXY_rep[a].rx==0){
-				pLcd[offs_k + posXY_rep[a].y*widthBk + posXY_rep[a].x]=color;
-		}}
-}}
-
-static void GRAPH_Display(int offs_k, int widthBk, int lenStruct, u32 color, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, int corr45degAA)
-{
-	#define NONE_FUNC_TYPE	100
-	#define MAX_SIZE_BUFF	widthBk
-
-	#define IS_RightDownDir0		(pos[i].x+ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y+1==pos[i+1].y)
-	#define IS_RightUpDir0			(pos[i].x+ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y-1==pos[i+1].y)
-	#define IS_LeftDownDir0			(pos[i].x-ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y+1==pos[i+1].y)
-	#define IS_LeftUpDir0			(pos[i].x-ABS(pos[i].ry) == pos[i+1].x  &&  pos[i].y-1==pos[i+1].y)
-
-	#define IS_RightDownDir1		(pos[i].y+ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
-	#define IS_RightUpDir1			(pos[i].y-ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
-	#define IS_LeftDownDir1			(pos[i].y+ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
-	#define IS_LeftUpDir1			(pos[i].y-ABS(pos[i].rx) == pos[i+1].y  &&  pos[i].x-1==pos[i+1].x)
-
-	#define IS_RightUpDownDir1		((pos[i].y+1)-(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
-   #define IS_RightDownUpDir1		((pos[i].y-1)+(ABS(pos[i].rx)-1) == pos[i+1].y  &&  pos[i].x+1==pos[i+1].x)
-	#define IS_RightUpDownDir1_ver2		(pos[i].rx < 0  &&  pos[i+1].rx > 0)
-	#define IS_RightDownUpDir1_ver2		(pos[i].rx > 0  &&  pos[i+1].rx < 0)
-
-	structRepPos *pos_beforeCorrect = posXY_rep, 	*pos = posXY_rep + GRAPH_MAX_SIZE_POSXY;
-	u16 buff[MAX_SIZE_BUFF];
-	u8 functionType = NONE_FUNC_TYPE;
-	u16 lastSample = 0;
-	int i;
-
-	void _GetSamplesDir0(int sign){
-		if(lastSample){
-			if(lastSample%2==0){
-				buff[1+buff[0]++]=lastSample/2;
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*(lastSample/2), widthBk, pos[i].x, pos[i].y); }
-			}
-			else{
-				buff[1+buff[0]++]=lastSample/2+1;
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*(lastSample/2), widthBk, pos[i].x, pos[i].y); }
-			}
-		}
-		else{
-			buff[1+buff[0]++]=ABS(pos[i].ry);
-			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, widthBk,pos[i].x,pos[i].y); }
-		}
-		lastSample=0;
-	}
-
-	void _GetSamplesDir1(int sign){
-		if(lastSample){
-			if(lastSample%2==0){
-				buff[1+buff[0]++]=lastSample/2;
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*widthBk*(lastSample/2), widthBk, pos[i].x, pos[i].y); }
-			}
-			else{
-				buff[1+buff[0]++]=lastSample/2+1;
-				if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k+sign*widthBk*(lastSample/2), widthBk, pos[i].x, pos[i].y); }
-			}
-		}
-		else{
-			buff[1+buff[0]++]=ABS(pos[i].rx);
-			if(functionType==NONE_FUNC_TYPE){ _StartDrawLine(offs_k, widthBk,pos[i].x,pos[i].y); }
-		}
-		lastSample=0;
-	}
-
-	for(i=0; i<lenStruct; ++i) *(pos+i)=*(pos_beforeCorrect+i);
-
-	/*     		 					 _____            ____
-	   Pixels correct from:  ___|       to:  ___|			for 'Up' (on this example) and the same for 'Down'
-	*/
-	for(i=0; i<lenStruct-1; ++i){
-			  if((pos[i].x+1==pos[i+1].x) && (pos[i].y+1+pos[i].rx==pos[i+1].y))	 pos[i].rx++;
-		else if((pos[i].x+1==pos[i+1].x) && (pos[i].y-1+pos[i].rx==pos[i+1].y))	 pos[i].rx--;
-	}
-
-	 /* We have to add one pixel at the end to draw correct last part of graph. Algorithm must detect changes on the last part of graph. */
-	i=lenStruct++;
-	pos[i].x =pos[i-1].x + pos[i-1].ry;
-	pos[i].y =pos[i-1].y+1;
-	pos[i].rx=1;
-	pos[i].ry=1;
-
-
-	/* Main operation */
-	for(i=0; i<MAX_SIZE_BUFF; ++i) buff[i]=0;
-	for(i=0; i<lenStruct; ++i)
-	{
-		TempEnd_Display:
-		if(buff[0]>=MAX_SIZE_BUFF-1)
+		if(Test.normBoldItal == typeReq)
 			return;
 
-		if(IS_RightDownDir0	&& EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightDownDir0) && ABS(pos[i].ry)>0){
-			_GetSamplesDir0(1);
-			functionType = RightDownDir0;
+		if(typeReq > Test.normBoldItal)
+			Test.size += (typeReq-Test.normBoldItal);
+		else if(typeReq < Test.normBoldItal)
+			Test.size -= (Test.normBoldItal-typeReq);
+
+		Test.normBoldItal = typeReq;
+	}
+	else
+	{
+		if(Test.normBoldItal>1){
+			Test.normBoldItal=0;
+			Test.size-=2;
 		}
 		else{
-			if(functionType == RightDownDir0){
-				if(IS_RightUpDir0){
-					lastSample=ABS(pos[i].ry);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].ry);
-
-				_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegTo45, buff,corr45degAA);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_RightUpDir0 && EQUAL2_OR(functionType,NONE_FUNC_TYPE,RightUpDir0) && ABS(pos[i].ry)>0){
-			_GetSamplesDir0(1);
-			functionType = RightUpDir0;
-		}
-		else{
-			if(functionType == RightUpDir0){
-				if(IS_RightDownDir0){
-					lastSample=ABS(pos[i].ry);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].ry);
-
-				_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegTo45, buff,corr45degAA);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_RightDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownDir1) && ABS(pos[i].rx)>0){
-			_GetSamplesDir1(1);
-			functionType = RightDownDir1;
-		}
-		else{
-			if(functionType == RightDownDir1){
-				if(IS_LeftDownDir1){
-					lastSample=ABS(pos[i].rx);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].rx);
-
-				_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_RightUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDir1) && ABS(pos[i].rx)>0){
-			_GetSamplesDir1(-1);
-			functionType = RightUpDir1;
-		}
-		else{
-			if(functionType == RightUpDir1){
-				if(IS_LeftUpDir1){
-					lastSample=ABS(pos[i].rx);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].rx);
-
-				_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_LeftDownDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir0) && ABS(pos[i].ry)>0){
-			_GetSamplesDir0(-1);
-			functionType = LeftDownDir0;
-		}
-		else{
-			if(functionType == LeftDownDir0){
-				if(IS_LeftUpDir0){
-					lastSample=ABS(pos[i].ry);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].ry);
-
-				_DrawArrayBuffLeftDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegTo45, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_LeftUpDir0	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir0) && ABS(pos[i].ry)>0){
-			_GetSamplesDir0(-1);
-			functionType = LeftUpDir0;
-		}
-		else{
-			if(functionType == LeftUpDir0){
-				if(IS_LeftDownDir0){
-					lastSample=ABS(pos[i].ry);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].ry);
-
-				_DrawArrayBuffLeftUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegTo45, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_LeftDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftDownDir1) && ABS(pos[i].rx)>0){
-			_GetSamplesDir1(1);
-			functionType = LeftDownDir1;
-		}
-		else{
-			if(functionType == LeftDownDir1){
-				if(IS_RightDownDir1){
-					lastSample=ABS(pos[i].rx);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].rx);
-
-				_DrawArrayBuffLeftDown2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-		if(IS_LeftUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==LeftUpDir1) && ABS(pos[i].rx)>0){
-			_GetSamplesDir1(-1);
-			functionType = LeftUpDir1;
-		}
-		else{
-			if(functionType == LeftUpDir1){
-				if(IS_RightUpDir1){
-					lastSample=ABS(pos[i].rx);
-					buff[1+buff[0]++]=lastSample/2;
-				}
-				else
-					buff[1+buff[0]++]=ABS(pos[i].rx);
-
-				_DrawArrayBuffLeftUp2_AA(color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff);
-				functionType=NONE_FUNC_TYPE;
-				buff[0]=0;
-				goto TempEnd_Display;
-			}
-		}
-
-
-		if(IS_RightUpDownDir1_ver2 && (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1))
-		{
-			buff[0]=0;    buff[1+buff[0]++]=ABS(pos[i].rx);
-			_StartDrawLine(offs_k, widthBk,pos[i].x,pos[i].y);
-			_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
-			functionType = NONE_FUNC_TYPE;
-			buff[0]=0;
-		}
-
-		if(IS_RightDownUpDir1_ver2 && (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1))
-		{
-			buff[0]=0;    buff[1+buff[0]++]=ABS(pos[i].rx);
-			_StartDrawLine(offs_k, widthBk,pos[i].x,pos[i].y);
-			_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
-			functionType = NONE_FUNC_TYPE;
-			buff[0]=0;
-		}
-
-
-		if(IS_RightUpDownDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightUpDownDir1) && ABS(pos[i].rx)>2){
-			_GetSamplesDir1(-1);
-			functionType = RightUpDownDir1;
-		}
-		else if(functionType == RightUpDownDir1)
-		{
-			_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
-			buff[0]=0;  buff[1+buff[0]++]=ABS(pos[i].rx);
-			_StartDrawLine(offs_k, widthBk, pos[i].x, pos[i].y);
-			_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
-			functionType=NONE_FUNC_TYPE;
-			buff[0]=0;
-			goto TempEnd_Display;
-		}
-
-
-		if(IS_RightDownUpDir1	&& (functionType==NONE_FUNC_TYPE || functionType==RightDownUpDir1) && ABS(pos[i].rx)>2){
-			_GetSamplesDir1(-1);
-			functionType = RightDownUpDir1;
-		}
-		else if(functionType == RightDownUpDir1)
-		{
-			_DrawArrayBuffRightDownUp2_AA(Down,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
-			buff[0]=0;  buff[1+buff[0]++]=ABS(pos[i].rx);
-			_StartDrawLine(offs_k, widthBk, pos[i].x, pos[i].y);
-			_DrawArrayBuffRightDownUp2_AA(Up,color, colorOut,colorIn, outRatioStart,inRatioStart, widthBk, DegAbove45, buff,corr45degAA);
-			functionType=NONE_FUNC_TYPE;
-			buff[0]=0;
-			goto TempEnd_Display;
+			Test.normBoldItal++;
+			Test.size++;
 		}
 	}
 
-	#undef NONE_FUNC_TYPE
-	#undef MAX_SIZE_BUFF
-
-	#undef IS_RightDownDir0
-	#undef IS_RightUpDir0
-	#undef IS_LeftDownDir0
-	#undef IS_LeftUpDir0
-
-	#undef IS_RightDownDir1
-	#undef IS_RightUpDir1
-	#undef IS_LeftDownDir1
-	#undef IS_LeftUpDir1
-
-	#undef IS_RightUpDownDir1
-	#undef IS_RightDownUpDir1
-	#undef IS_RightUpDownDir1_ver2
-	#undef IS_RightDownUpDir1_ver2
+	ClearCursorField();
+	LCD_LoadFontVar();
+	AdjustMiddle_X();
+	AdjustMiddle_Y();
+	Data2Refresh(FONTS);
+	Test.lenWin=lenStr.inChar;
+	SetCursor();
+	Data2Refresh(PARAM_LOAD_FONT_TIME);
+	Data2Refresh(PARAM_LEN_WINDOW);
+	Data2Refresh(PARAM_TYPE);
+	Data2Refresh(PARAM_SIZE);
+	Data2Refresh(PARAM_SPEED);
 }
 
-/* ################################## -- Global Declarations -- ######################################################### */
-void LCD_Buffer(u16 BkSizeX, u16 x,u16 y, u32 color){
-	pLcd[BkSizeX*(y)+(x)] = color;
-}
-float LCD_GetDegFrom2Points(int x,int y, int x0,int y0){
-	if(x == x0){
-		if(y >= y0) return 270;
-		else			return 90;
-	}
-	else if(y == y0){
-		if(x >= x0) return 180;
-		else			return 0;
-	}
-	else{
-		float deg = DEG(atan(ABS((float)(y-y0)/(float)(x-x0))));
-			  if(x < x0 && y > y0) return 270+(90-deg);
-		else if(x > x0 && y > y0) return 180+deg;
-		else if(x > x0 && y < y0) return 90+(90-deg);
-		else if(x < x0 && y < y0) return deg;
-		return 0;
-}}
-float LCD_GetLenFrom2Points(int x,int y, int x0,int y0){  //zamien na structure !!
-	return  sqrt( pow(x-x0,2) + pow(y-y0,2) );
-}
-
-void LCD_ResetAllBasicGraphicsParams(void){
-	LOOP_FOR(i,MAX_CHARTS_SIMULTANEOUSLY){
-		chartMemOffsForMemNr[i] = -1;
-	}
-}
-void CorrectLineAA_on(void){
-	correctLine_AA=1;
-}
-void CorrectLineAA_off(void){
-	correctLine_AA=0;
-}
-
-void Set_AACoeff_RoundFrameRectangle(float coeff_1, float coeff_2){
-	AA.c1 = coeff_1;
-	AA.c2 = coeff_2;
-}
-
-void Set_AACoeff_Draw(int pixelsInOneSide, uint32_t colorFrom, uint32_t colorTo, float ratioStart)
+static void ReplaceLcdStrType(int8_t typeReq)
 {
-/*	int pixelsInOneSide= pixelsInOneSide_==1?3:pixelsInOneSide_;
-	int pixelsInOneSide;
+	int8_t testType=Test.type;
+	if(Test.type == typeReq)
+		return;
 
-	if(pixelsInOneSide_==1) pixelsInOneSide=2;
-	else                    pixelsInOneSide=pixelsInOneSide_;
-*/
-	float incr= (1-ratioStart)/pixelsInOneSide;
-	buff_AA[0]=pixelsInOneSide;
-	for(int i=0;i<pixelsInOneSide;++i){
-		if(1+i>=MAX_SIZE_TAB_AA)
+	GOTO_ReplaceLcdStrType:
+	INCR_WRAP(Test.type,1, RGB_RGB, White_Black);
+	switch(Test.type)
+	{
+	case RGB_RGB:
+		Test.coeff=Test.coeff_prev[0];
+		break;
+	case RGB_White:
+		Test.coeff=Test.coeff_prev[1];
+		break;
+	case Gray_Green:
+	case White_Black:
+		if(testType==RGB_RGB){
+			Test.coeff_prev[0]=Test.coeff;
+			Test.coeff=0;
+		}
+		else if(testType==RGB_White){
+			Test.coeff_prev[1]=Test.coeff;
+			Test.coeff=0;
+		}
+		break;
+	}
+
+	if(typeReq > NONE_TYPE_REQ){
+		if(typeReq!=Test.type){
+			testType=Test.type;
+			goto GOTO_ReplaceLcdStrType;
+		}
+	}
+
+	ClearCursorField();
+	LCD_LoadFontVar();
+	AdjustMiddle_X();
+	AdjustMiddle_Y();
+	Data2Refresh(FONTS);
+	Test.lenWin=lenStr.inChar;
+	SetCursor();
+	Data2Refresh(PARAM_LOAD_FONT_TIME);
+	Data2Refresh(PARAM_LEN_WINDOW);
+	Data2Refresh(PARAM_TYPE);
+	Data2Refresh(PARAM_SIZE);
+	Data2Refresh(PARAM_SPEED);
+	Data2Refresh(PARAM_COEFF);
+}
+
+static void Inc_PosCursor(void){
+	if(Test.posCursor<Test.lenWin){
+		Test.posCursor++;
+		Data2Refresh(PARAM_POS_CURSOR);
+		SetCursor();
+	}
+}
+static void Dec_PosCursor(void){
+	if(Test.posCursor>0){
+		Test.posCursor--;
+		Data2Refresh(PARAM_POS_CURSOR);
+		SetCursor();
+	}
+}
+
+static void IncDec_SpaceBetweenFont(int incDec){
+	if(((LCD_GetStrVar_x(v.FONT_VAR_Fonts)+lenStr.inPixel>=LCD_GetXSize()-1)&&(1==incDec))||
+		((0==LCD_GetStrPxlWidth(v.FONT_ID_Fonts,Test.txt,Test.posCursor-1,Test.spaceBetweenFonts,Test.constWidth))&&(0==incDec)))
+		return;
+	if(Test.posCursor>1){
+		if(0xFFFF!=LCD_SelectedSpaceBetweenFontsIncrDecr(incDec, Test.style, Test.size, Test.txt[Test.posCursor-2], Test.txt[Test.posCursor-1])){
+			AdjustMiddle_X();
+			ClearCursorField();
+			Data2Refresh(FONTS);
+			Test.lenWin=lenStr.inChar;
+			SetCursor();
+			Data2Refresh(FONTS);		/* RefreshAllParam(); */
+		}
+	}
+}
+
+static void LCD_DrawMainFrame(figureShape shape, int directDisplay, uint8_t bold, uint16_t x,uint16_t y, uint16_t w,uint16_t h, int frameColor,int fillColor,int bkColor)// zastanowic czy nie dac to do BasicGraphic.c
+{
+	figureShape pShape[5] = {LCD_Rectangle, LCD_BoldRectangle, LCD_RoundRectangle, LCD_BoldRoundRectangle, LCD_LittleRoundRectangle};
+
+	if(shape==pShape[1] || shape==pShape[3])
+		frameColor = SetBold2Color(frameColor,bold);
+
+	if(shape==pShape[2] || shape==pShape[3])
+		Set_AACoeff_RoundFrameRectangle(0.55, 0.73);
+
+	if(IndDisp==directDisplay)
+		LCD_ShapeIndirect(x,y,shape,w,h,frameColor,fillColor,bkColor);
+	else
+		LCD_Shape(x,y,shape,w,h,frameColor,fillColor,bkColor);
+}
+
+/* ------------ FILE_NAME() functions ------------ */
+static int RR=0;
+
+int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, INIT_KEYBOARD_PARAM)
+{
+	KEYBOARD_SetGeneral(v.FONT_ID_Press, v.FONT_ID_Descr, 	v.FONT_COLOR_Descr,
+								  	  	  	  	  	 v.COLOR_MainFrame,  v.COLOR_FillMainFrame,
+													 v.COLOR_Frame, 		v.COLOR_FillFrame,
+													 v.COLOR_FramePress, v.COLOR_FillFramePress, v.COLOR_BkScreen);
+
+	actualKeyboardType = type;
+	if(KEYBOARD_StartUp(type, ARG_KEYBOARD_PARAM)) return 1;
+
+	switch((int)type)
+	{
+		case KEYBOARD_fontRGB:
+			KEYBOARD_KeyAllParamSet(3,2, "Rafa"ł"", ""ó"lka", "W"ł"ujek", "Misia", "Six", "Markielowski", RED,GREEN,BLUE,RED,GREEN,BLUE, DARKRED,DARKRED, LIGHTGREEN,LIGHTGREEN, DARKBLUE,DARKBLUE);
+			KEYBOARD_Buttons(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Red_plus, SL(LANG_nazwa_8));
 			break;
-		buff_AA[1+i]= GetTransitionColor(colorFrom,colorTo, ratioStart+i*incr);
+
+		case KEYBOARD_bkRGB:
+			KEYBOARD_KeyAllParamSet(3,2, "R+","G+","B+","R-","G-","B-", RED,GREEN,BLUE,RED,GREEN,BLUE, WHITE,WHITE,WHITE,WHITE,WHITE,WHITE);
+			KEYBOARD_Buttons(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Red_plus, SL(LANG_nazwa_8));
+			break;
+
+		case KEYBOARD_sliderRGB:
+			KEYBOARD_KeyAllParamSet(1,3, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), RED,GREEN,BLUE);
+			KEYBOARD_ServiceSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY2_fontSliderR_left, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB);
+			break;
+
+		case KEYBOARD_sliderBkRGB:
+			static uint32_t param= COLOR_GRAY(0xA0);
+			if(EQUAL2_OR(forTouchIdx,Touch_FontColorMoveRight,Touch_BkColorMove)) param= COLOR_GRAY(0x60);
+			else if(forTouchIdx > 0)												  		 	 param= COLOR_GRAY(0x80);
+			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", param,param,param, RED,GREEN,BLUE);
+			KEYBOARD_ServiceSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY2_bkSliderR_left, SL(LANG_nazwa_6), (int*)&Test.bk[0], RefreshValRGB);
+			break;
+
+		case KEYBOARD_circleSliderRGB:
+			/* CIRCLE_errorDecision(0,_OFF); */
+			KEYBOARD_KeyAllParamSet(3,1, "Red","Green","Blue", COLOR_GRAY(0xA0),COLOR_GRAY(0xA0),COLOR_GRAY(0xA0), RED,DARKGREEN,BLUE);
+			KEYBOARD_ServiceCircleSliderRGB(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_fontCircleSliderR, KEY_Timer2, SL(LANG_nazwa_1), (int*)&Test.font[0], RefreshValRGB, (TIMER_ID)TIMER_Release);
+			/* CIRCLE_errorDecision(0,_ON); */
+			break;
+
+		case KEYBOARD_fontSize2:
+			KEYBOARD_KeyAllParamSet3(1,LCD_GetFontSizeMaxNmb(), COLOR_GRAY(0xDD), DARKRED, (char**)LCD_GetFontSizePtr());
+			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1, SL(LANG_CoeffKeyName), v.FONT_COLOR_Descr, 8, Test.size);
+			break;
+
+		case KEYBOARD_fontCoeff:
+			KEYBOARD_KeyAllParamSet(2,1, "+", "-", WHITE,WHITE, LIGHTCYAN,LIGHTCYAN);
+			KEYBOARD_SetGeneral(N,N,N, N,N, N,BrightIncr(v.COLOR_FillFrame,0xE), N,N,N);
+			KEYBOARD_Buttons(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Coeff_plus, SL(LANG_CoeffKeyName));
+			break;
+
+		case KEYBOARD_fontStyle:
+			KEYBOARD_KeyAllParamSet(3,1, "Arial", "Times_New_Roman", "Comic_Saens_MS", WHITE,WHITE,WHITE, DARKRED,DARKRED,DARKBLUE); // to tez jest w fonts_images ujednolicic !!!!
+			KEYBOARD_Select(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, NULL, Test.style);
+			break;
+
+		case KEYBOARD_fontType:
+			KEYBOARD_KeyAllParamSet(1,4, LCD_GetFontTypeStr(0), LCD_GetFontTypeStr(1), LCD_GetFontTypeStr(2), LCD_GetFontTypeStr(3), WHITE,WHITE,WHITE,WHITE, BLACK,BROWN,ORANGE,MYBLUE);  //nazwe te dac w jednym miescu !!!! bo sa i w font_images.c !!!
+			KEYBOARD_Select(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, NULL, Test.type);
+			break;
+
+		case KEYBOARD_fontSize:
+			KEYBOARD_ServiceSizeStyle(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, KEY_Size_plus, SL(LANG_nazwa_0), Test.normBoldItal);
+			break;
+
+		case KEYBOARD_LenOffsWin:
+			if(KEYBOARD_ServiceLenOffsWin(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_LenWin_plus,Touch_SpacesInfoUp, KEY_Timer, SL(LANG_WinInfo), SL(LANG_WinInfo2),SL(LANG_LenOffsWin1),SL(LANG_LenOffsWin2), v.FONT_COLOR_Descr,FILE_NAME(main), LoadNoDispScreen, (char**)ppMain, (TIMER_ID)TIMER_InfoWrite)){
+				SELECT_CURRENT_FONT(LenWin,Press, TXT_LENOFFS_WIN,255);
+			}
+			break;
+
+		case KEYBOARD_setTxt:
+			KEYBOARD__ServiceSetTxt(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Q, KEY_big, KEY_back, KEY_enter, v.FONT_COLOR_Descr);
+			break;
+
+		default:
+			break;
 	}
+	return 0;
 }
 
-void LCD_LineH(uint32_t BkpSizeX, uint16_t x, uint16_t y, uint16_t width,  uint32_t color, uint16_t bold){
-	_StartDrawLine(0,BkpSizeX, x, y);	_DrawRight(width, color);
-	for(int i=0; i<bold; ++i){
-		_NextDrawLine(BkpSizeX,width);	_DrawRight(width, color);
-	}
-}
-void LCD_LineV(uint32_t BkpSizeX, uint16_t x, uint16_t y, uint16_t width,  uint32_t color, uint16_t bold){
-	_StartDrawLine(0,BkpSizeX, x, y);	_CopyDrawPos();	_DrawDown(width, color, BkpSizeX);
-	for(int i=0; i<bold; ++i){
-		_SetCopyDrawPos();	_IncDrawPos(1); _CopyDrawPos();  _DrawDown(width, color, BkpSizeX);
-	}
-}
-void LCD_ErasePrevShape(int posX_prev,int posY_prev, int posX,int posY, int width,int height, u32 *pBuff){
-	int diffX = ABS(posX-posX_prev);
-	int diffY = ABS(posY-posY_prev);
-	if(diffX >= width || diffY >= height)  LCD_DisplayBuff(posX_prev,posY_prev, width,height, pBuff);
-	else{
-		int offsY = CONDITION(posY<posY_prev,height-diffY,0);
-		int offsX = CONDITION(posX<posX_prev,width-diffX,0);
-		if(diffY) LCD_DisplayBuff( posX_prev, posY_prev+offsY, width,diffY, pBuff+width*offsY);
+//dla ROLL bez select a drugie pole touch to z select,
 
-		if(diffX){
-			_2LOOP_2INIT(int m=0, int n=0, i,j, diffX,height)
-				pBuff[m++] = *(pBuff+offsX+n+i);
-				_1LOOP_END
-				n+=width;
-			_1LOOP_END
-			LCD_DisplayBuff(posX_prev+offsX,posY_prev, diffX,height, pBuff);
-	}}
-}
-void LCD_CopyBuffers(u32 *pBuff1,u32 offs1,u16 widthBk1,u16 Xpos1,u16 Ypos1,	 u32 *pBuff2,u32 offs2,u16 widthBk2,u16 Xpos2,u16 Ypos2,u16 width2,u16 height2){		/* copy direction:  pBuff1 <= pBuff2 */
-	int k2=0, k1=0;
-	if(widthBk1 < width2) return;
-	if(widthBk2==width2 && Xpos2==0 && Ypos2==0){
-		if(widthBk1==width2 && Xpos1==0 && Ypos1==0){
-			_2LOOP(i,j,width2,height2)
-				pBuff1[offs1+k1++] = pBuff2[offs2+k2++];
-			_2LOOP_END
-		}
-		else{
-			_2LOOP(i,j,width2,height2)
-				pBuff1[offs1+widthBk1*(Ypos1+j)+Xpos1+i] = pBuff2[offs2+k2++];
-			_2LOOP_END
-	}}
-	else{
-		if(widthBk1==width2 && Xpos1==0 && Ypos1==0){
-			_2LOOP(i,j,width2,height2)
-				pBuff1[offs1+k1++] = pBuff2[offs2+widthBk2*(Ypos2+j)+Xpos2+i];
-			_2LOOP_END
-		}
-		else{
-			_2LOOP(i,j,width2,height2)
-				pBuff1[offs1+widthBk1*(Ypos1+j)+Xpos1+i] = pBuff2[offs2+widthBk2*(Ypos2+j)+Xpos2+i];
-			_2LOOP_END
-	}}
-}
-void LCD_Display(uint32_t posBuff, uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t height){
-	LCD_DisplayBuff(Xpos,Ypos,width,height,  pLcd+posBuff);
-}
-void LCD_DisplayPart(uint32_t posBuff, uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t height){
-/* For another ptr2pLcd: pLcd_*/
-/*	int m=0;
-	k = posBuff + LCD_X*Ypos + Xpos;
-	for(int j=0; j<height; j++){
-		for(int i=0; i<width; i++)
-			pLcd_[m++] = pLcd[k+i];
-		k += LCD_X;
+
+static int BlockTouchForTime(int action){
+	static int _blokTouchForTime= 0;
+	switch(action){
+		case _ON:  { _blokTouchForTime= 1;	vTimerService(TIMER_BlockTouch,restart_time,noUse); break; }
+		case _OFF: { _blokTouchForTime= 0; break; }
+		case _GET: { break; }
 	}
-	LCD_DisplayBuff(Xpos,Ypos,width,height, pLcd_);
+	return _blokTouchForTime;
+}
+static int CheckTouchForTime(uint16_t touchName){
+	return CONDITION(BlockTouchForTime(_GET),touchName,NoTouch);
+}
+
+static void CycleRefreshFunc(void){
+	if(vTimerService(TIMER_Cpu, check_restart_time,1000))
+		Data2Refresh(PARAM_CPU_USAGE);
+}
+
+static void BlockingFunc(void){		/* Call this function in long during while(1) */
+	CycleRefreshFunc();
+}
+
+static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create new thread vTaskTimer */
+{
+	if(vTimerService(TIMER_InfoWrite, check_stop_time, 2000)){
+		KEYBOARD_TYPE(actualKeyboardType, KEY_Timer);
+	}
+	if(vTimerService(TIMER_Release, check_stop_time, 100)){
+		KEYBOARD_TYPE(actualKeyboardType, KEY_Timer2);
+	}
+	if(vTimerService(TIMER_BlockTouch, check_stop_time, 500)){
+		BlockTouchForTime(_OFF);
+	}
+	CycleRefreshFunc();
+}
+
+void FUNC_fontColorRGB(int k){ switch(k){
+  case -1: Test.step=1; return;
+	case 0: ChangeValRGB('f','R', 1); break;
+	case 1: ChangeValRGB('f','G', 1); break;
+	case 2: ChangeValRGB('f','B', 1); break;
+	case 3: ChangeValRGB('f','R',-1); break;
+	case 4: ChangeValRGB('f','G',-1); break;
+	case 5: ChangeValRGB('f','B',-1); break;}
+	Test.step=5;
+}
+void FUNC_bkFontColorRGB(int k){ switch(k){
+  case -1: Test.step=1; return;
+	case 0: ChangeValRGB('b','R', 1); break;
+	case 1: ChangeValRGB('b','G', 1); break;
+	case 2: ChangeValRGB('b','B', 1); break;
+	case 3: ChangeValRGB('b','R',-1); break;
+	case 4: ChangeValRGB('b','G',-1); break;
+	case 5: ChangeValRGB('b','B',-1); break;}
+	Test.step=5;
+}
+void FUNC_SliderFontRGB(int k){ switch(k){
+  case -1: Test.step=1;   return;
+  	case 1:case 4:case 7:  return;
+	case 0:case 9:  ChangeValRGB('f','R',-1); break;
+	case 2:case 10: ChangeValRGB('f','R', 1); break;
+	case 3:case 11: ChangeValRGB('f','G',-1); break;
+	case 5:case 12: ChangeValRGB('f','G', 1); break;
+	case 6:case 13: ChangeValRGB('f','B',-1); break;
+	case 8:case 14: ChangeValRGB('f','B', 1); break;}
+	Test.step=5;
+}
+void FUNC_SliderBkFontRGB(int k){ switch(k){
+  case -1: Test.step=1;   return;
+  	case 1:case 4:case 7:  return;
+	case 0:case 9:  ChangeValRGB('b','R',-1); break;
+	case 2:case 10: ChangeValRGB('b','R', 1); break;
+	case 3:case 11: ChangeValRGB('b','G',-1); break;
+	case 5:case 12: ChangeValRGB('b','G', 1); break;
+	case 6:case 13: ChangeValRGB('b','B',-1); break;
+	case 8:case 14: ChangeValRGB('b','B', 1); break;}
+	Test.step=5;
+}
+void FUNC_FontStyle(int k){ switch(k){
+  case -1: return;
+	case 0: ChangeFontStyle(Arial); 				break;
+	case 1: ChangeFontStyle(Times_New_Roman); break;
+	case 2: ChangeFontStyle(Comic_Saens_MS); 	break;}
+}
+void FUNC_FontType(int k){ switch(k){
+  case -1: return;
+	case 0: ReplaceLcdStrType(0); break;
+	case 1: ReplaceLcdStrType(1); break;
+	case 2: ReplaceLcdStrType(2); break;
+	case 3: ReplaceLcdStrType(3); break;}
+}
+void FUNC_FontSize(int k){ switch(k){
+  case -1: return;
+	case 0: IncFontSize(NONE_TYPE_REQ); break;
+	case 1: DecFontSize(); break;}
+}
+void FUNC_FontBoldItalNorm(int k){ switch(k){
+  case -1: return;
+	case 0: ChangeFontBoldItalNorm(0); break;
+	case 1: ChangeFontBoldItalNorm(1); break;
+	case 2: ChangeFontBoldItalNorm(2); break;}
+}
+void FUNC_FontCoeff(int k){ switch(k){
+  case -1: return;
+	case 0: IncCoeffRGB(); break;
+	case 1: DecCoeefRGB(); break;}
+}
+
+void FUNC_SliderBkFontFontRGB(int k){ switch(k){
+  case -1: Test.step=1;   return;
+  	case 1:case 4:case 7:case 10:case 13:case 16:  return;
+	case 0: ChangeValRGB('b','R',-1); break;
+	case 2: ChangeValRGB('b','R', 1); break;
+	case 3: ChangeValRGB('b','G',-1); break;
+	case 5: ChangeValRGB('b','G', 1); break;
+	case 6: ChangeValRGB('b','B',-1); break;
+	case 8: ChangeValRGB('b','B', 1); break;
+	case 9:  ChangeValRGB('f','R',-1); break;
+	case 11: ChangeValRGB('f','R', 1); break;
+	case 12: ChangeValRGB('f','G',-1); break;
+	case 14: ChangeValRGB('f','G', 1); break;
+	case 15: ChangeValRGB('f','B',-1); break;
+	case 17: ChangeValRGB('f','B', 1); break;}
+	Test.step=5;
+}
+void FUNC_FontLenOffs(int k){ switch(k){
+  case -1: return;
+	case 0: Inc_lenWin(); break;
+	case 1: Dec_lenWin(); break;
+	case 2: Inc_offsWin(); break;
+	case 3: Dec_offsWin(); break;
+	case 4: Dec_PosCursor(); break;
+	case 5: Inc_PosCursor(); break;
+	case 6: IncDec_SpaceBetweenFont(1); break;
+	case 7: IncDec_SpaceBetweenFont(0); break;
+	case 8: break;
+	case 9: LCD_WriteSpacesBetweenFontsOnSDcard(); break;
+	case 10:
+		LCD_ResetSpacesBetweenFonts();
+		AdjustMiddle_X();
+		ClearCursorField();
+		Test.posCursor=0;
+		Data2Refresh(FONTS);
+		break;
+}}
+
+
+
+
+static USER_GRAPH_PARAM testGraph = {.par.scaleX=1.5, .par.scaleY=46.0, .funcType=Func_sin, .grad.bkType=Grad_Ystrip, .corr45degAA=1};
+
+
+void FILE_NAME(setTouch)(void)
+{/*
+	#define DESELECT_CURRENT_FONT(src,txt) \
+		LCD_SetStrVar_fontID		(v.FONT_VAR_##src, v.FONT_ID_##src);\
+		LCD_SetStrVar_fontColor	(v.FONT_VAR_##src, v.FONT_COLOR_##src);\
+		LCD_SetStrVar_bkColor	(v.FONT_VAR_##src, v.FONT_BKCOLOR_##src);\
+		LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_##src, txt)
+
+	#define DESELECT_ALL_FONTS \
+		DESELECT_CURRENT_FONT(FontColor,	TXT_FONT_COLOR);\
+		DESELECT_CURRENT_FONT(BkColor,	TXT_BK_COLOR);\
+		DESELECT_CURRENT_FONT(FontType,	TXT_FONT_TYPE);\
+		DESELECT_CURRENT_FONT(FontSize,	TXT_FONT_SIZE);\
+		DESELECT_CURRENT_FONT(FontStyle,	TXT_FONT_STYLE)
 */
-	uint32_t tab[width];
-	k = posBuff + LCD_X*Ypos + Xpos;
-	for(int j=0; j<height; j++){
-		for(int i=0; i<width; i++)
-			tab[i] = pLcd[k+i];
-		k += LCD_X;
-		LCD_DisplayBuff(Xpos,Ypos+j,width,1, tab);
+	#define CASE_TOUCH_STATE(state,touchPoint, src,dst, txt,coeff, touchX, touchX2) \
+		case touchPoint:\
+		if(NotServiceTouchAboveWhenWasClearedThis(touchX) & NotServiceTouchAboveWhenWasClearedThis(touchX2)){\
+			if(0==CHECK_TOUCH(state)){\
+				if(GET_TOUCH){ FILE_NAME(main)(LoadPartScreen,(char**)ppMain); CLR_ALL_TOUCH; }\
+				SELECT_CURRENT_FONT(src, dst, txt, coeff);\
+				SET_TOUCH(state);\
+				SetFunc();\
+			}\
+			else{\
+				FILE_NAME(main)(LoadPartScreen,(char**)ppMain);\
+				KEYBOARD_TYPE(KEYBOARD_none,0);\
+				CLR_TOUCH(state);\
+			}}
+
+	#define _KEYS_RELEASE_setTxt 			if(_WasStatePrev( Touch_Q, 				  Touch_enter)) 			KEYBOARD_TYPE( KEYBOARD_setTxt, 	   KEY_All_release)
+
+	static uint16_t statePrev=0, statePrev2=0;
+	uint16_t state, function=0;
+	XY_Touch_Struct pos;
+
+	void _SaveState (void){ statePrev =state; }
+	void _RstState	 (void){ statePrev =0; 		}
+	void _SaveState2(void){ statePrev2=state; }
+	void _RstState2 (void){ statePrev2=0; 		}
+
+	int _WasState(int point){
+		if(release==LCD_TOUCH_isPress() && point==statePrev){
+			statePrev = state;
+			return 1;
+		}
+		else return 0;
 	}
-}
-void LCD_Show(void){
-	LCD_Display(0,0,0,LCD_X,LCD_Y);
-}
+	int _WasStateRange(int point1, int point2){
+		if(release==LCD_TOUCH_isPress() && IS_RANGE(statePrev,point1,point2)){
+			statePrev = state;
+			return 1;
+		}
+		else return 0;
+	}
+	int _WasStatePrev(int rangeMin,int rangeMax){
+		return (IS_RANGE(statePrev,rangeMin,rangeMax) && statePrev!=state);
+	}
 
-void LCD_Shape(uint32_t x,uint32_t y,figureShape pShape,uint32_t width,uint32_t height,uint32_t FrameColor,uint32_t FillColor,uint32_t BkpColor){
-	LCD_ShapeWindow(pShape,0,LCD_X,LCD_Y,x,y,width,height,FrameColor,FillColor,BkpColor);
-}
-void LCD_ShapeWindow(figureShape pShape,uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	pShape(posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FillColor,BkpColor);
-}
-void LCD_ShapeIndirect(uint32_t xPos,uint32_t yPos,figureShape pShape, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	pShape(0,width,height,0,0,width,height,FrameColor,FillColor,BkpColor);
-	LCD_Display(0,xPos,yPos,width,height);
-}
-void LCD_ShapeWindowIndirect(uint32_t xPos,uint32_t yPos,figureShape pShape,uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	pShape(posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FillColor,BkpColor);
-	LCD_Display(posBuff,xPos,yPos,BkpSizeX,BkpSizeY);
-}
+	void SetFunc(void){
+		function=1;
+	}
+	int IsFunc(void){
+		if(function){
+			function=0;
+			return 1;
+		}
+		return 0;
+	}
 
-void LCD_Clear(uint32_t color){
-	LCD_ShapeWindow(LCD_Rectangle,0,LCD_X,LCD_Y, 0,0, LCD_X, LCD_Y, color,color,color);
-}
-void LCD_ClearPartScreen(uint32_t posBuff, uint32_t BkpSizeX, uint32_t BkpSizeY, uint32_t color){
-	LCD_ShapeWindow(LCD_Rectangle,posBuff,BkpSizeX,BkpSizeY, 0,0, BkpSizeX, BkpSizeY, color,color,color);
-}
-void LCD_LittleRoundRectangle(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	_StartDrawLine(posBuff,BkpSizeX,x,y);
-	_FillBuff(2,BkpColor);	 _FillBuff(width-4,FrameColor);  _FillBuff(2, BkpColor);
-	_NextDrawLine(BkpSizeX,width);
-	_FillBuff(1,BkpColor);_FillBuff(1,FrameColor);	 _FillBuff(width-4, FillColor);  _FillBuff(1,FrameColor);_FillBuff(1, BkpColor);
-	if(height>1)
+	int NotServiceTouchAboveWhenWasClearedThis(TOUCH_POINTS touch){
+		return CONDITION(NoTouch==touch, 1, !CHECK_TOUCH(touch) && !_WasState(touch));
+	}
+	void _TouchService(TOUCH_POINTS touchStart,TOUCH_POINTS touchStop, KEYBOARD_TYPES keyboard, SELECT_PRESS_BLOCK releaseAll,SELECT_PRESS_BLOCK keyStart, TOUCH_FUNC *func){
+		if(IS_RANGE(state, touchStart, touchStop)){
+			int nr = state-touchStart;
+			if(releaseAll){  if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(keyboard,releaseAll);  }
+			if(func) func(nr);
+			if(KEY_Select_one==keyStart) nr=0;
+			KEYBOARD_TYPE_PARAM(keyboard,keyStart+nr,pos.x,pos.y,0,0,0); _SaveState();
+	}}
+	void _TouchEndService(TOUCH_POINTS touchStart,TOUCH_POINTS touchStop, KEYBOARD_TYPES keyboard, SELECT_PRESS_BLOCK releaseAll, TOUCH_FUNC *func){
+		if(_WasStateRange(touchStart, touchStop)){
+			KEYBOARD_TYPE(keyboard, releaseAll);
+			if(func) func(-1);
+	}}
+	void CreateKeyboard(KEYBOARD_TYPES keboard){
+		switch((int)keboard){
+			case KEYBOARD_fontRGB:	break;
+			case KEYBOARD_fontSize2:	FILE_NAME(keyboard)(KEYBOARD_fontSize2, KEY_Select_one, LCD_Rectangle,0, 610,50, KeysAutoSize,10, 0, state, Touch_FontSizeRoll,KeysDel);  break;
+	}}
+	void _RestoreSusspendedTouchsByAnotherClickItem(TOUCH_POINTS prev,TOUCH_POINTS prevStart,TOUCH_POINTS prevStop, 	TOUCH_POINTS not1,TOUCH_POINTS not2,TOUCH_POINTS not3,TOUCH_POINTS not4,TOUCH_POINTS not5,TOUCH_POINTS not6,TOUCH_POINTS not7,TOUCH_POINTS not8,TOUCH_POINTS not9,TOUCH_POINTS not10, 		TOUCH_POINTS unblock1,TOUCH_POINTS unblock2,TOUCH_POINTS unblock3,TOUCH_POINTS unblock4,TOUCH_POINTS unblock5,TOUCH_POINTS unblock6,TOUCH_POINTS unblock7,TOUCH_POINTS unblock8,TOUCH_POINTS unblock9,TOUCH_POINTS unblock10){
+		if(state){
+			if((prev==statePrev2 || IS_RANGE(statePrev2,prevStart,prevStop)) && (prev!=state && !IS_RANGE(state,prevStart,prevStop)) && (not1!=state && not2!=state && not3!=state && not4!=state && not5!=state && not6!=state && not7!=state && not8!=state && not9!=state && not10!=state)){
+				LCD_TOUCH_RestoreSusspendedTouchs2(unblock1,unblock2,unblock3,unblock4,unblock5,unblock6,unblock7,unblock8,unblock9,unblock10);
+				statePrev2=0;
+	}}}
+
+	state = LCD_TOUCH_GetTypeAndPosition(&pos);
+													/*if prevTouch is this... and actualTouch is not this...*/				/*and yet actualTouch not this...*/							/*then unblock touches this...*/
+	_RestoreSusspendedTouchsByAnotherClickItem(Touch_FontSize2,Touch_size_plus,Touch_size_italic,	Touch_FontStyle,Touch_FontType,Touch_FontSize,_ZEROS7,	Touch_FontLenOffsWin,Touch_FontCoeff,_ZEROS8);		/* depended on _SaveState2() */
+
+	/*	----- Service press specific Keys for Keyboard ----- */
+	_TouchService(Touch_fontRp, Touch_fontBm, KEYBOARD_fontRGB, KEY_All_release, KEY_Red_plus, FUNC_fontColorRGB);
+	_TouchService(Touch_bkRp, Touch_bkBm, 	   KEYBOARD_bkRGB,   KEY_All_release, KEY_Red_plus, FUNC_bkFontColorRGB);
+
+	_TouchService(Touch2_bkSliderR_left, Touch2_bkSliderB_right, 		KEYBOARD_sliderBkRGB, 	KEY_All_release, KEY2_bkSliderR_left, 	 FUNC_SliderBkFontRGB);
+	_TouchService(Touch2_fontSliderR_left, Touch2_fontSliderB_right,	KEYBOARD_sliderRGB, 		KEY_All_release, KEY2_fontSliderR_left, FUNC_SliderFontRGB);
+
+	_TouchService(Touch_style1, Touch_style3,	 KEYBOARD_fontStyle, 0, KEY_Select_one, FUNC_FontStyle);
+	_TouchService(Touch_type1, Touch_type4,	 KEYBOARD_fontType,  0, KEY_Select_one, FUNC_FontType);
+
+	_TouchService(Touch_size_plus, Touch_size_minus,	 KEYBOARD_fontSize,  KEY_Select_one,  KEY_Size_plus,	 FUNC_FontSize);
+	_TouchService(Touch_size_norm, Touch_size_italic,	 KEYBOARD_fontSize,  0, 				  KEY_Select_one,  FUNC_FontBoldItalNorm);
+	_TouchService(Touch_coeff_plus, Touch_coeff_minus,	 KEYBOARD_fontCoeff, KEY_All_release, KEY_Coeff_plus,  FUNC_FontCoeff);
+
+	_TouchService(Touch_fontCircleSliderR, Touch_CircleSlider3D,	KEYBOARD_circleSliderRGB, 		KEY_All_release, KEY_fontCircleSliderR, NULL);
+
+	_TouchService(Touch_LenWin_plus, Touch_ResetSpaces, 	 	KEYBOARD_LenOffsWin, KEY_All_release, KEY_LenWin_plus,  FUNC_FontLenOffs);
+	_TouchService(Touch_SpacesInfoUp, Touch_SpacesInfoTest,	KEYBOARD_LenOffsWin, KEY_NO_RELEASE,  KEY_InfoSpacesUp, NULL);
+
+
+	switch(state)
 	{
-		_NextDrawLine(BkpSizeX,width);
-		for (int j=0; j<height-4; j++)
-		{
-			if(width>1)
-			{
-				_FillBuff(1, FrameColor);
-				_FillBuff(width-2, FillColor);
-				_FillBuff(1, FrameColor);
-				_NextDrawLine(BkpSizeX,width);
+		/*	----- Initiation new Keyboard ----- */
+		CASE_TOUCH_STATE(state,Touch_FontColor, FontColor,Press, TXT_FONT_COLOR,252,CheckTouchForTime(Touch_FontColorMoveRight),CheckTouchForTime(Touch_FontColorMoveLeft));		/* 'FontColor','Press' are suffix`s for elements of 'SCREEN_FONTS_SET_PARAMETERS' MACRO  */
+			if(IsFunc())
+				FILE_NAME(keyboard)(KEYBOARD_fontRGB, KEY_All_release, LCD_RoundRectangle,0, 230,160, KeysAutoSize,12, 10, state, Touch_fontRp,KeysDel);
+			/* DisplayTouchPosXY(state,pos,"Touch_FontColor"); */
+			break;
+
+		CASE_TOUCH_STATE(state,Touch_FontColor2, FontColor,Press, TXT_FONT_COLOR,252,NoTouch,NoTouch);
+			if(IsFunc())
+				FILE_NAME(keyboard)(KEYBOARD_sliderRGB, KEY_All_release, LCD_RoundRectangle,0, 10,160, 180,39, 16, state, Touch2_fontSliderR_left,KeysDel);
+			break;
+
+		CASE_TOUCH_STATE(state,Touch_BkColor, BkColor,Press, TXT_BK_COLOR,252,CheckTouchForTime(Touch_BkColorMove),NoTouch);
+			if(IsFunc())
+				FILE_NAME(keyboard)(KEYBOARD_bkRGB, KEY_All_release, LCD_RoundRectangle,0, 400,160, KeysAutoSize,12, 4, state, Touch_bkRp,KeysDel);
+			break;
+
+		CASE_TOUCH_STATE(state,Touch_BkColor2, BkColor,Press, TXT_BK_COLOR,252,NoTouch,NoTouch);
+			if(IsFunc())
+				FILE_NAME(keyboard)(KEYBOARD_sliderBkRGB, KEY_All_release, LCD_RoundRectangle,0, 10,160, 35,170, 16, state, Touch2_bkSliderR_left,KeysDel);
+			break;
+
+		CASE_TOUCH_STATE(state,Touch_FontColorMoveRight, FontColor,Press, TXT_FONT_COLOR,252,NoTouch,NoTouch);
+			if(IsFunc()){
+				FILE_NAME(keyboard)(KEYBOARD_sliderRGB, 	KEY_All_release, LCD_RoundRectangle,0,  50,160, 180,30, 16, state, Touch2_fontSliderR_left, KeysDel);
+				//structSize temp = KEYBOARD_GetSize();
+				FILE_NAME(keyboard)(KEYBOARD_sliderBkRGB, KEY_All_release, LCD_RoundRectangle,0, 550,160, 30,180, 16, state, Touch2_bkSliderR_left,   KeysNotDel);
 			}
-			else
-			{
-				_FillBuff(width, FillColor);
-				_NextDrawLine(BkpSizeX,width);
+			else _SaveState();  //dac np funkcje nazew i wsrodku to ' _SaveState();'
+			BlockTouchForTime(_ON);
+			break;
+
+		CASE_TOUCH_STATE(state,Touch_FontColorMoveLeft, FontColor,Press, TXT_FONT_COLOR,252,NoTouch,NoTouch);  //pogrupowac po kolei od kolejnosci !!!!!
+			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_circleSliderRGB, 	KEY_All_release, LCD_RoundRectangle,0,  350,170, 100,100, 16, state, Touch_fontCircleSliderR, KeysDel);  }
+								//LCDTOUCH_ActiveOnly(state,Touch_BkColor,Touch_FontColor,0,0,0,0,0,0,0,Touch_fontCircleSliderR,Touch_CircleSliderStyle); }
+			else{  _SaveState(); /*LCD_TOUCH_RestoreAllSusspendedTouchs();*/ }
+			BlockTouchForTime(_ON);
+			break;
+
+		CASE_TOUCH_STATE(state,Touch_BkColorMove, BkColor,Press, TXT_BK_COLOR,252,NoTouch,NoTouch);
+			if(IsFunc()){
+				FILE_NAME(keyboard)(KEYBOARD_sliderRGB, 	KEY_All_release, LCD_RoundRectangle,0,  50,160, 180,39, 16, state, Touch2_fontSliderR_left, KeysDel);
+				FILE_NAME(keyboard)(KEYBOARD_sliderBkRGB, KEY_All_release, LCD_RoundRectangle,0, 550,160, 35,170, 16, state, Touch2_bkSliderR_left,   KeysNotDel);
 			}
-		}
-		_FillBuff(1,BkpColor);_FillBuff(1,FrameColor);	 _FillBuff(width-4, FillColor);  _FillBuff(1,FrameColor);_FillBuff(1, BkpColor);
-		_NextDrawLine(BkpSizeX,width);
-		_FillBuff(2, BkpColor);	 _FillBuff(width-4, FrameColor);  _FillBuff(2, BkpColor);
-	}
-}
-void LCD_LittleRoundFrame(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	_StartDrawLine(posBuff,BkpSizeX,x,y);
-	_FillBuff(2,BkpColor);	 _FillBuff(width-4,FrameColor);  _FillBuff(2, BkpColor);
-	_NextDrawLine(BkpSizeX,width);
-	_FillBuff(1,BkpColor);_FillBuff(1,FrameColor);	 k+=width-4; /* _FillBuff(width-4, FillColor); */  _FillBuff(1,FrameColor);_FillBuff(1, BkpColor);
-	if(height>1)
-	{
-		_NextDrawLine(BkpSizeX,width);
-		for (int j=0; j<height-4; j++)
-		{
-			if(width>1)
-			{
-				_FillBuff(1, FrameColor);
-				k+=width-2;			/* _FillBuff(width-2, FillColor); */
-				_FillBuff(1, FrameColor);
-				_NextDrawLine(BkpSizeX,width);
+			else _SaveState();  //dac np funkcje nazew i wsrodku to ' _SaveState();'
+			BlockTouchForTime(_ON);
+			break;
+
+		CASE_TOUCH_STATE(state,Touch_FontLenOffsWin, LenWin,Press, TXT_LENOFFS_WIN,252,NoTouch,NoTouch);
+			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_LenOffsWin, KEY_All_release, LCD_RoundRectangle,0, 0,0, KeysAutoSize,8, 10, state, Touch_LenWin_plus,KeysDel);
+								LCDTOUCH_ActiveOnly(state,0,0,0,0,0,0,0,0,0,Touch_LenWin_plus,Touch_ResetSpaces); }
+			else{
+				ClearCursorField();
+				Test.posCursor=0;
+				LCD_TOUCH_RestoreAllSusspendedTouchs();
 			}
-			else
-			{
-				k+=width;			/* _FillBuff(width, FillColor); */
-				_NextDrawLine(BkpSizeX,width);
+			break;
+
+		CASE_TOUCH_STATE(state,Touch_FontCoeff, Coeff,Press, TXT_COEFF,255,NoTouch,NoTouch);
+			if(IsFunc())
+				FILE_NAME(keyboard)(KEYBOARD_fontCoeff, KEY_All_release, LCD_RoundRectangle,0, 400,205, KeysAutoSize,10, 10, state, Touch_coeff_plus,KeysDel);
+			break;
+
+		CASE_TOUCH_STATE(state,Touch_FontStyle2, FontStyle,Press, TXT_FONT_STYLE,252,NoTouch,NoTouch);
+			if(IsFunc())
+				FILE_NAME(keyboard)(KEYBOARD_fontStyle, KEY_Select_one, LCD_Rectangle,0, 200,160, KeysAutoSize,10, 0, state, Touch_style1,KeysDel);
+			break;
+
+		CASE_TOUCH_STATE(state,Touch_FontType2, FontType,Press, TXT_FONT_TYPE,252,NoTouch,NoTouch);
+			if(IsFunc())
+				FILE_NAME(keyboard)(KEYBOARD_fontType, KEY_Select_one, LCD_Rectangle,0, 400,160, KeysAutoSize,10, 0, state, Touch_type1,KeysDel);
+			break;
+
+		CASE_TOUCH_STATE(state,Touch_FontSize2, FontSize,Press, TXT_FONT_SIZE,252,NoTouch,NoTouch);
+			if(IsFunc()){	FILE_NAME(keyboard)(KEYBOARD_fontSize, KEY_Select_one, LCD_RoundRectangle,0, 614,200, KeysAutoSize,10/*80,40*/, 10, state, Touch_size_plus,KeysDel);
+								LCD_TOUCH_SusspendTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,_ZEROS8); _SaveState2(); }
+			else{ LCD_TOUCH_RestoreSusspendedTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,_ZEROS8); _RstState2(); }
+			break;
+
+		CASE_TOUCH_STATE(state,Touch_FontSizeMove, FontSize,Press, TXT_FONT_SIZE,252,NoTouch,NoTouch);
+			if(IsFunc()) CreateKeyboard(KEYBOARD_fontSize2);
+			else 			_SaveState();
+			BlockTouchForTime(_ON);
+			break;
+
+		/*	----- Touch parameter text and go to action ----- */
+		case Touch_SetTxt:
+			FILE_NAME(keyboard)(KEYBOARD_setTxt,KEY_All_release,LCD_RoundRectangle,0,15,15,KeysAutoSize,10,10,state,Touch_Q,KeysDel);
+			LCDTOUCH_ActiveOnly(0,0,0,0,0,0,0,0,0,0,Touch_Q,Touch_enter);
+			break;
+
+		case Touch_FontStyle:
+			ChangeFontStyle(NONE_TYPE_REQ);
+			if(CHECK_TOUCH(Touch_FontStyle2))
+				KEYBOARD_TYPE( KEYBOARD_fontStyle, KEY_Select_one );
+			break;
+
+		case Touch_FontType:
+			ReplaceLcdStrType(NONE_TYPE_REQ);
+			if(CHECK_TOUCH(Touch_FontType2))
+				KEYBOARD_TYPE( KEYBOARD_fontType, KEY_Select_one );
+			break;
+
+		case Touch_FontSize:
+			if(NotServiceTouchAboveWhenWasClearedThis(CheckTouchForTime(Touch_FontSizeMove))){		/* When 'Touch_FontSizeMove' was cleared then not service for release 'Touch_FontSize' */
+				ChangeFontBoldItalNorm(NONE_TYPE_REQ);
+				if(CHECK_TOUCH(Touch_FontSize2)) 	KEYBOARD_TYPE(KEYBOARD_fontSize, KEY_Select_one);
+				if(CHECK_TOUCH(Touch_FontSizeMove))	CreateKeyboard(KEYBOARD_fontSize2);
 			}
-		}
-		_FillBuff(1,BkpColor);_FillBuff(1,FrameColor);	k+=width-4; /* _FillBuff(width-4, FillColor); */  _FillBuff(1,FrameColor);_FillBuff(1, BkpColor);
-		_NextDrawLine(BkpSizeX,width);
-		_FillBuff(2, BkpColor);	 _FillBuff(width-4, FrameColor);  _FillBuff(2, BkpColor);
+			break;
+
+		case Touch_FontSizeRoll:
+			if(LCDTOUCH_IsScrollPress(ROLL_1, state, &pos, TIMER_Scroll))
+				KEYBOARD_TYPE( KEYBOARD_fontSize2, KEY_Select_one);
+			_SaveState();
+			break;
+
+		case Touch_MainFramesType:
+			if(ppMain[0]==(int*)FRAMES_GROUP_separat)	*ppMain=(int*)FRAMES_GROUP_combined;
+			else													*ppMain=(int*)FRAMES_GROUP_separat;
+			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
+			break;
+
+		case Touch_Chart_1:	if(GRAPH_IsMemReloaded(0)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,0);	break;		/* Attention:  Charts use memory for samples pointed by CounterBusyBytesForFontsImages what is changed by load fonts function... */
+		case Touch_Chart_2:	if(GRAPH_IsMemReloaded(0)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,0);	break;		/* 				... and you must reloaded charts if you have changed CounterBusyBytesForFontsImages before.								*/
+		case Touch_Chart_3:	if(GRAPH_IsMemReloaded(0)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,0);	break;
+
+
+		default:
+			if(IS_RANGE(state,Touch_Q,Touch_enter)){
+				if(Touch_exit==state){
+					LCD_TOUCH_RestoreAllSusspendedTouchs();
+					FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
+					KEYBOARD_TYPE(KEYBOARD_none,0);
+				}
+				else{	_KEYS_RELEASE_setTxt;	KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_Q+(state-Touch_Q));  _SaveState(); }
+				break;
+			}
+
+			/* ----- Service release specific Keys for Keyboard ----- */
+			_TouchEndService(Touch_fontRp, Touch_fontBm, KEYBOARD_fontRGB, KEY_All_release, FUNC_fontColorRGB);
+			_TouchEndService(Touch_bkRp, Touch_bkBm, 	   KEYBOARD_bkRGB,   KEY_All_release, FUNC_bkFontColorRGB);
+
+			_TouchEndService(Touch2_bkSliderR_left, Touch2_bkSliderB_right,  		KEYBOARD_sliderBkRGB,   KEY_All_release, FUNC_SliderBkFontRGB);
+			_TouchEndService(Touch2_fontSliderR_left, Touch2_fontSliderB_right, 	KEYBOARD_sliderRGB, 		KEY_All_release, FUNC_SliderFontRGB);
+
+			_TouchEndService(Touch_size_plus, Touch_size_minus, 	KEYBOARD_fontSize, 	KEY_Select_one,  FUNC_FontSize);
+			_TouchEndService(Touch_coeff_plus, Touch_coeff_minus, KEYBOARD_fontCoeff, 	KEY_All_release, FUNC_FontSize);
+
+			/* _TouchEndService(Touch_fontCircleSliderR, Touch_CircleSliderStyle, 	KEYBOARD_circleSliderRGB, 		KEY_All_release, NULL); */		/* For circle slider is not needed */
+
+			_TouchEndService(Touch_LenWin_plus, Touch_ResetSpaces, KEYBOARD_LenOffsWin, 	KEY_All_release, FUNC_FontLenOffs);
+
+
+			if(_WasStateRange(Touch_Q,Touch_enter))
+				KEYBOARD_TYPE( KEYBOARD_setTxt, KEY_All_release );
+
+#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
+			if(_WasState(Touch_FontStyle) ||
+				_WasState(Touch_style1) ||
+				_WasState(Touch_style2) ||
+				_WasState(Touch_style3))
+				SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontStyle,1,LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontStyle,TXT_FONT_STYLE));
+#endif
+
+#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
+			if(_WasState(Touch_FontType) ||
+				_WasState(Touch_type1) ||
+				_WasState(Touch_type2) ||
+				_WasState(Touch_type3) ||
+				_WasState(Touch_type4))
+				SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontType,1,LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontType,TXT_FONT_TYPE));
+#endif
+
+#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
+			if(_WasState(Touch_FontSize) ||
+				_WasState(Touch_size_norm) ||
+				_WasState(Touch_size_bold) ||
+				_WasState(Touch_size_italic))
+				SCREEN_SetTouchForNewEndPos(v.FONT_VAR_FontSize,1,LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_FontSize,TXT_FONT_SIZE));
+#endif
+
+			if(_WasState(Touch_FontSizeRoll)){
+				if(END_FREEROLL__NOSEL != (temp = LCDTOUCH_IsScrollRelease(ROLL_1, FUNC1_SET( FILE_NAME(keyboard),KEYBOARD_fontSize2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), BlockingFunc, TIMER_Scroll)))
+					IncFontSize(temp);
+			}
+
+			/* Not needed */
+/*			if(_WasState(Touch_FontSizeMove));
+			if(_WasState(Touch_FontColorMoveRight));
+			if(_WasState(Touch_FontColorMoveLeft));
+			if(_WasState(Touch_BkColorMove));
+*/
+			break;
 	}
+
+	FILE_NAME(timer)();
+/*	LCDTOUCH_testFunc(); */
+
 }
-void LCD_Rectangle(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	_StartDrawLine(posBuff,BkpSizeX,x,y);
-	_FillBuff(width, FrameColor);
-	if(height>1)
+
+static void* MainFuncRefresh(void *p1,void *p2){
+	FILE_NAME(main)(LoadUserScreen,(char**)ppMain);
+	return NULL;
+}
+
+
+
+float len_Line=12; float AA_Line=0.0;  u32 xPP=250;	float perVal = 94;
+void FILE_NAME(debugRcvStr)(void)
+{if(v.DEBUG_ON){
+
+
+
+	if(DEBUG_RcvStr("abc"))
+		FILE_NAME(printInfo)();
+
+
+	/* ----- Debug Test For Touch Resolution ----- */
+	else if(DEBUG_RcvStr("resolution"))
+		TOUCH_SetDefaultResolution();
+
+	_DBG_PARAM_NOWRAP("r1",TOUCH_GetPtr2Resolution(),_uint8,_Incr,_Uint8(1),_Uint8(15),"Touch Resolution: ",NULL)
+	_DBG_PARAM_NOWRAP("r2",TOUCH_GetPtr2Resolution(),_uint8,_Decr,_Uint8(1),_Uint8(1), "Touch Resolution: ",NULL)
+	/* ----- END Debug Test For Touch Resolution ----- */
+
+
+	/* ----- Debug Test GRAPH ----- */
+/*	_DBG3_PARAM_NOWRAP("a","A","z","Z",&testGraph.par.scaleX,_float,_Float(0.1),_Float( 1.5),_Float( 20.0),_Float(1.0),"Test Graph scaleX: ",MainFuncRefresh,NULL)
+	_DBG3_PARAM_NOWRAP("s","S","x","X",&testGraph.par.scaleY,_float,_Float(1.0),_Float(10.0),_Float(100.0),_Float(1.0),"Test Graph scaleY: ",MainFuncRefresh,NULL)
+
+	_DBG_PARAM_NOWRAP("d",&testGraph.funcType,_uint8,_Incr,_Uint8(1),_Uint8(Func_lines6),"Test Graph funcType: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("c",&testGraph.funcType,_uint8,_Decr,_Uint8(1),_Uint8(Func_sin),	 "Test Graph funcType: ",MainFuncRefresh)
+
+	_DBG_PARAM_NOWRAP("f",&testGraph.AAoutCoeff,_float,_Incr,_Float(0.1),_Float(1.0),"Test Graph AA out: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("v",&testGraph.AAoutCoeff,_float,_Decr,_Float(0.1),_Float(0.0),"Test Graph AA out: ",MainFuncRefresh)
+
+	_DBG_PARAM_NOWRAP("g",&testGraph.AAinCoeff,_float,_Incr,_Float(0.1),_Float(1.0),"Test Graph AA in: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("b",&testGraph.AAinCoeff,_float,_Decr,_Float(0.1),_Float(0.0),"Test Graph AA in: ",MainFuncRefresh)
+
+	_DBG_PARAM_WRAP("y",&testGraph.corr45degAA,_int,_Wrap,_Int(1), _Int(0),_Int(1), "Test Graph AA 45deg: ",MainFuncRefresh)
+
+	_DBG_PARAM_WRAP("q",&testGraph.grad.bkType,_int,_Wrap,_Int(1), _Int(Grad_YmaxYmin),_Int(Grad_Ycolor), "Test Graph grad type: ",MainFuncRefresh)
+*/
+	/* ----- END Test GRAPH ------- */
+
+
+
+	_DBG_PARAM_NOWRAP("m",&AA_Line,_float,_Incr,_Float(0.1),_Float(1.0),"incr AA: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("n",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
+
+	_DBG_PARAM_NOWRAP("q",&xPP,_uint32,_Incr,_Uint32(1),_Uint32(780),"poX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("a",&xPP,_uint32,_Decr,_Uint32(1),_Uint32(2),"poX: ",MainFuncRefresh)
+
+	_DBG_PARAM_NOWRAP("x",&perVal,_float,_Incr,_Float(0.1),_Float(99),"Line: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("z",&perVal,_float,_Decr,_Float(0.1),_Float(0),  "Line: ",MainFuncRefresh)
+
+	else if(DEBUG_RcvStr("p"))
 	{
-		_NextDrawLine(BkpSizeX,width);
-		for (int j=0; j<height-2; j++)
+		DbgVar(1,100,Clr_ Mag_"\r\nStart: %s -> CPU: %d \r\n"_X, GET_CODE_FUNCTION, osGetCPUUsage());
+		DisplayCoeffCalibration();
+	}
+	else if(DEBUG_RcvStr("s\x0D"))
+	{
+		SCREEN_Fonts_funcSet(FONT_COLOR_LoadFontTime, BLACK);
+		SCREEN_Fonts_funcSet(COLOR_FramePress, BLACK);
+	}
+
+
+	else if(DEBUG_RcvStr("6"))
+	{
+		if(TOOGLE(RR))
 		{
-			_FillBuff(1, FrameColor);
-			_FillBuff(width-2, FillColor);
-			_FillBuff(1, FrameColor);
-			_NextDrawLine(BkpSizeX,width);
-		}
-		_FillBuff(width, FrameColor);
-	}
-}
+			FILE_NAME(keyboard)(KEYBOARD_fontRGB, KEY_All_release, LCD_RoundRectangle,0,  10,160, KeysAutoSize,12, 4, Touch_FontColor, Touch_fontRp, KeysDel);
+			FILE_NAME(keyboard)(KEYBOARD_bkRGB,   KEY_All_release, LCD_RoundRectangle,0, 600,160, KeysAutoSize,12, 4, Touch_BkColor, 	Touch_bkRp,	  KeysNotDel);
 
-void LCD_Frame(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	_StartDrawLine(posBuff,BkpSizeX,x,y);
-	_FillBuff(width, FrameColor);
-	if(height>1)
-	{
-		_NextDrawLine(BkpSizeX,width);
-		for (int j=0; j<height-2; j++)
-		{
-			_FillBuff(1, FrameColor);
-			k+=width-2;
-			_FillBuff(1, FrameColor);
-			_NextDrawLine(BkpSizeX,width);
-		}
-		_FillBuff(width, FrameColor);
-	}
-}
-
-void LCD_BoldRectangle(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	uint8_t thickness = FrameColor>>24;
-	if((thickness==0)||(thickness==1)||(thickness==2)||(thickness==255))
-		thickness=2;
-	int thickness2 = 2*thickness;
-	int fillHeight = height-thickness2;
-	int fillWidth = width-thickness2;
-
-	_StartDrawLine(posBuff,BkpSizeX,x,y);
-	_FillBuff(width, FrameColor);
-	for(int i=0;i<thickness-1;++i){
-		_NextDrawLine(BkpSizeX,width);
-		_FillBuff(width, FrameColor);
-	}
-	_NextDrawLine(BkpSizeX,width);
-	if(fillHeight>0)
-	{
-		for (int j=0; j<fillHeight; j++)
-		{	_FillBuff(thickness, FrameColor);
-			_FillBuff(fillWidth, FillColor);
-			_FillBuff(thickness, FrameColor);
-			_NextDrawLine(BkpSizeX,width);
-		}
-	}
-	_FillBuff(width, FrameColor);
-	for(int i=0;i<thickness-1;++i){
-		_NextDrawLine(BkpSizeX,width);
-		_FillBuff(width, FrameColor);
-	}
-}
-void LCD_BoldFrame(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	uint8_t thickness = FrameColor>>24;
-	if((thickness==0)||(thickness==1)||(thickness==2)||(thickness==255))
-		thickness=2;
-	int thickness2 = 2*thickness;
-	int fillHeight = height-thickness2;
-	int fillWidth = width-thickness2;
-
-	_StartDrawLine(posBuff,BkpSizeX,x,y);
-	_FillBuff(width, FrameColor);
-	for(int i=0;i<thickness-1;++i){
-		_NextDrawLine(BkpSizeX,width);
-		_FillBuff(width, FrameColor);
-	}
-	_NextDrawLine(BkpSizeX,width);
-	if(fillHeight>0)
-	{
-		for (int j=0; j<fillHeight; j++)
-		{	_FillBuff(thickness, FrameColor);
-			k+=fillWidth;
-			_FillBuff(thickness, FrameColor);
-			_NextDrawLine(BkpSizeX,width);
-		}
-	}
-	_FillBuff(width, FrameColor);
-	for(int i=0;i<thickness-1;++i){
-		_NextDrawLine(BkpSizeX,width);
-		_FillBuff(width, FrameColor);
-	}
-}
-
-void LCD_RoundFrame(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	LCD_DrawRoundRectangleFrame(0,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FillColor,BkpColor);
-}
-void LCD_RoundRectangle(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	LCD_DrawRoundRectangleFrame(1,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FillColor,BkpColor);
-}
-
-void LCD_BoldRoundRectangle(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	uint8_t thickness = FrameColor>>24;
-	if((thickness==0)||(thickness==1)||(thickness==2)||(thickness==255))
-		thickness=1;
-	else
-		thickness--;
-	LCD_DrawRoundRectangleFrame(1,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FrameColor,BkpColor);
-	LCD_DrawRoundRectangleFrame(1,posBuff,BkpSizeX,BkpSizeY,x+thickness,y+thickness,width-2*thickness,height-2*thickness,FrameColor,FillColor,AA_OUT_OFF);
-}
-
-void LCD_BoldRoundFrame(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	int i,k1,k2;
-	uint8_t thickness = FrameColor>>24;
-	if((thickness==0)||(thickness==1)||(thickness==2)||(thickness==255))
-		thickness=2;
-	LCD_DrawRoundRectangleFrame(0,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FrameColor,BkpColor);
-	thickness-=2;
-	for(i=0;i<thickness;++i){
-		k1=1+i;
-		k2=2*k1;
-		LCD_DrawRoundRectangleFrame(0,posBuff,BkpSizeX,BkpSizeY,x+k1,y+k1,width-k2,height-k2,FrameColor,FrameColor,AA_OUT_OFF);
-	}
-	k1=1+i;
-	k2=2*k1;
-	LCD_DrawRoundRectangleFrame(0,posBuff,BkpSizeX,BkpSizeY,x+k1,y+k1,width-k2,height-k2,FrameColor,FillColor,AA_OUT_OFF);
-}
-
-/* Transparent version of Rectangle-Frame */
-void LCD_RoundFrameTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, float transpCoeff){
-	LCD_DrawRoundRectangleFrameTransp(0,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FillColor,BkpColor,transpCoeff);
-}
-void LCD_RoundRectangleTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, float transpCoeff){
-	LCD_DrawRoundRectangleFrameTransp(1,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FillColor,BkpColor,transpCoeff);
-}
-
-void LCD_BoldRoundRectangleTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, float transpCoeff){
-	uint8_t thickness = FrameColor>>24;
-	if((thickness==0)||(thickness==1)||(thickness==2)||(thickness==255))
-		thickness=1;
-	else
-		thickness--;
-	LCD_BoldRoundFrameTransp(posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FrameColor,BkpColor,transpCoeff);
-	LCD_DrawRoundRectangleFrameTransp(1,posBuff,BkpSizeX,BkpSizeY,x+thickness,y+thickness,width-2*thickness,height-2*thickness,FrameColor,FillColor,AA_OUT_OFF|AA_NO_FRAME,transpCoeff);
-}
-
-void LCD_BoldRoundFrameTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, float transpCoeff){
-	int i,k1,k2;
-	uint8_t thickness = FrameColor>>24;
-	if((thickness==0)||(thickness==1)||(thickness==2)||(thickness==255))
-		thickness=2;
-	LCD_DrawRoundRectangleFrameTransp(0,posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FrameColor,BkpColor|AA_IN_OFF,transpCoeff);
-	thickness-=2;
-	for(i=0;i<thickness;++i){
-		k1=1+i;
-		k2=2*k1;
-		LCD_DrawRoundRectangleFrameTransp(0,posBuff,BkpSizeX,BkpSizeY,x+k1,y+k1,width-k2,height-k2,FrameColor,FrameColor,AA_OUT_OFF|AA_IN_OFF,transpCoeff);
-	}
-	k1=1+i;
-	k2=2*k1;
-	LCD_DrawRoundRectangleFrameTransp(0,posBuff,BkpSizeX,BkpSizeY,x+k1,y+k1,width-k2,height-k2,FrameColor,FillColor,AA_OUT_OFF,transpCoeff);
-}
-
-
-
-
-void LCD_ResetNmbrLinePoints(void){	 		 nmbrLinePoints = 0;	}
-u16  LCD_GetNmbrLinePoints	 (void){	return nmbrLinePoints; 		}
-structPosU16 LCD_GetPosLinePoint(u16 nrLinePoint,u32 BkpSizeX){
-	int kOffs = posLinePoints[nrLinePoint];
-	structPosU16 temp;
-	temp.y = (kOffs/BkpSizeX);
-	temp.x = (kOffs-temp.y*BkpSizeX);
-	return temp;
-}
-void LCD_SetLinePointToBuffLcd(u16 nrLinePoint,u32 pointColor){
-	pLcd[ posLinePoints[nrLinePoint] ] = pointColor;
-}
-
-structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, float len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
-{	/* here we don`t read BkColor */
-	#define LINES_BUFF_SIZE		(u16)len+6
-
-	float degree_copy=degree;
-	uint8_t linesBuff[LINES_BUFF_SIZE];
-	int k_iteration=0, searchDirection=0;
-	int nrPointsPerLine=0, iteration=1;
-	int findNoPoint=0, rot;
-	float param_y;
-	float param_x;
-	float decision;
-
-	void _FFFFFFFFFF(void)
-	{
-		switch(rot)
-		{  case 1: switch(searchDirection){ case 0: k_iteration=-1;	 		 break; case 1: k_iteration=-BkpSizeX-1; break; } break;
-			case 2: switch(searchDirection){ case 0: k_iteration=-BkpSizeX; break; case 1: k_iteration=-BkpSizeX-1; break; } break;
-			case 3: switch(searchDirection){ case 0: k_iteration=-BkpSizeX; break; case 1: k_iteration=-BkpSizeX+1; break; } break;
-			case 4: switch(searchDirection){ case 0: k_iteration=1;     	 break; case 1: k_iteration=-BkpSizeX+1; break; } break;
-			case 5: switch(searchDirection){ case 0: k_iteration=1;     	 break; case 1: k_iteration= BkpSizeX+1; break; } break;
-			case 6: switch(searchDirection){ case 0: k_iteration=BkpSizeX;  break; case 1: k_iteration= BkpSizeX+1; break; } break;
-			case 7: switch(searchDirection){ case 0: k_iteration=BkpSizeX;  break; case 1: k_iteration= BkpSizeX-1; break; } break;
-			case 8: switch(searchDirection){ case 0: k_iteration=-1;   		 break; case 1: k_iteration= BkpSizeX-1; break; } break;
-		}
-	}
-
-	if(degree_copy==0)
-		degree_copy=360;
-
-	_StartDrawLine(posBuff,BkpSizeX,x0,y0);
-	rot=LCD_SearchLinePoints(1,posBuff,x0,y0,degree_copy,BkpSizeX);
-	_FFFFFFFFFF();
-
-
-	do
-	{	pos_prev = pos;
-		if(LCD_SearchLinePoints(0,posBuff,x0,y0,degree_copy,BkpSizeX)==1)
-		{
-			nrPointsPerLine++;
-		   if(findNoPoint)
-		   {
-		   	findNoPoint=0;
-		   	searchDirection=1-searchDirection;
-		   	_FFFFFFFFFF();
-		   }
+//			FILE_NAME(keyboard)(KEYBOARD_sliderRGB, 	KEY_All_release, LCD_RoundRectangle,0, 50,160, 39,140, 16, Touch_FontColor2, Touch2_fontSliderR_left, KeysDel);
+//			FILE_NAME(keyboard)(KEYBOARD_sliderBkRGB, KEY_All_release, LCD_RoundRectangle,0, 550,160, 39,140, 16, Touch_BkColor2,   Touch2_bkSliderR_left, KeysNotDel);
 		}
 		else
 		{
-		   k-=k_iteration;
-		   searchDirection=1-searchDirection;
-		   if(nrPointsPerLine)
-		   {
-		   	if(iteration<LINES_BUFF_SIZE-2)
-		   		linesBuff[iteration++]=nrPointsPerLine;
-		   	else break;
-		   }
-		   nrPointsPerLine=0;
-			findNoPoint=1;
-			_FFFFFFFFFF();
+			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
+			KEYBOARD_TYPE(KEYBOARD_none,0);
 		}
-		k+=k_iteration;
-	   pos = _GetPosXY(posBuff,BkpSizeX);
+	}
 
-		param_y = pow((float)(y0-pos.y),2);
-		param_x = pow((float)(x0-pos.x),2);
-		decision = pow(len+1,2);
+	//- Zrobic szablon na TEST SHAPE -------!!!!
+	else if(DEBUG_RcvStr("7")){
+		*ppMain=(int*)FRAMES_GROUP_separat;
+		FILE_NAME(main)(LoadUserScreen,(char**)ppMain);
+	}
+	//- Zrobic szablon na TEST SHAPE -------!!!!
 
-	}while((param_x+param_y) <= decision);		/* When precision of float 'degree' is greater than 0.1 then 'decision' may have to big decimal value for float for this precision and never return from the loop while() - endless loop */
 
-	if(nrPointsPerLine)
-		linesBuff[iteration++]=nrPointsPerLine;
-	linesBuff[0]=iteration-1;
-
-	_StartDrawLine(posBuff,BkpSizeX,x0,y0);
-
-	if(correctLine_AA==0)
+	else if(DEBUG_RcvStr("1"))
 	{
-		switch(rot)
-		{
-			case 1:  _DrawArrayBuffLeftUp_AA   (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,0,linesBuff); break;
-			case 2:  _DrawArrayBuffLeftUp_AA   (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,1,linesBuff); break;
-			case 3:  _DrawArrayBuffRightUp_AA  (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,1,linesBuff); break;
-			case 4:  _DrawArrayBuffRightUp_AA  (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,0,linesBuff); break;
-			case 5:  _DrawArrayBuffRightDown_AA(lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,0,linesBuff); break;
-			case 6:  _DrawArrayBuffRightDown_AA(lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,1,linesBuff); break;
-			case 7:  _DrawArrayBuffLeftDown_AA (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,1,linesBuff); break;
-			case 8:  _DrawArrayBuffLeftDown_AA (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,0,linesBuff); break;
-		}
+		Dbg(1,"test");
+		FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
 	}
-	else
+
+}}
+
+static void LoadFonts(int startFontID, int endFontID){
+	if(TakeMutex(Semphr_cardSD,1000))
 	{
-		int  k_p=k;
-		int linePointsStructSize;
-		int nmbPxl,repeatPxl,repeatPxl_next;
-		int direction=0, upDown;
+		#define OMITTED_FONTS	1	/*this define delete for another screens*/
+		#define A(x)	 *((int*)((int*)(&v)+x))
 
-		int _GetNmbPxls(void)
-		{
-			int j,it=0,count1=0;
-			char linesBuff_prev=0;
+		int d = endFontID-startFontID + 1 + OMITTED_FONTS;
+		int j=0;
 
-			linesBuff_prev=linesBuff[1];
-
-			for(j=0;j<linesBuff[0];++j){
-				if(linesBuff[1+j]==linesBuff_prev) count1++;
-				else{
-					it++;
-					linesBuff_prev=linesBuff[1+j];
-					count1=1;
-				}
-			}
-			if(count1){
-				it++;
-			}
-			return it;
+		for(int i=startFontID; i<=endFontID; ++i){
+			*((int*)((int*)(&v)+i)) = LCD_LoadFont_DependOnColors( A(j),A(j+d),A(j+3*d),A(j+2*d), FILE_NAME(GetDefaultParam)(i));
+			j++;
 		}
 
-		typedef struct
-		{	uint16_t nmbPxl;
-			uint8_t nmbPxlTheSame;
-		}Struct_LinePoints;
-		Struct_LinePoints linePoints[_GetNmbPxls()];
-
-		int Pxl_V(uint8_t nmbPxl_V, uint8_t repeat, uint8_t stepAA, int offs, int direction, int upDown)
-		{
-			uint32_t bk1Color_, bk2Color_;
-			if((degree<=135 && degree>=135-11)||
-				(degree<315  && degree>=315-11)){	bk1Color_=bk2Color; bk2Color_=bk1Color;	}
-			else{												bk1Color_=bk1Color; bk2Color_=bk2Color;	}
-
-			Set_AACoeff(stepAA,lineColor,bk1Color_,0.0);
-			Set_AACoeff2(stepAA,lineColor,bk2Color_,0.0);
-
-			if(repeat>1)
-			{
-				for(int i=0;i<repeat;++i){
-					if(pLcd[k_p-			upDown*BkpSizeX]!=lineColor) pLcd[k_p-			upDown*BkpSizeX]	=	buff_AA[offs+1+i];
-					if(pLcd[k_p+upDown*nmbPxl_V*BkpSizeX]!=lineColor) pLcd[k_p+upDown*nmbPxl_V*BkpSizeX]=	buff2_AA[offs+repeat-i];
-					k_p=k_p+upDown*nmbPxl_V*BkpSizeX+direction;
-				}
-			}
-			else{
-				if(pLcd[k_p-			upDown*BkpSizeX]!=lineColor) pLcd[k_p-			upDown*BkpSizeX]	=	buff_AA[offs];
-				if(pLcd[k_p+upDown*nmbPxl_V*BkpSizeX]!=lineColor) pLcd[k_p+upDown*nmbPxl_V*BkpSizeX]=	buff2_AA[offs];
-				k_p=k_p+upDown*nmbPxl_V*BkpSizeX+direction;
-			}
-			return 0;
-		}
-
-		int Pxl_H(uint8_t nmbPxl_H, uint8_t repeat, uint8_t stepAA, int offs, int direction, int upDown)
-		{
-			uint32_t bk1Color_, bk2Color_;
-			if((degree>=45-11  && degree<=45) ||
-			   (degree>=225-11 && degree<=225)){	bk1Color_=bk2Color; bk2Color_=bk1Color;	}
-			else{												bk1Color_=bk1Color; bk2Color_=bk2Color;	}
-
-			Set_AACoeff(stepAA,lineColor,bk1Color_,0.0);
-			Set_AACoeff2(stepAA,lineColor,bk2Color_,0.0);
-
-			if(repeat>1)
-			{
-				for(int i=0;i<repeat;++i){
-					if(pLcd[k_p-direction]!=lineColor)			  pLcd[k_p-direction]			=	buff_AA[offs+1+i];
-					if(pLcd[k_p+direction*nmbPxl_H]!=lineColor) pLcd[k_p+direction*nmbPxl_H]=	buff2_AA[offs+repeat-i];
-					k_p=k_p+upDown*BkpSizeX+direction*nmbPxl_H;
-				}
-			}
-			else{
-				if(pLcd[k_p-direction]!=lineColor) 			  pLcd[k_p-direction]			=	buff_AA[offs];						/* problem with -0fast optimize !!! */
-				if(pLcd[k_p+direction*nmbPxl_H]!=lineColor) pLcd[k_p+direction*nmbPxl_H]=	buff2_AA[offs];
-				k_p=k_p+upDown*BkpSizeX+direction*nmbPxl_H;
-			}
-			return 0;
-		}
-
-		void _GetNmbPxlsAndLoadToBuff(void)
-		{
-			int j,it=0,count1=0;
-			char linesBuff_prev=0;
-
-			linesBuff_prev=linesBuff[1];
-
-			for(j=1;j<linesBuff[0]+1;++j){
-				if(linesBuff[j]==linesBuff_prev) count1++;
-				else{
-					linePoints[it].nmbPxl=linesBuff_prev;
-					linePoints[it++].nmbPxlTheSame=count1;
-					linesBuff_prev=linesBuff[j];
-					count1=1;
-				}
-			}
-			if(count1){
-				linePoints[it].nmbPxl=linesBuff_prev;
-				linePoints[it++].nmbPxlTheSame=count1;
-			}
-			linePointsStructSize=it;
-		}
-
-		switch(rot)
-		{
-			case 1:
-				if(degree>=45-11 && degree<=45)
-					_DrawArrayBuffLeftUp_AA   (lineColor, bk1Color, bk2Color, 1.0, 1.0, BkpSizeX,0,linesBuff);
-				else
-					_DrawArrayBuffLeftUp_AA   (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,0,linesBuff);
-				break;
-			case 2:
-				if(degree>45 && degree<=45+11)
-					_DrawArrayBuffLeftUp_AA   (lineColor, bk1Color, bk2Color, 1.0, 1.0, BkpSizeX,1,linesBuff);
-				else
-					_DrawArrayBuffLeftUp_AA   (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,1,linesBuff);
-			break;
-
-			case 3:
-				if(degree<=135 && degree>=135-11)
-					_DrawArrayBuffRightUp_AA  (lineColor, bk1Color, bk2Color, 1.0, 1.0, BkpSizeX,1,linesBuff);
-				else
-					_DrawArrayBuffRightUp_AA  (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,1,linesBuff);
-				break;
-			case 4:
-				if(degree>135 && degree<=135+11)
-					_DrawArrayBuffRightUp_AA  (lineColor, bk1Color, bk2Color, 1.0, 1.0, BkpSizeX,0,linesBuff);
-				else
-					_DrawArrayBuffRightUp_AA  (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,0,linesBuff);
-			break;
-
-			case 5:
-				if(degree>=225-11 && degree<=225)
-					_DrawArrayBuffRightDown_AA(lineColor, bk1Color, bk2Color, 1.0, 1.0, BkpSizeX,0,linesBuff);
-				else
-					_DrawArrayBuffRightDown_AA(lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,0,linesBuff);
-				break;
-			case 6:
-				if(degree>225 && degree<=225+11)
-					_DrawArrayBuffRightDown_AA(lineColor, bk1Color, bk2Color, 1.0, 1.0, BkpSizeX,1,linesBuff);
-				else
-					_DrawArrayBuffRightDown_AA(lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,1,linesBuff);
-				break;
-
-			case 7:
-				if(degree<315 && degree>=315-11)
-					_DrawArrayBuffLeftDown_AA (lineColor, bk1Color, bk2Color, 1.0, 1.0, BkpSizeX,1,linesBuff);
-				else
-					_DrawArrayBuffLeftDown_AA (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,1,linesBuff);
-				break;
-			case 8:
-				if(degree>=315 && degree<=315+11)
-					_DrawArrayBuffLeftDown_AA (lineColor, bk1Color, bk2Color, 1.0, 1.0, BkpSizeX,0,linesBuff);
-				else
-					_DrawArrayBuffLeftDown_AA (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,0,linesBuff);
-				break;
-		}
-
-
-		if((degree>=225-11 && degree<=225)||
-		   (degree>=315    && degree<=315+11)||
-		   (degree>135     && degree<=135+11)||
-		   (degree>=45-11  && degree<=45))
-		{
-			_GetNmbPxlsAndLoadToBuff();
-
-			if((degree>=225-11 && degree<=225)||
-				(degree>135     && degree<=135+11)) direction=1;
-			else                                   direction=-1;
-
-			if((degree>=225-11 && degree<=225)||
-				(degree>=315    && degree<=315+11)) upDown=1;
-			else                                   upDown=-1;
-
-			for(int j=0; j<linePointsStructSize; ++j)
-			{
-				nmbPxl    = linePoints[j].nmbPxl;
-				repeatPxl = linePoints[j].nmbPxlTheSame;
-
-				if(repeatPxl>1)
-					Pxl_H(nmbPxl,repeatPxl,repeatPxl+2,1,direction,upDown);
-				else{
-					if(nmbPxl==2)
-						Pxl_H(nmbPxl,repeatPxl,4,4,direction,upDown);
-					else
-						Pxl_H(nmbPxl,repeatPxl,3,2,direction,upDown);
-				}
-			}
-		}
-		else if((degree>225 && degree<=225+11)||
-			    (degree<315  && degree>=315-11)||
-				 (degree<=135 && degree>=135-11)||
-				 (degree>45   && degree<=45+11))
-		{
-			_GetNmbPxlsAndLoadToBuff();
-
-			if((degree>225  && degree<=225+11)||
-				(degree<=135 && degree>=135-11)) direction=1;
-			else                               direction=-1;
-
-			if((degree>225 && degree<=225+11)||
-				(degree<315 && degree>=315-11)) upDown=1;
-			else                               upDown=-1;
-
-			if((degree>=225+6 && degree<=225+11)||
-				(degree<=315-6 && degree>=315-11)||
-				(degree<=135-6 && degree>=135-11)||
-				(degree>=45+6  && degree<=45+11))
-			{
-				for(int j=0; j<linePointsStructSize; ++j)
-				{
-					nmbPxl    = linePoints[j].nmbPxl;
-					repeatPxl = linePoints[j].nmbPxlTheSame;
-
-					if(repeatPxl>1)
-					{
-						if(repeatPxl==2)
-							Pxl_V(nmbPxl,repeatPxl,4,1,direction,upDown);
-						else if(repeatPxl>=3)
-							Pxl_V(nmbPxl,repeatPxl,repeatPxl+1,0,direction,upDown);
-					}
-					else
-					{
-						if(nmbPxl==1)
-							Pxl_V(nmbPxl,repeatPxl,3,2,direction,upDown);
-						else
-							Pxl_V(nmbPxl,repeatPxl,3,3,direction,upDown);
-					}
-				}
-			}
-			else
-			{
-				for(int j=0; j<linePointsStructSize; ++j)
-				{
-					nmbPxl = linePoints[j].nmbPxl;
-					repeatPxl = linePoints[j].nmbPxlTheSame;
-					if(j+1<linePointsStructSize)
-						repeatPxl_next = linePoints[j+1].nmbPxlTheSame;
-
-					if(repeatPxl>1){
-						if(Pxl_V(nmbPxl,repeatPxl,repeatPxl,0,direction,upDown)) break;
-					}
-					else{
-						if(repeatPxl_next<3){
-							if(repeatPxl==1 && j==linePointsStructSize-1){
-								if(Pxl_V(nmbPxl,repeatPxl,2,2,direction,upDown)) break;
-							}
-							else{
-								if(Pxl_V(nmbPxl,repeatPxl,5,5,direction,upDown)) break;
-							}
-						}
-						else{
-							if(Pxl_V(nmbPxl,repeatPxl,repeatPxl_next,repeatPxl_next,direction,upDown)) break;
-						}
-					}
-				}
-			}
-		}
+		GiveMutex(Semphr_cardSD);
+		#undef OMITTED_FONTS
+		#undef A
 	}
-	#undef LINES_BUFF_SIZE
-	return pos_prev;
-}
-void LCD_Line(uint32_t posBuff, u16 x0,u16 y0, u16 x1,u16 y1, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color){		/* here we don`t read BkColor */
-	nmbrLinePoints = 0;
-	DrawLine(posBuff, x0, y0, GetNewfloatValue(LCD_GetLenFrom2Points(x1,y1, x0,y0),1),  GetNewfloatValue(LCD_GetDegFrom2Points(x1,y1, x0,y0),1), lineColor,BkpSizeX, ratioAA1, ratioAA2 ,bk1Color, bk2Color);
-}
-
-SHAPE_PARAMS LCD_KeyBackspace(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor)
-{
-	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColor, .color[0].fill=FillColor, .color[0].bk=BkpColor};
-
-	if(ToStructAndReturn == posBuff)
-		return params;
-
-	width = MASK(width,FFFF);
-	height = MASK(height,FFFF);
-
-	int widthSign=width/2;
-	int heightSign=height/2;
-	int sizeSignX=height/4;
-
-	if((heightSign%2)!=0) heightSign++;
-
-	 LCD_Rectangle(posBuff,BkpSizeX,BkpSizeY,x,y,width,height,FrameColor,FillColor,BkpColor);
-
-	_StartDrawLine(posBuff,BkpSizeX,x+(width-widthSign)/2,y+height/2);
-	_DrawRightUp(heightSign/2,heightSign/2, FrameColor,BkpSizeX);
-	_DrawRight(widthSign-heightSign/2,FrameColor);
-	_DrawDown(heightSign,FrameColor,BkpSizeX);
-	_DrawLeft(widthSign-heightSign/2,FrameColor);
-	_DrawLeftUp(heightSign/2,heightSign/2, FrameColor,BkpSizeX);
-
-	_StartDrawLine(posBuff,BkpSizeX,x+(width-widthSign)/2+1,y+height/2);
-	_CopyDrawPos();
-	_DrawRightUp(heightSign/2,heightSign/2, FrameColor,BkpSizeX);
-	_SetCopyDrawPos();
-	_DrawRightDown(heightSign/2,heightSign/2, FrameColor,BkpSizeX);
-
-	_StartDrawLine(posBuff,BkpSizeX,x+(width-sizeSignX)/2+sizeSignX/2,y+(height-sizeSignX)/2);
-	_DrawRightDown(heightSign/2,heightSign/2, FrameColor,BkpSizeX);
-	_StartDrawLine(posBuff,BkpSizeX,x+(width-sizeSignX)/2+sizeSignX/2-1,y+(height-sizeSignX)/2);
-	_DrawRightDown(heightSign/2,heightSign/2, FrameColor,BkpSizeX);
-
-	_StartDrawLine(posBuff,BkpSizeX,x+(width-sizeSignX)/2+sizeSignX/2+sizeSignX,y+(height-sizeSignX)/2);
-	_DrawLeftDown(heightSign/2,heightSign/2, FrameColor,BkpSizeX);
-	_StartDrawLine(posBuff,BkpSizeX,x+(width-sizeSignX)/2+sizeSignX/2+sizeSignX-1,y+(height-sizeSignX)/2);
-	_DrawLeftDown(heightSign/2,heightSign/2, FrameColor,BkpSizeX);
-	return params;
-}
-SHAPE_PARAMS LCDSHAPE_KeyBackspace(uint32_t posBuff, SHAPE_PARAMS param){
-	return LCD_KeyBackspace(posBuff,param.bkSize.w,param.bkSize.h, param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[0].bk);
-}
-
-void LCD_SignStar(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor)
-{																												/*	'width/height' or 'height/width'  must be divisible */
-	#define PARAM1			WHITE,MYGRAY
-	#define PARAM2		FrameColor,BkpSizeX
-
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(20,PARAM1,0.39); _DrawRightDown_AA(100,5,PARAM2);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(5,PARAM1, 0.45);_DrawRightDown_AA(100,20,PARAM2);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(2,PARAM1, 0.39);_DrawRightDown_AA(100,50,PARAM2);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(1,PARAM1, 0.39);_DrawRightDown_AA(100,100,PARAM2);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(2,WHITE,MYGRAY, 0.39);_DrawRightDown_AA(50,100,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(5,WHITE,MYGRAY, 0.45); _DrawRightDown_AA(20,100,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(20,WHITE,MYGRAY,0.39);_DrawRightDown_AA(5,100,FrameColor,BkpSizeX);
-
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(10,WHITE,MYGRAY,0.39); _DrawRightUp_AA(100,10,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(4,WHITE,MYGRAY, 0.47);_DrawRightUp_AA(100,25,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(2,WHITE,MYGRAY, 0.39); _DrawRightUp_AA(100,50,FrameColor,BkpSizeX);
-
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(1,WHITE,MYGRAY, 0.39);_DrawRightUp_AA(100,100,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(2,WHITE,MYGRAY, 0.39);_DrawRightUp_AA(50,100,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(4,WHITE,MYGRAY, 0.47); _DrawRightUp_AA(25,100,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(10,WHITE,MYGRAY,0.39); _DrawRightUp_AA(10,100,FrameColor,BkpSizeX);
-
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(10,WHITE,MYGRAY,0.39); _DrawLeftUp_AA(100,10,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(4,WHITE,MYGRAY, 0.47);_DrawLeftUp_AA(100,25,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(2,WHITE,MYGRAY, 0.39);_DrawLeftUp_AA(100,50,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(1,WHITE,MYGRAY, 0.39); _DrawLeftUp_AA(100,100,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(2,WHITE,MYGRAY, 0.39); _DrawLeftUp_AA(50,100,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(4,WHITE,MYGRAY, 0.47);_DrawLeftUp_AA(25,100,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(10,WHITE,MYGRAY,0.39);_DrawLeftUp_AA(10,100,FrameColor,BkpSizeX);
-
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(10,WHITE,MYGRAY,0.39);_DrawLeftDown_AA(100,10,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(4,WHITE,MYGRAY, 0.47);_DrawLeftDown_AA(100,25,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(2,WHITE,MYGRAY, 0.39); _DrawLeftDown_AA(100,50,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(1,WHITE,MYGRAY, 0.39); _DrawLeftDown_AA(100,100,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(2,WHITE,MYGRAY, 0.39);_DrawLeftDown_AA(50,100,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(4,WHITE,MYGRAY, 0.47);_DrawLeftDown_AA(25,100,FrameColor,BkpSizeX);
-	_StartDrawLine(0,BkpSizeX,x,y);  Set_AACoeff_Draw(10,WHITE,MYGRAY,0.39);_DrawLeftDown_AA(10,100,FrameColor,BkpSizeX);
-
-	#undef PARAM1
-	#undef PARA2
-}
-
-void LCD_SimpleTriangle(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,uint32_t y, uint32_t halfBaseWidth,uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor, DIRECTIONS direct)
-{																										/*	'halfBaseWidth/height' or 'height/halfBaseWidth'  must be divisible */
-	int i;
-	int coeff = halfBaseWidth > height ? halfBaseWidth/height : height/halfBaseWidth;
-
-	if(FillColor != 0) FrameColor=FillColor;
-	Set_AACoeff_Draw(coeff,FrameColor,BkpColor, 0.1);
-	_StartDrawLine(0,BkpSizeX,x,y);
-
-	switch((int)direct)
-	{
-		case Right:
-			_DrawRightDown_AA(height,halfBaseWidth,FrameColor,BkpSizeX);
-			_DrawLeftDown_AA(height,halfBaseWidth,FrameColor,BkpSizeX);
-			if(FillColor != 0)
-			{
-				if(halfBaseWidth > height)
-				{
-					for(i=coeff; i<halfBaseWidth; ++i){
-						_DrawRight(i/coeff+1,FillColor); _IncDrawPos(-(i/coeff+1)-BkpSizeX);
-					}
-					for(int j=i; j>0; --j){
-						_DrawRight(j/coeff+1,FillColor); _IncDrawPos(-(j/coeff+1)-BkpSizeX);
-					}
-				}
-				else
-				{
-					for(i=0; i<halfBaseWidth; ++i){
-						_DrawRight(coeff*i,FillColor); _IncDrawPos(-(coeff*i)-BkpSizeX);
-					}
-					for(int j=i; j>0; --j){
-						_DrawRight(coeff*j,FillColor); _IncDrawPos(-(coeff*j)-BkpSizeX);
-					}
-				}
-			}
-			else _DrawUp(2*halfBaseWidth,FrameColor,BkpSizeX);
-			break;
-
-		case Left:
-			_DrawLeftDown_AA(height,halfBaseWidth,FrameColor,BkpSizeX);
-			_DrawRightDown_AA(height,halfBaseWidth,FrameColor,BkpSizeX);
-			if(FillColor != 0)
-			{
-				if(halfBaseWidth > height)
-				{
-					for(i=coeff; i<halfBaseWidth; ++i){
-						_DrawLeft(i/coeff+1,FillColor); _IncDrawPos((i/coeff+1)-BkpSizeX);
-					}
-					for(int j=i; j>0; --j){
-						_DrawLeft(j/coeff+1,FillColor); _IncDrawPos((j/coeff+1)-BkpSizeX);
-					}
-				}
-				else
-				{
-					for(i=0; i<halfBaseWidth; ++i){
-						_DrawLeft(coeff*i,FillColor); _IncDrawPos((coeff*i)-BkpSizeX);
-					}
-					for(int j=i; j>0; --j){
-						_DrawLeft(coeff*j,FillColor); _IncDrawPos((coeff*j)-BkpSizeX);
-					}
-				}
-			}
-			else _DrawUp(2*halfBaseWidth,FrameColor,BkpSizeX);
-			break;
-
-		case Up:
-			_DrawRightUp_AA(halfBaseWidth,height,FrameColor,BkpSizeX);
-			_DrawRightDown_AA(halfBaseWidth,height,FrameColor,BkpSizeX);
-			if(FillColor != 0)
-			{
-				if(halfBaseWidth > height)
-				{
-					for(i=coeff; i<halfBaseWidth; ++i){
-						_DrawUp(i/coeff+1,FillColor,BkpSizeX); _IncDrawPos((i/coeff+1)*BkpSizeX-1);
-					}
-					for(int j=i; j>0; --j){
-						_DrawUp(j/coeff+1,FillColor,BkpSizeX); _IncDrawPos((j/coeff+1)*BkpSizeX-1);
-					}
-				}
-				else
-				{
-					for(i=0; i<halfBaseWidth; ++i){
-						_DrawUp(coeff*i,FillColor,BkpSizeX); _IncDrawPos((coeff*i)*BkpSizeX-1);
-					}
-					for(int j=i; j>0; --j){
-						_DrawUp(coeff*j,FillColor,BkpSizeX); _IncDrawPos((coeff*j)*BkpSizeX-1);
-					}
-				}
-			}
-			else _DrawLeft(2*halfBaseWidth,FrameColor);
-			break;
-
-		case Down:
-			_DrawRightDown_AA(halfBaseWidth,height,FrameColor,BkpSizeX);
-			_DrawRightUp_AA(halfBaseWidth,height,FrameColor,BkpSizeX);
-			if(FillColor != 0)
-			{
-				if(halfBaseWidth > height)
-				{
-					for(i=coeff; i<halfBaseWidth; ++i){
-						_DrawDown(i/coeff+1,FillColor,BkpSizeX); _IncDrawPos(-(i/coeff+1)*BkpSizeX-1);
-					}
-					for(int j=i; j>0; --j){
-						_DrawDown(j/coeff+1,FillColor,BkpSizeX); _IncDrawPos(-(j/coeff+1)*BkpSizeX-1);
-					}
-				}
-				else
-				{
-					for(i=0; i<halfBaseWidth; ++i){
-						_DrawDown(coeff*i,FillColor,BkpSizeX); _IncDrawPos(-(coeff*i)*BkpSizeX-1);
-					}
-					for(int j=i; j>0; --j){
-						_DrawDown(coeff*j,FillColor,BkpSizeX); _IncDrawPos(-(coeff*j)*BkpSizeX-1);
-					}
-				}
-			}
-			else _DrawLeft(2*halfBaseWidth,FrameColor);
-			break;
-	}
-}
-
-int ChangeElemSliderColor(SLIDER_PARAMS sel, uint32_t color){
-	return ((color&0xFFFFFF) | sel<<24);
-}
-uint32_t ChangeElemSliderSize(uint16_t width, uint8_t coeffHeightTriang, uint8_t coeffLineBold, uint8_t coeffHeightPtr, uint8_t coeffWidthPtr){
-	return ((coeffHeightTriang<<28) | (coeffLineBold<<24) | (coeffHeightPtr<<20) | (coeffWidthPtr<<16) | width);		/*	standard set: (1,6,2,1) */
-}
-uint32_t SetSpaceTriangLineSlider(uint16_t height, uint16_t param){
-	return ((height&0xFFFF) | param<<16);
-}
-uint32_t SetValType(uint16_t slidPos, uint16_t param){
-	return ((slidPos&0xFFFF) | param<<16);
-}
-
-SHAPE_PARAMS LCD_SimpleSliderH(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t widthParam, uint32_t heightParam, uint32_t ElementsColor, uint32_t LineColor, uint32_t LineSelColor, uint32_t BkpColor, uint32_t slidPos, int elemSel)
-{
-	#define TRIANG_HEIGHT	(height / heightTriang_coeff)
-	#define LINE_BOLD			(height / lineBold_coeff)
-	#define PTR_HEIGHT		(height / heightPtr_coeff)
-	#define PTR_WIDTH			(PTR_HEIGHT / widthPtr_coeff)
-
-	SHAPE_PARAMS elements;
-	int width  = SHIFT_RIGHT(widthParam,0,FFFF);
-	int height = SHIFT_RIGHT(heightParam,0,FFFF);
-	int spaceTriangLine = CONDITION(  DelTriang==(int8_t)SHIFT_RIGHT(heightParam,16,FF),  0,  SHIFT_RIGHT(heightParam,16,FF)  );
-
-	int heightTriang_coeff = CONDITION(SHIFT_RIGHT(widthParam,28,F), SHIFT_RIGHT(widthParam,28,F), 2);
-	int lineBold_coeff 	  = CONDITION(SHIFT_RIGHT(widthParam,24,F), SHIFT_RIGHT(widthParam,24,F), 6);
-	int heightPtr_coeff 	  = CONDITION(SHIFT_RIGHT(widthParam,20,F), SHIFT_RIGHT(widthParam,20,F), 4);
-	int widthPtr_coeff 	  = CONDITION(SHIFT_RIGHT(widthParam,16,F), SHIFT_RIGHT(widthParam,16,F), 2);
-
-	int triang_Height = CONDITION(DelTriang==(int8_t)SHIFT_RIGHT(heightParam,16,FF), 0, TRIANG_HEIGHT);
-	int triang_Width 	= CONDITION(DelTriang==(int8_t)SHIFT_RIGHT(heightParam,16,FF), 0, height);
-	int triangRight_posX = x + width - triang_Height;
-
-	int ptr_height = PTR_HEIGHT;
-	int ptr_width 	= PTR_WIDTH;
-
-	int line_Bold 	= CONDITION(LINE_BOLD,LINE_BOLD,1);
-	int line_width = width-2*triang_Height - 2*spaceTriangLine;
-	int lineSel_posX 	= x + triang_Height + spaceTriangLine;
-
-	int width_sel 	= CONDITION(	Percent==SHIFT_RIGHT(slidPos,16,FF), (MASK(slidPos,FFFF)*line_width)/100, SET_IN_RANGE(MASK(slidPos,FFFF)-lineSel_posX,0,triangRight_posX-spaceTriangLine)	);
-
-	int lineSel_width 	= width_sel 					- ptr_width/2;
-	int lineUnSel_posX 	= lineSel_posX + width_sel + ptr_width/2;
-	int lineUnSel_width 	= line_width 	- width_sel - ptr_width/2;
-	int ptr_posX 			= lineSel_posX + width_sel - ptr_width/2;
-
-	ptr_posX  		 = SET_IN_RANGE( ptr_posX, 		 lineSel_posX, 				triangRight_posX-ptr_width-spaceTriangLine-2 );
-	lineSel_width 	 = SET_IN_RANGE( lineSel_width,   0, 				 			  	line_width-ptr_width+1 							  	);
-	lineUnSel_posX  =	SET_IN_RANGE( lineUnSel_posX,  lineSel_posX+ptr_width-1, triangRight_posX 									  	);
-	lineUnSel_width = SET_IN_RANGE( lineUnSel_width, 0, 							  	line_width-ptr_width 								);
-
-	uint32_t elemColor[NMB_SLIDER_ELEMENTS] = { ElementsColor, ElementsColor, ElementsColor };
-
-	switch(elemSel>>24){
-		case LeftSel:	elemColor[0] = (elemSel&0xFFFFFF)|0xFF000000;  break;
-		case PtrSel:	elemColor[1] = (elemSel&0xFFFFFF)|0xFF000000;  break;
-		case RightSel:	elemColor[2] = (elemSel&0xFFFFFF)|0xFF000000;  break;
-	}
-
-	elements.pos[0].x = x;
-	elements.pos[0].y = y;
-	elements.size[0].w = triang_Height;
-	elements.size[0].h = triang_Width;
-
-	elements.pos[1].x = lineSel_posX;
-	elements.pos[1].y = y;
-	elements.size[1].w = line_width;
-	elements.size[1].h = height;
-
-	elements.pos[2].x = triangRight_posX;
-	elements.pos[2].y = y;
-	elements.size[2].w = triang_Height;
-	elements.size[2].h = triang_Width;
-
-	elements.param[0] = width_sel;
-	elements.param[1] = line_width;
-	elements.param[2] = ptr_width/2;
-
-	if(DelTriang!=(int8_t)SHIFT_RIGHT(heightParam,16,FF))
-		LCD_SimpleTriangle	(posBuff,BkpSizeX, 				lineSel_posX-spaceTriangLine, MIDDLE(y,height,triang_Width), 	triang_Width/2,    triang_Height, 	elemColor[0], elemColor[0], BkpColor, 	Left);
-	LCD_LineH					(			BkpSizeX, 				lineSel_posX+1,					MIDDLE(y,height,line_Bold), 		lineSel_width, 							LineSelColor, 									line_Bold );
-	LCD_LittleRoundRectangle(posBuff,BkpSizeX, BkpSizeY, 	ptr_posX+1, 						MIDDLE(y,height,ptr_height)+1,	ptr_width, 		    ptr_height, 		elemColor[1], elemColor[1], BkpColor);
-	if(0<lineUnSel_width-2)
-		LCD_LineH				(			BkpSizeX, 				ptr_posX+1+ptr_width,			MIDDLE(y,height,line_Bold), 		lineUnSel_width-2, 						LineColor, 										line_Bold );
-	if(DelTriang!=(int8_t)SHIFT_RIGHT(heightParam,16,FF))
-		LCD_SimpleTriangle	(posBuff,BkpSizeX, 				triangRight_posX-1, 				MIDDLE(y,height,triang_Width), 	triang_Width/2,  	 triang_Height, 	elemColor[2], elemColor[2], BkpColor, 	Right);
-
-	return elements;
-
-	#undef TRIANG_HEIGHT
-	#undef LINE_BOLD
-	#undef PTR_HEIGHT
-	#undef PTR_WIDTH
-}
-
-SHAPE_PARAMS LCD_SimpleSliderV(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t widthParam, uint32_t heightParam, uint32_t ElementsColor, uint32_t LineColor, uint32_t LineSelColor, uint32_t BkpColor, uint32_t slidPos, int elemSel)
-{
-	#define TRIANG_HEIGHT	(height / heightTriang_coeff)
-	#define LINE_BOLD			(height / lineBold_coeff)
-	#define PTR_HEIGHT		(height / heightPtr_coeff)
-	#define PTR_WIDTH			(PTR_HEIGHT / widthPtr_coeff)
-
-	SHAPE_PARAMS elements;
-	int width  = SHIFT_RIGHT(widthParam,0,FFFF);
-	int height = SHIFT_RIGHT(heightParam,0,FFFF);
-	int spaceTriangLine = CONDITION(  DelTriang==(int8_t)SHIFT_RIGHT(heightParam,16,FF),  0,  SHIFT_RIGHT(heightParam,16,FF)  );
-
-	int heightTriang_coeff = CONDITION(SHIFT_RIGHT(widthParam,28,F), SHIFT_RIGHT(widthParam,28,F), 2);
-	int lineBold_coeff 	  = CONDITION(SHIFT_RIGHT(widthParam,24,F), SHIFT_RIGHT(widthParam,24,F), 6);
-	int heightPtr_coeff 	  = CONDITION(SHIFT_RIGHT(widthParam,20,F), SHIFT_RIGHT(widthParam,20,F), 4);
-	int widthPtr_coeff 	  = CONDITION(SHIFT_RIGHT(widthParam,16,F), SHIFT_RIGHT(widthParam,16,F), 2);
-
-	int triang_Height = CONDITION(DelTriang==(int8_t)SHIFT_RIGHT(heightParam,16,FF), 0, TRIANG_HEIGHT);
-	int triang_Width 	= CONDITION(DelTriang==(int8_t)SHIFT_RIGHT(heightParam,16,FF), 0, height);
-	int triangRight_posY = y + width - triang_Height;
-
-	int ptr_height = PTR_HEIGHT;
-	int ptr_width 	= PTR_WIDTH;
-
-	int line_Bold 	= CONDITION(LINE_BOLD,LINE_BOLD,1);
-	int line_width = width-2*triang_Height - 2*spaceTriangLine;
-	int lineSel_posY 	= y + triang_Height + spaceTriangLine;
-
-	int width_sel 	= CONDITION(	Percent==SHIFT_RIGHT(slidPos,16,FF), (MASK(slidPos,FFFF)*line_width)/100, SET_IN_RANGE(MASK(slidPos,FFFF)-lineSel_posY,0,triangRight_posY-spaceTriangLine)	);
-
-	int lineSel_width 	= width_sel 					- ptr_width/2;
-	int lineUnSel_posY 	= lineSel_posY + width_sel + ptr_width/2;
-	int lineUnSel_width 	= line_width 	- width_sel - ptr_width/2;
-	int ptr_posY 			= lineSel_posY + width_sel - ptr_width/2;
-
-	ptr_posY  		 = SET_IN_RANGE( ptr_posY, 		 lineSel_posY, 				triangRight_posY-ptr_width-spaceTriangLine-2 );
-	lineSel_width 	 = SET_IN_RANGE( lineSel_width,   0, 				 			  	line_width-ptr_width+1 							  	);
-	lineUnSel_posY  =	SET_IN_RANGE( lineUnSel_posY,  lineSel_posY+ptr_width-1, triangRight_posY 									  	);
-	lineUnSel_width = SET_IN_RANGE( lineUnSel_width, 0, 							  	line_width-ptr_width 								);
-
-	uint32_t elemColor[NMB_SLIDER_ELEMENTS] = { ElementsColor, ElementsColor, ElementsColor };
-
-	switch(elemSel>>24){
-		case LeftSel:	elemColor[0] = (elemSel&0xFFFFFF)|0xFF000000;  break;
-		case PtrSel:	elemColor[1] = (elemSel&0xFFFFFF)|0xFF000000;  break;
-		case RightSel:	elemColor[2] = (elemSel&0xFFFFFF)|0xFF000000;  break;
-	}
-
-	elements.pos[0].x = x;
-	elements.pos[0].y = y;
-	elements.size[0].w = triang_Height;
-	elements.size[0].h = triang_Width;
-
-	elements.pos[1].x = x;
-	elements.pos[1].y = lineSel_posY;
-	elements.size[1].w = line_width;
-	elements.size[1].h = height;
-
-	elements.pos[2].x = x;
-	elements.pos[2].y = triangRight_posY;
-	elements.size[2].w = triang_Height;
-	elements.size[2].h = triang_Width;
-
-	elements.param[0] = width_sel;
-	elements.param[1] = line_width;
-	elements.param[2] = ptr_width/2;
-
-	if(DelTriang!=(int8_t)SHIFT_RIGHT(heightParam,16,FF))
-		LCD_SimpleTriangle	(posBuff,BkpSizeX, 				MIDDLE(x,height,triang_Width), lineSel_posY-spaceTriangLine, 	triang_Width/2,    triang_Height, 	elemColor[0], elemColor[0], BkpColor, 	Up);
-	LCD_LineV					(			BkpSizeX, 				MIDDLE(x,height,line_Bold), 	 lineSel_posY+1,						lineSel_width, 							LineSelColor, 									line_Bold );
-	LCD_LittleRoundRectangle(posBuff,BkpSizeX, BkpSizeY, 	MIDDLE(x,height,ptr_height)+1, ptr_posY+1, 					 		ptr_height,			 ptr_width, 		elemColor[1], elemColor[1], BkpColor);
-	if(0<lineUnSel_width-2)
-		LCD_LineV				(			BkpSizeX, 				MIDDLE(x,height,line_Bold), 	 ptr_posY+1+ptr_width,				lineUnSel_width-2, 						LineColor, 										line_Bold );
-	if(DelTriang!=(int8_t)SHIFT_RIGHT(heightParam,16,FF))
-		LCD_SimpleTriangle	(posBuff,BkpSizeX, 				MIDDLE(x,height,triang_Width), triangRight_posY-1, 				triang_Width/2,  	 triang_Height, 	elemColor[2], elemColor[2], BkpColor, 	Down);
-
-	return elements;
-
-	#undef TRIANG_HEIGHT
-	#undef LINE_BOLD
-	#undef PTR_HEIGHT
-	#undef PTR_WIDTH
-}
-
-uint32_t SetLineBold2Width(uint32_t width, uint8_t bold){
-	return SHIFT_LEFT(width,bold,16);
-}
-uint32_t SetTriangHeightCoeff2Height(uint32_t height, uint8_t coeff){
-	return SHIFT_LEFT(height,coeff,16);
-}
-SHAPE_PARAMS LCD_Arrow(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor, DIRECTIONS direct)
-{
-	SHAPE_PARAMS params = {.bkSize.w=bkpSizeX, .bkSize.h=bkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=frameColor, .color[0].fill=fillColor, .color[0].bk=bkpColor, .param[0]=direct};
-
-	if(ToStructAndReturn == posBuff)
-		return params;
-
-	posBuff = posBuff & 0x7FFFFFFF;
-
-	int heightShape = MASK(height,FFFF);
-	int widthShape = MASK(width,FFFF);
-
-	int boldLine = SHIFT_RIGHT(width,16,FF);
-	int widthTiang = 0, heightTiang = 0, lenLine = 0;
-
-	void _CalcHeightTriang(void){
-		switch(SHIFT_RIGHT(height,16,FF))
-		{	default:
-			case 0: heightTiang = widthTiang;   break;
-			case 1: heightTiang = widthTiang*2; break;
-			case 2: heightTiang = widthTiang*3; break;
-			case 3: heightTiang = widthTiang/2; break;
-			case 4: heightTiang = widthTiang/4; break; }
-	}
-
-	switch((int)direct)
-	{
-		case Right:
-			widthTiang = heightShape;
-			_CalcHeightTriang();
-			lenLine = CONDITION(widthShape>heightTiang, widthShape-heightTiang, 1);
-			LCD_LineH(bkpSizeX, x,  MIDDLE(y,widthTiang,boldLine), lenLine,  frameColor, boldLine);
-			LCD_SimpleTriangle(posBuff,bkpSizeX, x+lenLine, y, widthTiang/2,heightTiang, frameColor, fillColor, bkpColor, direct);
-			break;
-
-		case Left:
-			widthTiang = heightShape;
-			_CalcHeightTriang();
-			lenLine = CONDITION(widthShape>heightTiang, widthShape-heightTiang, 1);
-			LCD_LineH(bkpSizeX, x+heightTiang,  MIDDLE(y,widthTiang,boldLine), lenLine,  frameColor, boldLine);
-			LCD_SimpleTriangle(posBuff,bkpSizeX, x+heightTiang, y, widthTiang/2,heightTiang, frameColor, fillColor, bkpColor, direct);
-			break;
-
-		case Up:
-			widthTiang = widthShape;
-			_CalcHeightTriang();
-			lenLine = CONDITION(heightShape>heightTiang, heightShape-heightTiang, 1);
-			LCD_LineV(bkpSizeX, MIDDLE(x,widthTiang,boldLine),  y+heightTiang, lenLine,  frameColor, boldLine);
-			LCD_SimpleTriangle(posBuff,bkpSizeX, x, y+heightTiang, widthTiang/2,heightTiang, frameColor, fillColor, bkpColor, direct);
-			break;
-
-		case Down:
-			widthTiang = widthShape;
-			_CalcHeightTriang();
-			lenLine = CONDITION(heightShape>heightTiang, heightShape-heightTiang, 1);
-			LCD_LineV(bkpSizeX, MIDDLE(x,widthTiang,boldLine),  y, lenLine,  frameColor, boldLine);
-			LCD_SimpleTriangle(posBuff,bkpSizeX, x, y+lenLine, widthTiang/2,heightTiang, frameColor, fillColor, bkpColor, direct);
-			break;
-	}
-	return params;
-}
-void LCD_Arrow_Indirect(uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor, DIRECTIONS direct){
-	uint32_t bkSizeX = MASK(width,FFFF) +1;
-	uint32_t bkSizeY = MASK(height,FFFF)+1;
-	LCD_ShapeWindow(LCD_Rectangle, 0, bkSizeX,bkSizeY, 0,0, bkSizeX,bkSizeY, bkpColor,bkpColor,bkpColor );
-	LCD_Arrow(0,bkSizeX,bkSizeY, 0,0, width,height, frameColor, fillColor, bkpColor, direct);
-	LCD_Display(0,x,y,bkSizeX,bkSizeY);
-}
-SHAPE_PARAMS LCDSHAPE_Arrow(uint32_t posBuff, SHAPE_PARAMS param){
-	return LCD_Arrow(posBuff,param.bkSize.w,param.bkSize.h, param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[0].bk, param.param[0]);
-}
-void LCDSHAPE_Arrow_Indirect(SHAPE_PARAMS param){
-	return LCD_Arrow_Indirect(param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[0].bk, param.param[0]);
-}
-
-SHAPE_PARAMS LCD_Enter(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor)
-{
-	SHAPE_PARAMS params = {.bkSize.w=bkpSizeX, .bkSize.h=bkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=frameColor, .color[0].fill=fillColor, .color[0].bk=bkpColor};
-
-	if(ToStructAndReturn == posBuff)
-		return params;
-
-	#define LEN_TAIL	(widthTiang/2)
-
-	posBuff = posBuff & 0x7FFFFFFF;
-
-	int heightShape = MASK(height,FFFF);
-	int widthShape = MASK(width,FFFF);
-
-	int boldLine = SHIFT_RIGHT(width,16,FF);
-	int widthTiang = 0, heightTiang = 0, lenLine = 0;
-
-	void _CalcHeightTriang(void){
-		switch(SHIFT_RIGHT(height,16,FF))
-		{	default:
-			case 0: heightTiang = widthTiang;   break;
-			case 1: heightTiang = widthTiang*2; break;
-			case 2: heightTiang = widthTiang*3; break;
-			case 3: heightTiang = widthTiang/2; break;
-			case 4: heightTiang = widthTiang/4; break; }
-	}
-
-	widthTiang = heightShape;
-	_CalcHeightTriang();
-	lenLine = CONDITION(widthShape>heightTiang, widthShape-heightTiang, 1);
-	LCD_LineH(bkpSizeX, x+heightTiang,  		  					MIDDLE(y,widthTiang,(boldLine+1)), 		  				  				 			  lenLine,  frameColor, boldLine);
-	LCD_LineV(bkpSizeX, x+heightTiang+lenLine-(boldLine+1),  MIDDLE(y,widthTiang,(boldLine+1))+(boldLine+1)-(LEN_TAIL+(boldLine+1)/2), LEN_TAIL+(boldLine+1)/2,  frameColor, boldLine);
-	LCD_SimpleTriangle(posBuff,bkpSizeX, x+heightTiang, y, widthTiang/2,heightTiang, frameColor, fillColor, bkpColor, Left);
-
-	return params;
-	#undef LEN_TAIL
-}
-SHAPE_PARAMS LCDSHAPE_Enter(uint32_t posBuff, SHAPE_PARAMS param){
-	return LCD_Enter(posBuff,param.bkSize.w,param.bkSize.h, param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[0].bk);
-}
-
-SHAPE_PARAMS LCD_Exit(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor)
-{
-	SHAPE_PARAMS params = {.bkSize.w=bkpSizeX, .bkSize.h=bkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=frameColor, .color[0].fill=fillColor, .color[0].bk=bkpColor};
-	if(ToStructAndReturn == posBuff)
-		return params;
-
-	int coeff = width > height ? width/height : height/width;
-	Set_AACoeff_Draw(coeff,frameColor,bkpColor, 0.39);
-
-	_StartDrawLine(0,bkpSizeX, x ,y-1);		  _DrawRightDown_AA(width,  height,  frameColor,bkpSizeX);
-	_StartDrawLine(0,bkpSizeX, x, y);		  _DrawRightDown_AA(width+1,height+1,frameColor,bkpSizeX);
-	_StartDrawLine(0,bkpSizeX, x, y+1);		  _DrawRightDown_AA(width,  height,	 frameColor,bkpSizeX);
-
-	_StartDrawLine(0,bkpSizeX, x+width, y-1);  _DrawLeftDown_AA(width,  height,  frameColor,bkpSizeX);
-	_StartDrawLine(0,bkpSizeX, x+width, y);	 _DrawLeftDown_AA(width+1,height+1,frameColor,bkpSizeX);
-	_StartDrawLine(0,bkpSizeX, x+width, y+1);  _DrawLeftDown_AA(width,  height,  frameColor,bkpSizeX);
-	return params;
-}
-SHAPE_PARAMS LCDSHAPE_Exit(uint32_t posBuff, SHAPE_PARAMS param){
-	return LCD_Exit(posBuff,param.bkSize.w,param.bkSize.h, param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[0].bk);
-}
-
-SHAPE_PARAMS LCDSHAPE_Window(ShapeFunc pShape, uint32_t posBuff, SHAPE_PARAMS param){
-	return pShape(posBuff,param);
-}
-
-void LCD_SetCircleParam(float outRatio, float inRatio, int len, ...){
-	va_list va;
-	va_start(va,0);
-	if(len<MAX_LINE_BUFF_CIRCLE_SIZE){
-		Circle.lineBuff[0]=len;
-		for(int i=0;i<len;i++){
-			if(i>=MAX_LINE_BUFF_CIRCLE_SIZE) break;
-			Circle.lineBuff[1+i]=va_arg(va,int);
-		}
-		Circle.outRatioStart=outRatio;
-		Circle.inRatioStart=inRatio;
-	}
-	va_end(va);
-}
-void LCD_SetCircleDegrees(int len, ...){
-	int i,deg;
-	va_list va;
-	va_start(va,0);
-	for(i=0;i<len;i++){
-		if(i==MAX_DEGREE_CIRCLE) break;
-		Circle.degree[1+i]=va_arg(va,int);
-	}
-	Circle.degree[0]=i;
-	va_end(va);
-
-	for(i=0;i<len;i++)
-	{
-		deg=Circle.degree[1+i];
-		Circle.tang[i]= tan(TANG_ARG(deg));
-		Circle.coeff[i] = 1/ABS(Circle.tang[i]);
-
-		if(deg>0 && deg<=45)
-			Circle.rot[i]=1;
-		else if(deg>45 && deg<=90)
-			Circle.rot[i]=2;
-		else if(deg>90 && deg<=135)
-			Circle.rot[i]=3;
-		else if(deg>135 && deg<=180)
-			Circle.rot[i]=4;
-		else if(deg>180 && deg<=225)
-			Circle.rot[i]=5;
-		else if(deg>225 && deg<=270)
-			Circle.rot[i]=6;
-		else if(deg>270 && deg<=315)
-			Circle.rot[i]=7;
-		else if(deg>315 && deg<=360)
-			Circle.rot[i]=8;
-	}
-
-	for(int i=0;i<Circle.degree[0];++i){
-		if(Circle.degree[1+i]==0)
-			Circle.degree[1+i]=360;
-	}
-}
-void LCD_SetCircleDegreesBuff(int len, uint16_t *buf){
-	int i,deg;
-	for(i=0;i<len;i++){
-		if(i==MAX_DEGREE_CIRCLE) break;
-		Circle.degree[1+i]=buf[i];
-	}
-	Circle.degree[0]=i;
-
-	for(i=0;i<len;i++)
-	{
-		deg=Circle.degree[1+i];
-		Circle.tang[i]= tan(TANG_ARG(deg));
-		Circle.coeff[i] = 1/ABS(Circle.tang[i]);
-
-		if(deg>0 && deg<=45)
-			Circle.rot[i]=1;
-		else if(deg>45 && deg<=90)
-			Circle.rot[i]=2;
-		else if(deg>90 && deg<=135)
-			Circle.rot[i]=3;
-		else if(deg>135 && deg<=180)
-			Circle.rot[i]=4;
-		else if(deg>180 && deg<=225)
-			Circle.rot[i]=5;
-		else if(deg>225 && deg<=270)
-			Circle.rot[i]=6;
-		else if(deg>270 && deg<=315)
-			Circle.rot[i]=7;
-		else if(deg>315 && deg<=360)
-			Circle.rot[i]=8;
-	}
-
-	for(int i=0;i<Circle.degree[0];++i){
-		if(Circle.degree[1+i]==0)
-			Circle.degree[1+i]=360;
-	}
-}
-void LCD_SetCircleDegColors(int len, ...){
-	int i;
-	va_list va;
-	va_start(va,0);
-	for(i=0;i<len;i++){
-		if(i==MAX_DEGREE_CIRCLE) break;
-		Circle.degColor[i]=va_arg(va,int);
-	}
-	va_end(va);
-}
-void LCD_SetCircleDegColorsBuff(int len, uint32_t *buf){
-	int i;
-	for(i=0;i<len;i++){
-		if(i==MAX_DEGREE_CIRCLE) break;
-		Circle.degColor[i]=buf[i];
-	}
-}
-void LCD_SetCirclePercentParam(int len, uint16_t *degBuff, uint32_t *degColorBuff){
-	LCD_SetCircleDegreesBuff(len,degBuff);
-	LCD_SetCircleDegColorsBuff(len,degColorBuff);
-}
-void LCD_SetCircleDegree(uint8_t degNr, uint8_t deg){
-	if(degNr<MAX_DEGREE_CIRCLE+1) Circle.degree[degNr]=deg;
-}
-uint16_t LCD_GetCircleDegree(uint8_t degNr){
-	if(degNr<MAX_DEGREE_CIRCLE+1) return Circle.degree[degNr];
-	else return 0;
-}
-uint32_t SetParamWidthCircle(uint16_t param, uint32_t width){
-	return (width&0xFFFF)|param<<16;
-}
-uint16_t CenterOfCircle(uint16_t xy, uint16_t width){
-	return xy+width/2;
-}
-void LCD_SetCircleLine(uint8_t lineNr, uint8_t val){
-	Circle.lineBuff[lineNr]=val;
-}
-void LCD_OffsCircleLine(uint8_t lineNr, int offs){
-	Circle.lineBuff[lineNr]+=offs;
-}
-void LCD_SetCircleAA(float outRatio, float inRetio){
-	Circle.outRatioStart=outRatio;
-	Circle.inRatioStart=inRetio;
-}
-void LCD_CopyCircleAA(void){
-	Circle.outRatioStart_prev=Circle.outRatioStart;
-	Circle.inRatioStart_prev=Circle.inRatioStart;
-}
-void LCD_SetCopyCircleAA(void){
-	Circle.outRatioStart=Circle.outRatioStart_prev;
-	Circle.inRatioStart=Circle.inRatioStart_prev;
-}
-
-uint16_t LCD_GetCircleWidth(void){
-	return Circle.width;
-}
-void LCD_CopyCircleWidth(void){
-	Circle.width_prev=Circle.width;
-}
-void LCD_SetCopyCircleWidth(void){
-	Circle.width=Circle.width_prev;
-}
-
-uint16_t LCD_CalculateCircleWidth(uint32_t width)
-{
-	#define buf	 Circle.lineBuff
-
-	uint32_t x=0, y=0;
-	int matchWidth=0;
-	uint32_t _width=(width&0x0000FFFF)-matchWidth;
-	uint32_t height=_width;
-
-	GOTO_ToCalculateRadius:
-	  _width=(width&0x0000FFFF)-matchWidth;
-
-	float R=((float)_width)/2;
-	uint32_t pxl_width = R/3;
-
-	x=_width/2 + matchWidth/2;
-	if(_width%2) x++;
-	y=0;
-
-	float _x=(float)x, _y=(float)y;
-	float x0=(float)x, y0=(float)y+R;
-
-	float param_y = pow(y0-_y,2);
-	float param_x = pow(_x-x0,2);
-	float decision = pow(R,2);
-
-	int pxl_line=0,i=0;
-	uint8_t block=1;
-
-	void _CorrectDecision(void){
-		if(block){	 int ni= CONDITION(R<=Circle.correctForWidth,0,1);
-			if(i >= VALPERC(pxl_width,Circle.correctPercDeg[ni])){	block=0;   decision= pow(R+Circle.errorDecision[ni],2);  }
-	}}
-
-	buf[0]=pxl_width;
-	do{
-		_x++;  pxl_line++;
-		param_x = pow(_x-x0,2);		_CorrectDecision();
-		if((param_x+param_y) > decision){
-			_y++;
-			param_y = pow(y0-_y,2);
-			buf[1+i++]=pxl_line-1;
-			pxl_line=1;
-		}
-	}while(i<pxl_width);
-
-   uint16_t _height=buf[0];
-  	for(int i=0;i<buf[0];++i) _height+=buf[buf[0]-i];
-  	_height = 2*_height;
-
-	if(height>=_height)
-		y= y+(height-_height)/2;
-	else{
-		matchWidth+=1;
-		goto GOTO_ToCalculateRadius;
-	}
-	return _height;
-	#undef buf
-}
-uint16_t LCD_IncrCircleBold(uint16_t width, uint16_t bold){
-	uint16_t width_temp= width-2*bold, bold_temp= bold, i=0;
-	while(LCD_CalculateCircleWidth(width-2*INCR_WRAP(bold_temp,1,0,width/2-1)) == LCD_CalculateCircleWidth(width_temp) && 20>i) i++;
-	if(20==i) return bold;
-	else		 return bold_temp;
-}
-uint16_t LCD_DecrCircleBold(uint16_t width, uint16_t bold){
-	uint16_t width_temp= width-2*bold, bold_temp= bold, i=0;
-	while(LCD_CalculateCircleWidth(width-2*DECR_WRAP(bold_temp,1,0,width/2-1)) == LCD_CalculateCircleWidth(width_temp) && 20>i) i++;
-	if(20==i) return bold;
-	else		 return bold_temp;
-}
-uint16_t LCD_IncrWrapPercCircleBold(uint16_t radius, uint16_t bold, uint8_t minPerc, uint8_t maxPerc, uint8_t stepPerc){
-	uint16_t _bold= bold;
-	INIT(minVal, VALPERC(radius,minPerc));
-	INIT(maxVal, VALPERC(radius,maxPerc));
-	INIT(stepVal,VALPERC(radius,stepPerc));
-	if(minVal >_bold) _bold= minVal;
-	else{
-		INCR_WRAP( _bold, stepVal, minVal, maxVal);
-		if(minVal==_bold) _bold= 0;
-	}
-	return _bold;
-}
-uint16_t LCD_GetNextIncrCircleWidth(uint32_t width){
-	uint32_t width_start= width;
-	for(int i=0;	i<20 && width_start<=width; 	width_start=LCD_CalculateCircleWidth(width+i++));
-	return width_start;
-}
-uint16_t LCD_GetNextDecrCircleWidth(uint32_t width){
-	uint32_t width_start= width;
-	for(int i=0;   i<20 && width_start>=width; 	width_start=LCD_CalculateCircleWidth(width-i++));
-	return width_start;
-}
-
-structPosition GetCircleMiddPoint(uint16_t *radius){
-	structPosition pos = {Circle.x0, Circle.y0};
-	*radius = Circle.width;
-	return pos;
-}
-
-void LCD_Circle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	#define EASY_BOLD_CIRCLE	0==param && thickness
-	uint32_t width = _width&0xFFFF;			/* MASK(_width,FFFF) */
-	uint16_t param = _width>>16;				/* MSHIFT_RIGHT(_width,16,FFFF) */
-	uint8_t thickness = FrameColor>>24;		/* SHIFT_RIGHT(_FrameColor,24,FF) */
-
-	if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FrameColor, BkpColor, 0);
-	else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FillColor,  BkpColor, 0);
-
-	if(thickness){
-		LCD_CopyCircleWidth();
-   	uint32_t width_new = width-2*thickness;
-		int offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
-		if(EASY_BOLD_CIRCLE) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor, FrameColor, 0);
-		else						LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor, FillColor,  1);
-		LCD_SetCopyCircleWidth();
-	}
-	#undef EASY_BOLD_CIRCLE
-}
-
-/* LCDSHAPE_Create() is defined for circle now,  in future for other shapes maybe */
-SHAPE_PARAMS LCDSHAPE_Create(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t _width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor,u32 selFillColorFrom,u32 selFillColor,u32 selFillColorTo,u16 degree,DIRECTIONS fillDir,u32 outColorRead)
-{
-	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=_width, .size[0].h=height, .color[0].frame=FrameColor, .color[1].frame=FillColor, .color[2].frame=BkpColor, .color[0].fill=selFillColorFrom, .color[1].fill=selFillColor, .color[2].fill=selFillColorTo, .param[0]=degree, .param[1]=fillDir, .param[2]=outColorRead };
-	if(ToStructAndReturn == posBuff)
-		return params;																				/* For 'Percent_Circle'  frameColor != FillColor */
-
-	int scale_x=2, scale_y=1;		/* scale only for 'RightDown' and 'LeftUp' */
-
-	uint32_t width 			= MASK(_width,FFFF);
-	int 	  	_outColorRead 	= MASK(outColorRead,1);
-	uint16_t param 			= SHIFT_RIGHT(_width,16,FFFF);
-	uint8_t 	thickness 		= SHIFT_RIGHT(FrameColor,24,FF);
-	int width_max=0, width_min=0;
-
-	if(Percent_Circle==param){
-		uint16_t deg[2] = {0, degree };
-		uint32_t degColor[2] = {0, COLOR_TEST };
-		LCD_SetCirclePercentParam(2,deg,(uint32_t*)degColor);
-	}
-
-	if(param) LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, FillColor, BkpColor, _outColorRead);
-	else		 LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x,y, _width,height, FrameColor, COLOR_TEST,BkpColor, _outColorRead);
-
-	width_max=Circle.width;
-
-	if(thickness)
-	{
-		LCD_CopyCircleWidth();
-   	uint32_t width_new = width-2*thickness;
-		int offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
-		LCD_DrawCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, width_new,width_new, FrameColor, FillColor, unUsed, ReadOutColor);
-		width_min=Circle.width;
-		LCD_SetCopyCircleWidth();
-
-		int offsCalc=offs, n=0;
-		while(offsCalc==offs){
-			width_new = width-2*(thickness-n);
-			offsCalc= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
-			n++;
-		}
-		offs=offsCalc;
-
-		params.pos[0].x	= x+offs;
-		params.pos[0].y	= y+offs;
-		params.size[0].w	= width_new;
-		params.size[0].h	= width_new;
-	}
-
-	int nmbPxls=0, nmbPxlsHalf=0;
-	switch((int)fillDir){
-	case Round:  nmbPxls=360; break;
-	case Center: nmbPxls=CONDITION(0<thickness,thickness,width_max/2); break;
-	default:		 nmbPxls=width_max; break;
-	}
-	if(nmbPxls>=MAX_SIZE_TAB_AA-1)
-		nmbPxls=MAX_SIZE_TAB_AA-2;
-	nmbPxlsHalf=nmbPxls/2;
-
-	if(0==selFillColorFrom && 0==selFillColor && 0==selFillColorTo){
-		LOOP_FOR(i,nmbPxls){ buff_AA[1+i]=0; }
-	}
-	else if(0!=selFillColorFrom && 0==selFillColor && 0==selFillColorTo){
-		LOOP_FOR(i,nmbPxls){ buff_AA[1+i]=selFillColorFrom; }
-	}
-	else if(0!=selFillColorFrom && 0!=selFillColor && 0==selFillColorTo){
-		switch((int)fillDir){
-		case Up: case Left: case LeftUp: case Center: Set_AACoeff(nmbPxls,selFillColor,    selFillColorFrom, 0.0);	break;
-		default:				 									 Set_AACoeff(nmbPxls,selFillColorFrom,selFillColor,     0.0);	break;
-		}
-	}
-	else if(0!=selFillColorFrom && 0!=selFillColor && 0!=selFillColorTo){
-		switch((int)fillDir){
-		case Up: case Left: case Center:
-			Set_AACoeff(nmbPxlsHalf, selFillColorTo,selFillColor,   0.0);
-			Set_AACoeff2(nmbPxlsHalf,selFillColor,  selFillColorFrom, 0.0);
-			LOOP_FOR(i,nmbPxlsHalf){ buff_AA[1+nmbPxlsHalf+i]=buff2_AA[1+i]; }
-			break;
-		case RightDown: case LeftUp:
-			break;
-		default:
-			Set_AACoeff(nmbPxlsHalf, selFillColorFrom,selFillColor,   0.0);
-			Set_AACoeff2(nmbPxlsHalf,selFillColor, 	selFillColorTo, 0.0);
-			LOOP_FOR(i,nmbPxlsHalf){ buff_AA[1+nmbPxlsHalf+i]=buff2_AA[1+i]; }
-			break;
-		}
-	}
-	else LOOP_FOR(i,nmbPxls){ buff_AA[1+i]=0; }
-
-
-	switch((int)fillDir)
-	{
-	case Center:
-		int radius_min=width_min/2;
-		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		LOOP_FOR(j,width_max){
-			LOOP_FOR(i,width_max){
-				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
-					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
-						int temp = LCD_CIRCLE_GetRadiusFromPosXY(i-width_max/2, width_max/2 -j, 0,0);
-						temp = temp-radius_min;		if(temp>=nmbPxls) temp=nmbPxls-1; else if(temp<0) temp=0;
-						pLcd[k+i]=GetTransitionColor(FrameColor, buff_AA[1+temp], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
-			}}}
-			k+=BkpSizeX;
-		}
-		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		LOOP_FOR(j,width_max){
-			LOOP_FOR(i,width_max){
-				if(pLcd[k+i]==COLOR_TEST){
-					int temp = LCD_CIRCLE_GetRadiusFromPosXY(i-width_max/2, width_max/2 -j, 0,0);
-					temp = temp-radius_min;		if(temp>=nmbPxls) temp=nmbPxls-1; else if(temp<0) temp=0;
-					pLcd[k+i]= buff_AA[1+temp];
-			}}
-			k+=BkpSizeX;
-		}
-		break;
-
-	case Round:
-		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		LOOP_FOR(j,width_max){
-			LOOP_FOR(i,width_max){
-				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
-					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
-						int degg = LCD_CIRCLE_GetDegFromPosXY(i-width_max/2, width_max/2-j, 0,0);
-						pLcd[k+i]=GetTransitionColor(FrameColor, buff_AA[1+degg], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
-			}}}
-			k+=BkpSizeX;
-		}
-		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		LOOP_FOR(j,width_max){
-			LOOP_FOR(i,width_max){
-				if(pLcd[k+i]==COLOR_TEST){
-					int degg = LCD_CIRCLE_GetDegFromPosXY(i-width_max/2, width_max/2-j, 0,0);
-					pLcd[k+i]= buff_AA[1+degg];
-			}}
-			k+=BkpSizeX;
-		}
-		break;
-
-	case Down: case Up:
-		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		LOOP_FOR(j,width_max){
-			LOOP_FOR(i,width_max){
-				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
-					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
-						pLcd[k+i]=GetTransitionColor(FrameColor, buff_AA[1+j], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
-			}}}
-			k+=BkpSizeX;
-		}
-		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		LOOP_FOR(j,width_max){
-			LOOP_FOR(i,width_max){
-				if(pLcd[k+i]==COLOR_TEST)
-					pLcd[k+i]= buff_AA[1+j];
-			}
-			k+=BkpSizeX;
-		}
-		break;
-
-	case Right: case Left:
-		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		LOOP_FOR(j,width_max){
-			LOOP_FOR(i,width_max){
-				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
-					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
-						pLcd[k+i]=GetTransitionColor(FrameColor, buff_AA[1+i], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
-			}}}
-			k+=BkpSizeX;
-		}
-		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		LOOP_FOR(j,width_max){
-			LOOP_FOR(i,width_max){
-				if(pLcd[k+i]==COLOR_TEST)
-					pLcd[k+i]= buff_AA[1+i];
-			}
-			k+=BkpSizeX;
-		}
-		break;
-
-	case RightDown: case LeftUp:
-		int block=0, stepY=-1, _stepY=0, offs=width_max/2-1, arg1AA=0, arg2AA=0, _width_max=width_max/scale_x;
-		_StartDrawLine(posBuff,BkpSizeX,x,y);	stepY=-1; block=0;
-		LOOP_FOR(j,width_max){	_stepY=j/(2+(scale_y-1));  if(stepY!=_stepY){ block=0; arg1AA=1+_stepY; arg2AA=arg1AA+offs; }
-			LOOP_FOR(i,width_max){
-				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
-					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
-						if(block==0){ Set_AACoeff2(_width_max, buff_AA[arg1AA], buff_AA[arg2AA], 0.0); block=1; stepY=_stepY; }
-						pLcd[k+i]=GetTransitionColor(FrameColor, buff2_AA[1+i/scale_x], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
-					}
-				}
-			}
-			k+=BkpSizeX;
-		}
-		_StartDrawLine(posBuff,BkpSizeX,x,y);	stepY=-1; block=0;
-		LOOP_FOR(j,width_max){	_stepY=j/(2+(scale_y-1));  if(stepY!=_stepY){ block=0; arg1AA=1+_stepY; arg2AA=arg1AA+offs; }
-			LOOP_FOR(i,width_max){
-				if(pLcd[k+i]==COLOR_TEST){
-					if(block==0){ Set_AACoeff2(_width_max, buff_AA[arg1AA], buff_AA[arg2AA], 0.0); block=1; stepY=_stepY; }
-					pLcd[k+i]= buff2_AA[1+i/scale_x];
-				}
-			}
-			k+=BkpSizeX;
-		}
-		break;
-
-/* Here not optimized option */
-/*	case RightDown: case LeftUp:
-		int offs=width_max/2-1;
-		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		LOOP_FOR(j,width_max){
-			Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
-			LOOP_FOR(i,width_max){
-				if(_IS_NOT_PXL(k+i,COLOR_TEST,FrameColor,FillColor,BkpColor)){
-					if(_IS_NEXT_PXL(BkpSizeX,k+i,COLOR_TEST)){
-						pLcd[k+i]=GetTransitionColor(FrameColor, buff2_AA[1+i], GetTransitionCoeff(FrameColor,COLOR_TEST,pLcd[k+i]));
-					}
-				}
-			}
-			k+=BkpSizeX;
-		}
-		_StartDrawLine(posBuff,BkpSizeX,x,y);
-		LOOP_FOR(j,width_max){
-			Set_AACoeff2(width_max, buff_AA[1+j/2], buff_AA[1+offs+j/2], 0.0);
-			LOOP_FOR(i,width_max){
-				if(pLcd[k+i]==COLOR_TEST)
-					pLcd[k+i]= buff2_AA[1+i];
-			}
-			k+=BkpSizeX;
-		}
-	break;
+/*
+	v.FONT_ID_Title 	 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Title),	  	FILE_NAME(GetDefaultParam)(FONT_ID_Title));
+	v.FONT_ID_FontColor		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(FontColor),	FILE_NAME(GetDefaultParam)(FONT_ID_FontColor));
+	v.FONT_ID_BkColor 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(BkColor),  	FILE_NAME(GetDefaultParam)(FONT_ID_BkColor));
+	v.FONT_ID_FontType 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(FontType), 	FILE_NAME(GetDefaultParam)(FONT_ID_FontType));
+	v.FONT_ID_FontSize 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(FontSize), 	FILE_NAME(GetDefaultParam)(FONT_ID_FontSize));
+	v.FONT_ID_FontStyle  	= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(FontStyle),	FILE_NAME(GetDefaultParam)(FONT_ID_FontStyle));
+
+	v.FONT_ID_Coeff 			= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Coeff), 		 FILE_NAME(GetDefaultParam)(FONT_ID_Coeff));
+	v.FONT_ID_LenWin 			= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(LenWin), 		 FILE_NAME(GetDefaultParam)(FONT_ID_LenWin));
+	v.FONT_ID_OffsWin 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(OffsWin), 	 FILE_NAME(GetDefaultParam)(FONT_ID_OffsWin));
+	v.FONT_ID_LoadFontTime 	= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(LoadFontTime),FILE_NAME(GetDefaultParam)(FONT_ID_LoadFontTime));
+	v.FONT_ID_PosCursor 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(PosCursor), 	 FILE_NAME(GetDefaultParam)(FONT_ID_PosCursor));
+	v.FONT_ID_CPUusage 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(CPUusage), 	 FILE_NAME(GetDefaultParam)(FONT_ID_CPUusage));
+	v.FONT_ID_Speed 			= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Speed), 		 FILE_NAME(GetDefaultParam)(FONT_ID_Speed));
+	v.FONT_ID_Press 			= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Press), 		 FILE_NAME(GetDefaultParam)(FONT_ID_Press));
 */
-	}
-
-	return params;
-
-/*	https://dmitrymorozoff.github.io/react-circle-slider/
-	https://stackoverflow.com/questions/78482981/custom-circular-slider-with-gradient-colour-bar-swift */
 }
 
-void LCD_HalfCircle(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor){
-	uint8_t thickness = FrameColor>>24;
-	if((thickness==0)||(thickness==255))
-		thickness=0;
-	else
-		thickness=3*thickness;
-
-	if(thickness){
-		LCD_DrawHalfCircle(posBuff,BkpSizeX,BkpSizeY,x,y, width,height, FrameColor, FrameColor, BkpColor);
-		LCD_CopyCircleWidth();
-
-		int whatRotate= width>>16;
-   	uint32_t width_new = (width&0x0000FFFF) - 2*thickness;
-   	int offs= (Circle.width-LCD_CalculateCircleWidth(width_new))/2;
-
-		LCD_DrawHalfCircle(posBuff,BkpSizeX,BkpSizeY,x+offs,y+offs, SetParamWidthCircle(whatRotate,width_new),width_new, FrameColor, FillColor, FrameColor);
-		LCD_SetCopyCircleWidth();
-	}
-	else LCD_DrawHalfCircle(posBuff,BkpSizeX,BkpSizeY,x,y, width,height, FrameColor, FillColor, BkpColor);
-}
-
-SHAPE_PARAMS LCD_RoundRectangle2(u32 posBuff,int rectangleFrame,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct)
+static StructTxtPxlLen ELEMENT_fontRGB(StructFieldPos *field, int xPos,int yPos, int argNmb)
 {
-	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorStart, .color[1].frame=FrameColorStop, .color[0].fill=FillColorStart, .color[1].fill=FillColorStop, .color[0].bk=BkpColor, .param[0]=direct, .param[1]=FLOAT_TO_U32(ratioStart), .param[2]=rectangleFrame};
-	if(ToStructAndReturn == posBuff)
-		return params;
+	#define _TXT_R(x)		 SL(LANG_nazwa_3)
+	#define _TXT_G(x)		 SL(LANG_nazwa_4)
+	#define _TXT_B(x)		 SL(LANG_nazwa_5)
+	#define _TXT_LEFT(x)	 SL(LANG_nazwa_2)
 
-	int boldDirect = SHIFT_RIGHT(rectangleFrame,24,FF);
-	int boldValue = SHIFT_RIGHT(rectangleFrame,16,FF);
-	int stepGrad = SHIFT_RIGHT(rectangleFrame,8,FF);
-	int rectFrame= MASK(rectangleFrame,FF);									if(rectFrame==Frame && boldDirect!=Shade && boldDirect!=AllEdge){ FillColorStart=BkpColor; FillColorStop=BkpColor; }
-	u32 colorBuff[boldValue];
+	StructTxtPxlLen lenStr = {0};
+	StructFieldPos fieldTouch = {0};
 
-	if(boldValue > bold0){
-		switch(boldDirect){
-			case Down2:
-				LCD_DrawRoundRectangle2(posBuff,Frame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
-				LOOP_FOR(i,boldValue){
-					if(i==boldValue-bold1)	LCD_DrawRoundRectangle2(posBuff,rectFrame,BkpSizeX,BkpSizeY,x,y,width,height-(i+1),  FrameColorStart,								BrightIncr(FrameColorStop,i*stepGrad),  FillColorStart,FillColorStop,AA_OUT_OFF,ratioStart,direct);
-					else							LCD_DrawRoundRectangle2(posBuff,Frame,		BkpSizeX,BkpSizeY,x,y,width,height-(i+1),  BrightIncr(FrameColorStop,i*stepGrad),BrightIncr(FrameColorStop,i*stepGrad),  FillColorStart,FillColorStop,AA_OUT_OFF,ratioStart,direct); }
-				break;
-			case Down:
-				LCD_DrawRoundRectangle2(posBuff,Frame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
-				LOOP_FOR(i,boldValue){
-					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-bold1,rectFrame,Frame),BkpSizeX,BkpSizeY,x,y,width,height-(i+1),FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,AA_OUT_OFF,ratioStart,direct); }
-				break;
-			case Up:
-				LCD_DrawRoundRectangle2(posBuff,Frame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
-				LOOP_FOR(i,boldValue){
-					LCD_DrawRoundRectangle2(posBuff,CONDITION(i==boldValue-bold1,rectFrame,Frame),BkpSizeX,BkpSizeY,x,y+(i+1),width,height-(i+1),FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,AA_OUT_OFF,ratioStart,direct); }
-				break;
-			case AllEdge:
-				Set_AACoeff(boldValue,FillColorStart,FillColorStop,ratioStart);	LOOP_FOR(i,boldValue){ colorBuff[i]=buff_AA[1+i]; }
-				LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,colorBuff[0],colorBuff[0],BkpColor,ratioStart,direct);
-				LOOP_FOR(i,boldValue-1){
-					if(i==boldValue-2) LCD_DrawRoundRectangle2(posBuff,rectFrame,				BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i+1],colorBuff[i+1], colorBuff[i+1],colorBuff[i+1], READ_BKCOLOR, ratioStart,direct);
-					else					 LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i+1],colorBuff[i+1], colorBuff[i+1],colorBuff[i+1], AA_OUT_OFF,   ratioStart,direct);
-				}
-				break;
-			case AllEdge2:
-				Set_AACoeff(boldValue,FillColorStart,FillColorStop,ratioStart);	LOOP_FOR(i,boldValue){ colorBuff[i]=buff_AA[1+i]; }
-				LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,colorBuff[0],colorBuff[0],BkpColor,ratioStart,direct);
-				LOOP_FOR(i,boldValue-1){
-					if(i==boldValue-2) LCD_DrawRoundRectangle2(posBuff,rectFrame,           BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad),BrightIncr(colorBuff[i+1],stepGrad), READ_BKCOLOR, ratioStart,direct);
-					else					 LCD_DrawRoundRectangle2(posBuff,Frame|(stepGrad<<24),BkpSizeX,BkpSizeY,x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i+1],					  		 colorBuff[i+1], 					 		 colorBuff[i+1],							 colorBuff[i+1], 							  AA_OUT_OFF, 	 ratioStart,direct);
-				}
-				break;
-			case Shade:
-				LOOP_FOR(i,boldValue){
-					LCD_DrawRoundRectangle2(posBuff,rectFrame,BkpSizeX,BkpSizeY,x+boldValue-i,y+boldValue-i,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
-				}
-				break;
-	}}
-	else LCD_DrawRoundRectangle2(posBuff,rectFrame,BkpSizeX,BkpSizeY,x,y,width,height,FrameColorStart,FrameColorStop,FillColorStart,FillColorStop,BkpColor,ratioStart,direct);
-	return params;
-}
-void LCD_RoundRectangle_Indirect(int rectFrame,u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct){
-	uint32_t bkSizeX = MASK(width,FFFF) +0;
-	uint32_t bkSizeY = MASK(height,FFFF)+0;
-	LCD_ShapeWindow(LCD_Rectangle, 0, bkSizeX,bkSizeY, 0,0, bkSizeX,bkSizeY, BkpColor,BkpColor,BkpColor );
-	LCD_RoundRectangle2(0,rectFrame,bkSizeX,bkSizeY, 0,0, width,height, FrameColorStart,FrameColorStop, FillColorStart, FillColorStop, BkpColor, ratioStart, direct);
-	LCD_Display(0,x,y,bkSizeX,bkSizeY);
-}
-SHAPE_PARAMS LCDSHAPE_RoundRectangle(uint32_t posBuff, SHAPE_PARAMS param){
-	return LCD_RoundRectangle2(posBuff, param.param[2], param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
-}
-void LCDSHAPE_RoundRectangle_Indirect(SHAPE_PARAMS param){
-	LCD_RoundRectangle_Indirect(param.param[2], param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
+	int spaceMain_width 		= LCD_GetWholeStrPxlWidth(v.FONT_ID_FontColor," ",0,ConstWidth);
+	int digit3main_width 	= LCD_GetWholeStrPxlWidth(v.FONT_ID_FontColor,INT2STR(Test.font[0]),0,ConstWidth);
+	int xPos_main 				= xPos + LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,_TXT_LEFT(0),0,NoConstWidth) + 4;
+
+	int _GetWidth(char *txt){ return LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,txt,0,ConstWidth); }
+
+	int xPos_under_left 		= MIDDLE( xPos_main+spaceMain_width, digit3main_width, _GetWidth(_TXT_R(0)) );
+	int xPos_under_right 	= MIDDLE( xPos_main + 3*spaceMain_width + 2*digit3main_width, digit3main_width, _GetWidth(_TXT_B(0)) );
+
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(FontColor), xPos, yPos, TXT_FONT_COLOR, fullHight, 0,250, ConstWidth, \
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	 			 Above_left, 	SL(LANG_nazwa_1), fullHight, 0,250, NoConstWidth,\
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 								 Left_mid, 		_TXT_LEFT(0), fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4|(xPos_under_left<<16),  Under_left,	_TXT_R(20), fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, RGB2INT(60,247,68), v.FONT_BKCOLOR_Descr, 4, 								 Under_center, _TXT_G(40), fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, RGB2INT(51,90,245), v.FONT_BKCOLOR_Descr, 4|(xPos_under_right<<16), Under_right,	_TXT_B(60), fullHight, 0,250, NoConstWidth,\
+		LCD_STR_DESCR_PARAM_NUMBER(5) );
+
+	LCD_SetBkFontShape(v.FONT_VAR_FontColor,BK_LittleRound);
+
+	fieldTouch 			= *field;
+	fieldTouch.width 	= fieldTouch.width/3;
+	fieldTouch.x 		= fieldTouch.x + fieldTouch.width;
+
+#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
+	if(LoadWholeScreen==argNmb)	SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT, Touch_FontColor, press, v.FONT_VAR_FontColor,0, field->len);
+#else
+	if(LoadWholeScreen==argNmb){	SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontColor,  	 		LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontColor,0, *field);
+											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		    Touch_FontColor2, 	 		LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontColor,1, *field);
+											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_MOVE_RIGHT, 		    	 Touch_FontColorMoveRight, press, 								  v.FONT_VAR_FontColor,2, fieldTouch);
+											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_MOVE_LEFT, 		    	 	 Touch_FontColorMoveLeft,  press, 								  v.FONT_VAR_FontColor,3, fieldTouch);
+	}
+#endif
+
+	lenStr.inPixel = field->width;
+	lenStr.height 	= field->height;
+	return lenStr;
+
+	#undef _TXT_R
+	#undef _TXT_G
+	#undef _TXT_B
+	#undef _TXT_LEFT
 }
 
-SHAPE_PARAMS LCD_Rectangle2(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS param)
+static StructTxtPxlLen ELEMENT_fontBkRGB(StructFieldPos *field, int xPos,int yPos, int argNmb)
 {
-	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorStart, .color[1].frame=FrameColorStop, .color[0].fill=FillColorStart, .color[1].fill=FillColorStop, .color[0].bk=BkpColor, .param[0]=param, .param[1]=FLOAT_TO_U32(ratioStart)};
-	if(ToStructAndReturn == posBuff)
-		return params;
+	#define _TXT_R(x)		 SL(LANG_nazwa_3)
+	#define _TXT_G(x)		 SL(LANG_nazwa_4)
+	#define _TXT_B(x)		 SL(LANG_nazwa_5)
+	#define _TXT_LEFT(x)	 SL(LANG_nazwa_7)
 
-	if(AllEdge==param && IS_RANGE(FrameColorStop,1,MINVAL2(width,height)-1)){
-		int boldValue=(int)FrameColorStop;
-		u32 colorBuff[boldValue];
-		Set_AACoeff(boldValue,FillColorStart,FillColorStop,ratioStart);	LOOP_FOR(i,boldValue){ colorBuff[i]=buff_AA[1+i]; }
-		LCD_Frame(posBuff, BkpSizeX,BkpSizeY, x,y, width, height, FrameColorStart, colorBuff[0], BkpColor);
-		LOOP_FOR(i,boldValue-1){
-			if(i==boldValue-2)
-				LCD_Rectangle(posBuff, BkpSizeX,BkpSizeY, x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i], colorBuff[i+1], BkpColor);
-			else
-				LCD_Frame	 (posBuff, BkpSizeX,BkpSizeY, x+(i+1),y+(i+1),width-2*(i+1),height-2*(i+1), colorBuff[i], colorBuff[i+1], BkpColor);
-		}
-		return params;
+	StructTxtPxlLen lenStr = {0};
+	StructFieldPos fieldTouch = {0};
+
+	int spaceMain_width 		= LCD_GetWholeStrPxlWidth(v.FONT_ID_BkColor," ",0,ConstWidth);
+	int digit3main_width 	= LCD_GetWholeStrPxlWidth(v.FONT_ID_BkColor,INT2STR(Test.bk[0]),0,ConstWidth);
+	int xPos_main 				= xPos + LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,_TXT_LEFT(0),0,NoConstWidth) + 4;
+
+	int _GetWidth(char *txt){ return LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,txt,0,ConstWidth); }
+
+	int xPos_under_left 		= MIDDLE( xPos_main+spaceMain_width, digit3main_width, _GetWidth(_TXT_R(0)) );
+	int xPos_under_right 	= MIDDLE( xPos_main + 3*spaceMain_width + 2*digit3main_width, digit3main_width, _GetWidth(_TXT_B(0)) );
+
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(BkColor), xPos, yPos, TXT_BK_COLOR, fullHight, 0,250, ConstWidth, \
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	 			 Above_left,   SL(LANG_nazwa_6), fullHight, 0,250, NoConstWidth,\
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 								 Left_mid, 		_TXT_LEFT(0), fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4|(xPos_under_left<<16),  Under_left,	_TXT_R(20), fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, RGB2INT(60,247,68), v.FONT_BKCOLOR_Descr, 4, 								 Under_center, _TXT_G(40), fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, RGB2INT(51,90,245), v.FONT_BKCOLOR_Descr, 4|(xPos_under_right<<16), Under_right,	_TXT_B(60), fullHight, 0,250, NoConstWidth,\
+		LCD_STR_DESCR_PARAM_NUMBER(5) );
+
+	LCD_SetBkFontShape(v.FONT_VAR_BkColor,BK_LittleRound);
+
+	fieldTouch 			= *field;
+	fieldTouch.width 	= fieldTouch.width/3;
+	fieldTouch.x 		= fieldTouch.x + fieldTouch.width;
+
+#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
+	if(LoadWholeScreen==argNmb)	SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT, Touch_BkColor, press, v.FONT_VAR_BkColor,0, field->len);
+#else
+	if(LoadWholeScreen==argNmb){	SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_BkColor,  	  LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_BkColor,0, *field);
+											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		    Touch_BkColor2, 	  LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_BkColor,1, *field);
+											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_MOVE_RIGHT, 		    	 Touch_BkColorMove, press, 								 v.FONT_VAR_BkColor,2, fieldTouch);
+	}
+#endif
+
+	lenStr.inPixel = field->width;
+	lenStr.height 	= field->height;
+	return lenStr;
+
+	#undef _TXT_R
+	#undef _TXT_G
+	#undef _TXT_B
+	#undef _TXT_LEFT
+}
+
+static StructTxtPxlLen ELEMENT_fontLenOffsWin(StructFieldPos *field, int xPos,int yPos, int argNmb)
+{
+	StructTxtPxlLen lenStr = {0};
+
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(LenWin), xPos, yPos, TXT_LENOFFS_WIN, fullHight, 0,250, ConstWidth, \
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Above_left,  SL(LANG_LenOffsWin3), fullHight, 0,250, NoConstWidth,\
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 					Left_mid, 	  "8.",  fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Under_left,  SL(LANG_LenOffsWin4), fullHight, 0,250, NoConstWidth, \
+		LCD_STR_DESCR_PARAM_NUMBER(3) );
+
+	LCD_SetBkFontShape(v.FONT_VAR_LenWin,BK_LittleRound);
+
+	if(LoadWholeScreen==argNmb)	SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT, Touch_FontLenOffsWin, press, v.FONT_VAR_LenWin,0, *field);
+
+	lenStr.inPixel = field->width;
+	lenStr.height 	= field->height;
+
+	return lenStr;
+}
+
+static StructTxtPxlLen ELEMENT_fontCoeff(StructFieldPos *field, int xPos,int yPos, int argNmb)
+{
+	StructTxtPxlLen lenStr = {0};
+	int interSp= 4, heightTriang= 10;
+
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(Coeff), xPos, yPos, TXT_COEFF, fullHight, 0,250, ConstWidth, \
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, interSp|(xPos<<16),	Above_left,   SL(LANG_FontCoeffAbove), fullHight, 0,250, NoConstWidth,\
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, interSp, 					Left_mid, 	  SL(LANG_FontCoeffLeft),  fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, interSp, 					Under_center, SL(LANG_FontCoeffUnder), fullHight, 0,250, NoConstWidth, \
+		LCD_STR_DESCR_PARAM_NUMBER(3) );
+
+	LCD_SimpleTriangle(0,LCD_X, xPos+field->width-interSp, yPos+LCD_GetFontHeight(v.FONT_ID_Descr)+interSp+heightTriang-1, heightTriang,heightTriang, v.FONT_COLOR_Descr, v.FONT_COLOR_Descr, v.COLOR_BkScreen, Up);
+	LCD_SimpleTriangle(0,LCD_X, xPos+field->width-interSp, yPos+LCD_GetFontHeight(v.FONT_ID_Descr)+interSp+heightTriang+6, heightTriang,heightTriang, v.FONT_COLOR_Descr, v.FONT_COLOR_Descr, v.COLOR_BkScreen, Down);
+
+	LCD_SetBkFontShape(v.FONT_VAR_Coeff,BK_LittleRound);
+
+	if(LoadWholeScreen==argNmb)	SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT, Touch_FontCoeff, press, v.FONT_VAR_Coeff,0, *field);
+
+	lenStr.inPixel = field->width;
+	lenStr.height 	= field->height;
+
+	return lenStr;
+}
+
+static StructTxtPxlLen ELEMENT_fontType(StructFieldPos *field, int xPos,int yPos, int argNmb)
+{
+	StructTxtPxlLen lenStr = {0};
+
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(FontType), xPos, yPos, TXT_FONT_TYPE, fullHight, 0,255, NoConstWidth, \
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16), Above_left,   SL(LANG_FontTypeAbove), fullHight, 0,250, NoConstWidth,\
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 				 Left_mid, 		SL(LANG_FontTypeLeft), 	fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4|(xPos<<16), Under_left,	SL(LANG_FontTypeUnder), fullHight, 0,250, NoConstWidth, \
+		LCD_STR_DESCR_PARAM_NUMBER(3) );
+
+	LCD_SetBkFontShape(v.FONT_VAR_FontType,BK_LittleRound);
+
+#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
+	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontType,  LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontType,0, field->len);
+										  SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_WITH_HOLD, 		  	 Touch_FontType2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontType,1, field->len); }
+#else
+	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontType,  LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontType,0, *field);
+										  SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		   Touch_FontType2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontType,1, *field); }
+#endif
+
+	lenStr.inPixel = field->width;
+	lenStr.height 	= field->height;
+
+	return lenStr;
+}
+
+static StructTxtPxlLen ELEMENT_fontSize(StructFieldPos *field, int xPos,int yPos, int argNmb)
+{
+	StructTxtPxlLen lenStr = {0};
+	StructFieldPos fieldTouch = {0};
+	int interSp= 4;
+
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(FontSize), xPos, yPos, TXT_FONT_SIZE, fullHight, 0,255, NoConstWidth, \
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, interSp|(xPos<<16), Above_left,   SL(LANG_FontSizeAbove), fullHight, 0,250, NoConstWidth,\
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, interSp, 				 Left_mid, 		SL(LANG_FontSizeLeft),  fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, RGB2INT(186,130,50),v.FONT_BKCOLOR_Descr, interSp|(xPos<<16), Under_left,	SL(LANG_FontSizeUnder), fullHight, 0,250, NoConstWidth, \
+		LCD_STR_DESCR_PARAM_NUMBER(3) );
+
+	LCD_SetBkFontShape(v.FONT_VAR_FontSize,BK_LittleRound);
+
+	fieldTouch 			= *field;
+	fieldTouch.width 	= fieldTouch.width/3;
+	fieldTouch.x 		= fieldTouch.x + fieldTouch.width;
+
+#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
+	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontSize, LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontSize,0, field->len);
+										  SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_WITH_HOLD, 		  Touch_FontSize2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontSize,1, field->len); }
+#else
+	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontSize,  	  LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontSize,0, *field);
+										  SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		   Touch_FontSize2, 	  LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontSize,1, *field);
+										  SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_MOVE_RIGHT, 		    	   Touch_FontSizeMove, press, 								 v.FONT_VAR_FontSize,2, fieldTouch); }
+#endif
+
+	lenStr.inPixel = field->width;
+	lenStr.height 	= field->height;
+
+	return lenStr;
+}
+
+static StructTxtPxlLen ELEMENT_fontStyle(StructFieldPos *field, int xPos,int yPos, int argNmb)
+{
+	StructTxtPxlLen lenStr = {0};
+	StructFieldPos field_copy = {0};
+
+	StructFieldPos _Function_FontStyleElement(int noDisp, char *txt){
+		return LCD_StrDependOnColorsDescrVar_array_xyCorrect(noDisp,STR_FONT_PARAM2(FontStyle), xPos, yPos, txt, fullHight, 0,255, NoConstWidth, \
+			v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16), Above_left,   SL(LANG_FontStyleAbove), fullHight, 0,250, NoConstWidth,\
+			v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 				 Left_mid, 		SL(LANG_FontStyleLeft),  fullHight, 0,250, NoConstWidth, \
+			v.FONT_ID_Descr, RGB2INT(251,29,27), v.FONT_BKCOLOR_Descr, 4|(xPos<<16), Under_left,	SL(LANG_FontStyleUnder), fullHight, 0,250, NoConstWidth, \
+			LCD_STR_DESCR_PARAM_NUMBER(3) );
 	}
 
-	int iFrame=0, iFill=0;
-	int maxFramPxl=height, maxFillPxl=height;
+	*field = _Function_FontStyleElement(1," "LONGEST_TXT_FONTSTYLE" ");		field_copy = *field;		/* To adjust frame width to the longest possible mainTxt */
+	*field = _Function_FontStyleElement(0,TXT_FONT_STYLE);
 
-	switch((int)param){
-		case Down: 	 case Up:		 maxFillPxl= height-2;	 	break;
-		case Midd_Y: case Midd_Y2:	 maxFillPxl=(height-2)/2;  break;
-		case Right:  case Left:		 maxFillPxl= width-2;	 	break;
-		case Midd_X: case Midd_X2:	 maxFillPxl= (width-2)/2; 	break;
-	}
-	Set_AACoeff2(maxFramPxl,FrameColorStart,FrameColorStop,ratioStart);		/* careful for {maxFramPxl,maxFillPxl} < MAX_SIZE_TAB_AA */
-	Set_AACoeff (maxFillPxl,FillColorStart, FillColorStop, ratioStart);
+	field->width = field_copy.width;
+	field->height = field_copy.height;
 
-	_StartDrawLine(posBuff,BkpSizeX,x,y);
+	LCD_SetBkFontShape(v.FONT_VAR_FontStyle,BK_LittleRound);
 
-	_FillBuff(width, buff2_AA[1+iFrame++]);
-	if(height>1)
+#ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
+	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontStyle, LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontStyle,0, field->len);
+										  SCREEN_ConfigTouchForStrVar(ID_TOUCH_POINT_WITH_HOLD, 		  Touch_FontStyle2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontStyle,1, field->len); }
+#else
+	if(LoadWholeScreen==argNmb){ SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_FontStyle, LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_FontStyle,0, *field);
+										  SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		  	 Touch_FontStyle2, LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_FontStyle,1, *field); }
+#endif
+
+	lenStr.inPixel = field->width;
+	lenStr.height 	= field->height;
+
+	return lenStr;
+}
+
+static StructTxtPxlLen ELEMENT_fontTime(StructFieldPos *field, int xPos,int yPos, int argNmb)
+{
+	StructTxtPxlLen lenStr = {0};
+
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(LoadFontTime), xPos, yPos, TXT_TIMESPEED, fullHight, 0,250, ConstWidth, \
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Above_left,  SL(LANG_TimeSpeed1), fullHight, 0,250, NoConstWidth,\
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 					Left_mid, 	  "7.",  fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Under_left,  SL(LANG_TimeSpeed2), fullHight, 0,250, NoConstWidth, \
+		LCD_STR_DESCR_PARAM_NUMBER(3) );
+
+	LCD_SetBkFontShape(v.FONT_VAR_LenWin,BK_LittleRound);
+
+	lenStr.inPixel = field->width;
+	lenStr.height 	= field->height;
+
+	return lenStr;
+}
+
+static void FRAMES_GROUP_combined(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY, int bold)
+{
+	#define _LINES_COLOR		COLOR_GRAY(0x77)
+	#define _FILL_COLOR		v.COLOR_FillMainFrame
+
+	#define	_Element(name,cmdX,offsX,cmdY,offsY)		lenStr=ELEMENT_##name(&field, LCD_Xpos(lenStr,cmdX,offsX), LCD_Ypos(lenStr,cmdY,offsY), argNmb);
+	#define	_LineH(width,cmdX,offsX,cmdY,offsY)		 LCD_LineH(LCD_X,LCD_Xpos(lenStr,cmdX,offsX)-2, LCD_Ypos(lenStr,cmdY,offsY), width+4, _LINES_COLOR, bold );
+	#define	_LineV(width,cmdX,offsX,cmdY,offsY)		 LCD_LineV(LCD_X,LCD_Xpos(lenStr,cmdX,offsX), LCD_Ypos(lenStr,cmdY,offsY)-2, width+4, _LINES_COLOR, bold );
+
+	StructFieldPos field={0}, field1={0};
+	uint16_t tab[4]={0};
+	int X_start=0;
+
+	FILE_NAME(funcSet)(FONT_BKCOLOR_Descr, 		_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_FontColor, 	_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_BkColor, 		_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_FontType, 	_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_FontSize, 	_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_FontStyle, 	_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_Coeff, 		_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_LenWin, 		_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_LoadFontTime, _FILL_COLOR);
+
+	_Element(fontRGB,SetPos,X_start=startOffsX,SetPos,startOffsY)		/* _LineV(field.height,GetPos,-startOffsX/2-1,GetPos,0) */	field1=field;
+	_Element(fontBkRGB,GetPos,0,IncPos,offsY)									/* _LineV(field.height,GetPos,-startOffsX/2-1,GetPos,0) */
+	tab[0]=field1.width;
+	tab[1]=field.width;
+	MAXVAL(tab,2,0,tab[3])
+	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
+
+	_Element(fontType,SetPos,X_start+=tab[3]+offsX,SetPos,startOffsY)		_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)	field1=field;
+	_Element(fontSize,GetPos,0,IncPos,offsY)										_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)
+	tab[0]=field1.width;
+	tab[1]=field.width;
+	MAXVAL(tab,2,0,tab[3])
+	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
+
+	_Element(fontStyle,SetPos,X_start+=tab[3]+offsX,SetPos,startOffsY)	_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)	field1=field;
+	_Element(fontTime,GetPos,0,IncPos,offsY)										_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)
+	tab[0]=field1.width;
+	tab[1]=field.width;
+	MAXVAL(tab,2,0,tab[3])
+	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
+
+	int offsX_temp = 0;
+	_Element(fontLenOffsWin,SetPos,X_start+=tab[3]+offsX,SetPos,startOffsY)	_LineV(field.height,GetPos,-offsX/2-1,				 GetPos,0)	field1=field;
+	_Element(fontCoeff,GetPos,0-offsX_temp,IncPos,offsY)							_LineV(field.height,GetPos,-offsX/2-1-offsX_temp,GetPos,0)
+	tab[0]=field1.width;
+	tab[1]=field.width;
+	MAXVAL(tab,2,0,tab[3])
+	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
+
+	#undef _Element
+	#undef _LineH
+	#undef _LineV
+	#undef _FILL_COLOR
+	#undef _LINES_COLOR
+}
+
+static int FRAME_bold2Space(uint8_t bold, uint8_t space){
+	return ((uint32_t)bold&0x000000FF)|(uint32_t)space<<8;
+}
+
+static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY, int boldFrame)		/* Parameters ..Offs.. is counted from STR (not from FRAME) */
+{
+	#define _FRAME_COLOR		v.COLOR_Frame
+	#define _FILL_COLOR		v.COLOR_FillFrame
+																									 /* LCD_BoldRoundRectangle */
+	#define _Rectan LCD_Shape(field.x-fontsFrameSpace, field.y-fontsFrameSpace, LCD_RoundRectangle, field.width+2*fontsFrameSpace, field.height+2*fontsFrameSpace, SetBold2Color(_FRAME_COLOR,bold), _FILL_COLOR, v.COLOR_FillMainFrame)
+
+	#define _Element(name,nrX,cmdX,Xoffs,nrY,cmdY,Yoffs)	\
+			lenStr=ELEMENT_##name(&field, LCD_posX(nrX,lenStr,cmdX,Xoffs), LCD_posY(nrY,lenStr,cmdY,Yoffs), argNmb); \
+			_Rectan; \
+			lenStr=ELEMENT_##name(&field, LCD_posX(nrX,lenStr,GetPos,0), 	LCD_posY(nrY,lenStr,GetPos,0), 	argNmb); \
+			LCD_posY(nrY,lenStr,IncPos,offsY);
+
+	StructFieldPos field={0};
+	uint8_t fontsFrameSpace = boldFrame >>8;
+	int bold = boldFrame&0x000000FF;
+
+	FILE_NAME(funcSet)(FONT_BKCOLOR_Descr, 		_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_FontColor, 	_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_BkColor, 		_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_FontType, 	_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_FontSize, 	_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_FontStyle,	_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_Coeff, 		_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_LenWin, 		_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_LoadFontTime, _FILL_COLOR);
+
+	_Element(fontRGB,0,SetPos,startOffsX,0,SetPos,startOffsY) 	_Element(fontType,0,IncPos,offsX,1,SetPos,startOffsY)  _Element(fontStyle,0,IncPos,offsX,2,SetPos,startOffsY)  _Element(fontLenOffsWin,0,IncPos,offsX,3,SetPos,startOffsY)
+	_Element(fontBkRGB,0,SetPos,startOffsX,0,GetPos,0) 		 	_Element(fontSize,0,IncPos,offsX,1,GetPos,0)				 _Element(fontTime,0,IncPos,offsX,2,GetPos,0)				_Element(fontCoeff,0,IncPos,offsX,3,GetPos,0)
+
+	#undef _Element
+	#undef _Rectan
+	#undef _FRAME_COLOR
+	#undef _FILL_COLOR
+}
+
+void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Touch left dac mozliwosc wspolczynnik zmiany
+{
+	if(NULL == argVal)
+		argVal = (char**)ppMain;
+
+	LCD_Clear(v.COLOR_BkScreen);
+
+	if(LoadWholeScreen == argNmb)
 	{
-		_NextDrawLine(BkpSizeX,width);
-		for (int j=0; j<height-2; j++)
-		{
-			_FillBuff(1, buff2_AA[1+iFrame]);
-			switch((int)param){
-				case Down:
-					_FillBuff(width-2, buff_AA[1+iFill]);
-					break;
-				case Up:
-					_FillBuff(width-2, buff_AA[1+(maxFillPxl-1)-iFill]);
-					break;
-				case Midd_Y:
-					if(j==maxFillPxl || j==0) iFill=0;
-					if(j< maxFillPxl) _FillBuff(width-2, buff_AA[1+iFill]);
-					else				   _FillBuff(width-2, buff_AA[1+(maxFillPxl-1)-iFill]);
-					break;
-				case Midd_Y2:
-					if(j==maxFillPxl || j==0) iFill=0;
-					if(j< maxFillPxl)	_FillBuff(width-2, buff_AA[1+(maxFillPxl-1)-iFill]);
-					else					_FillBuff(width-2, buff_AA[1+iFill]);
-					break;
-				case Right:
-					LOOP_FOR(i,maxFillPxl){ _FillBuff(1, buff_AA[1+i]); }
-					break;
-				case Left:
-					LOOP_FOR(i,maxFillPxl){ _FillBuff(1, buff_AA[1+(maxFillPxl-1)-i]); }
-					break;
-				case Midd_X:
-					LOOP_FOR(i,maxFillPxl){ _FillBuff(1, buff_AA[1+i]); }
-					LOOP_FOR(i,maxFillPxl){ _FillBuff(1, buff_AA[1+(maxFillPxl-1)-i]); }
-					break;
-				case Midd_X2:
-					LOOP_FOR(i,maxFillPxl){ _FillBuff(1, buff_AA[1+(maxFillPxl-1)-i]); }
-					LOOP_FOR(i,maxFillPxl){ _FillBuff(1, buff_AA[1+i]); }
-					break;
-				case RightDown:
-					if(width>=height){
-						int ratio = (width-2)/(height-2);
-						Set_AACoeff (width-2,FillColorStart, FillColorStop, ratioStart);
-						u32 colornext = buff_AA[1+((width-2)-1)-ratio*((height-2)-1)+ratio*j];
-						Set_AACoeff (width-2,FillColorStart, colornext, ratioStart);
-						LOOP_FOR(i,width-2){ _FillBuff(1, buff_AA[1+i]); }
-					}
-					else{
-						Set_AACoeff (height-2,FillColorStart, FillColorStop, ratioStart);
-						u32 colornext = buff_AA[1+j];
-						Set_AACoeff (width-2,FillColorStart, colornext, ratioStart);
-						LOOP_FOR(i,width-2){ _FillBuff(1, buff_AA[1+i]); }
-					}
-					break;
-			}
-			_FillBuff(1, buff2_AA[1+iFrame]);
-			_NextDrawLine(BkpSizeX,width);
-			iFill++; iFrame++;
-		}
-		_FillBuff(width, buff2_AA[1+iFrame]);
+		SCREEN_ResetAllParameters();
+		LCD_TOUCH_DeleteAllSetTouch();
+		FONTS_LCD_ResetParam();
+
+		DbgVar(v.DEBUG_ON,100, "%s" Cya_"\r\nStart: %s\r\n"_X, CONDITION(USE_DBG_CLR,Clr_,""), GET_CODE_FUNCTION);
+
+		LoadFonts(FONT_ID_Title, FONT_ID_Press);
+		LCD_LoadFontVar();
+
+		LCDTOUCH_Set(LCD_X-FV(SetVal,0,LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,SL(LANG_MainFrameType),0,NoConstWidth)+5), \
+						 LCD_Y-FV(SetVal,1,LCD_GetFontHeight(v.FONT_ID_Descr)+5), \
+						 	 	 FV(GetVal,0,NoUse),\
+								 FV(GetVal,1,NoUse), ID_TOUCH_POINT,Touch_MainFramesType,press);
+
+		LCD_Ymiddle(ID_MIDDLE_TXT,SetPos, SetPosAndWidth(Test.yFontsField,240) );
+		LCD_Xmiddle(ID_MIDDLE_TXT,SetPos, SetPosAndWidth(Test.xFontsField,LCD_GetXSize()),NULL,0,NoConstWidth);
+		LCD_SetBkFontShape(v.FONT_VAR_Fonts,BK_Rectangle);
+
+		vTimerService(TIMER_Cpu,start_time,noUse);
 	}
-	return params;
-}
-void LCD_Rectangle_Indirect(u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct){
-	uint32_t bkSizeX = MASK(width,FFFF) +0;
-	uint32_t bkSizeY = MASK(height,FFFF)+0;
-	LCD_ShapeWindow(LCD_Rectangle, 0, bkSizeX,bkSizeY, 0,0, bkSizeX,bkSizeY, BkpColor,BkpColor,BkpColor );
-	LCD_Rectangle2(0,bkSizeX,bkSizeY, 0,0, width,height, FrameColorStart,FrameColorStop, FillColorStart, FillColorStop, BkpColor, ratioStart, direct);
-	LCD_Display(0,x,y,bkSizeX,bkSizeY);
-}
-SHAPE_PARAMS LCDSHAPE_Rectangle(uint32_t posBuff, SHAPE_PARAMS param){
-	return LCD_Rectangle2(posBuff, param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
-}
-void LCDSHAPE_Rectangle_Indirect(SHAPE_PARAMS param){
-	LCD_Rectangle_Indirect(param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
+	/*FILE_NAME(printInfo)();*/
+
+	INIT(endSetFrame,195);
+	LCD_DrawMainFrame(LCD_RoundRectangle,NoIndDisp,0, 0,0, LCD_X,endSetFrame,SHAPE_PARAM(MainFrame,FillMainFrame,BkScreen));
+
+	if		 (*(argVal+0)==(char*)FRAMES_GROUP_combined)
+		FRAMES_GROUP_combined(argNmb,15,15,25,25,1);
+	else if(*(argVal+0)==(char*)FRAMES_GROUP_separat)
+		FRAMES_GROUP_separat(argNmb,15,15,25,25,FRAME_bold2Space(0,6));
+
+
+	LCD_StrDependOnColorsVar(STR_FONT_PARAM(CPUusage,FillMainFrame),0,420,TXT_CPU_USAGE,halfHight,0,255,ConstWidth);
+	LCD_StrDependOnColors(v.FONT_ID_Descr, LCD_X-FV(GetVal,0,NoUse), LCD_Y-FV(GetVal,1,NoUse), SL(LANG_MainFrameType), fullHight,0, v.COLOR_FillFrame, v.FONT_COLOR_Descr, 255, NoConstWidth);
+
+	if(LoadUserScreen == argNmb){
+
+	}
+
+	StartMeasureTime_us();
+	 if(Test.type==RGB_RGB) lenStr= LCD_StrChangeColorVar(v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, RGB_BK, RGB_FONT,																		  Test.coeff, Test.constWidth, v.COLOR_BkScreen);
+	 else  						lenStr= LCD_StrVar			  (v.FONT_VAR_Fonts,v.FONT_ID_Fonts, POS_X_TXT, POS_Y_TXT, Test.txt, fullHight, Test.spaceBetweenFonts, argNmb==0 ? v.COLOR_BkScreen : LCD_GetStrVar_bkColor(v.FONT_VAR_Fonts), Test.coeff, Test.constWidth, v.COLOR_BkScreen);
+	Test.speed=StopMeasureTime_us("");
+
+	EXPER_FUNC_beforeDispBuffLcd();
+
+	if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
+	if(LoadNoDispScreen != argNmb) LCD_Show();
+
+	EXPER_FUNC_afterDispBuffLcd();
 }
 
-int LCD_GradCircButtSlidCorrectXY(SHAPE_PARAMS param, u16 bkWidth){
-	return CONDITION( param.bkSize.w==bkWidth, 0, ((int)bkWidth-(int)param.bkSize.w)/2);
-}
 
-/* ------------------- CIRCLE BUTTON ------------------------*/
-SHAPE_PARAMS LCD_GradientCircleButton(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColor,u32 FillColorGradStart,u32 FillColorGradStop,u32 BkpColor,u32 outColorRead)
+
+
+
+
+
+
+static void EXPER_FUNC_beforeDispBuffLcd(void)
 {
-	if(x==0){ BkpSizeX+=2; BkpSizeY+=2;	 x=1, y=1; }
-	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColor, .color[0].fill=FillColorGradStart, .color[1].fill=FillColorGradStop, .color[0].bk=BkpColor, .param[0]=outColorRead };
-	if(ToStructAndReturn == posBuff)
-		return params;
-	SHAPE_PARAMS par={0};	uint16_t circleWidth;
-	par=LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, x,				 y, 				width, 			height, 			FrameColor, 																 						 COLOR_TEST_1, 						 BkpColor, FillColorGradStart,FillColorGradStop,0,unUsed,RightDown,outColorRead);	circleWidth=Circle.width;
-		 LCDSHAPE_Create(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, par.size[0].h, SetBold2Color(GetTransitionColor(FillColorGradStart,FillColorGradStop,0.2),0), _DESCR("not used",COLOR_TEST_2), BkpColor, FillColorGradStart,FillColorGradStop,0,unUsed,LeftUp, 	 ReadOutColor);
-	Circle.width=circleWidth;
-	return params;
-}
-void LCD_GradientCircleButton_Indirect(												 u32 x,u32 y,u32 width,u32 height,u32 FrameColor,u32 FillColorGradStart,u32 FillColorGradStop,u32 BkpColor,u32 outColorRead){
-	uint32_t bkSizeX = MASK(width,FFFF) +2;
-	uint32_t bkSizeY = MASK(height,FFFF)+2;
-	if(0==MASK(outColorRead,1)) LCD_ShapeWindow(LCD_Rectangle, 0, bkSizeX,bkSizeY, 0,0, bkSizeX,bkSizeY, BkpColor,BkpColor,BkpColor );
-	LCD_GradientCircleButton(0,bkSizeX,bkSizeY,1,1,width,height,FrameColor,FillColorGradStart,FillColorGradStop,BkpColor,outColorRead);
-	LCD_Display(0,x,y,bkSizeX,bkSizeY);
-}
-SHAPE_PARAMS LCDSHAPE_GradientCircleButton(uint32_t posBuff, SHAPE_PARAMS param){
-	return LCD_GradientCircleButton(posBuff, param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, param.param[0]);
-}
-void LCDSHAPE_GradientCircleButton_Indirect(						 SHAPE_PARAMS param){
-	LCD_GradientCircleButton_Indirect(param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, param.param[0]);
-}
+	#define ONLY_ONE_AT_START		0
+	static int only_one = 0;
+	if(only_one==0)
+	{
+		StartMeasureTime_us();
+		structPosU16 pos[3]= { {150,350}, {xPP,240}, {315,325} };				structPosU16 pos2[3]={0};
 
-/* ------------------- CIRCLE SLIDER ------------------------*/
-SHAPE_PARAMS LCD_GradientCircleSlider(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorSlid,u32 FillColorSlid,u32 GradColorStartSlid,u32 GradColorSlid,u32 GradColorStopSlid,u32 FrameColorButt,u32 FillColorStartButt,u32 FillColorStopButt,u32 BkpColor,u16 degree,DIRECTIONS fillDirSlid,u32 outColorRead)
-{
-	if(x==0){ BkpSizeX+=2; BkpSizeY+=2;	 x=1, y=1; }
-	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorSlid, .color[1].frame=FrameColorButt, .color[0].fill=GradColorStartSlid, .color[1].fill=GradColorSlid, .color[2].fill=GradColorStopSlid, .color[0].bk=BkpColor, .color[1].bk=FillColorSlid, .param[0]=FillColorStartButt, .param[1]=FillColorStopButt, .color[2].frame=degree, .color[2].bk=fillDirSlid, .param[2]=outColorRead };
-	if(ToStructAndReturn == posBuff)
-		return params;
-	SHAPE_PARAMS par={0};	uint16_t circleWidth;
-	par=LCDSHAPE_Create			(posBuff,BkpSizeX,BkpSizeY, x,				y, 			  SetParamWidthCircle(Percent_Circle,width),width, 		  FrameColorSlid,FillColorSlid, 							 	BkpColor, GradColorStartSlid,GradColorSlid,GradColorStopSlid,degree,fillDirSlid,outColorRead);	 circleWidth=Circle.width;
-	if(unUsed!=FrameColorButt && unUsed!=FillColorStartButt && unUsed!=FillColorStopButt)
-		LCD_GradientCircleButton(posBuff,BkpSizeX,BkpSizeY, par.pos[0].x, par.pos[0].y, par.size[0].w, 									  par.size[0].h, FrameColorButt,FillColorStartButt,FillColorStopButt,BkpColor,																							  ReadOutColor);
-	Circle.width=circleWidth;
-	return params;
-}
-void LCD_GradientCircleSlider_Indirect(u32 x,u32 y,u32 width,u32 height,u32 FrameColorSlid,u32 FillColorSlid,u32 GradColorStartSlid,u32 GradColorSlid,u32 GradColorStopSlid,u32 FrameColorButt,u32 FillColorStartButt,u32 FillColorStopButt,u32 BkpColor,u16 degree,DIRECTIONS fillDirSlid,u32 outColorRead){
-	uint32_t bkSizeX = MASK(width,FFFF) +2;
-	uint32_t bkSizeY = MASK(height,FFFF)+2;
-	if(0==MASK(outColorRead,1)) LCD_ShapeWindow(LCD_Rectangle, 0, bkSizeX,bkSizeY, 0,0, bkSizeX,bkSizeY, BkpColor,BkpColor,BkpColor );
-	LCD_GradientCircleSlider(0,bkSizeX,bkSizeY,1,1,width,height,FrameColorSlid,FillColorSlid,GradColorStartSlid,GradColorSlid,GradColorStopSlid,FrameColorButt,FillColorStartButt,FillColorStopButt,BkpColor,degree,fillDirSlid,outColorRead);
-	LCD_Display(0,x,y,bkSizeX,bkSizeY);
-}
-SHAPE_PARAMS LCDSHAPE_GradientCircleSlider(uint32_t posBuff, SHAPE_PARAMS param){
-	return LCD_GradientCircleSlider(posBuff, param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].bk, param.color[0].fill, param.color[1].fill, param.color[2].fill, param.color[1].frame, param.param[0], param.param[1], param.color[0].bk, param.color[2].frame, param.color[2].bk, param.param[2]);
-}
-void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
-	LCD_GradientCircleSlider_Indirect(param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].bk, param.color[0].fill, param.color[1].fill, param.color[2].fill, param.color[1].frame, param.param[0], param.param[1], param.color[0].bk, param.color[2].frame, param.color[2].bk, param.param[2]);
-}
+		//structPosition pos={250,300},pos0;
+		if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
 
-/* ---------------------------- GRAPH ------------------------- */
-int GRAPH_IsIndirect(int nrMem){		if(ptrPrev[nrMem].startXYchart.x != posXY[0].x	&&	 ptrPrev[nrMem].startXYchart.y != posXY[0].y	) return 1;
-												else																															  return 0;
-}
-int GRAPH_IsMemReloaded(int nrMem){
-	extern u32 GET_nmbrBytesForFontsImages();
-	if(ptrPrev[nrMem].CounterBusyBytesForFontsImages_copy != GET_nmbrBytesForFontsImages()) return 1;
-	return 0;
-}
-int GRAPH_GetNmbrPoints(int nrMem)
-{
-	#if defined(GRAPH_MEMORY_SDRAM2)
-		if(chartMemOffsForMemNr[nrMem]==-1) return 0;
+
+		//pos.x=xPP; pos.y=250;			pos0.x=180; pos0.y=460;
+
+
 		extern char* GETVAL_ptr(uint32_t nrVal);
-		int ptr2Mem = chartMemOffsForMemNr[nrMem] + (SIZE_ONE_CHART * nrMem);
-		posXY_par = (structGetSmpl*) GETVAL_ptr (ptr2Mem);
-	#endif
-	return posXY_par[0].nmbrPoints;
-}
-							/* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
-int GRAPH_GetSamples(int offsMem,int nrMem, int startX,int startY, int yMin,int yMax, int nmbrPoints,float precision, float scaleX,float scaleY, int funcPatternType)
-{
-	#if defined(GRAPH_MEMORY_SDRAM2)
-		if(GRAPH_SetPointers(offsMem,nrMem)) return 0;
-		chartMemOffsForMemNr[nrMem]=offsMem;
-	#endif
-	extern u32 GET_nmbrBytesForFontsImages();
-	GRAPH_ClearPosXYpar();
-	GRAPH_ClearPosXY();
-	GRAPH_ClearPosXYrep();			/* '.len_posXY' may be equal to 'nmbrPoints' or many times smaller as in square signal */
 
-	posXY_par[0].len_posXY 	  = GRAPH_GetFuncPosXY(startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType);		/* len_posXY >> len_posXYrep (many times larger, at least 2 times) */
-	posXY_par[0].len_posXYrep = GRAPH_RepetitionRedundancyOfPosXY(posXY_par[0].len_posXY);
+		static int posAi = 0;
+		static structPosU16 *posA;
 
-	posXY_par[0].startX=startX;	posXY_par[0].startY=startY;	posXY_par[0].yMin=yMin;		posXY_par[0].yMax=yMax;		posXY_par[0].nmbrPoints=nmbrPoints;	  posXY_par[0].precision=precision;	  posXY_par[0].scaleX=scaleX;	 posXY_par[0].scaleY=scaleY;	 posXY_par[0].funcPatternType=funcPatternType;
+		posA = (structPosU16*) GETVAL_ptr (0);
 
-	ptrPrev[nrMem].startXYchart.x  = startX;
-	ptrPrev[nrMem].startXYchart.y  = startY;
-	ptrPrev[nrMem].yMinMaxchart[0] = startY + yMin;
-	ptrPrev[nrMem].yMinMaxchart[1] = startY + yMax;
-	ptrPrev[nrMem].sizeX 			 = nmbrPoints;
-	ptrPrev[nrMem].CounterBusyBytesForFontsImages_copy = GET_nmbrBytesForFontsImages();
-
-	if(1 > posXY_par[0].len_posXYrep) return 1;
-	else										 return 0;
-}
-
-structPointParam GRAPH_SetPtr(u32 fromColorPtr, u32 toColorPtr, u16 sizePtr, 					 u16 posPtr, 				  u8 hideShowPtr, \
-									   u32 fromColorRct, u32 toColorRct, u16 xSizeRct,u16 ySizeRct, u16 xPosRct,u16 yPosRct, u8 hideShowRct, int fontID)
-{
-	structPointParam param = {.fromColorPtr=fromColorPtr, .toColorPtr=toColorPtr, .sizePtr=sizePtr, 				.posPtr=posPtr, 				.hideShowPtr=hideShowPtr, \
-									  .fromColorRct=fromColorRct, .toColorRct=toColorRct, .sizeRct={xSizeRct,ySizeRct}, .posRct={xPosRct,yPosRct}, .hideShowRct=hideShowRct, .fontID=fontID};
-	return param;
-}
-
-int GRAPH_DrawPtr(int nrMem, int posPtr)
-{
-	if(nrMem >= MAX_CHARTS_SIMULTANEOUSLY 	||  ptrPrev[nrMem].ptr.hideShowPtr == 0) return 0;
-	#if defined(GRAPH_MEMORY_SDRAM2)
-		if(chartMemOffsForMemNr[nrMem]==-1)	 							return 0;
-		if(GRAPH_SetPointers(chartMemOffsForMemNr[nrMem],nrMem)) return 0;
-	#endif
-	int posBuff = 0;
-	int ptrX,ptrY, offsX,offsY;
-	int ptrX_prev 		= ptrPrev[nrMem].pos.x;
-	int ptrY_prev 		= ptrPrev[nrMem].pos.y;
-	u16 corrPtrW 		= ptrPrev[nrMem].size.w+2;		/* '+2' because of bkSizeX for LCD_GradientCircleButton() */
-	u16 corrPtrH 		= ptrPrev[nrMem].size.h+2;
-	u32 colorTransPtr = GetTransitionColor( ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0.5);
-	int posChartPtr   = 0;
-
-	void __PTR_CopyBitmapToMem_and_PrepareBk(void){
-		u32 temp;
-		_2LOOP_INIT(int m=0, i,j, corrPtrW,corrPtrH)
-			if(m>=CHART_PTR_MEM_SIZE) return;
-			temp 				  				= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(ptrPrev[nrMem].pos.y+j)+(ptrPrev[nrMem].pos.x+i)];
-			*(ptrPrev[nrMem].ptrMem+m) = temp;		/* write background to memory */
-			pLcd[posBuff+m]  				= temp;  	/* prepare new background */
-			m++;
-		_2LOOP_END
-		ptrPrev[nrMem].memInUse=1;
-	}
-	void __RCT_CopyBitmapToMem_and_PrepareBk(void){
-	/* Time execution for none optimization for below code: 800[us]					Time execution for optimization: 400[us] 					Time execute for fast or size optimization: 220[us] but vibration screen are observed ! */
-	/*	StartMeasureTime_us();
-		u32 temp;
-		_2LOOP_INIT(int m=0, i,j, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h)
-			temp 								= pLcd[posBuff+ptrPrev[nrMem].chartBkW*(ptrPrev[nrMem].ptr.posRct.y+j)+(ptrPrev[nrMem].ptr.posRct.x+i)];
-			*(ptrPrev[nrMem].rctMem+m) = temp;		//write background to memory
-			pLcd[posBuff+m]  				= temp;		//prepare new background
-			m++;
-		_2LOOP_END
-	*/
-	/* Time execution for none optimization for LCD_CopyBuffers(): 600[us]			Time execute for debug optimization: 270[us]				Time execute for fast or size optimization: 150[us] but vibration screen are observed ! */
-		LCD_CopyBuffers( ptrPrev[nrMem].rctMem, 0, 		 ptrPrev[nrMem].ptr.sizeRct.w, 0,									0, \
-							  pLcd,						 posBuff, ptrPrev[nrMem].chartBkW, 	 	 ptrPrev[nrMem].ptr.posRct.x, ptrPrev[nrMem].ptr.posRct.y, ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h);		/* write background to memory */
-
-		LCD_CopyBuffers( pLcd,						 posBuff, ptrPrev[nrMem].ptr.sizeRct.w, 0,									0, \
-							  pLcd,						 posBuff, ptrPrev[nrMem].chartBkW, 	 	 ptrPrev[nrMem].ptr.posRct.x, ptrPrev[nrMem].ptr.posRct.y,  ptrPrev[nrMem].ptr.sizeRct.w, ptrPrev[nrMem].ptr.sizeRct.h);  	/* prepare new background */
-		ptrPrev[nrMem].memInUse=1;
-	}
-
-	if(GRAPH_IsIndirect(nrMem)){	offsX = ptrPrev[nrMem].startXYchart.x;
-											offsY = ptrPrev[nrMem].startXYchart.y;		}
-	else{	 	offsX = 0;
-			 	offsY = 0;	 }
-
-	int temp2 = offsX+posXY[0].x;
-	LOOP_FOR(i, posXY_par[0].len_posXY){	if(temp2 != offsX+posXY[i].x) temp2=offsX+posXY[i].x;		if(temp2>=posPtr){ posChartPtr=i; break; }	}
-
-	if(posChartPtr >= posXY_par[0].len_posXY)	posChartPtr = posXY_par[0].len_posXY - 1;  		/* posXY_par[0].len_posXY >= ptrPrev[nrMem].sizeX */
-	if(posChartPtr < 0)								posChartPtr = 0;
-
-/*	if(posXY[posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								 + corrPtrW/2){		while(posXY[++posChartPtr].x < ptrPrev[nrMem].startXYchart.x 								+ corrPtrW/2);		}
-	if(posXY[posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2){		while(posXY[--posChartPtr].x > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - corrPtrW/2);		}	*/			/* only if pointer has distance from end or start of chart */
-
-	SET_VAL( offsX + posXY[posChartPtr].x - corrPtrW/2, 		ptrX, 	ptrPrev[nrMem].pos.x );
-	SET_VAL( offsY + posXY[posChartPtr].y - corrPtrH/2, 		ptrY, 	ptrPrev[nrMem].pos.y );
-
-	if(ptrPrev[nrMem].memInUse) LCD_ErasePrevShape(ptrX_prev,ptrY_prev, ptrX,ptrY, corrPtrW,corrPtrH, ptrPrev[nrMem].ptrMem);
-	if(ptrPrev[nrMem].ptr.hideShowRct)
-	{
-		extern void LCD_TxtInFrame_minimize();
-		int rectX, rectY;
-		int rectW 		= ptrPrev[nrMem].ptr.sizeRct.w;
-		int rectH 		= ptrPrev[nrMem].ptr.sizeRct.h;
-		int rectX_prev = ptrPrev[nrMem].ptr.posRct.x;
-		int rectY_prev = ptrPrev[nrMem].ptr.posRct.y;
-		int offsRctToPtr_x = 0;		/* offset X relative to middle of pointer */
-		int offsRctToPtr_y = 0;		/* offset Y relative to edge of pointer 	*/
-
-		switch(ptrPrev[nrMem].ptr.hideShowRct){
-			default:
-			case 1:
-				offsRctToPtr_x = 0;
-				offsRctToPtr_y = -15;
-				break;
-
-			case 2:
-				offsRctToPtr_x = -20;
-				offsRctToPtr_y = 15;
-				break;
-		}
-		int xRctStart = ( ptrX - (rectW-corrPtrW)/2 ) + offsRctToPtr_x;
-		if(xRctStart < ptrPrev[nrMem].startXYchart.x)  											 xRctStart = ptrPrev[nrMem].startXYchart.x;
-		if(xRctStart > ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - rectW)   xRctStart = ptrPrev[nrMem].startXYchart.x + ptrPrev[nrMem].sizeX - rectW;
-
-		int yRctStart = ptrY + CONDITION(offsRctToPtr_y<0,-rectH,corrPtrH) + offsRctToPtr_y;
-		if(yRctStart < ptrPrev[nrMem].yMinMaxchart[0])  			yRctStart = ptrY + corrPtrH + ABS(offsRctToPtr_y);
-		if(yRctStart > ptrPrev[nrMem].yMinMaxchart[1] - rectH)   yRctStart = ptrY - rectH 	 - ABS(offsRctToPtr_y);
-
-		SET_VAL( xRctStart, rectX, ptrPrev[nrMem].ptr.posRct.x );
-		SET_VAL( yRctStart, rectY, ptrPrev[nrMem].ptr.posRct.y );
-
-		if(ptrPrev[nrMem].memInUse) LCD_ErasePrevShape(rectX_prev,rectY_prev, rectX,rectY, rectW,rectH, ptrPrev[nrMem].rctMem);
-		__RCT_CopyBitmapToMem_and_PrepareBk();
-		LCD_BoldRoundRectangleTransp(posBuff,  rectW,rectH, 	0,0, 	rectW,rectH, 	SetBold2Color(ptrPrev[nrMem].ptr.fromColorRct,3), ptrPrev[nrMem].ptr.toColorRct, READ_BGCOLOR, 0.5);
-		LCD_TxtInFrame_minimize(rectW,rectH, ptrPrev[nrMem].ptr.fontID, -2,0, 	StrAll(3,Int2Str(ptrX+corrPtrW/2,None,3,Sign_none),",",Int2Str(ptrY+corrPtrH/2,None,3,Sign_none)),		ptrPrev[nrMem].ptr.hideShowRct);
-		LCD_Display(posBuff, rectX,rectY, rectW,rectH);
-	}
-
-	__PTR_CopyBitmapToMem_and_PrepareBk();
-	LCD_GradientCircleButton_Indirect(ptrX,ptrY,  corrPtrW-2,corrPtrH-2,  SetBold2Color(colorTransPtr,1), ptrPrev[nrMem].ptr.fromColorPtr, ptrPrev[nrMem].ptr.toColorPtr, 0,ReadOutColor);
-	return posChartPtr;
-}
-
-int GRAPH_ptrTouchService(u16 touchPosX, u16 touchPosY, int nrChart){
-	if( IS_RANGE(touchPosX, ptrPrev[nrChart].startXYchart.x,  ptrPrev[nrChart].startXYchart.x+ptrPrev[nrChart].sizeX ) &&
-		 IS_RANGE(touchPosY, ptrPrev[nrChart].yMinMaxchart[0], ptrPrev[nrChart].yMinMaxchart[1]					  		  ) )
-	{
-		GRAPH_DrawPtr(nrChart, touchPosX);
-		return 1;
-	}
-	return 0;
-}
-					 /* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
-void GRAPH_Draw(int posBuff,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
-					DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA, structPointParam chartPtr, u32 gridColor,int gridSizeX,int gridSizeY,int gridType,float gridCoeff)
-{
-	#if defined(GRAPH_MEMORY_SDRAM2)
-		if(chartMemOffsForMemNr[nrMem]==-1)	 							return;
-		if(GRAPH_SetPointers(chartMemOffsForMemNr[nrMem],nrMem)) return;
-	#endif
-
-	if(!IS_RANGE(posXY_par[0].len_posXYrep,1,GRAPH_MAX_SIZE_POSXY)) return;
-
-	u32 bkColor = 0;
-	int transParamSize = 1 + (posXY_par[0].yMax - posXY_par[0].yMin),   posX_prev=0,   distanceY,   n;
-
-	struct COLOR_TRANS_PARAM{
-		u32 lineColor;
-		u32 bkColor;
-		float coeff;
-		u32 transColor;
-	}TransParam[transParamSize];
-
-	/* Draw gradient background for chart */
-	if((int)bkGradType > -1)
-	{
-		switch((int)bkGradType)
+		CorrectLineAA_off();
+		perVal=0.0;
+		for(  int i=0; i<999; ++i)
 		{
-			case Grad_YmaxYmin:
-				LOOP_FOR(i,transParamSize){
-					TransParam[i].lineColor	 = gradColor1;
-					TransParam[i].bkColor	 = 0;
-					TransParam[i].coeff		 = (amplTrans * ((float)i)) / (float)transParamSize + offsTrans;
-					TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
-				break;
+			LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[0] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); //LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal    ), BLACK );
+			LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[1] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); //LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),100-perVal), BLACK );
+			LCD_Line(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		pos2[2] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );  LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal		), BLACK );
 
-			case Grad_Ystrip:
-				break;
+			if(posAi>0 && posA[posAi-1].x == pos2[2].x){
+				posAi--;
+			}
+			Dbg(1,"i");
 
-			case Grad_Ycolor:
-				LOOP_FOR(i,transParamSize){
-					TransParam[i].coeff		 = (amplTrans * ((float)i)) / (float)transParamSize + offsTrans;
-					TransParam[i].lineColor	 = GetTransitionColor(gradColor1, gradColor2, TransParam[i].coeff);
-					TransParam[i].bkColor	 = 0;
-					TransParam[i].transColor = GetTransitionColor(TransParam[i].lineColor, TransParam[i].bkColor, TransParam[i].coeff); }
-				break;
+				  if(posAi>2 && posA[posAi-2].x == pos2[2].x);
+			else if(posAi>3 && posA[posAi-3].x == pos2[2].x);
+			else
+				posA[posAi++]=pos2[2];
+			perVal+=0.1;
 		}
 
-		LOOP_FOR(i,posXY_par[0].len_posXY)
+
+
+
+//
+//		  if(TakeMutex(Semphr_sdram, 1000))
+//		  {
+//
+//			  GiveMutex(Semphr_sdram);
+//		  }
+
+
+
+
+
+		for(  int i=0; i<posAi; ++i)
 		{
-			if(posXY[i].x != posX_prev)
-			{
-					if(Grad_Ystrip == bkGradType){
-						if(gradStripY) distanceY = gradStripY;
-						else				distanceY = (posXY_par[0].startY + posXY_par[0].yMax)-(posXY[i].y+1);
-						LOOP_FOR(m, distanceY){
-							TransParam[m].lineColor	 = gradColor1;
-							TransParam[m].bkColor	 = CONDITION(0==colorIn, _PLCD(posBuff,posXY[i].x,posXY[i].y+1+m), colorIn);
-							TransParam[m].coeff		 = (amplTrans * ((float)m)) / ((float)distanceY) + offsTrans;
-							TransParam[m].transColor = GetTransitionColor(TransParam[m].lineColor, TransParam[m].bkColor, TransParam[m].coeff); }
-					}
-
-					LOOP_INIT(j, posXY[i].y+1, posXY_par[0].startY + posXY_par[0].yMax)
-					{
-						switch((int)bkGradType)
-						{
-							case Grad_YmaxYmin:
-							case Grad_Ycolor:
-								if(0==colorIn)	bkColor = _PLCD(posBuff,posXY[i].x, j);
-								else				bkColor = colorIn;
-								n = j-(posXY_par[0].startY + posXY_par[0].yMin);
-								if(TransParam[n].bkColor == bkColor)
-									_PLCD(posBuff,posXY[i].x, j) = TransParam[n].transColor;
-								else{
-									TransParam[n].bkColor 	 = bkColor;
-									TransParam[n].transColor = GetTransitionColor(TransParam[n].lineColor, TransParam[n].bkColor, TransParam[n].coeff);
-									_PLCD(posBuff,posXY[i].x, j) = TransParam[n].transColor;
-								}
-								break;
-
-							case Grad_Ystrip:
-								n = j - (posXY[i].y+1);
-								if(n < distanceY)
-									_PLCD(posBuff,posXY[i].x, j) = TransParam[n].transColor;
-								break;
-					}}
-			}
-			posX_prev = posXY[i].x;
+			LCD_Buffer(LCD_X, 400+posA[i].x,posA[i].y, WHITE);
 		}
-	}
 
-	/* Draw lines of the chart */
-	if((int)dispOption==Disp_AA){
-					   GRAPH_Display(posBuff,	    	widthBk, posXY_par[0].len_posXYrep, colorLineAA, colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
-		if(offsK1){ GRAPH_Display(posBuff+offsK1, widthBk, posXY_par[0].len_posXYrep, color1,		 colorOut,colorIn, outRatioStart,inRatioStart, 0); 		 }
-		if(offsK2){ GRAPH_Display(posBuff+offsK2, widthBk, posXY_par[0].len_posXYrep, color2,		 colorOut,colorIn, 1.0,			   1.0,			  unUsed); 	 }
-	}
-	else{
-		if((int)dispOption&Disp_posXY)	 GRAPH_DispPosXY	 (posBuff+offsK1, widthBk, posXY_par[0].len_posXY,	 	color1);
-		if((int)dispOption&Disp_posXYrep) GRAPH_DispPosXYrep(posBuff+offsK2, widthBk, posXY_par[0].len_posXYrep, color2);
-		if((int)dispOption&Disp_AA)		 GRAPH_Display		 (posBuff,		 	widthBk, posXY_par[0].len_posXYrep, colorLineAA, colorOut,colorIn, outRatioStart,inRatioStart, corr45degAA);
-	}
 
-	/* Draw grid of the chart */
-	if(Grid_None != gridType)
-	{
-		int offsX = CONDITION( GRAPH_IsIndirect(nrMem), 0, ptrPrev[nrMem].startXYchart.x  );
-		int offsY = CONDITION( GRAPH_IsIndirect(nrMem), 0, ptrPrev[nrMem].yMinMaxchart[0] );
-		int SizeY = ptrPrev[nrMem].yMinMaxchart[1] - ptrPrev[nrMem].yMinMaxchart[0];
-		_2LOOP(i,j, ptrPrev[nrMem].sizeX, SizeY)
-			switch(gridType){
-				case Grid_Dots: 		if(i%gridSizeX==0 && j%gridSizeY==0)	_PLCD(posBuff,offsX+i,offsY+j) = GetTransitionColor(_PLCD(posBuff,offsX+i,offsY+j), gridColor,gridCoeff);	break;
-				case Grid_Line:  		if(i%gridSizeX==0 || j%gridSizeY==0)	_PLCD(posBuff,offsX+i,offsY+j) = GetTransitionColor(_PLCD(posBuff,offsX+i,offsY+j), gridColor,gridCoeff); 	break;
-				default: break;
-			}
-		_2LOOP_END
-	}
 
-	/* Prepare (not display here) pointer of the chart, rest of data is filled in GRAPH_DrawPtr() */
-	if(chartPtr.hideShowPtr)
-	{
-		if(nrMem >= MAX_CHARTS_SIMULTANEOUSLY) return;
-		int sizeChartPtr  = CONDITION(chartPtr.sizePtr%2, chartPtr.sizePtr+1, chartPtr.sizePtr);
-		ptrPrev[nrMem].size.w  	= sizeChartPtr;
-		ptrPrev[nrMem].size.h  	= sizeChartPtr;
-		ptrPrev[nrMem].pos.x   	= 0;
-		ptrPrev[nrMem].pos.y   	= 0;;
-		ptrPrev[nrMem].chartBkW = LCD_X;
-		ptrPrev[nrMem].ptr 	 	= chartPtr;
-		ptrPrev[nrMem].ptrMem	= chartPtrMem[nrMem];
-		ptrPrev[nrMem].rctMem	= chartRctMem[nrMem];
-		if(chartPtr.hideShowRct){
-			ptrPrev[nrMem].ptr.posRct.x = ptrPrev[nrMem].pos.x;
-			ptrPrev[nrMem].ptr.posRct.y = ptrPrev[nrMem].pos.y;
+
+		for(  int i=0; i<posAi; ++i)
+		{
+			posA[i].x -= pos[0].x;
+			posA[i].y -= pos[0].y;
 		}
-		ptrPrev[nrMem].memInUse=0;
-	/* LCD_GradientCircleButton(0,widthBk,unUsed, ptrPrev.pos.x, ptrPrev.pos.y,  ptrPrev.size.w, ptrPrev.size.h,  SetBold2Color(colorTransPtr,1),chartPtr.fromColorPtr,chartPtr.toColorPtr,0,ReadOutColor); */		/* This function is used only in GRAPH_DrawPtr() */
+
+
+		//daj jako minimaze example
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,250, -100,100), POINTS_STEP_XYSCALE(posAi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
+
+
+
+
+
+		StopMeasureTime_us("Time GRAPH:");
 	}
+	only_one = ONLY_ONE_AT_START;
+
+
+
+	LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 20,200, "12345", BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
+
+
+	#undef ONLY_ONE_AT_START
 }
-									  /* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
-void GRAPH_GetSamplesAndDraw(int posBuff, int offsMem,int nrMem, u32 widthBk, int startX,int startY, int yMin,int yMax, int nmbrPoints,float precision, float scaleX,float scaleY, int funcPatternType, u32 colorLineAA, u32 colorOut, u32 colorIn, float outRatioStart, float inRatioStart, \
-								DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA, structPointParam chartPtr, u32 gridColor,int gridSizeX,int gridSizeY,int gridType,float gridCoeff)
+
+
+
+
+static void EXPER_FUNC_afterDispBuffLcd(void)
 {
-	if(nrMem >= MAX_CHARTS_SIMULTANEOUSLY) return;
-	if(GRAPH_GetSamples(offsMem,nrMem,startX,startY,yMin,yMax,nmbrPoints,precision,scaleX,scaleY,funcPatternType)) return;
-	GRAPH_Draw(posBuff,nrMem, widthBk, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, dispOption,color1,color2,offsK1,offsK2, bkGradType,gradColor1,gradColor2,gradStripY,amplTrans,offsTrans, corr45degAA, chartPtr, gridColor,gridSizeX,gridSizeY,gridType,gridCoeff);
-}
 
-/* ---------------------------- CHART ------------------------- */
-													 /* 'offsMem', 'nrMem' are used only for GRAPH_MEMORY_SDRAM2 */
-USER_GRAPH_PARAM LCD_Chart(int posBuff,int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOut, u32 colorIn, u32 bkRectColor, float outRatioStart, float inRatioStart, DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA, structPointParam chartPtr, u32 gridColor,int gridSizeX,int gridSizeY,int gridType,float gridCoeff){
-	#if defined(GRAPH_MEMORY_SDRAM2)
-		if(chartMemOffsForMemNr[nrMem]==-1)  							return USER_GRAPH_PARAM_Zero;
-		if(GRAPH_SetPointers(chartMemOffsForMemNr[nrMem],nrMem)) return USER_GRAPH_PARAM_Zero;
-	#endif
-	USER_GRAPH_PARAM params = {.offsMem=chartMemOffsForMemNr[nrMem], .nrMem=nrMem, .widthBk=widthBk, .lineColor=colorLineAA, .AAoutColor=colorOut, .AAinColor=colorIn, .AAoutCoeff=outRatioStart, .AAinCoeff=inRatioStart, .dispOpt=dispOption, .colorLinePosXY=color1, .colorLinePosXYrep=color2, .KoffsPosXY=offsK1, .KoffsPosXYrep=offsK2, .grad.bkType=bkGradType, .grad.fromColor=gradColor1, .grad.toColor=gradColor2, .grad.stripY=gradStripY, .grad.amplTrans=amplTrans, .grad.offsTrans=offsTrans, .bkRectColor=bkRectColor, .corr45degAA=corr45degAA, .ptr=chartPtr, .grid.color=gridColor, .grid.sizeX=gridSizeX, .grid.sizeY=gridSizeY, .grid.type=gridType, .grid.transCoeff=gridCoeff };
-
-	params.par.startX				= posXY_par[0].startX;
-	params.par.startY				= posXY_par[0].startY;
-	params.par.yMin				= posXY_par[0].yMin;
-	params.par.yMax				= posXY_par[0].yMax,
-	params.par.nmbrPoints		= posXY_par[0].nmbrPoints;
-	params.par.precision			= posXY_par[0].precision;
-	params.par.scaleX				= posXY_par[0].scaleX;
-	params.par.scaleY				= posXY_par[0].scaleY;
-	params.par.funcPatternType	= posXY_par[0].funcPatternType;
-	params.par.len_posXY			= posXY_par[0].len_posXY;
-	params.par.len_posXYrep		= posXY_par[0].len_posXYrep;
-
-	if(ToStructAndReturn == posBuff)
-		return params;
-	if(IS_RANGE(widthBk,10,LCD_X))
-		GRAPH_Draw(posBuff,nrMem, widthBk, colorLineAA,colorOut,colorIn, outRatioStart,inRatioStart, dispOption,color1,color2,offsK1,offsK2, bkGradType,gradColor1,gradColor2,gradStripY,amplTrans,offsTrans, corr45degAA, chartPtr, gridColor,gridSizeX,gridSizeY,gridType,gridCoeff);
-	return params;
-}
-
-void LCD_Chart_Indirect(int nrMem, u32 widthBk, u32 colorLineAA, u32 colorOut, u32 colorIn, u32 bkRectColor, float outRatioStart, float inRatioStart, DISP_OPTION dispOption, u32 color1, u32 color2, int offsK1, int offsK2, GRADIENT_GRAPH_TYPE bkGradType,u32 gradColor1,u32 gradColor2,u8 gradStripY,float amplTrans,float offsTrans, int corr45degAA, structPointParam chartPtr, u32 gridColor,int gridSizeX,int gridSizeY,int gridType,float gridCoeff){
-	#if defined(GRAPH_MEMORY_SDRAM2)
-		if(chartMemOffsForMemNr[nrMem]==0)	 							return;
-		if(GRAPH_SetPointers(chartMemOffsForMemNr[nrMem],nrMem)) return;
-	#endif
-	int yPosInGetSamples = ptrPrev[nrMem].startXYchart.y;
-	int x	 		= MASK(widthBk>>16,FFFF);
-	int y			= MASK(widthBk,	 FFFF)-yPosInGetSamples;
-	int width  	= posXY_par[0].nmbrPoints;
-	int height 	= 1+2*yPosInGetSamples;
-	int offsK	= 0;		/* must be multiple of '32' */
-	ptrPrev[nrMem].startXYchart.x  = x;
-	ptrPrev[nrMem].startXYchart.y  = y;
-	ptrPrev[nrMem].yMinMaxchart[0] = MASK(widthBk,FFFF)-yPosInGetSamples;
-	ptrPrev[nrMem].yMinMaxchart[1] = MASK(widthBk,FFFF)+yPosInGetSamples;
-	if(bkRectColor) LCD_ShapeWindow(LCD_Rectangle, offsK, width,height, 0,0, width,height, RED,bkRectColor,bkRectColor);
-	GRAPH_Draw(offsK, nrMem, width, colorLineAA, colorOut, colorIn, outRatioStart, inRatioStart, dispOption, color1, color2, offsK1, offsK2, bkGradType, gradColor1, gradColor2, gradStripY, amplTrans, offsTrans, corr45degAA, chartPtr, gridColor,gridSizeX,gridSizeY,gridType,gridCoeff);
-	_2LOOP_INIT(k=width,i,j,width,height)
-			if(i==0) 		pLcd[offsK+k+i]=bkRectColor;
-			if(i==width-1) pLcd[offsK+k+i]=bkRectColor;
-		_1LOOP_END
-		k += width;
-	_1LOOP_END
-	LCD_Display(offsK, x,y, width,height);
-	LCD_CopyBuffers(pLcd,0,LCD_X,x,y, pLcd,offsK,width,0,0,width,height);  /* copying buffers is very important only for GRAPH_DrawPtr() */
-}
-USER_GRAPH_PARAM LCDSHAPE_Chart(uint32_t posBuff, USER_GRAPH_PARAM param){
-	return LCD_Chart(posBuff, param.nrMem, param.widthBk, param.lineColor, param.AAoutColor, param.AAinColor, param.bkRectColor, param.AAoutCoeff, param.AAinCoeff, param.dispOpt, param.colorLinePosXY, param.colorLinePosXYrep, param.KoffsPosXY, param.KoffsPosXYrep, param.grad.bkType, param.grad.fromColor, param.grad.toColor, param.grad.stripY, param.grad.amplTrans, param.grad.offsTrans, param.corr45degAA, param.ptr, param.grid.color, param.grid.sizeX, param.grid.sizeY, param.grid.type, param.grid.transCoeff);
-}
-void LCDSHAPE_Chart_Indirect(USER_GRAPH_PARAM param){
-	LCD_Chart_Indirect(		  param.nrMem, param.widthBk, param.lineColor, param.AAoutColor, param.AAinColor, param.bkRectColor, param.AAoutCoeff, param.AAinCoeff, param.dispOpt, param.colorLinePosXY, param.colorLinePosXYrep, param.KoffsPosXY, param.KoffsPosXYrep, param.grad.bkType, param.grad.fromColor, param.grad.toColor, param.grad.stripY, param.grad.amplTrans, param.grad.offsTrans, param.corr45degAA, param.ptr, param.grid.color, param.grid.sizeX, param.grid.sizeY, param.grid.type, param.grid.transCoeff);
 }
 
 
 
 
 
+#undef POS_X_TXT
+#undef POS_Y_TXT
+#undef TEXT_TO_SHOW
+#undef ID_MIDDLE_TXT
+#undef POS_X_TXT
+#undef POS_Y_TXT
+#undef TXT_FONT_COLOR
+#undef TXT_BK_COLOR
+#undef TXT_FONT_TYPE
+#undef TXT_FONT_SIZE
+#undef TXT_FONT_STYLE
+#undef TXT_COEFF
+#undef TXT_LEN_WIN
+#undef TXT_OFFS_WIN
+#undef TXT_LENOFFS_WIN
+#undef TXT_TIMESPEED
+#undef TXT_CPU_USAGE
+#undef RGB_FONT
+#undef RGB_BK
+#undef CHECK_TOUCH
+#undef SET_TOUCH
+#undef CLR_TOUCH
+#undef CLR_ALL_TOUCH
+#undef GET_TOUCH
+#undef NONE_TYPE_REQ
+#undef MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY
+#undef SELECT_CURRENT_FONT
 
 
-//void __attribute__ ((optimize("-Ofast"))) EXTI4_15_IRQHandler(void)
-//{
-//    // ...
-//}
 
 
-/*------------------- Example Shape Outline (only for more advanced graphics - not for basic) -------------------------------------
-SHAPE_PARAMS LCD_XXX(u32 posBuff,u32 BkpSizeX,u32 BkpSizeY,u32 x,u32 y,u32 width,u32 height,u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS param)
-{
-	SHAPE_PARAMS params = {.bkSize.w=BkpSizeX, .bkSize.h=BkpSizeY, .pos[0].x=x, .pos[0].y=y, .size[0].w=width, .size[0].h=height, .color[0].frame=FrameColorStart, .color[1].frame=FrameColorStop, .color[0].fill=FillColorStart, .color[1].fill=FillColorStop, .color[0].bk=BkpColor, .param[0]=param, .param[1]=FLOAT_TO_U32(ratioStart)};
-	if(ToStructAndReturn == posBuff)
-		return params;
-	;
 
-	return params;
-}
-void LCD_XXX_Indirect(u32 x,u32 y, u32 width,u32 height, u32 FrameColorStart,u32 FrameColorStop,u32 FillColorStart,u32 FillColorStop,u32 BkpColor,float ratioStart,DIRECTIONS direct){
-	uint32_t bkSizeX = MASK(width,FFFF) +0;
-	uint32_t bkSizeY = MASK(height,FFFF)+0;
-	LCD_ShapeWindow(LCD_Rectangle, 0, bkSizeX,bkSizeY, 0,0, bkSizeX,bkSizeY, BkpColor,BkpColor,BkpColor );
-	LCD_XXX(0,bkSizeX,bkSizeY, 0,0, width,height, FrameColorStart,FrameColorStop, FillColorStart, FillColorStop, BkpColor, ratioStart, direct);
-	LCD_Display(0,x,y,bkSizeX,bkSizeY);
-}
-SHAPE_PARAMS LCDSHAPE_XXX(uint32_t posBuff, SHAPE_PARAMS param){
-	return LCD_XXX(posBuff, param.bkSize.w, param.bkSize.h, param.pos[0].x, param.pos[0].y, param.size[0].w, param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
-}
-void LCDSHAPE_XXX_Indirect(SHAPE_PARAMS param){
-	LCD_XXX_Indirect(param.pos[0].x,param.pos[0].y, param.size[0].w,param.size[0].h, param.color[0].frame, param.color[1].frame, param.color[0].fill, param.color[1].fill, param.color[0].bk, U32_TO_FLOAT(param.param[1]), param.param[0]);
-}
-------------------- END Example Shape Outline ------------------------------------- */
+//ZROBIC cieniowanie pol i text 3d na nim jak w biletcie automatu na muzeum naradowe
 
 
-/* #pragma GCC pop_options */
+//ROBIMY :  1. LISTVIEW  tabelko z lista   2. klawiature i koniec !!!
+
+	//ATTENTION IN FUTURE   tylko w jednej funkcji umieszczamy zmienne odswiezane reularnie i ta funkcja idzie do jakiegos watku !!!!!
+
+
+	//1
+//	  union {
+//	    const void * p;     /* Message specific data pointer */
+//	    int v;
+//	    GUI_COLOR Color;
+//	    void (* pFunc)(void);
+//	  } Data;
+//2 struktura dynamicznej allokacji pamieci ja kw GUI
+
+
+
+
+//w harfoult interrup ddacv mozliwosc odczyti linijki kodu poprzedniego !!!!
+//Zrobic szablon nowego okna -pliku LCD !!!! aby latwo wystartowac !!!
+//ZROBIC animacje ze samo sie klioka i chmurka z info ze przytrzymac na 2 sekundy ....
+//ZROBIC AUTOMATYCZNE testy wszystkich mozliwosci !!!!!!! taki interfejs testowy
+//tu W **arcv PRZEKAZ TEXT !!!!!! dla fonts !!!
+//tester po uart czy eth zeby samo ekran klikalo i ustawialo !!!! taka setup animacja
