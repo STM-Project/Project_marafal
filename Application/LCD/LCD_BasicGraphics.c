@@ -3247,7 +3247,10 @@ static double GRAPHFUNC_Square(double posX){
 }
 static double GRAPHFUNC_Owner(double posX){
 	/* return bufferY[posX]; */
-	return 0;
+	extern char* GETVAL_ptr(uint32_t nrVal);
+	structPosU16 *pos;
+	pos = (structPosU16*) GETVAL_ptr (0);
+	return (double) (pos[(int)posX].y);		/* return (double) ((pos+(int)posX)->x); */
 }
 
 static double GRAPHFUNC_Noise(void){
