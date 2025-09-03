@@ -2365,18 +2365,23 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		//pos.x=xPP; pos.y=250;			pos0.x=180; pos0.y=460;
 
-		static int posAi = 0;
-		static structPosU16 posA[500] = {0};
 
-		//CorrectLineAA_off();
-		//perVal=0.0;
-		//for(  int i=0; i<999; ++i)
-		//{
+		extern char* GETVAL_ptr(uint32_t nrVal);
+
+		static int posAi = 0;
+		static structPosU16 *posA;
+
+		posA = (structPosU16*) GETVAL_ptr (0);
+
+		CorrectLineAA_off();
+		perVal=0.0;
+		for(  int i=0; i<999; ++i)
+		{
 			LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[0] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); //LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal    ), BLACK );
 			LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[1] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); //LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),100-perVal), BLACK );
 			LCD_Line(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		pos2[2] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );  LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal		), BLACK );
 
-			if(posAi>0 && posA[posAi-1].x == pos2[2].x){
+			if(posAi>0 && (posA+posAi-1)->x == pos2[2].x){
 				posAi--;
 			}
 			Dbg(1,"i");
@@ -2385,8 +2390,18 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 			else if(posAi>3 && posA[posAi-3].x == pos2[2].x);
 			else
 				posA[posAi++]=pos2[2];
-			//perVal+=0.1;
-		//}
+			perVal+=0.1;
+		}
+
+
+
+
+//
+//		  if(TakeMutex(Semphr_sdram, 1000))
+//		  {
+//
+//			  GiveMutex(Semphr_sdram);
+//		  }
 
 
 
@@ -2396,6 +2411,22 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		{
 			LCD_Buffer(LCD_X, 400+posA[i].x,posA[i].y, WHITE);
 		}
+
+
+
+
+		for(  int i=0; i<posAi; ++i)
+		{
+			posA[i].x -= pos[0].x;
+			posA[i].y = pos[0].y - posA[i].y;
+		}
+
+
+		//daj jako minimaze example
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,250, -100,100), POINTS_STEP_XYSCALE(posAi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
+
+
+
 
 
 		StopMeasureTime_us("Time GRAPH:");
