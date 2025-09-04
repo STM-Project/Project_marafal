@@ -2381,7 +2381,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 			LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[1] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); //LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),100-perVal), BLACK );
 			LCD_Line(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		pos2[2] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );  LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal		), BLACK );
 
-			if(posAi>0 && (posA+posAi-1)->x == pos2[2].x){
+			if(posAi>0 && (posA+posAi-1)->x == pos2[2].x){	// if the same position x
 				posAi--;
 			}
 			Dbg(1,"i");
@@ -2420,6 +2420,30 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 			posA[i].x -= pos[0].x;
 			posA[i].y = pos[0].y - posA[i].y;
 		}
+
+
+
+//1.Option
+//		for(  int i=0; i<posAi; ++i)  //filtracja AVR
+//		{
+//				if(i<posAi-3)
+//					posA[i].y = (posA[i].y + posA[i+1].y + posA[i+2].y ) / 3;
+//		}
+
+
+//2.Option
+//		int tab[3];
+//		for(  int i=0; i<posAi; ++i)  //filtracja MID
+//		{
+//			if(i<posAi-3)
+//			{
+//				tab[0] = posAi[i].y;
+//				tab[1] = posAi[i+1].y;
+//				tab[2] = posAi[i+2].y;
+//				SORT_Bubble(tab, 3);
+//				posAi[i].y = tab[1];
+//			}
+//		}
 
 
 		//daj jako minimaze example
