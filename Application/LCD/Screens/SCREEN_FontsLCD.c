@@ -2421,14 +2421,16 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 			posA[i].y = pos[0].y - posA[i].y;
 		}
 
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,250, -100,100), POINTS_STEP_XYSCALE(posAi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
+
 
 
 //1.Option
-//		for(  int i=0; i<posAi; ++i)  //filtracja AVR
-//		{
-//				if(i<posAi-3)
-//					posA[i].y = (posA[i].y + posA[i+1].y + posA[i+2].y ) / 3;
-//		}
+		for(  int i=0; i<posAi; ++i)  //filtracja AVR
+		{
+				if(i<posAi-3)
+					posA[i].y = (posA[i].y + posA[i+1].y + posA[i+2].y ) / 3;
+		}
 
 
 //2.Option
@@ -2447,7 +2449,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 
 		//daj jako minimaze example
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,250, -100,100), POINTS_STEP_XYSCALE(posAi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,400, -100,100), POINTS_STEP_XYSCALE(posAi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
 
 
 
