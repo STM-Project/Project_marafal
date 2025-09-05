@@ -2426,26 +2426,26 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 
 //1.Option
-		for(  int i=0; i<posAi; ++i)  //filtracja AVR
-		{
-				if(i<posAi-3)
-					posA[i].y = (posA[i].y + posA[i+1].y + posA[i+2].y ) / 3;
-		}
+//		for(  int i=0; i<posAi; ++i)  //filtracja AVR
+//		{
+//				if(i<posAi-3)
+//					posA[i].y = (posA[i].y + posA[i+1].y + posA[i+2].y ) / 3;
+//		}
 
 
 //2.Option
-//		int tab[3];
-//		for(  int i=0; i<posAi; ++i)  //filtracja MID
-//		{
-//			if(i<posAi-3)
-//			{
-//				tab[0] = posAi[i].y;
-//				tab[1] = posAi[i+1].y;
-//				tab[2] = posAi[i+2].y;
-//				SORT_Bubble(tab, 3);
-//				posAi[i].y = tab[1];
-//			}
-//		}
+		int tab[3];
+		for(  int i=0; i<posAi; ++i)  //filtracja MID
+		{
+			if(i<posAi-3)
+			{
+				tab[0] = posA[i].y;
+				tab[1] = posA[i+1].y;
+				tab[2] = posA[i+2].y;
+				SORT_Bubble(tab, 3);
+				posA[i].y = tab[1];
+			}
+		}
 
 
 		//daj jako minimaze example
