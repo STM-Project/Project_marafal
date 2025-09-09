@@ -4226,17 +4226,26 @@ void LCD_BoldRoundFrameTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSi
 	LCD_DrawRoundRectangleFrameTransp(0,posBuff,BkpSizeX,BkpSizeY,x+k1,y+k1,width-k2,height-k2,FrameColor,FillColor,AA_OUT_OFF,transpCoeff);
 }
 
-
-
-
 void LCD_ResetNmbrLinePoints(void){	 		 nmbrLinePoints = 0;	}
 u16  LCD_GetNmbrLinePoints	 (void){	return nmbrLinePoints; 		}
+
 structPosU16 LCD_GetPosLinePoint(u16 nrLinePoint,u32 BkpSizeX){
 	int kOffs = posLinePoints[nrLinePoint];
 	structPosU16 temp;
 	temp.y = (kOffs/BkpSizeX);
 	temp.x = (kOffs-temp.y*BkpSizeX);
 	return temp;
+}
+structPosU16 LCD_GetPosLinePointFromBuff(u32 *posLineBuff,u16 nrLinePoint,u32 BkpSizeX){
+	int kOffs = *(posLineBuff + nrLinePoint);
+	structPosU16 temp;
+	temp.y = (kOffs/BkpSizeX);
+	temp.x = (kOffs-temp.y*BkpSizeX);
+	return temp;
+}
+u16 LCD_CopyPosLinePointsToBuff(u32 *posLineBuff){
+	LOOP_FOR(i,nmbrLinePoints){ *(posLineBuff+i)=posLinePoints[i]; }
+	return nmbrLinePoints;
 }
 void LCD_SetLinePointToBuffLcd(u16 nrLinePoint,u32 pointColor){
 	pLcd[ posLinePoints[nrLinePoint] ] = pointColor;
