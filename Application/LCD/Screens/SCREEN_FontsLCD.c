@@ -2388,20 +2388,20 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		perVal=0.0;
 		for(  int i=0; i<999; ++i)
 		{
-//			LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[0] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );
+//			LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[0] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); // dac jako demostattion !!!
 //			LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[1] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );
 
 			pos2[0] = LCD_GetPosLinePointFromBuff(wsk_line1,  VALPERC(len_line1,perVal), LCD_X );
 			pos2[1] = LCD_GetPosLinePointFromBuff(wsk_line2,  VALPERC(len_line2,perVal), LCD_X );
 
-			LCD_Line(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		pos2[2] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );  LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal		), BLACK );
+			LCD_Line(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));			pos2[2] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );  		//LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal), BLACK );
 
 			if(posAi>0 && (posA+posAi-1)->x == pos2[2].x){	// if the same position x
 				posAi--;
 			}
 			Dbg(1,"i");
 
-				  if(posAi>2 && posA[posAi-2].x == pos2[2].x);
+				  if(posAi>2 && posA[posAi-2].x == pos2[2].x);   // if pos is backward then omitted
 			else if(posAi>3 && posA[posAi-3].x == pos2[2].x);
 			else
 				posA[posAi++]=pos2[2];
