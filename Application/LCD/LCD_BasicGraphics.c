@@ -2184,20 +2184,20 @@ static void _DrawArrayBuffRightDown_AA(uint32_t _drawColor, uint32_t outColor, u
 }
 static void _DrawArrayBuffRightDown_linePoints(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)		/* ! Attention !  number of pixels in one line H or V must not exceed value 255 because declaration 'uint8_t *buf'. In the future declare 'uint16_t *buf' */
 {
-	int j=buf[0], i=buf[1];
+	int j=buf[0], i=buf[1], p=2;
 
 	if(0==direction)
 	{
 		while(j--)
 		{
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;	k++;				}		k+=BkpSizeX;
+			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;	k++;				}		if(j) i=buf[p++];		k+=BkpSizeX;
 		}
 	}
 	else
 	{
 		while(j--)
 		{
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;	k+=BkpSizeX;	}		k++;
+			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;	k+=BkpSizeX;	}		if(j) i=buf[p++];		k++;
 		}
 	}
 }
@@ -2255,20 +2255,20 @@ static void _DrawArrayBuffLeftDown_AA(uint32_t drawColor, uint32_t outColor, uin
 }
 static void _DrawArrayBuffLeftDown_linePoints(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
-	int j=buf[0], i=buf[1];
+	int j=buf[0], i=buf[1], p=2;
 
 	if(0==direction)
 	{
 		while(j--)
 		{
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;	 k--;				}		k+=BkpSizeX;
+			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;	 k--;				}		if(j) i=buf[p++];		k+=BkpSizeX;
 		}
 	}
 	else
 	{
 		while(j--)
 		{
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;	 k+=BkpSizeX;	}		k--;
+			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;	 k+=BkpSizeX;	}		if(j) i=buf[p++];		k--;
 		}
 	}
 }
@@ -2328,20 +2328,20 @@ static void _DrawArrayBuffLeftUp_AA(uint32_t drawColor, uint32_t outColor, uint3
 }
 static void _DrawArrayBuffLeftUp_linePoints(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
-	int j=buf[0], i=buf[1];
+	int j=buf[0], i=buf[1], p=2;
 
 	if(0==direction)
 	{
 		while(j--)
 		{
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;		k--;  		}		k-=BkpSizeX;
+			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;		k--;  		}		if(j) i=buf[p++];		k-=BkpSizeX;
 		}
 	}
 	else
 	{
 		while(j--)
 		{
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;		k-=BkpSizeX; }		k--;
+			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;		k-=BkpSizeX; }		if(j) i=buf[p++];		k--;
 		}
 	}
 }
@@ -2400,20 +2400,20 @@ static void _DrawArrayBuffRightUp_AA(uint32_t drawColor, uint32_t outColor, uint
 }
 static void _DrawArrayBuffRightUp_linePoints(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
-	int j=buf[0], i=buf[1];
+	int j=buf[0], i=buf[1], p=2;
 
 	if(0==direction)
 	{
 		while(j--)
 		{
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;	 k++;	 			}			if(k > BkpSizeX) k -= BkpSizeX;
+			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;	 k++;	 			}		if(j) i=buf[p++];		if(k > BkpSizeX) k -= BkpSizeX;
 		}
 	}
 	else
 	{
 		while(j--)
 		{
-			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;	 k-=BkpSizeX;	}			k++;
+			while(i--){		if(nmbrLinePoints < STRUCT_TAB_SIZE(posLinePoints)-1) posLinePoints[nmbrLinePoints++]=k;	 k-=BkpSizeX;	}		if(j) i=buf[p++];		k++;
 		}
 	}
 }
