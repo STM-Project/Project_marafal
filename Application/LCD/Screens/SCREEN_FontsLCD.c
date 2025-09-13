@@ -1835,8 +1835,8 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("m",&AA_Line,_float,_Incr,_Float(0.1),_Float(1.0),"incr AA: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("n",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("q",&xPP,_uint32,_Incr,_Uint32(1),_Uint32(780),"poX: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("a",&xPP,_uint32,_Decr,_Uint32(1),_Uint32(2),"poX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("q",&xPP,_uint32,_Incr,_Uint32(10),_Uint32(780),"poX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("a",&xPP,_uint32,_Decr,_Uint32(10),_Uint32(10),"poX: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("x",&perVal,_float,_Incr,_Float(0.1),_Float(99),"Line: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("z",&perVal,_float,_Decr,_Float(0.1),_Float(0),  "Line: ",MainFuncRefresh)
@@ -2353,6 +2353,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 static void EXPER_FUNC_beforeDispBuffLcd(void)
 {
 	#define ONLY_ONE_AT_START		0
+
 	static int only_one = 0;
 	if(only_one==0)
 	{
@@ -2368,8 +2369,8 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		extern char* GETVAL_ptr(uint32_t nrVal);
 
-		static int posAi = 0;
-		static structPosU16 *posA;
+		int posAi = 0;
+		structPosU16 *posA;
 
 		posA = (structPosU16*) GETVAL_ptr (0);
 
@@ -2381,12 +2382,12 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		CorrectLineAA_off();
 
-		LCD_LinePoints(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line1 = LCD_CopyPosLinePointsToBuff(wsk_line1);  //DAJ LINE DRAW bez wykreslenia na ekranie !!!
+		LCD_LinePoints(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line1 = LCD_CopyPosLinePointsToBuff(wsk_line1);
 		LCD_LinePoints(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line2 = LCD_CopyPosLinePointsToBuff(wsk_line2);
 
 
 		perVal=0.0;
-		for(  int i=0; i<999; ++i)
+		for(  int i=0; i<1000; ++i)
 		{
 //			LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[0] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); // dac jako demostattion !!!
 //			LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[1] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );
@@ -2396,7 +2397,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 			LCD_LinePoints(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));			pos2[2] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );  		//LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal), BLACK );
 
-			if(posAi>0 && (posA+posAi-1)->x == pos2[2].x){	// if the same position x
+			if(posAi>0 && (posA+posAi-1)->x == pos2[2].x){	// if the same position x then overwrite
 				posAi--;
 			}
 			Dbg(1,"i");
@@ -2424,7 +2425,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		for(  int i=0; i<posAi; ++i) // wyswieltanie bezposrednio na ekran
 		{
-			LCD_Buffer(LCD_X, 400+posA[i].x,posA[i].y, WHITE);
+			LCD_Buffer(LCD_X, 400+posA[i].x, posA[i].y-50, WHITE);
 		}
 
 
@@ -2441,11 +2442,13 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 
 //1.Option
-//		for(  int i=0; i<posAi; ++i)  //filtracja AVR
-//		{
-//				if(i<posAi-3)
-//					posA[i].y = (posA[i].y + posA[i+1].y + posA[i+2].y ) / 3;
-//		}
+		for(  int i=0; i<posAi; ++i)  //filtracja AVR
+		{
+				if(i<posAi-3)
+					posA[i].y = (posA[i].y + posA[i+1].y + posA[i+2].y ) / 3;
+		}
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,350, -100,100), POINTS_STEP_XYSCALE(posAi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
+
 
 
 //2.Option
@@ -2461,10 +2464,8 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 				posA[i].y = tab[1];
 			}
 		}
-
-
 		//daj jako minimaze example
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,400, -100,100), POINTS_STEP_XYSCALE(posAi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,450, -100,100), POINTS_STEP_XYSCALE(posAi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
 
 
 
