@@ -1792,7 +1792,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 
 
 
-float len_Line=12; float AA_Line=0.0;  u32 xPP=250;	float perVal = 94;
+float len_Line=12; float AA_Line=0.0;  u32 xPP=250,yPP=240;	float perVal = 94;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -1835,8 +1835,11 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("m",&AA_Line,_float,_Incr,_Float(0.1),_Float(1.0),"incr AA: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("n",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("q",&xPP,_uint32,_Incr,_Uint32(10),_Uint32(780),"poX: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("a",&xPP,_uint32,_Decr,_Uint32(10),_Uint32(10),"poX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("q",&xPP,_uint32,_Incr,_Uint32(15),_Uint32(780),"poX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("a",&xPP,_uint32,_Decr,_Uint32(15),_Uint32(15),"poX: ",MainFuncRefresh)
+
+	_DBG_PARAM_NOWRAP("w",&yPP,_uint32,_Incr,_Uint32(15),_Uint32(470),"poX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("s",&yPP,_uint32,_Decr,_Uint32(15),_Uint32(15),"poX: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("x",&perVal,_float,_Incr,_Float(0.1),_Float(99),"Line: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("z",&perVal,_float,_Decr,_Float(0.1),_Float(0),  "Line: ",MainFuncRefresh)
@@ -2358,7 +2361,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		StartMeasureTime_us();
-		structPosU16 pos[3]= { {150,350}, {xPP,240}, {315,325} };				structPosU16 pos2[3]={0};
+		structPosU16 pos[3]= { {150,350}, {xPP,yPP}, {315,325} };				structPosU16 pos2[3]={0};
 
 		//structPosition pos={250,300},pos0;
 		if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
@@ -2382,8 +2385,8 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		CorrectLineAA_off();
 
-		LCD_LinePoints(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line1 = LCD_CopyPosLinePointsToBuff(wsk_line1);
-		LCD_LinePoints(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line2 = LCD_CopyPosLinePointsToBuff(wsk_line2);
+		LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line1 = LCD_CopyPosLinePointsToBuff(wsk_line1);
+		LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line2 = LCD_CopyPosLinePointsToBuff(wsk_line2);
 
 
 		perVal=0.0;
