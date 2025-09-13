@@ -5,8 +5,8 @@
  *      Author: Elektronika RM
  */
 
-#ifndef GENERAL_UTILITIES_DEBUG_H_
-#define GENERAL_UTILITIES_DEBUG_H_
+#ifndef GENERAL_UTILITIES__DEBUG_H_
+#define GENERAL_UTILITIES__DEBUG_H_
 
 #include "stm32f7xx_hal.h"
 #include "common.h"
@@ -73,4 +73,4 @@ int DEBUG_RcvStr(char *txt);
 void* DEBUG_TestFunction(void *a, DATA_TYPE dataType, DATA_ACTION dataAction, void *step, void *min, void *max, char *descr, VOID_FUNCTION_TEST xfunc, VOID_FUNCTION_TEST xfunc2);
 
 
-#endif /* GENERAL_UTILITIES_DEBUG_H_ */
+#endif /* GENERAL_UTILITIES__DEBUG_H_ */

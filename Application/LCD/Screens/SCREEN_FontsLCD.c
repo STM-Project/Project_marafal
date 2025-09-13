@@ -5,7 +5,7 @@
 #include "LCD_Common.h"
 #include "timer.h"
 #include "lang.h"
-#include "debug.h"
+#include "_debug.h"
 #include "string_oper.h"
 #include "cpu_utils.h"
 #include "tim.h"

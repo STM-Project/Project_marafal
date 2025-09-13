@@ -5,10 +5,10 @@
  *      Author: Elektronika RM
  */
 
+#include <_debug.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include "debug.h"
 #include "usart.h"
 #include "mini_printf.h"
 #include "FreeRTOS.h"

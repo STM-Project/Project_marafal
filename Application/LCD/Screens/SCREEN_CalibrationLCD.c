@@ -13,7 +13,7 @@
 #include "TouchLcdTask.h"
 #include "LCD_Common.h"
 #include "common.h"
-#include "debug.h"
+#include "_debug.h"
 #include "lang.h"
 
 /*----------------- Main Settings ------------------*/

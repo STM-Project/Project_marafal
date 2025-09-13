@@ -16,7 +16,7 @@
 #include "timer.h"
 #include "mini_printf.h"
 #include <string.h>
-#include "debug.h"
+#include "_debug.h"
 #include "FreeRTOS.h"
 #include "common.h"
 #include "sd_card.h"

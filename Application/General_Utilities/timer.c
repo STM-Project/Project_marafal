@@ -5,9 +5,9 @@
  *      Author: Elektronika RM
  */
 
+#include <_debug.h>
 #include "timer.h"
 #include "timers.h"
-#include "debug.h"
 #include "semphr.h"
 
 #define MAX_COUNT_TIME		40

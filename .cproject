@@ -49,16 +49,9 @@
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FreeRTOS/Source/include"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Stm32F769bit6/Application}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Stm32F769bit6/Application/General_Utilities}&quot;"/>
 									<listOptionValue builtIn="false" value="../FATFS/Target"/>
 									<listOptionValue builtIn="false" value="../FATFS/App"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FatFs/src"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Stm32F769bit6/Application/LCD}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Stm32F769bit6/Application/LCD/Screens}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Stm32F769bit6/Application/Lang}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Stm32F769bit6/Application/LCD/Touch}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Stm32F769bit6/Application/Tasks}&quot;"/>
 									<listOptionValue builtIn="false" value="../LWIP/App"/>
 									<listOptionValue builtIn="false" value="../LWIP/Target"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include"/>
@@ -79,6 +72,13 @@
 									<listOptionValue builtIn="false" value="../MBEDTLS/App"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/mbedTLS/include/mbedtls"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/mbedTLS/include"/>
+									<listOptionValue builtIn="false" value="../Application"/>
+									<listOptionValue builtIn="false" value="../Application/General_Utilities"/>
+									<listOptionValue builtIn="false" value="../Application/LCD"/>
+									<listOptionValue builtIn="false" value="../Application/LCD/Screens"/>
+									<listOptionValue builtIn="false" value="../Application/Lang"/>
+									<listOptionValue builtIn="false" value="../Application/LCD/Touch"/>
+									<listOptionValue builtIn="false" value="../Application/Tasks"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.definedsymbols.970232281" name="Define symbols (-D)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.definedsymbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>

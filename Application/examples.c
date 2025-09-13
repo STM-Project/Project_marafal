@@ -8,7 +8,7 @@
 #include "mini_printf.h"
 #include <string.h>
 #include "common.h"
-#include "debug.h"
+#include "_debug.h"
 #include "touch.h"
 
 

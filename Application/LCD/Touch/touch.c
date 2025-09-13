@@ -7,7 +7,7 @@
 #include "touch.h"
 #include "stmpe811.h"
 #include "timer.h"
-#include "debug.h"
+#include "_debug.h"
 
 #define MAX_OPEN_TOUCH_SIMULTANEOUSLY	 180  //Tymczasowo zwiekszam ale rozwiaz ta kwestie !!!!!!!
 #define BUF_LCD_TOUCH_SIZE		100

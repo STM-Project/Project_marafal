@@ -12,7 +12,7 @@
 #include "ff.h"
 #include "sd_card.h"
 #include "errors_service.h"
-#include "debug.h"
+#include "_debug.h"
 #include "mini_printf.h"
 #include "timer.h"
 
