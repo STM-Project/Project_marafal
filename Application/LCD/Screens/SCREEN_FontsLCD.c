@@ -1792,7 +1792,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 
 
 
-float len_Line=12; float AA_Line=0.0;  u32 xPP=250,yPP=240;	float perVal = 94;
+float len_Line=12; float AA_Line=0.0;  u32 xPP=250,yPP=195;	float perVal = 94;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -1838,8 +1838,8 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("q",&xPP,_uint32,_Incr,_Uint32(15),_Uint32(780),"poX: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("a",&xPP,_uint32,_Decr,_Uint32(15),_Uint32(15),"poX: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("w",&yPP,_uint32,_Incr,_Uint32(15),_Uint32(470),"poX: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("s",&yPP,_uint32,_Decr,_Uint32(15),_Uint32(15),"poX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("w",&yPP,_uint32,_Incr,_Uint32(15),_Uint32(470),"poY: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("s",&yPP,_uint32,_Decr,_Uint32(15),_Uint32(15),"poY: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("x",&perVal,_float,_Incr,_Float(0.1),_Float(99),"Line: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("z",&perVal,_float,_Decr,_Float(0.1),_Float(0),  "Line: ",MainFuncRefresh)
@@ -2398,7 +2398,9 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 			pos2[0] = LCD_GetPosLinePointFromBuff(wsk_line1,  VALPERC(len_line1,perVal), LCD_X );
 			pos2[1] = LCD_GetPosLinePointFromBuff(wsk_line2,  VALPERC(len_line2,perVal), LCD_X );
 
+			//ffffff = ROUND_VAL(VALPERC(LCD_GetNmbrLinePoints(),perVal),0.51);
 			LCD_LinePoints(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));			pos2[2] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );  		//LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal), BLACK );
+
 
 			if(posAi>0 && (posA+posAi-1)->x == pos2[2].x){	// if the same position x then overwrite
 				posAi--;
@@ -2433,7 +2435,6 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 
 
-
 		for(  int i=0; i<posAi; ++i) // wyswieltanie za pomoca GRAPH
 		{
 			posA[i].x -= pos[0].x;
@@ -2442,6 +2443,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,250, -100,100), POINTS_STEP_XYSCALE(posAi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
 
+		int tab[3];
 
 
 //1.Option
@@ -2455,7 +2457,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 
 //2.Option
-		int tab[3];
+
 		for(  int i=0; i<posAi; ++i)  //filtracja MID
 		{
 			if(i<posAi-3)

@@ -37,7 +37,7 @@ typedef uint8_t u8;
 #define DECR_WRAP(x,step,min,max)  (((x)-(step)<(min)) ? ((x)=(max)) : ((x)-=(step)))
 #define INTEGER(f)	 ((int)f)
 #define FRACTION(f)	 (f-(int)f)
-#define ROUND_VAL(val,fraction)	 ((FRACTION(val)>fraction) ? (INTEGER(val)+1) : (INTEGER(val)));
+#define ROUND_VAL(val,fraction)	 ((FRACTION((val))>(fraction)) ? (INTEGER((val))+1) : (INTEGER((val))));
 #define EVEN_INT(x)   ( (x%2) ? (x+1) : (x) )
 #define TANG_ARG(deg) 0.0174532*deg
 #define DEG(tang_arg) tang_arg/0.0174532
