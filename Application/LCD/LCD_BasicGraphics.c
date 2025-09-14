@@ -3325,7 +3325,7 @@ static double GRAPHFUNC_Owner(double posX){
 	/* return bufferY[posX]; */
 	extern char* GETVAL_ptr(uint32_t nrVal);
 	structPosU16 *pos;
-	pos = (structPosU16*) GETVAL_ptr (0);
+	pos = (structPosU16*) GETVAL_ptr (5000000);  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	return (double) (pos[(int)posX].y);		/* return (double) ((pos+(int)posX)->x); */
 }
 
