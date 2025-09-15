@@ -149,6 +149,7 @@ static int 					chartMemOffsForMemNr		[ MAX_CHARTS_SIMULTANEOUSLY ] = {0};
 
 static u32 posLinePoints[LCD_BUFF_XSIZE] = {0};
 static u16 nmbrLinePoints = 0;
+static u32 memOffsForGraphOwnFunc = 0;
 
 uint16_t* GET_CIRCLE_correctForWidth(void) {	return &Circle.correctForWidth;	  }
 uint16_t* GET_CIRCLE_correctPercDeg(int nr){	return &Circle.correctPercDeg[nr]; }
@@ -3325,7 +3326,7 @@ static double GRAPHFUNC_Owner(double posX){
 	/* return bufferY[posX]; */
 	extern char* GETVAL_ptr(uint32_t nrVal);
 	structPosU16 *pos;
-	pos = (structPosU16*) GETVAL_ptr (5000000);  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	pos = (structPosU16*) GETVAL_ptr (memOffsForGraphOwnFunc);
 	return (double) (pos[(int)posX].y);		/* return (double) ((pos+(int)posX)->x); */
 }
 
@@ -6097,6 +6098,9 @@ void LCDSHAPE_GradientCircleSlider_Indirect(SHAPE_PARAMS param){
 }
 
 /* ---------------------------- GRAPH ------------------------- */
+void GRAPHFUNC_SetMemOffsForOwnFunc(u32 memOffs){	memOffsForGraphOwnFunc = memOffs;	}
+u32  GRAPHFUNC_GetMemOffsForOwnFunc(void)			{	return memOffsForGraphOwnFunc;		}
+
 int GRAPH_IsIndirect(int nrMem){		if(ptrPrev[nrMem].startXYchart.x != posXY[0].x	&&	 ptrPrev[nrMem].startXYchart.y != posXY[0].y	) return 1;
 												else																															  return 0;
 }
