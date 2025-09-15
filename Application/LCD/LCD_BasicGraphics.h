@@ -361,6 +361,8 @@ void 	LCDSHAPE_GradientCircleSlider_Indirect		(SHAPE_PARAMS param);
 void 	LCDSHAPE_Chart_Indirect							(USER_GRAPH_PARAM param);
 /* ------- End Selected Figures ------------------*/
 
+void GRAPHFUNC_SetMemOffsForOwnFunc	(u32 memOffs);
+u32  GRAPHFUNC_GetMemOffsForOwnFunc	(void);
 int 				  GRAPH_IsMemReloaded	  (int nrMem);
 int 				  GRAPH_IsIndirect		  (int nrMem);
 int 				  GRAPH_GetNmbrPoints	  (int nrMem);
