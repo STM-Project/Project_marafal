@@ -2361,7 +2361,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		StartMeasureTime_us();
-		structPosU16 pos[3]= { {150,350}, {xPP,yPP}, {315,325} };				structPosU16 pos2[3]={0};
+		structPosU16 pos[3]= { {120,350}, {xPP,yPP}, {315,350} };				structPosU16 pos2[3]={0};
 
 		//structPosition pos={250,300},pos0;
 		if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
@@ -2372,13 +2372,14 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		extern char* GETVAL_ptr(uint32_t nrVal);
 
-		int posAi = 0, posBi = 0;
-		structPosU16 *posA, *posB;
+		int posAi = 0, posBi = 0, posCi = 0;
+		structPosU16 *posA, *posB, *posC;
 
 		u32 memOffsForGraphOwner = 5000000;
 
 		posA = (structPosU16*) GETVAL_ptr (2000000);
 		posB = (structPosU16*) GETVAL_ptr (memOffsForGraphOwner);   ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  GRAPHFUNC_Owner();
+		posC = (structPosU16*) GETVAL_ptr (3000000);
 
 
 		u32 *wsk_line1, *wsk_line2;
@@ -2448,7 +2449,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		for(  int i=0; i<posAi; ++i) // wyswieltanie bezposrednio na ekran
 		{
-			LCD_Buffer(LCD_X, 400+posA[i].x, posA[i].y-50, WHITE);
+			LCD_Buffer(LCD_X, 400+posA[i].x, posA[i].y-50, YELLOW);
 		}
 
 		posBi = 0;
@@ -2481,7 +2482,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 //				posB[i].y = posB[i-1].y;
 //			}
 
-			LCD_Buffer(LCD_X, 400+posB[i].x, posB[i].y+50, WHITE);
+			LCD_Buffer(LCD_X, 400+posB[i].x, posB[i].y+50, RED);
 		}
 
 
@@ -2503,12 +2504,27 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		int tab[3];
 
 
-//1.Option
-		for(  int i=0; i<posBi; ++i)  //filtracja AVR
+
+
+		posCi = posBi;
+
+
+		for(  int i=0; i<posBi;   ++i)  posC[i] = posB[i];
+		for(  int i=2; i<posBi-2; ++i)  //filtracja AVR
 		{
-				if(i<posBi-6)
-					posB[i].y = (posB[i].y + posB[i+1].y + posB[i+2].y + posB[i+3].y + posB[i+4].y + posB[i+5].y ) / 6;
+			posC[i].y = (posB[i-2].y + posB[i-1].y + posB[i].y + posB[i+1].y + posB[i+2].y ) / 5;
 		}
+
+		for(  int i=0; i<posBi;   ++i)  posB[i] = posC[i];
+
+
+
+//1.Option
+//		for(  int i=0; i<posBi; ++i)  //filtracja AVR
+//		{
+//				if(i<posBi-6)
+//					posB[i].y = (posB[i].y + posB[i+1].y + posB[i+2].y + posB[i+3].y + posB[i+4].y + posB[i+5].y ) / 6;
+//		}
 
 
 //2.Option
@@ -2521,13 +2537,13 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 //				tab[1] = posB[i+1].y;
 //				tab[2] = posB[i+2].y;
 //				SORT_Bubble(tab, 3);
-//				posB[i].y = tab[1];
+//				posC[i].y = tab[1];
 //			}
 //		}
 
 		//daj jako minimaze example    //daj jako minimaze example
-		GRAPHFUNC_SetMemOffsForOwnFunc(memOffsForGraphOwner);
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,450, -100,100), POINTS_STEP_XYSCALE(posBi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
+		GRAPHFUNC_SetMemOffsForOwnFunc(3000000);//(memOffsForGraphOwner);
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,350, -350,100), POINTS_STEP_XYSCALE(posCi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
 
 
 
