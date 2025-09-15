@@ -1838,8 +1838,8 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("q",&xPP,_uint32,_Incr,_Uint32(15),_Uint32(780),"poX: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("a",&xPP,_uint32,_Decr,_Uint32(15),_Uint32(15),"poX: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("w",&yPP,_uint32,_Incr,_Uint32(15),_Uint32(470),"poY: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("s",&yPP,_uint32,_Decr,_Uint32(15),_Uint32(15),"poY: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("w",&yPP,_uint32,_Incr,_Uint32(15),_Uint32(285),"poY: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("s",&yPP,_uint32,_Decr,_Uint32(15),_Uint32(30),"poY: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("x",&perVal,_float,_Incr,_Float(0.1),_Float(99),"Line: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("z",&perVal,_float,_Decr,_Float(0.1),_Float(0),  "Line: ",MainFuncRefresh)
@@ -2516,6 +2516,10 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		}
 
 		for(  int i=0; i<posBi;   ++i)  posB[i] = posC[i];
+		for(  int i=2; i<posBi-2; ++i)  //filtracja AVR
+		{
+			posC[i].y = (posB[i-2].y + posB[i-1].y + posB[i].y + posB[i+1].y + posB[i+2].y ) / 5;
+		}
 
 
 
@@ -2537,7 +2541,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 //				tab[1] = posB[i+1].y;
 //				tab[2] = posB[i+2].y;
 //				SORT_Bubble(tab, 3);
-//				posC[i].y = tab[1];
+//				posB[i].y = tab[1];
 //			}
 //		}
 
