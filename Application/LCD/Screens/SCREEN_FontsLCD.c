@@ -2375,8 +2375,10 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		int posAi = 0, posBi = 0;
 		structPosU16 *posA, *posB;
 
+		u32 memOffsForGraphOwner = 5000000;
+
 		posA = (structPosU16*) GETVAL_ptr (2000000);
-		posB = (structPosU16*) GETVAL_ptr (5000000);   ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  GRAPHFUNC_Owner();
+		posB = (structPosU16*) GETVAL_ptr (memOffsForGraphOwner);   ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  GRAPHFUNC_Owner();
 
 
 		u32 *wsk_line1, *wsk_line2;
@@ -2523,7 +2525,8 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 //			}
 //		}
 
-		//daj jako minimaze example    //daj jako minimaze example  //ZAPISZ w example ze UWAG   w GRAPHFUNC_Owner(); dla Func_owner  mamy kolizje lokalizacji pamiecie !!!!!!
+		//daj jako minimaze example    //daj jako minimaze example
+		GRAPHFUNC_SetMemOffsForOwnFunc(memOffsForGraphOwner);
 		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,450, -100,100), POINTS_STEP_XYSCALE(posBi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
 
 
