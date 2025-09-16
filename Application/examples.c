@@ -343,7 +343,11 @@ USER_GRAPH_PARAM LCDEXAMPLE_Graph(int displayOption, USER_GRAPH_PARAM graph, int
 		LCDSHAPE_Chart_Indirect(graph);
 		return USER_GRAPH_PARAM_Zero;
 
-	default:
+	default:		/* 3 - minimize displaying GRAPH */
+		int memOffsForGraphOwner = 3000000;
+		offsMem = 0;  nrChart = 0;		widthChart = 100;
+		GRAPHFUNC_SetMemOffsForOwnFunc(memOffsForGraphOwner);
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(offsMem,nrChart), LCD_X, XYPOS_YMIN_YMAX(550,350, -100,100), POINTS_STEP_XYSCALE(widthChart,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,unUsed,unUsed,unUsed,unUsed), GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
 		return USER_GRAPH_PARAM_Zero;
 	}
 
