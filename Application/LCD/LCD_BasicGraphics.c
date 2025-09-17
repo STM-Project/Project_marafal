@@ -2183,7 +2183,7 @@ static void _DrawArrayBuffRightDown_AA(uint32_t _drawColor, uint32_t outColor, u
 		}
 	}
 }
-static void _DrawArrayBuffRightDown_linePoints(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)		/* ! Attention !  number of pixels in one line H or V must not exceed value 255 because declaration 'uint8_t *buf'. In the future declare 'uint16_t *buf' */
+static void   __attribute__ ((optimize("-Ofast"))) _DrawArrayBuffRightDown_linePoints(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)		/* ! Attention !  number of pixels in one line H or V must not exceed value 255 because declaration 'uint8_t *buf'. In the future declare 'uint16_t *buf' */
 {
 	int j=buf[0], i=buf[1], p=2;
 
@@ -2254,7 +2254,7 @@ static void _DrawArrayBuffLeftDown_AA(uint32_t drawColor, uint32_t outColor, uin
 		}
 	}
 }
-static void _DrawArrayBuffLeftDown_linePoints(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+static void   __attribute__ ((optimize("-Ofast"))) _DrawArrayBuffLeftDown_linePoints(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2;
 
@@ -2327,7 +2327,7 @@ static void _DrawArrayBuffLeftUp_AA(uint32_t drawColor, uint32_t outColor, uint3
 		}
 	}
 }
-static void _DrawArrayBuffLeftUp_linePoints(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+static void  __attribute__ ((optimize("-Ofast"))) _DrawArrayBuffLeftUp_linePoints(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2;
 
@@ -2399,7 +2399,7 @@ static void _DrawArrayBuffRightUp_AA(uint32_t drawColor, uint32_t outColor, uint
 		}
 	}
 }
-static void _DrawArrayBuffRightUp_linePoints(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+static void   __attribute__ ((optimize("-Ofast"))) _DrawArrayBuffRightUp_linePoints(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2;
 
@@ -4328,7 +4328,7 @@ void LCD_SetLinePointToBuffLcd(u16 nrLinePoint,u32 pointColor){
 	pLcd[ posLinePoints[nrLinePoint] ] = pointColor;
 }
 
-structPosition DrawLine_linePoints(uint32_t posBuff,uint16_t x0, uint16_t y0, float len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
+structPosition  __attribute__ ((optimize("-Ofast"))) DrawLine_linePoints(uint32_t posBuff,uint16_t x0, uint16_t y0, float len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
 {	/* here we don`t read BkColor */
 	#define LINES_BUFF_SIZE		(u16)len+6
 
@@ -4782,7 +4782,7 @@ void LCD_Line(uint32_t posBuff, u16 x0,u16 y0, u16 x1,u16 y1, uint32_t lineColor
 	nmbrLinePoints = 0;
 	DrawLine(posBuff, x0, y0, GetNewfloatValue(LCD_GetLenFrom2Points(x1,y1, x0,y0),1),  GetNewfloatValue(LCD_GetDegFrom2Points(x1,y1, x0,y0),1), lineColor,BkpSizeX, ratioAA1, ratioAA2 ,bk1Color, bk2Color);
 }
-void LCD_LinePoints(uint32_t posBuff, u16 x0,u16 y0, u16 x1,u16 y1, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color){ //NIEPOPTRZEBNE color..!!!!!!!
+void __attribute__ ((optimize("-Ofast"))) LCD_LinePoints(uint32_t posBuff, u16 x0,u16 y0, u16 x1,u16 y1, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color){ //NIEPOPTRZEBNE color..!!!!!!!
 	nmbrLinePoints = 0;
 	DrawLine_linePoints(posBuff, x0, y0, GetNewfloatValue(LCD_GetLenFrom2Points(x1,y1, x0,y0),1),  GetNewfloatValue(LCD_GetDegFrom2Points(x1,y1, x0,y0),1), lineColor,BkpSizeX, ratioAA1, ratioAA2 ,bk1Color, bk2Color);
 }

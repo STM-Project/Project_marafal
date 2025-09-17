@@ -2394,7 +2394,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		int posA_x_prev=-1;
 		perVal=0.0;
-		for(  int i=0; i<100; ++i)
+		for(  int i=0; i<1000; ++i)
 		{
 //			LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[0] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); // dac jako demostattion !!!
 //			LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[1] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );
@@ -2418,7 +2418,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 			else if(posAi>3 && posA[posAi-3].x == pos2[2].x);
 			else
 				posA[posAi++]=pos2[2];
-			perVal+=1.0;
+			perVal+=0.1;
 
 
 //			if(posA[posAi].x > posA_x_prev +1)
@@ -2452,41 +2452,35 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 			LCD_Buffer(LCD_X, 400+posA[i].x, posA[i].y-50, YELLOW);
 		}
 
-		posBi = 0;
-		int j=0;  int distX=0, distY=0;
-		for(  int i=0; i<posAi-1; ++i) // dopisywanie w x...
+//		posBi = 0;
+//		int j=0;  int distX=0, distY=0;
+//		for(  int i=0; i<posAi-1; ++i) // dopisywanie w x...
+//		{
+//			posB[posBi++] = posA[i];
+//			distX = posA[i+1].x-posA[i].x -1;
+//			distY = posA[i+1].y-posA[i].y;
+//			if( distX >0 )
+//			{
+//				for(int n=0; n<distX; ++n)
+//				{
+//					posB[posBi].x = posB[posBi-1].x + 1;
+//					if(distY>0) 	  posB[posBi].y = posA[i].y + n+1;//(ABS(distY)/distX)*(n+1);
+//					else if(distY<0) posB[posBi].y = posA[i].y -(n+1);//(ABS(distY)/distX)*(n+1);
+//					else				  posB[posBi].y = posA[i].y;
+//					posBi++;
+//				}
+//			}
+//		}
+//		for(  int i=0; i<posBi; ++i) // wyswieltanie dopisywanie w x... (calosc)
+//		{
+//			LCD_Buffer(LCD_X, 400+posB[i].x, posB[i].y+50, RED);
+//		}
+
+		posBi=0;
+		for(  int i=0; i<posAi; ++i)  //WYKASOWAC !!!!!!!!!!!!!!!!
 		{
 			posB[posBi++] = posA[i];
-			distX = posA[i+1].x-posA[i].x -1;
-			distY = posA[i+1].y-posA[i].y;
-			if( distX >0 )
-			{
-				for(int n=0; n<distX; ++n)
-				{
-					posB[posBi].x = posB[posBi-1].x + 1;
-					if(distY>0) 	  posB[posBi].y = posA[i].y + n+1;//(ABS(distY)/distX)*(n+1);
-					else if(distY<0) posB[posBi].y = posA[i].y -(n+1);//(ABS(distY)/distX)*(n+1);
-					else				  posB[posBi].y = posA[i].y;
-					posBi++;
-				}
-			}
 		}
-		for(  int i=0; i<posBi; ++i) // wyswieltanie dopisywanie w x... (calosc)
-		{
-//			if(posB[i].x >800)
-//			{
-//				posB[i].x = posB[i-1].x;
-//			}
-//			if(posB[i].y >480)
-//			{
-//				posB[i].y = posB[i-1].y;
-//			}
-
-			LCD_Buffer(LCD_X, 400+posB[i].x, posB[i].y+50, RED);
-		}
-
-
-
 
 
 
@@ -2547,7 +2541,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		//daj jako minimaze example    //daj jako minimaze example
 		GRAPHFUNC_SetMemOffsForOwnFunc(3000000);//(memOffsForGraphOwner);
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,350, -350,100), POINTS_STEP_XYSCALE(posCi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(400+120,350, -350,100), POINTS_STEP_XYSCALE(posCi-6,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
 
 
 
