@@ -2361,7 +2361,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		StartMeasureTime_us();
-		structPosU16 pos[3]= { {120,250}, {xPP,yPP}, {315,250} };				structPosU16 pos2[3]={0};
+		structPosition pos[3]= { {120,250}, {xPP,yPP}, {315,250} };				structPosition pos2[3]={0};
 
 		if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
 
@@ -2369,12 +2369,13 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		extern char* GETVAL_ptr(uint32_t nrVal);
 
 		int posAi = 0, posBi = 0, posCi = 0;
-		structPosU16 *posA, *posB, *posC;
+		structPosition *posA, *posB;
+		structPosition *posC;
 
 		u32 memOffsForGraphOwner = 5000000;
 
-		posA = (structPosU16*) GETVAL_ptr (2000000);
-		posC = (structPosU16*) GETVAL_ptr (memOffsForGraphOwner);
+		posA = (structPosition*) GETVAL_ptr (2000000);
+		posC = (structPosition*) GETVAL_ptr (memOffsForGraphOwner);
 
 
 		u32 *wsk_line1, *wsk_line2;
@@ -2434,7 +2435,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		for(  int i=0; i<posAi; ++i) // wyswieltanie za pomoca GRAPH
 		{
 			posA[i].x -= pos[0].x;
-			posA[i].y = ABS(pos[0].y - posA[i].y); // dla dolu          pos[0].y - posA[i].y; //dla gory
+			posA[i].y = (pos[0].y - posA[i].y); // dla dolu          pos[0].y - posA[i].y; //dla gory
 		}
 
 
@@ -2456,7 +2457,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 
 		GRAPHFUNC_SetMemOffsForOwnFunc(memOffsForGraphOwner);
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(400+120,250, -350,220), POINTS_STEP_XYSCALE(posCi-6,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(400+120,250, -350,220), POINTS_STEP_XYSCALE(posCi-3,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
 
 
 

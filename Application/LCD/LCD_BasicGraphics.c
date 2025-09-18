@@ -3325,9 +3325,9 @@ static double GRAPHFUNC_Square(double posX){
 static double GRAPHFUNC_Owner(double posX){
 	/* return bufferY[posX]; */
 	extern char* GETVAL_ptr(uint32_t nrVal);
-	structPosU16 *pos;
-	pos = (structPosU16*) GETVAL_ptr (memOffsForGraphOwnFunc);
-	return (double) -(pos[(int)posX].y);		/* return (double) ((pos+(int)posX)->x); */
+	structPosition *pos;
+	pos = (structPosition*) GETVAL_ptr (memOffsForGraphOwnFunc);
+	return (double) (pos[(int)posX].y);		/* return (double) ((pos+(int)posX)->x); */
 }
 
 static double GRAPHFUNC_Noise(void){
@@ -4306,16 +4306,16 @@ void LCD_BoldRoundFrameTransp(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSi
 void LCD_ResetNmbrLinePoints(void){	 		 nmbrLinePoints = 0;	}
 u16  LCD_GetNmbrLinePoints	 (void){	return nmbrLinePoints; 		}
 
-structPosU16 LCD_GetPosLinePoint(u16 nrLinePoint,u32 BkpSizeX){
+structPosition LCD_GetPosLinePoint(u16 nrLinePoint,u32 BkpSizeX){
 	int kOffs = posLinePoints[nrLinePoint];
-	structPosU16 temp;
+	structPosition temp;
 	temp.y = (kOffs/BkpSizeX);
 	temp.x = (kOffs-temp.y*BkpSizeX);
 	return temp;
 }
-structPosU16 LCD_GetPosLinePointFromBuff(u32 *posLineBuff,u16 nrLinePoint,u32 BkpSizeX){
+structPosition LCD_GetPosLinePointFromBuff(u32 *posLineBuff,u16 nrLinePoint,u32 BkpSizeX){
 	int kOffs = *(posLineBuff + nrLinePoint);
-	structPosU16 temp;
+	structPosition temp;
 	temp.y = (kOffs/BkpSizeX);
 	temp.x = (kOffs-temp.y*BkpSizeX);
 	return temp;

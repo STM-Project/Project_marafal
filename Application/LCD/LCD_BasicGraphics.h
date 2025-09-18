@@ -276,8 +276,8 @@ void LCD_LittleRoundFrame(uint32_t posBuff, uint32_t BkpSizeX,uint32_t BkpSizeY,
 
 void 			 	LCD_ResetNmbrLinePoints		(void);
 u16  			 	LCD_GetNmbrLinePoints		(void);
-structPosU16 	LCD_GetPosLinePoint			(u16 nrLinePoint,u32 BkpSizeX);
-structPosU16 	LCD_GetPosLinePointFromBuff(u32 *posLineBuff,u16 nrLinePoint,u32 BkpSizeX);
+structPosition LCD_GetPosLinePoint			(u16 nrLinePoint,u32 BkpSizeX);
+structPosition LCD_GetPosLinePointFromBuff(u32 *posLineBuff,u16 nrLinePoint,u32 BkpSizeX);
 u16 				LCD_CopyPosLinePointsToBuff(u32 *posLineBuff);
 void 				LCD_SetLinePointToBuffLcd	(u16 nrLinePoint,u32 pointColor);
 structPosition DrawLine							(uint32_t posBuff,uint16_t x, uint16_t y, float len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color);
