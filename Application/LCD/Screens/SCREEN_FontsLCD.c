@@ -1792,7 +1792,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 
 
 
-float len_Line=12; float AA_Line=1.0;  u32 xPP=250,yPP=195;	float perVal = 94;
+float len_Line=12; float AA_Line=1.0;  u32 xPP=250,yPP=400;	float perVal = 94;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -1838,7 +1838,7 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("q",&xPP,_uint32,_Incr,_Uint32(15),_Uint32(780),"poX: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("a",&xPP,_uint32,_Decr,_Uint32(15),_Uint32(15),"poX: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("w",&yPP,_uint32,_Incr,_Uint32(15),_Uint32(285),"poY: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("w",&yPP,_uint32,_Incr,_Uint32(15),_Uint32(480),"poY: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("s",&yPP,_uint32,_Decr,_Uint32(15),_Uint32(30),"poY: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("x",&perVal,_float,_Incr,_Float(0.1),_Float(99),"Line: ",MainFuncRefresh)
@@ -2361,7 +2361,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		StartMeasureTime_us();
-		structPosU16 pos[3]= { {120,350}, {xPP,yPP}, {315,350} };				structPosU16 pos2[3]={0};
+		structPosU16 pos[3]= { {120,250}, {xPP,yPP}, {315,250} };				structPosU16 pos2[3]={0};
 
 		if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
 
@@ -2434,7 +2434,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		for(  int i=0; i<posAi; ++i) // wyswieltanie za pomoca GRAPH
 		{
 			posA[i].x -= pos[0].x;
-			posA[i].y = pos[0].y - posA[i].y;
+			posA[i].y = ABS(pos[0].y - posA[i].y); // dla dolu          pos[0].y - posA[i].y; //dla gory
 		}
 
 
@@ -2455,9 +2455,8 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 
 
-
 		GRAPHFUNC_SetMemOffsForOwnFunc(memOffsForGraphOwner);
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(400+120,350, -350,100), POINTS_STEP_XYSCALE(posCi-6,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(400+120,250, -350,220), POINTS_STEP_XYSCALE(posCi-6,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
 
 
 

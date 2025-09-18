@@ -3327,7 +3327,7 @@ static double GRAPHFUNC_Owner(double posX){
 	extern char* GETVAL_ptr(uint32_t nrVal);
 	structPosU16 *pos;
 	pos = (structPosU16*) GETVAL_ptr (memOffsForGraphOwnFunc);
-	return (double) (pos[(int)posX].y);		/* return (double) ((pos+(int)posX)->x); */
+	return (double) -(pos[(int)posX].y);		/* return (double) ((pos+(int)posX)->x); */
 }
 
 static double GRAPHFUNC_Noise(void){
