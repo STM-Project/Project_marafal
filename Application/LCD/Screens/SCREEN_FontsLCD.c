@@ -2363,11 +2363,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		StartMeasureTime_us();
 		structPosU16 pos[3]= { {120,350}, {xPP,yPP}, {315,350} };				structPosU16 pos2[3]={0};
 
-		//structPosition pos={250,300},pos0;
 		if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
-
-
-		//pos.x=xPP; pos.y=250;			pos0.x=180; pos0.y=460;
 
 
 		extern char* GETVAL_ptr(uint32_t nrVal);
@@ -2378,8 +2374,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		u32 memOffsForGraphOwner = 5000000;
 
 		posA = (structPosU16*) GETVAL_ptr (2000000);
-		posB = (structPosU16*) GETVAL_ptr (memOffsForGraphOwner);   ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  GRAPHFUNC_Owner();
-		posC = (structPosU16*) GETVAL_ptr (3000000);
+		posC = (structPosU16*) GETVAL_ptr (memOffsForGraphOwner);
 
 
 		u32 *wsk_line1, *wsk_line2;
@@ -2392,22 +2387,15 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line1 = LCD_CopyPosLinePointsToBuff(wsk_line1);
 		LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line2 = LCD_CopyPosLinePointsToBuff(wsk_line2);
 
-		int posA_x_prev=-1;
 		perVal=0.0;
 		for(  int i=0; i<1000; ++i)
 		{
-//			LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[0] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X ); // dac jako demostattion !!!
-//			LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen)); 	pos2[1] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );
 
 			pos2[0] = LCD_GetPosLinePointFromBuff(wsk_line1,  VALPERC(len_line1,perVal), LCD_X );
 			pos2[1] = LCD_GetPosLinePointFromBuff(wsk_line2,  VALPERC(len_line2,perVal), LCD_X );
 
-			//ffffff = ROUND_VAL(VALPERC(LCD_GetNmbrLinePoints(),perVal),0.51);
 			LCD_LinePoints(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));			pos2[2] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );  		//LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal), BLACK );
 
-			if(posA_x_prev==-1){
-					posA_x_prev = posA[0].x;
-				}
 
 			if(posAi>0 && (posA+posAi-1)->x == pos2[2].x){	// if the same position x then overwrite
 				posAi--;
@@ -2419,16 +2407,6 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 			else
 				posA[posAi++]=pos2[2];
 			perVal+=0.1;
-
-
-//			if(posA[posAi].x > posA_x_prev +1)
-//			{
-//				for(int i=0; i< (posA[posAi].x-posA_x_prev)-1; ++i)
-//				{
-//					posA[posAi++]=pos2[2];
-//					posA_x_prev = posA[posAi].x;
-//				}
-//			}
 
 
 		}
@@ -2452,95 +2430,33 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 			LCD_Buffer(LCD_X, 400+posA[i].x, posA[i].y-50, YELLOW);
 		}
 
-//		posBi = 0;
-//		int j=0;  int distX=0, distY=0;
-//		for(  int i=0; i<posAi-1; ++i) // dopisywanie w x...
-//		{
-//			posB[posBi++] = posA[i];
-//			distX = posA[i+1].x-posA[i].x -1;
-//			distY = posA[i+1].y-posA[i].y;
-//			if( distX >0 )
-//			{
-//				for(int n=0; n<distX; ++n)
-//				{
-//					posB[posBi].x = posB[posBi-1].x + 1;
-//					if(distY>0) 	  posB[posBi].y = posA[i].y + n+1;//(ABS(distY)/distX)*(n+1);
-//					else if(distY<0) posB[posBi].y = posA[i].y -(n+1);//(ABS(distY)/distX)*(n+1);
-//					else				  posB[posBi].y = posA[i].y;
-//					posBi++;
-//				}
-//			}
-//		}
-//		for(  int i=0; i<posBi; ++i) // wyswieltanie dopisywanie w x... (calosc)
-//		{
-//			LCD_Buffer(LCD_X, 400+posB[i].x, posB[i].y+50, RED);
-//		}
 
-		posBi=0;
-		for(  int i=0; i<posAi; ++i)  //WYKASOWAC !!!!!!!!!!!!!!!!
+		for(  int i=0; i<posAi; ++i) // wyswieltanie za pomoca GRAPH
 		{
-			posB[posBi++] = posA[i];
+			posA[i].x -= pos[0].x;
+			posA[i].y = pos[0].y - posA[i].y;
+		}
+
+
+
+		posCi = posAi;
+
+		for(  int i=0; i<posAi;   ++i)  posC[i] = posA[i];
+		for(  int i=2; i<posAi-2; ++i)  //filtracja AVR
+		{
+			posC[i].y = (posA[i-2].y + posA[i-1].y + posA[i].y + posA[i+1].y + posA[i+2].y ) / 5;
+		}
+
+		for(  int i=0; i<posAi;   ++i)  posA[i] = posC[i];
+		for(  int i=2; i<posAi-2; ++i)  //filtracja AVR
+		{
+			posC[i].y = (posA[i-2].y + posA[i-1].y + posA[i].y + posA[i+1].y + posA[i+2].y ) / 5;
 		}
 
 
 
 
-
-
-		for(  int i=0; i<posBi; ++i) // wyswieltanie za pomoca GRAPH
-		{
-			posB[i].x -= pos[0].x;
-			posB[i].y = pos[0].y - posB[i].y;
-		}
-
-		//GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(550,250, -100,100), POINTS_STEP_XYSCALE(posAi,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
-
-		int tab[3];
-
-
-
-
-		posCi = posBi;
-
-
-		for(  int i=0; i<posBi;   ++i)  posC[i] = posB[i];
-		for(  int i=2; i<posBi-2; ++i)  //filtracja AVR
-		{
-			posC[i].y = (posB[i-2].y + posB[i-1].y + posB[i].y + posB[i+1].y + posB[i+2].y ) / 5;
-		}
-
-		for(  int i=0; i<posBi;   ++i)  posB[i] = posC[i];
-		for(  int i=2; i<posBi-2; ++i)  //filtracja AVR
-		{
-			posC[i].y = (posB[i-2].y + posB[i-1].y + posB[i].y + posB[i+1].y + posB[i+2].y ) / 5;
-		}
-
-
-
-//1.Option
-//		for(  int i=0; i<posBi; ++i)  //filtracja AVR
-//		{
-//				if(i<posBi-6)
-//					posB[i].y = (posB[i].y + posB[i+1].y + posB[i+2].y + posB[i+3].y + posB[i+4].y + posB[i+5].y ) / 6;
-//		}
-
-
-//2.Option
-
-//		for(  int i=0; i<posBi; ++i)  //filtracja MID
-//		{
-//			if(i<posBi-3)
-//			{
-//				tab[0] = posB[i].y;
-//				tab[1] = posB[i+1].y;
-//				tab[2] = posB[i+2].y;
-//				SORT_Bubble(tab, 3);
-//				posB[i].y = tab[1];
-//			}
-//		}
-
-		//daj jako minimaze example    //daj jako minimaze example
-		GRAPHFUNC_SetMemOffsForOwnFunc(3000000);//(memOffsForGraphOwner);
+		GRAPHFUNC_SetMemOffsForOwnFunc(memOffsForGraphOwner);
 		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(400+120,350, -350,100), POINTS_STEP_XYSCALE(posCi-6,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
 
 
