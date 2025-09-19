@@ -1792,7 +1792,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 
 
 
-float len_Line=12; float AA_Line=1.0;  u32 xPP=250,yPP=400;	float perVal = 94;
+float len_Line=12; float AA_Line=1.0;  u32 xMidd=250,yMidd=400,  xRight=315,yRight=31;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -1835,14 +1835,16 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("m",&AA_Line,_float,_Incr,_Float(0.1),_Float(1.0),"incr AA: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("n",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("q",&xPP,_uint32,_Incr,_Uint32(15),_Uint32(780),"poX: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("a",&xPP,_uint32,_Decr,_Uint32(15),_Uint32(15),"poX: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("w",&xMidd, _uint32,_Incr,_Uint32(10),_Uint32(790),"xMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("q",&xMidd, _uint32,_Decr,_Uint32(10),_Uint32(10), "xMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("r",&xRight,_uint32,_Incr,_Uint32(10),_Uint32(790),"xRight: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("e",&xRight,_uint32,_Decr,_Uint32(10),_Uint32(10), "xRight: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("w",&yPP,_uint32,_Incr,_Uint32(15),_Uint32(480),"poY: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("s",&yPP,_uint32,_Decr,_Uint32(15),_Uint32(30),"poY: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("z",&yMidd, _uint32,_Incr,_Uint32(10),_Uint32(470),"yMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("a",&yMidd, _uint32,_Decr,_Uint32(10),_Uint32(10), "yMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("s",&yRight,_uint32,_Incr,_Uint32(10),_Uint32(470),"yRight: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("x",&yRight,_uint32,_Decr,_Uint32(10),_Uint32(10), "yRight: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("x",&perVal,_float,_Incr,_Float(0.1),_Float(99),"Line: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("z",&perVal,_float,_Decr,_Float(0.1),_Float(0),  "Line: ",MainFuncRefresh)
 
 	else if(DEBUG_RcvStr("p"))
 	{
@@ -2361,15 +2363,15 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		StartMeasureTime_us();
-		structPosition pos[3]= { {120,250}, {xPP,yPP}, {315,31} };				structPosition pos2[3]={0};  //daj regulacje w 53 !! i uwazaj bo gdzie indziej przesuniecie o -50 i hardfout
+		structPosition pos[3]= { {120,250}, {xMidd,yMidd}, {xRight,yRight} };				structPosition pos2[3]={0};  //daj regulacje w 53 !! i uwazaj bo gdzie indziej przesuniecie o -50 i hardfout
 
 		if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
 
 
 		extern char* GETVAL_ptr(uint32_t nrVal);
 
-		int posAi = 0, posBi = 0, posCi = 0;
-		structPosition *posA, *posB;
+		int posAi = 0, posCi = 0;
+		structPosition *posA;
 		structPosition *posC;
 
 		u32 memOffsForGraphOwner = 5000000;
@@ -2388,7 +2390,8 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line1 = LCD_CopyPosLinePointsToBuff(wsk_line1);
 		LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line2 = LCD_CopyPosLinePointsToBuff(wsk_line2);
 
-		perVal=0.0;
+		float perVal = 0.0;
+
 		for(  int i=0; i<1000; ++i)
 		{
 
@@ -2428,14 +2431,14 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		for(  int i=0; i<posAi; ++i) // wyswieltanie bezposrednio na ekran
 		{
-			LCD_Buffer(LCD_X, 400+posA[i].x, posA[i].y-20, YELLOW);   //przesuniecie o -50 i hardfout
+			LCD_Buffer(LCD_X, 400+posA[i].x, posA[i].y-10, YELLOW);   //przesuniecie o -50 i hardfout
 		}
 
 
-		for(  int i=0; i<posAi; ++i) // wyswieltanie za pomoca GRAPH
+		for(  int i=0; i<posAi; ++i) // wyswieltanie za pomoca GRAPH odjecie skladowych stalych
 		{
 			posA[i].x -= pos[0].x;
-			posA[i].y = (pos[0].y - posA[i].y); // dla dolu          pos[0].y - posA[i].y; //dla gory
+			posA[i].y = pos[0].y - posA[i].y;
 		}
 
 
@@ -2454,6 +2457,19 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 			posC[i].y = (posA[i-2].y + posA[i-1].y + posA[i].y + posA[i+1].y + posA[i+2].y ) / 5;
 		}
 
+
+
+
+void sdfsgdf(int numbersOfSamples, int *pSamplesIn, int *pSamplesOut, int coeff){	/* 'coeff' must be odd number */
+	if(coeff%0 == 0) coeff++;
+	int temp = coeff/2;
+	for(  int i=0; i<posAi;   ++i)  posA[i] = posC[i];
+	for(int i=temp; i<numbersOfSamples-temp; ++i){
+		*(pSamplesOut+i) = 0;
+		for(int j=-temp; j<=temp; ++j)
+			*(pSamplesOut+i) += *(pSamplesIn+i+j);
+	}
+}
 
 
 		GRAPHFUNC_SetMemOffsForOwnFunc(memOffsForGraphOwner);
