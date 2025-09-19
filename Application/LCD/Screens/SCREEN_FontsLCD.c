@@ -2361,7 +2361,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		StartMeasureTime_us();
-		structPosition pos[3]= { {120,250}, {xPP,yPP}, {315,250} };				structPosition pos2[3]={0};
+		structPosition pos[3]= { {120,250}, {xPP,yPP}, {315,31} };				structPosition pos2[3]={0};  //daj regulacje w 53 !! i uwazaj bo gdzie indziej przesuniecie o -50 i hardfout
 
 		if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
 
@@ -2428,7 +2428,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		for(  int i=0; i<posAi; ++i) // wyswieltanie bezposrednio na ekran
 		{
-			LCD_Buffer(LCD_X, 400+posA[i].x, posA[i].y-50, YELLOW);
+			LCD_Buffer(LCD_X, 400+posA[i].x, posA[i].y-20, YELLOW);   //przesuniecie o -50 i hardfout
 		}
 
 
