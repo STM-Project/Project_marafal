@@ -184,3 +184,15 @@ void SORT_Bubble(int tab[], int n){
 	}}}
 }
 
+void AVR_Calc(int numbersOfSamples, int *pSamplesIn, int *pSamplesOut, int coeff){	/* 'coeff' must be odd number */
+	int temp;
+	if(coeff%2 == 0) coeff++;
+	temp = coeff/2;
+	for(int i=temp; i<numbersOfSamples-temp; ++i){
+		*(pSamplesOut+i) = 0;
+		for(int j=-temp; j<=temp; ++j)
+			*(pSamplesOut+i) += *(pSamplesIn+i+j);
+		*(pSamplesOut+i) /= coeff;
+	}
+}
+
