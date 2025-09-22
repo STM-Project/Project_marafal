@@ -1836,14 +1836,14 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("n",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("w",&xMidd, _uint32,_Incr,_Uint32(distStep),_Uint32(LCD_X-distStep),"xMidd: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("q",&xMidd, _uint32,_Decr,_Uint32(distStep),_Uint32(distStep), "xMidd: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("r",&xRight,_uint32,_Incr,_Uint32(distStep),_Uint32(LCD_X-distStep),"xRight: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("e",&xRight,_uint32,_Decr,_Uint32(distStep),_Uint32(distStep), "xRight: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("q",&xMidd, _uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "xMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("r",&xRight,_uint32,_Incr,_Uint32(distStep),_Uint32(LCD_X-distStep),"xRight: ",MainFuncRefresh)  // tu mniejszy !!!!
+	_DBG_PARAM_NOWRAP("e",&xRight,_uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "xRight: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("z",&yMidd, _uint32,_Incr,_Uint32(distStep),_Uint32(LCD_Y-distStep),"yMidd: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("a",&yMidd, _uint32,_Decr,_Uint32(distStep),_Uint32(distStep), "yMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("a",&yMidd, _uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "yMidd: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("s",&yRight,_uint32,_Incr,_Uint32(distStep),_Uint32(LCD_Y-distStep),"yRight: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("x",&yRight,_uint32,_Decr,_Uint32(distStep),_Uint32(distStep), "yRight: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("x",&yRight,_uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "yRight: ",MainFuncRefresh)
 
 
 	else if(DEBUG_RcvStr("p"))
@@ -2431,7 +2431,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		for(  int i=0; i<posAi; ++i) // wyswieltanie bezposrednio na ekran
 		{
-			LCD_Buffer(LCD_X, 400+posA[i].x, posA[i].y-distStep, YELLOW);
+			LCD_Buffer(LCD_X, 200+posA[i].x, posA[i].y, YELLOW);
 		}
 
 
