@@ -1792,7 +1792,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 
 
 
-float len_Line=12; float AA_Line=1.0;  u32 xMidd=250,yMidd=400,  xRight=315,yRight=31;
+float len_Line=12; float AA_Line=1.0;  u32 xMidd=250,yMidd=400,  xRight=315,yRight=31;  int distStep=10;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -1835,15 +1835,15 @@ void FILE_NAME(debugRcvStr)(void)
 	_DBG_PARAM_NOWRAP("m",&AA_Line,_float,_Incr,_Float(0.1),_Float(1.0),"incr AA: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("n",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("w",&xMidd, _uint32,_Incr,_Uint32(10),_Uint32(790),"xMidd: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("q",&xMidd, _uint32,_Decr,_Uint32(10),_Uint32(10), "xMidd: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("r",&xRight,_uint32,_Incr,_Uint32(10),_Uint32(790),"xRight: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("e",&xRight,_uint32,_Decr,_Uint32(10),_Uint32(10), "xRight: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("w",&xMidd, _uint32,_Incr,_Uint32(distStep),_Uint32(LCD_X-distStep),"xMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("q",&xMidd, _uint32,_Decr,_Uint32(distStep),_Uint32(distStep), "xMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("r",&xRight,_uint32,_Incr,_Uint32(distStep),_Uint32(LCD_X-distStep),"xRight: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("e",&xRight,_uint32,_Decr,_Uint32(distStep),_Uint32(distStep), "xRight: ",MainFuncRefresh)
 
-	_DBG_PARAM_NOWRAP("z",&yMidd, _uint32,_Incr,_Uint32(10),_Uint32(470),"yMidd: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("a",&yMidd, _uint32,_Decr,_Uint32(10),_Uint32(10), "yMidd: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("s",&yRight,_uint32,_Incr,_Uint32(10),_Uint32(470),"yRight: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("x",&yRight,_uint32,_Decr,_Uint32(10),_Uint32(10), "yRight: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("z",&yMidd, _uint32,_Incr,_Uint32(distStep),_Uint32(LCD_Y-distStep),"yMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("a",&yMidd, _uint32,_Decr,_Uint32(distStep),_Uint32(distStep), "yMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("s",&yRight,_uint32,_Incr,_Uint32(distStep),_Uint32(LCD_Y-distStep),"yRight: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("x",&yRight,_uint32,_Decr,_Uint32(distStep),_Uint32(distStep), "yRight: ",MainFuncRefresh)
 
 
 	else if(DEBUG_RcvStr("p"))
@@ -2363,7 +2363,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		StartMeasureTime_us();
-		structPosition pos[3]= { {120,250}, {xMidd,yMidd}, {xRight,yRight} };				structPosition pos2[3]={0};  //daj regulacje w 53 !! i uwazaj bo gdzie indziej przesuniecie o -50 i hardfout
+		structPosition pos[3]= { {120,250}, {xMidd,yMidd}, {xRight,yRight} };				structPosition pos2[3]={0};
 
 		if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
 
@@ -2431,7 +2431,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 		for(  int i=0; i<posAi; ++i) // wyswieltanie bezposrednio na ekran
 		{
-			LCD_Buffer(LCD_X, 400+posA[i].x, posA[i].y-10, YELLOW);   //przesuniecie o -50 i hardfout
+			LCD_Buffer(LCD_X, 400+posA[i].x, posA[i].y-distStep, YELLOW);
 		}
 
 
@@ -2460,20 +2460,15 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 
 
-void sdfsgdf(int numbersOfSamples, int *pSamplesIn, int *pSamplesOut, int coeff){	/* 'coeff' must be odd number */
-	if(coeff%0 == 0) coeff++;
-	int temp = coeff/2;
-	for(  int i=0; i<posAi;   ++i)  posA[i] = posC[i];
-	for(int i=temp; i<numbersOfSamples-temp; ++i){
-		*(pSamplesOut+i) = 0;
-		for(int j=-temp; j<=temp; ++j)
-			*(pSamplesOut+i) += *(pSamplesIn+i+j);
-	}
-}
+
+
+
+
+
 
 
 		GRAPHFUNC_SetMemOffsForOwnFunc(memOffsForGraphOwner);
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(400+120,250, -350,220), POINTS_STEP_XYSCALE(posCi-3,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
+		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(400+120,240, -240,240), POINTS_STEP_XYSCALE(posCi-3,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
 
 
 
