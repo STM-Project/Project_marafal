@@ -441,4 +441,84 @@ void LCDEXAMPLE_SpecificCircle(uint32_t posBuff,uint32_t BkpSizeX, uint32_t x,ui
 	*/
 }
 
+void LCDEXAMPLE_BezierCurves(u32 xMidd,u32 yMidd, u32 xRight,u32 yRight, u32 BkpColor)
+{
+	u32 memOffsForSamples 	 = 2000000;
+	u32 memOffsForSamplesAVR = 5000000;
+
+	structPosition pos[3]={{120,250},{xMidd,yMidd},{xRight,yRight}};
+	structPosition pos2[3]={0};
+	structPosition *posA, *posC;
+	int posAi=0, posCi=0;
+	u32 *wsk_line1, *wsk_line2;		u32 len_line1, len_line2;
+	float stepVal = 0.0;
+
+	extern char* GETVAL_ptr(uint32_t nrVal);
+
+	posA = (structPosition*) GETVAL_ptr (memOffsForSamples);			/* calculated */
+	posC = (structPosition*) GETVAL_ptr (memOffsForSamplesAVR);		/* calculated and filtered AVR */
+
+	wsk_line1 = (u32*) GETVAL_ptr (100000);
+	wsk_line2 = (u32*) GETVAL_ptr (200000);
+
+	CorrectLineAA_off();
+
+	LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_OFF ,BKCOLOR_INOUT(BkpColor));		len_line1 = LCD_CopyPosLinePointsToBuff(wsk_line1);
+	LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_OFF ,BKCOLOR_INOUT(BkpColor));		len_line2 = LCD_CopyPosLinePointsToBuff(wsk_line2);
+
+	for(  int i=0; i<1000; ++i)
+	{
+		pos2[0] = LCD_GetPosLinePointFromBuff(wsk_line1,  VALPERC(len_line1,stepVal), LCD_X );
+		pos2[1] = LCD_GetPosLinePointFromBuff(wsk_line2,  VALPERC(len_line2,stepVal), LCD_X );
+
+		LCD_LinePoints(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X);			 pos2[2] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),stepVal), LCD_X );
+
+		if(posAi>0 && (posA+posAi-1)->x == pos2[2].x) posAi--;		 /* if the same position X then overwrite previous position */
+
+			  if(posAi>2 && posA[posAi-2].x == pos2[2].x);   /* if position is backward then omitted */
+		else if(posAi>3 && posA[posAi-3].x == pos2[2].x);   /* if position is backward then omitted */
+		else	posA[posAi++]=pos2[2];
+
+		stepVal+=0.1;
+		Dbg(1,"i");
+	}
+
+
+	for(  int i=0; i<posAi; ++i)  	/* Displaying indirect on the screen */
+		LCD_Buffer(LCD_X, 200+posA[i].x, posA[i].y, YELLOW);
+
+	for(  int i=0; i<posAi; ++i){  	/* Displaying with GRAPH_function() on the screen */
+		posA[i].x -= pos[0].x;
+		posA[i].y = pos[0].y - posA[i].y;
+	}
+
+	posCi = posAi;
+
+	for(  int i=0; i<posAi;   ++i)  posC[i] = posA[i];
+	for(  int i=2; i<posAi-2; ++i)  /* filtering AVR */
+		posC[i].y = (posA[i-2].y + posA[i-1].y + posA[i].y + posA[i+1].y + posA[i+2].y ) / 5;
+
+	for(  int i=0; i<posAi;   ++i)  posA[i] = posC[i];
+	for(  int i=2; i<posAi-2; ++i)  /* filtering AVR */
+		posC[i].y = (posA[i-2].y + posA[i-1].y + posA[i].y + posA[i+1].y + posA[i+2].y ) / 5;
+
+
+	GRAPHFUNC_SetMemOffsForOwnFunc(memOffsForSamplesAVR);
+	GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(400+120,240, -240,240), POINTS_STEP_XYSCALE(posCi-3,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
+
+	/* Debug Test 	-  use only if debug is necessary in function FILE_NAME(debugRcvStr)() */
+	/* u32 xMidd=250,yMidd=400,   xRight=315,yRight=31;   int distStep=10;
+
+	_DBG_PARAM_NOWRAP("w",&xMidd, _uint32,_Incr,_Uint32(distStep),_Uint32(LCD_X-distStep),"xMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("q",&xMidd, _uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "xMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("r",&xRight,_uint32,_Incr,_Uint32(distStep),_Uint32(LCD_X-distStep),"xRight: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("e",&xRight,_uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "xRight: ",MainFuncRefresh)
+
+	_DBG_PARAM_NOWRAP("z",&yMidd, _uint32,_Incr,_Uint32(distStep),_Uint32(LCD_Y-distStep),"yMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("a",&yMidd, _uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "yMidd: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("s",&yRight,_uint32,_Incr,_Uint32(distStep),_Uint32(LCD_Y-distStep),"yRight: ",MainFuncRefresh)
+	_DBG_PARAM_NOWRAP("x",&yRight,_uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "yRight: ",MainFuncRefresh)
+	 */
+}
+
 
