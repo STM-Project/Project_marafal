@@ -1792,7 +1792,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 
 
 
-float len_Line=12; float AA_Line=1.0;  u32 xMidd=250,yMidd=400,  xRight=315,yRight=31;  int distStep=10;
+float len_Line=12;  u32 xMidd=250,yMidd=400,  xRight=315,yRight=31;  int distStep=10;
 void FILE_NAME(debugRcvStr)(void)
 {if(v.DEBUG_ON){
 
@@ -1831,13 +1831,9 @@ void FILE_NAME(debugRcvStr)(void)
 	/* ----- END Test GRAPH ------- */
 
 
-
-	_DBG_PARAM_NOWRAP("m",&AA_Line,_float,_Incr,_Float(0.1),_Float(1.0),"incr AA: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("n",&AA_Line,_float,_Decr,_Float(0.1),_Float(0.0),"decr AA: ",MainFuncRefresh)
-
 	_DBG_PARAM_NOWRAP("w",&xMidd, _uint32,_Incr,_Uint32(distStep),_Uint32(LCD_X-distStep),"xMidd: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("q",&xMidd, _uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "xMidd: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("r",&xRight,_uint32,_Incr,_Uint32(distStep),_Uint32(LCD_X-distStep),"xRight: ",MainFuncRefresh)  // tu mniejszy !!!!
+	_DBG_PARAM_NOWRAP("r",&xRight,_uint32,_Incr,_Uint32(distStep),_Uint32(LCD_X-distStep),"xRight: ",MainFuncRefresh)
 	_DBG_PARAM_NOWRAP("e",&xRight,_uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "xRight: ",MainFuncRefresh)
 
 	_DBG_PARAM_NOWRAP("z",&yMidd, _uint32,_Incr,_Uint32(distStep),_Uint32(LCD_Y-distStep),"yMidd: ",MainFuncRefresh)
@@ -2363,118 +2359,10 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		StartMeasureTime_us();
-		structPosition pos[3]= { {120,250}, {xMidd,yMidd}, {xRight,yRight} };				structPosition pos2[3]={0};
-
-		if(AA_Line>=1.0) CorrectLineAA_off();	else  CorrectLineAA_on();
-
-
-		extern char* GETVAL_ptr(uint32_t nrVal);
-
-		int posAi = 0, posCi = 0;
-		structPosition *posA;
-		structPosition *posC;
-
-		u32 memOffsForGraphOwner = 5000000;
-
-		posA = (structPosition*) GETVAL_ptr (2000000);
-		posC = (structPosition*) GETVAL_ptr (memOffsForGraphOwner);
-
-
-		u32 *wsk_line1, *wsk_line2;
-		u32 len_line1, len_line2;
-		wsk_line1 = (u32*) GETVAL_ptr (100000);
-		wsk_line2 = (u32*) GETVAL_ptr (200000);
-
-		CorrectLineAA_off();
-
-		LCD_Line(0, POS_START_STOP( pos[0], pos[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line1 = LCD_CopyPosLinePointsToBuff(wsk_line1);
-		LCD_Line(0, POS_START_STOP( pos[1], pos[2]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));		len_line2 = LCD_CopyPosLinePointsToBuff(wsk_line2);
-
-		float perVal = 0.0;
-
-		for(  int i=0; i<1000; ++i)
-		{
-
-			pos2[0] = LCD_GetPosLinePointFromBuff(wsk_line1,  VALPERC(len_line1,perVal), LCD_X );
-			pos2[1] = LCD_GetPosLinePointFromBuff(wsk_line2,  VALPERC(len_line2,perVal), LCD_X );
-
-			LCD_LinePoints(0, POS_START_STOP(pos2[0],pos2[1]), WHITE,LCD_X, AA_INOUT(AA_Line) ,BKCOLOR_INOUT(v.COLOR_BkScreen));			pos2[2] = LCD_GetPosLinePoint( VALPERC(LCD_GetNmbrLinePoints(),perVal), LCD_X );  		//LCD_SetLinePointToBuffLcd( VALPERC(LCD_GetNmbrLinePoints(),perVal), BLACK );
-
-
-			if(posAi>0 && (posA+posAi-1)->x == pos2[2].x){	// if the same position x then overwrite
-				posAi--;
-			}
-			Dbg(1,"i");
-
-				  if(posAi>2 && posA[posAi-2].x == pos2[2].x);   // if pos is backward then omitted
-			else if(posAi>3 && posA[posAi-3].x == pos2[2].x);
-			else
-				posA[posAi++]=pos2[2];
-			perVal+=0.1;
-
-
-		}
-
-
-
-
-//
-//		  if(TakeMutex(Semphr_sdram, 1000))
-//		  {
-//
-//			  GiveMutex(Semphr_sdram);
-//		  }
-
-
-
-
-
-		for(  int i=0; i<posAi; ++i) // wyswieltanie bezposrednio na ekran
-		{
-			LCD_Buffer(LCD_X, 200+posA[i].x, posA[i].y, YELLOW);
-		}
-
-
-		for(  int i=0; i<posAi; ++i) // wyswieltanie za pomoca GRAPH odjecie skladowych stalych
-		{
-			posA[i].x -= pos[0].x;
-			posA[i].y = pos[0].y - posA[i].y;
-		}
-
-
-
-		posCi = posAi;
-
-		for(  int i=0; i<posAi;   ++i)  posC[i] = posA[i];
-		for(  int i=2; i<posAi-2; ++i)  //filtracja AVR
-		{
-			posC[i].y = (posA[i-2].y + posA[i-1].y + posA[i].y + posA[i+1].y + posA[i+2].y ) / 5;
-		}
-
-		for(  int i=0; i<posAi;   ++i)  posA[i] = posC[i];
-		for(  int i=2; i<posAi-2; ++i)  //filtracja AVR
-		{
-			posC[i].y = (posA[i-2].y + posA[i-1].y + posA[i].y + posA[i+1].y + posA[i+2].y ) / 5;
-		}
-
-
-
-
-
-
-
-
-
-
-
-		GRAPHFUNC_SetMemOffsForOwnFunc(memOffsForGraphOwner);
-		GRAPH_GetSamplesAndDraw(0, NR_MEM(0,0), LCD_X, XYPOS_YMIN_YMAX(400+120,240, -240,240), POINTS_STEP_XYSCALE(posCi-3,1.0, 1.0,1.0), FUNC_TYPE(Func_owner), LINE_COLOR(WHITE,0,0), AA_VAL(0.0,0.0), DRAW_OPT(Disp_AA,  unUsed,unUsed,unUsed,unUsed), 	GRAD_None, GRAD_COEFF(unUsed,unUsed), 1, CHART_PTR_NONE, GRID_NONE );
-
-
-
-
-
 		StopMeasureTime_us("Time GRAPH:");
+
+		LCDEXAMPLE_BezierCurves(xMidd,yMidd, xRight,yRight, v.COLOR_BkScreen);
+
 	}
 	only_one = ONLY_ONE_AT_START;
 
