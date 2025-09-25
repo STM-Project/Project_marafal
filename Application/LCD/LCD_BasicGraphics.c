@@ -2183,7 +2183,7 @@ static void _DrawArrayBuffRightDown_AA(uint32_t _drawColor, uint32_t outColor, u
 		}
 	}
 }
-static void   __attribute__ ((optimize("-Ofast"))) _DrawArrayBuffRightDown_linePoints(uint32_t _drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)		/* ! Attention !  number of pixels in one line H or V must not exceed value 255 because declaration 'uint8_t *buf'. In the future declare 'uint16_t *buf' */
+static void OPTIMIZE_FAST _DrawArrayBuffRightDown_linePoints(uint32_t BkpSizeX, int direction, uint8_t *buf)		/* ! Attention !  number of pixels in one line H or V must not exceed value 255 because declaration 'uint8_t *buf'. In the future declare 'uint16_t *buf' */
 {
 	int j=buf[0], i=buf[1], p=2;
 
@@ -2254,7 +2254,7 @@ static void _DrawArrayBuffLeftDown_AA(uint32_t drawColor, uint32_t outColor, uin
 		}
 	}
 }
-static void   __attribute__ ((optimize("-Ofast"))) _DrawArrayBuffLeftDown_linePoints(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+static void OPTIMIZE_FAST _DrawArrayBuffLeftDown_linePoints(uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2;
 
@@ -2327,7 +2327,7 @@ static void _DrawArrayBuffLeftUp_AA(uint32_t drawColor, uint32_t outColor, uint3
 		}
 	}
 }
-static void  __attribute__ ((optimize("-Ofast"))) _DrawArrayBuffLeftUp_linePoints(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+static void OPTIMIZE_FAST _DrawArrayBuffLeftUp_linePoints(uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2;
 
@@ -2399,7 +2399,7 @@ static void _DrawArrayBuffRightUp_AA(uint32_t drawColor, uint32_t outColor, uint
 		}
 	}
 }
-static void   __attribute__ ((optimize("-Ofast"))) _DrawArrayBuffRightUp_linePoints(uint32_t drawColor, uint32_t outColor, uint32_t inColor, float outRatioStart, float inRatioStart, uint32_t BkpSizeX, int direction, uint8_t *buf)
+static void OPTIMIZE_FAST _DrawArrayBuffRightUp_linePoints(uint32_t BkpSizeX, int direction, uint8_t *buf)
 {
 	int j=buf[0], i=buf[1], p=2;
 
@@ -3920,6 +3920,98 @@ static void GRAPH_Display(int offs_k, int widthBk, int lenStruct, u32 color, u32
 	#undef IS_RightDownUpDir1_ver2
 }
 
+static structPosition OPTIMIZE_FAST DrawLine_linePoints(uint32_t posBuff,uint16_t x0, uint16_t y0, float len, float degree, uint32_t lineColor,uint32_t BkpSizeX)
+{	/* here we don`t read BkColor */
+	#define LINES_BUFF_SIZE		(u16)len+6
+
+	float degree_copy=degree;
+	uint8_t linesBuff[LINES_BUFF_SIZE];
+	int k_iteration=0, searchDirection=0;
+	int nrPointsPerLine=0, iteration=1;
+	int findNoPoint=0, rot;
+	float param_y;
+	float param_x;
+	float decision;
+
+	void _FFFFFFFFFF(void)
+	{
+		switch(rot)
+		{  case 1: switch(searchDirection){ case 0: k_iteration=-1;	 		 break; case 1: k_iteration=-BkpSizeX-1; break; } break;
+			case 2: switch(searchDirection){ case 0: k_iteration=-BkpSizeX; break; case 1: k_iteration=-BkpSizeX-1; break; } break;
+			case 3: switch(searchDirection){ case 0: k_iteration=-BkpSizeX; break; case 1: k_iteration=-BkpSizeX+1; break; } break;
+			case 4: switch(searchDirection){ case 0: k_iteration=1;     	 break; case 1: k_iteration=-BkpSizeX+1; break; } break;
+			case 5: switch(searchDirection){ case 0: k_iteration=1;     	 break; case 1: k_iteration= BkpSizeX+1; break; } break;
+			case 6: switch(searchDirection){ case 0: k_iteration=BkpSizeX;  break; case 1: k_iteration= BkpSizeX+1; break; } break;
+			case 7: switch(searchDirection){ case 0: k_iteration=BkpSizeX;  break; case 1: k_iteration= BkpSizeX-1; break; } break;
+			case 8: switch(searchDirection){ case 0: k_iteration=-1;   		 break; case 1: k_iteration= BkpSizeX-1; break; } break;
+		}
+	}
+
+	if(degree_copy==0)
+		degree_copy=360;
+
+	_StartDrawLine(posBuff,BkpSizeX,x0,y0);
+	rot=LCD_SearchLinePoints(1,posBuff,x0,y0,degree_copy,BkpSizeX);
+	_FFFFFFFFFF();
+
+
+	do
+	{	pos_prev = pos;
+		if(LCD_SearchLinePoints(0,posBuff,x0,y0,degree_copy,BkpSizeX)==1)
+		{
+			nrPointsPerLine++;
+		   if(findNoPoint)
+		   {
+		   	findNoPoint=0;
+		   	searchDirection=1-searchDirection;
+		   	_FFFFFFFFFF();
+		   }
+		}
+		else
+		{
+		   k-=k_iteration;
+		   searchDirection=1-searchDirection;
+		   if(nrPointsPerLine)
+		   {
+		   	if(iteration<LINES_BUFF_SIZE-2)
+		   		linesBuff[iteration++]=nrPointsPerLine;
+		   	else break;
+		   }
+		   nrPointsPerLine=0;
+			findNoPoint=1;
+			_FFFFFFFFFF();
+		}
+		k+=k_iteration;
+	   pos = _GetPosXY(posBuff,BkpSizeX);
+
+		param_y = pow((float)(y0-pos.y),2);
+		param_x = pow((float)(x0-pos.x),2);
+		decision = pow(len+1,2);
+
+	}while((param_x+param_y) <= decision);		/* When precision of float 'degree' is greater than 0.1 then 'decision' may have to big decimal value for float for this precision and never return from the loop while() - endless loop */
+
+	if(nrPointsPerLine)
+		linesBuff[iteration++]=nrPointsPerLine;
+	linesBuff[0]=iteration-1;
+
+	_StartDrawLine(posBuff,BkpSizeX,x0,y0);
+
+		switch(rot)
+		{
+			case 1:  _DrawArrayBuffLeftUp_linePoints   (BkpSizeX,0,linesBuff); break;
+			case 2:  _DrawArrayBuffLeftUp_linePoints   (BkpSizeX,1,linesBuff); break;
+			case 3:  _DrawArrayBuffRightUp_linePoints  (BkpSizeX,1,linesBuff); break;
+			case 4:  _DrawArrayBuffRightUp_linePoints  (BkpSizeX,0,linesBuff); break;
+			case 5:  _DrawArrayBuffRightDown_linePoints(BkpSizeX,0,linesBuff); break;
+			case 6:  _DrawArrayBuffRightDown_linePoints(BkpSizeX,1,linesBuff); break;
+			case 7:  _DrawArrayBuffLeftDown_linePoints (BkpSizeX,1,linesBuff); break;
+			case 8:  _DrawArrayBuffLeftDown_linePoints (BkpSizeX,0,linesBuff); break;
+		}
+
+	#undef LINES_BUFF_SIZE
+	return pos_prev;
+}
+
 /* ################################## -- Global Declarations -- ######################################################### */
 void LCD_Buffer(u16 BkSizeX, u16 x,u16 y, u32 color){
 	pLcd[BkSizeX*(y)+(x)] = color;
@@ -4328,98 +4420,6 @@ void LCD_SetLinePointToBuffLcd(u16 nrLinePoint,u32 pointColor){
 	pLcd[ posLinePoints[nrLinePoint] ] = pointColor;
 }
 
-structPosition  __attribute__ ((optimize("-Ofast"))) DrawLine_linePoints(uint32_t posBuff,uint16_t x0, uint16_t y0, float len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
-{	/* here we don`t read BkColor */
-	#define LINES_BUFF_SIZE		(u16)len+6
-
-	float degree_copy=degree;
-	uint8_t linesBuff[LINES_BUFF_SIZE];
-	int k_iteration=0, searchDirection=0;
-	int nrPointsPerLine=0, iteration=1;
-	int findNoPoint=0, rot;
-	float param_y;
-	float param_x;
-	float decision;
-
-	void _FFFFFFFFFF(void)
-	{
-		switch(rot)
-		{  case 1: switch(searchDirection){ case 0: k_iteration=-1;	 		 break; case 1: k_iteration=-BkpSizeX-1; break; } break;
-			case 2: switch(searchDirection){ case 0: k_iteration=-BkpSizeX; break; case 1: k_iteration=-BkpSizeX-1; break; } break;
-			case 3: switch(searchDirection){ case 0: k_iteration=-BkpSizeX; break; case 1: k_iteration=-BkpSizeX+1; break; } break;
-			case 4: switch(searchDirection){ case 0: k_iteration=1;     	 break; case 1: k_iteration=-BkpSizeX+1; break; } break;
-			case 5: switch(searchDirection){ case 0: k_iteration=1;     	 break; case 1: k_iteration= BkpSizeX+1; break; } break;
-			case 6: switch(searchDirection){ case 0: k_iteration=BkpSizeX;  break; case 1: k_iteration= BkpSizeX+1; break; } break;
-			case 7: switch(searchDirection){ case 0: k_iteration=BkpSizeX;  break; case 1: k_iteration= BkpSizeX-1; break; } break;
-			case 8: switch(searchDirection){ case 0: k_iteration=-1;   		 break; case 1: k_iteration= BkpSizeX-1; break; } break;
-		}
-	}
-
-	if(degree_copy==0)
-		degree_copy=360;
-
-	_StartDrawLine(posBuff,BkpSizeX,x0,y0);
-	rot=LCD_SearchLinePoints(1,posBuff,x0,y0,degree_copy,BkpSizeX);
-	_FFFFFFFFFF();
-
-
-	do
-	{	pos_prev = pos;
-		if(LCD_SearchLinePoints(0,posBuff,x0,y0,degree_copy,BkpSizeX)==1)
-		{
-			nrPointsPerLine++;
-		   if(findNoPoint)
-		   {
-		   	findNoPoint=0;
-		   	searchDirection=1-searchDirection;
-		   	_FFFFFFFFFF();
-		   }
-		}
-		else
-		{
-		   k-=k_iteration;
-		   searchDirection=1-searchDirection;
-		   if(nrPointsPerLine)
-		   {
-		   	if(iteration<LINES_BUFF_SIZE-2)
-		   		linesBuff[iteration++]=nrPointsPerLine;
-		   	else break;
-		   }
-		   nrPointsPerLine=0;
-			findNoPoint=1;
-			_FFFFFFFFFF();
-		}
-		k+=k_iteration;
-	   pos = _GetPosXY(posBuff,BkpSizeX);
-
-		param_y = pow((float)(y0-pos.y),2);
-		param_x = pow((float)(x0-pos.x),2);
-		decision = pow(len+1,2);
-
-	}while((param_x+param_y) <= decision);		/* When precision of float 'degree' is greater than 0.1 then 'decision' may have to big decimal value for float for this precision and never return from the loop while() - endless loop */
-
-	if(nrPointsPerLine)
-		linesBuff[iteration++]=nrPointsPerLine;
-	linesBuff[0]=iteration-1;
-
-	_StartDrawLine(posBuff,BkpSizeX,x0,y0);
-
-		switch(rot)
-		{
-			case 1:  _DrawArrayBuffLeftUp_linePoints   (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,0,linesBuff); break;
-			case 2:  _DrawArrayBuffLeftUp_linePoints   (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,1,linesBuff); break;
-			case 3:  _DrawArrayBuffRightUp_linePoints  (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,1,linesBuff); break;
-			case 4:  _DrawArrayBuffRightUp_linePoints  (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,0,linesBuff); break;
-			case 5:  _DrawArrayBuffRightDown_linePoints(lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,0,linesBuff); break;
-			case 6:  _DrawArrayBuffRightDown_linePoints(lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,1,linesBuff); break;
-			case 7:  _DrawArrayBuffLeftDown_linePoints (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,1,linesBuff); break;
-			case 8:  _DrawArrayBuffLeftDown_linePoints (lineColor, bk1Color, bk2Color, ratioAA1, ratioAA2, BkpSizeX,0,linesBuff); break;
-		}
-
-	#undef LINES_BUFF_SIZE
-	return pos_prev;
-}
-
 structPosition DrawLine(uint32_t posBuff,uint16_t x0, uint16_t y0, float len, float degree, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color)
 {	/* here we don`t read BkColor */
 	#define LINES_BUFF_SIZE		(u16)len+6
@@ -4782,9 +4782,9 @@ void LCD_Line(uint32_t posBuff, u16 x0,u16 y0, u16 x1,u16 y1, uint32_t lineColor
 	nmbrLinePoints = 0;
 	DrawLine(posBuff, x0, y0, GetNewfloatValue(LCD_GetLenFrom2Points(x1,y1, x0,y0),1),  GetNewfloatValue(LCD_GetDegFrom2Points(x1,y1, x0,y0),1), lineColor,BkpSizeX, ratioAA1, ratioAA2 ,bk1Color, bk2Color);
 }
-void __attribute__ ((optimize("-Ofast"))) LCD_LinePoints(uint32_t posBuff, u16 x0,u16 y0, u16 x1,u16 y1, uint32_t lineColor,uint32_t BkpSizeX, float ratioAA1, float ratioAA2 ,uint32_t bk1Color, uint32_t bk2Color){ //NIEPOPTRZEBNE color..!!!!!!!
+void OPTIMIZE_FAST LCD_LinePoints(uint32_t posBuff, u16 x0,u16 y0, u16 x1,u16 y1, uint32_t lineColor,uint32_t BkpSizeX){
 	nmbrLinePoints = 0;
-	DrawLine_linePoints(posBuff, x0, y0, GetNewfloatValue(LCD_GetLenFrom2Points(x1,y1, x0,y0),1),  GetNewfloatValue(LCD_GetDegFrom2Points(x1,y1, x0,y0),1), lineColor,BkpSizeX, ratioAA1, ratioAA2 ,bk1Color, bk2Color);
+	DrawLine_linePoints(posBuff, x0, y0, GetNewfloatValue(LCD_GetLenFrom2Points(x1,y1, x0,y0),1),  GetNewfloatValue(LCD_GetDegFrom2Points(x1,y1, x0,y0),1), lineColor,BkpSizeX);
 }
 
 SHAPE_PARAMS LCD_KeyBackspace(uint32_t posBuff,uint32_t BkpSizeX,uint32_t BkpSizeY, uint32_t x,uint32_t y, uint32_t width, uint32_t height, uint32_t FrameColor, uint32_t FillColor, uint32_t BkpColor)
@@ -6488,10 +6488,6 @@ void LCDSHAPE_Chart_Indirect(USER_GRAPH_PARAM param){
 
 
 
-//void __attribute__ ((optimize("-Ofast"))) EXTI4_15_IRQHandler(void)
-//{
-//    // ...
-//}
 
 
 /*------------------- Example Shape Outline (only for more advanced graphics - not for basic) -------------------------------------
