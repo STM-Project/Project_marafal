@@ -1667,7 +1667,7 @@ int LCD_GetStrVar_idxTouch(int idVar, int nr){
 int LCD_GetStrVar_Mov_posWin(int idVar){
 	return FontVar[idVar].FontMov.posWin;
 }
-void LCD_SetBkFontShape(int idVar, int bkType){
+void LCD_SetBkFontShape(int idVar, int bkType){		/* Is the same to: LCD_SetStrVar_bkRoundRect()*/
 	FontVar[idVar].bkRoundRect=bkType;
 }
 void LCD_BkFontTransparent(int idVar, int fontID){

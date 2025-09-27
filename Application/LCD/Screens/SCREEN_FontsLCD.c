@@ -2361,16 +2361,16 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		StartMeasureTime_us();
 		StopMeasureTime_us("Time GRAPH:");
 
-		LCDEXAMPLE_BezierCurves(xMidd,yMidd, xRight,yRight, v.COLOR_BkScreen);
+
 
 	}
+
+	if(1)
+	{
+		LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 20,200, "12345", BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
+	}
+
 	only_one = ONLY_ONE_AT_START;
-
-
-
-	LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 20,200, "12345", BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
-
-
 	#undef ONLY_ONE_AT_START
 }
 
@@ -2379,7 +2379,9 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 static void EXPER_FUNC_afterDispBuffLcd(void)
 {
-
+	LCD_Txt(DisplayIndirect, NULL,  50,300, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, v.FONT_VAR_FontColor, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 1, RightDown);
+	LCD_Txt(DisplayIndirect, NULL,  50,350, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, v.FONT_VAR_FontColor, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);
+	LCD_Txt(DisplayIndirect, NULL,  50,400, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, v.FONT_VAR_FontColor, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 3, RightDown);
 }
 
 
