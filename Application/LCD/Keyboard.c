@@ -1854,14 +1854,11 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
 
 			XY_Touch_Struct poss = {s[k].interSpace, s[k].interSpace};
-			LCD_ShapeWindow( s[k].shape,0,widthFieldTxt,heightFieldTxt, 0,0, widthFieldTxt,heightFieldTxt, SetBold2Color(BrightDecr(frameColor,0x40),s[k].bold), RED/*BrightDecr(frameColor,0x40)*/,colorFillBk );
+			LCD_ShapeWindow( s[k].shape,0,widthFieldTxt,heightFieldTxt, 0,0, widthFieldTxt,heightFieldTxt, SetBold2Color(BrightDecr(frameColor,0x40),s[k].bold), BrightDecr(frameColor,0x40),colorFillBk );
 
-			/* dla .._Indirect  jsli bkColor=0 to NIE odczytuje bk !!!!*/
-			/*  */
-			LCD_SetStrVar_fontID(fontVar_40,fontID);
-			LCD_SetStrVar_bkScreenColor(fontVar_40,RED);
-			LCD_SetBkFontShape(fontVar_40,BK_Round);
-			LCD_Txt(DisplayIndirect, NULL, s[k].x+poss.x+3, s[k].y+poss.y+3, BK_SIZE_IS_TXT_SIZE, fontID, fontVar_40,0,0, "12345", BLACK, RED/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,3,RightDown) /*TXTSHADE_NONE*/);
+
+			LCD_TxtShadowInit(fontVar_40, fontID, BrightDecr(frameColor,0x40), BK_Rectangle);  // BrightDecr(frameColor,0x40) opisac ze fill FieldTxt
+			LCD_Txt(DisplayIndirect, NULL, s[k].x+poss.x+3, s[k].y+poss.y+3, BK_SIZE_IS_TXT_SIZE, fontID, fontVar_40,0,0, "12345", BLACK, BrightDecr(frameColor,0x40), fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,3,RightDown) /*TXTSHADE_NONE*/);
 
 			//LCD_StrDependOnColorsWindow(0,widthFieldTxt,heightFieldTxt,fontID, poss.x,poss.y,"A", fullHight, 0, RED, BLACK,FONT_COEFF, NoConstWidth);
 			//LCD_Display(0,s[k].x+poss.x, s[k].y+poss.y,  widthFieldTxt,heightFieldTxt);

@@ -4415,7 +4415,7 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 			return strParam;
 
 		case DisplayIndirect:
-			LCD_RectangleBuff(pLcd,0, bkX,bkY ,0,0, bkX,bkY, bkColor,bkColor,bkColor);
+			LCD_RectangleBuff(pLcd,0, bkX,bkY ,0,0, bkX,bkY, bkColor,bkColor,bkColor);					/* For another bkShape (as Round,LittleRound) it is necessary define bkScreenColor as additional out bkColor */
 			if(deep) temp=_ShadowFunc();
 			else		temp=LCD_StrDependOnColorsWindow(0, bkX,bkY, fontID,Xpos,Ypos,txt,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 			_CopyCurrentParam();
@@ -4435,7 +4435,7 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 
 		case DisplayIndirectViaStruct:
 			if(NULL!=p){
-				LCD_RectangleBuff(pLcd,0, bkX,bkY ,0,0, bkX,bkY, p->bkCol, p->bkCol, p->bkCol);
+				LCD_RectangleBuff(pLcd,0, bkX,bkY ,0,0, bkX,bkY, p->bkCol, p->bkCol, p->bkCol);		/* For another bkShape (as Round,LittleRound) it is necessary define bkScreenColor as additional out bkColor */
 				if(p->shadow.deep) temp=_ShadowStructFunc();
 				else					 temp=LCD_StrDependOnColorsWindow(0, bkX,bkY, p->fontId, p->txt.pos.x, p->txt.pos.y, p->str, p->onlyDig, p->spac, p->bkCol, p->fontCol, p->maxV, p->constW);
 				strParam=*p;
@@ -4450,6 +4450,11 @@ LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Yw
 	}
 }
 
+void LCD_TxtShadowInit(int idVar, int fontID, u32 bkColor, int bkShape){
+	LCD_SetStrVar_fontID			 (idVar, fontID);
+	LCD_SetStrVar_bkScreenColor (idVar, bkColor);
+	LCD_SetBkFontShape			 (idVar, bkShape);
+}
 LCD_STR_PARAM LCD_TxtVar(LCD_STR_PARAM *p, char *txt){
 	if(NULL!=txt) LCD_SetNewTxt(p,txt);
 	return LCD_Txt(DisplayViaStruct, p, NO_TXT_ARGS);

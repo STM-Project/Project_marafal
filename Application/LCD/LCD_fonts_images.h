@@ -458,6 +458,7 @@ StructFieldPos LCD_StrDependOnColorsDescrVar_array_xyCorrect(int noDisp, int idV
 		int fontID12, uint32_t fontColor12, uint32_t bkColor12, int interspace12, int directionDescr12, char *txt12, int OnlyDigits12, int space12,int maxVal12, int constWidth12 );
 
 void 			  		LCD_SetNewTxt					(LCD_STR_PARAM* p, char* newTxt);
+void 					LCD_TxtShadowInit				(int idVar, int fontID, u32 bkColor, int bkShape);
 LCD_STR_PARAM 		LCD_Txt							(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int idVar, int Xpos, int Ypos, char *txt, uint32_t fontColor, uint32_t bkColor, int OnlyDigits, int space,int maxVal, int constWidth, u32 shadeColor, u8 deep, DIRECTIONS dir);
 LCD_STR_PARAM 		LCD_TxtVar						(LCD_STR_PARAM *p, char *txt);
 LCD_STR_PARAM 		LCD_TxtVarInd					(LCD_STR_PARAM *p, char *txt);

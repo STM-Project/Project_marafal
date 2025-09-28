@@ -2367,7 +2367,8 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 	if(1)
 	{
-		LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Fonts, v.FONT_VAR_Fonts, 20,200, "12345", BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
+		LCD_TxtShadowInit(fontVar_40, v.FONT_ID_FontColor, COLOR_BkScreen, BK_Rectangle);
+		LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_FontColor, fontVar_40, 20,200, "12345", BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
 	}
 
 	only_one = ONLY_ONE_AT_START;
@@ -2379,9 +2380,21 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 static void EXPER_FUNC_afterDispBuffLcd(void)
 {
-	LCD_Txt(DisplayIndirect, NULL,  50,300, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, v.FONT_VAR_FontColor, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 1, RightDown);
-	LCD_Txt(DisplayIndirect, NULL,  50,350, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, v.FONT_VAR_FontColor, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);
-	LCD_Txt(DisplayIndirect, NULL,  50,400, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, v.FONT_VAR_FontColor, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 3, RightDown);
+//	LCD_Txt(DisplayIndirect, NULL,  50,300, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, v.FONT_VAR_FontColor, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 1, RightDown);
+//	LCD_Txt(DisplayIndirect, NULL,  50,350, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, v.FONT_VAR_FontColor, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);
+//	LCD_Txt(DisplayIndirect, NULL,  50,400, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, v.FONT_VAR_FontColor, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 3, RightDown);
+
+	LCD_TxtShadowInit(fontVar_40, v.FONT_ID_FontColor, COLOR_BkScreen, BK_Rectangle);
+	LCD_Txt(DisplayIndirect, NULL, 50,200, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, fontVar_40, 0,0, "12345", BLACK, RED, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
+
+	LCD_TxtShadowInit(fontVar_40, v.FONT_ID_FontColor, COLOR_BkScreen, BK_Round);
+	LCD_Txt(DisplayIndirect, NULL, 50,250, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, fontVar_40, 0,0, "12345", BLACK, RED, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
+
+	LCD_TxtShadowInit(fontVar_40, v.FONT_ID_FontColor, COLOR_BkScreen, BK_LittleRound);
+	LCD_Txt(DisplayIndirect, NULL, 50,300, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, fontVar_40, 0,0, "12345", BLACK, RED, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
+
+	LCD_TxtShadowInit(fontVar_40, v.FONT_ID_FontColor, COLOR_BkScreen, BK_None);
+	LCD_Txt(DisplayIndirect, NULL, 50,350, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, fontVar_40, 0,0, "12345", BLACK, RED, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
 }
 
 
