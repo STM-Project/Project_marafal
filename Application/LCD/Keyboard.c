@@ -1798,6 +1798,13 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	char _GetCharBuff(char sign)		{ return charBuff[_GetIndxCharBuff()]; }
 	char *_GetPtrToCharBuff(int offs){ return charBuff+offs; }
 
+	void _ServiceCharBuff(int key){
+		_DispTxtFieldInd();
+		_SetCharBuff(*txtKey[key]);
+		_IncIndxCharBuff();
+		_DispTxtInFieldIndirect(s[k].interSpace, s[k].interSpace, _GetPtrToCharBuff(0));
+	}
+
 	void _KeyQ2P(int nr, int act){
 		if(release==act)	Key(k,posKey[nr]);
 		else	 				KeyPressWin(k);
@@ -1814,7 +1821,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 								StrWin_Xmidd_Yoffs(k,s[k].heightKey-VALPERC(heightTxt,115), 								txtKey[nr], colorTxtPressKey[nr]);
 						BKCOPY(fillColor,fillColor_c[0]);
 		}
-		if(press==act)	 LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
+		if(press==act)	LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
 	}
 
 	if(touchRelease == selBlockPress)
@@ -1823,10 +1830,9 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		_DispTxtField();
 		_DispTxtInField(s[k].interSpace, s[k].interSpace, _GetPtrToCharBuff(0));
 
-			fillColor = BrightIncr(fillColor,0x10);
-			bkColor = colorFillBk;
-
-			c.widthKey = s[k].widthKey;
+		fillColor = BrightIncr(fillColor,0x10);
+		bkColor = colorFillBk;
+		c.widthKey = s[k].widthKey;
 			for(int i=0; i<countKey; ++i)
 			{
 				s[k].widthKey = wKey[i];
@@ -1847,7 +1853,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 					else					KeyStr(k,posKey[i],txtKey[i],colorTxtKey[i]);
 				}
 			}
-			s[k].widthKey = c.widthKey;
+		s[k].widthKey = c.widthKey;
+		LCD_Display(0, s[k].x, s[k].y, widthAll, heightAll);
 	}
 	else if(tBig == selBlockPress){
 		nr = selBlockPress-touchAction;
@@ -1872,15 +1879,17 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		{
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
-
-			_DispTxtFieldInd();
-			_SetCharBuff(*txtKey[selBlockPress-touchAction]);
-			_IncIndxCharBuff();
-			_DispTxtInFieldIndirect(s[k].interSpace, s[k].interSpace, _GetPtrToCharBuff(0));
-			_KeyQ2P(nr,press);
+			 _ServiceCharBuff(selBlockPress-touchAction);
+			 _KeyQ2P(nr,press);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
-		else if(IS_RANGE(selBlockPress,touchAction+10,tEnter)){ 	    INIT(nr,selBlockPress-touchAction); BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);   KeyStrPressDisp_oneBlock(k,posKey[nr],txtKey[nr],colorTxtPressKey[nr]); 	BKCOPY(s[k].widthKey,c.widthKey); }
+		else if(IS_RANGE(selBlockPress,touchAction+10,tEnter))
+		{
+			INIT(nr,selBlockPress-touchAction);
+			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
+			 _ServiceCharBuff(selBlockPress-touchAction);
+			 KeyStrPressDisp_oneBlock(k,posKey[nr],txtKey[nr],colorTxtPressKey[nr]);
+			BKCOPY(s[k].widthKey,c.widthKey); }
 	}
 
 
