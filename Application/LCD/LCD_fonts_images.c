@@ -4339,7 +4339,7 @@ void LCD_SetNewTxt(LCD_STR_PARAM* p, char* newTxt){
 	p->txtLen=strlen(p->str);
 }
 LCD_STR_PARAM LCD_Txt(LCD_DISPLAY_ACTION act, LCD_STR_PARAM* p, int Xwin, int Ywin, uint32_t BkpSizeX, uint32_t BkpSizeY, int fontID, int idVar, int Xpos, int Ypos, char *txt, uint32_t fontColor, uint32_t bkColor, int OnlyDigits, int space,int maxVal, int constWidth, u32 shadeColor, u8 deep, DIRECTIONS dir)
-{																						/*	NO_TXT_ARGS	*/																																																											/*	NO_TXT_SHADOW	*/	 /*	TXT_SHADOW() */
+{																						/*	NO_TXT_ARGS	*/			/* Xwin, Ywin needed only when displaying type is as indirect */																																																								/*	NO_TXT_SHADOW	*/	 /*	TXT_SHADOW() */
 	StructTxtPxlLen temp={0};		int i,_x,_y, sx,sy, bkX,bkY;  uint8_t bkShape;
 	LCD_STR_PARAM	strParam = {.win.pos={Xwin,Ywin}, .win.size={BkpSizeX,BkpSizeY}, .txt.pos={Xpos,Ypos}, .txt.size={LCD_GetWholeStrPxlWidth(fontID,txt,space,constWidth),LCD_GetFontHeight(fontID)}, .txtLen=strlen(txt), .fontId=fontID, .fontVar=idVar, .onlyDig=OnlyDigits, .spac=space, .bkCol=bkColor, .fontCol=fontColor, .maxV=maxVal, .constW=constWidth, .shadow.shadeColor=shadeColor, .shadow.deep=deep, .shadow.dir=dir};
 	LOOP_FOR(i,MAX_TXT_SIZE__LCD_STR_PARAM){
