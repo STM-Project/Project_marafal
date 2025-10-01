@@ -1708,7 +1708,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 
 
-void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int tBig,int tBack,int tEnter,uint32_t colorDescr, char charBuff[]) // klawiatura malutka i duza na caly LCD_X z liczbami
+void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int tBig,int tBack,int tEnter,uint32_t colorDescr, char *charBuff,int charBuffSize) // klawiatura malutka i duza na caly LCD_X z liczbami
 {
 	#define TXTFIELD_COLOR		BrightDecr(frameColor,0x40)
 	#define _UP		"|"
@@ -1783,8 +1783,20 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	void _DispTxtField  	 (void){	 LCD_ShapeWindow( s[k].shape,0, widthAll,	  	  heightAll, 	   s[k].interSpace,s[k].interSpace, widthFieldTxt,heightFieldTxt, SetBold2Color(TXTFIELD_COLOR,s[k].bold), TXTFIELD_COLOR,  				  colorFillBk );	}
 	void _DispTxtFieldInd (void){	 LCD_ShapeWindow( s[k].shape,0, widthFieldTxt, heightFieldTxt, 0,					 0, 				   widthFieldTxt,heightFieldTxt, SetBold2Color(TXTFIELD_COLOR,s[k].bold), TXTFIELD_COLOR,  				  colorFillBk );  }
 
-	void _DispTxtInTxtField(int xPos, int yPos, char *txt){	 LCD_TxtShadowInit(fontVar_40, fontID, TXTFIELD_COLOR, BK_Rectangle);
-																				 LCD_Txt(DisplayIndirect, NULL, s[k].x+xPos+3, s[k].y+yPos+3, BK_SIZE_IS_TXT_SIZE, fontID, fontVar_40,0,0, txt, BLACK, TXTFIELD_COLOR, fullHight,0,250, NoConstWidth, TXTSHADE_NONE /*TXTSHADECOLOR_DEEP_DIR(0x777777,3,RightDown)*/ );	}
+	void _DispTxtInFieldIndirect(int xOffs, int yOffs, char *txt){	 LCD_TxtShadowInit(fontVar_40, fontID, TXTFIELD_COLOR, BK_Rectangle);
+																				 	 	 LCD_Txt(DisplayIndirect, NULL, s[k].x+3+xOffs, s[k].y+3+yOffs, BK_SIZE_IS_TXT_SIZE, fontID, fontVar_40, 0,0, 				txt, BLACK, TXTFIELD_COLOR, fullHight,0,250, NoConstWidth, TXTSHADE_NONE /*TXTSHADECOLOR_DEEP_DIR(0x777777,3,RightDown)*/ );	}
+
+	void _DispTxtInField(int xPos, int yPos, char *txt)		  {	 LCD_TxtShadowInit(fontVar_40, fontID, TXTFIELD_COLOR, BK_Rectangle);
+																			 	 	 	 LCD_Txt(Display,			  NULL, unUsed, unUsed, 			  	 	 widthAll, heightAll, fontID, fontVar_40, 3+xPos,3+yPos, txt, BLACK, TXTFIELD_COLOR, fullHight,0,250, NoConstWidth, TXTSHADE_NONE);	}
+
+	void _RstIndxCharBuff(void)		{ charBuff[charBuffSize-1]=0; }
+	void _SetIndxCharBuff(int indx)	{ if(IS_RANGE(indx,0,charBuffSize-1)) charBuff[charBuffSize-1]=indx; }
+	int  _GetIndxCharBuff(void)		{ return charBuff[charBuffSize-1]; };
+	void _IncIndxCharBuff(void)		{ if(IS_RANGE(charBuff[charBuffSize-1],0,charBuffSize-2)) charBuff[charBuffSize-1]++; }
+	void _DecIndxCharBuff(void)		{ if(IS_RANGE(charBuff[charBuffSize-1],1,charBuffSize-1)) charBuff[charBuffSize-1]--; }
+	void _SetCharBuff(char sign)		{ charBuff[_GetIndxCharBuff()]=sign; }
+	char _GetCharBuff(char sign)		{ return charBuff[_GetIndxCharBuff()]; }
+	char *_GetPtrToCharBuff(int offs){ return charBuff+offs; }
 
 	void _KeyQ2P(int nr, int act){
 		if(release==act)	Key(k,posKey[nr]);
@@ -1802,13 +1814,14 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 								StrWin_Xmidd_Yoffs(k,s[k].heightKey-VALPERC(heightTxt,115), 								txtKey[nr], colorTxtPressKey[nr]);
 						BKCOPY(fillColor,fillColor_c[0]);
 		}
-		if(press==act) LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
+		if(press==act)	 LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
 	}
 
 	if(touchRelease == selBlockPress)
 	{
 		_DispMainField();
 		_DispTxtField();
+		_DispTxtInField(s[k].interSpace, s[k].interSpace, _GetPtrToCharBuff(0));
 
 			fillColor = BrightIncr(fillColor,0x10);
 			bkColor = colorFillBk;
@@ -1825,14 +1838,13 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				}
 				else if(STRING_CmpTxt((char*)txtKey[i],_EN)){	Key(k,posKey[i]);	_PARAM_ARROW_EN;
 					LCD_Enter(0,widthAll,heightAll, MIDDLE(posKey[i].x,s[k].widthKey,size_EN.w),MIDDLE(posKey[i].y,s[k].heightKey,size_EN.h), SetLineBold2Width(size_EN.w,bold_EN), SetTriangHeightCoeff2Height(size_EN.h,coeff_EN), frameColor,frameColor,bkColor);
-					LCD_Display(0, s[k].x, s[k].y, widthAll, heightAll);
 				}
 				else if(STRING_CmpTxt((char*)txtKey[i],_EX)){	KeyPress(k,posKey[i]);	_PARAM_ARROW_EX;
 					LCD_Exit(0,widthAll,heightAll, MIDDLE(posKey[i].x,s[k].widthKey,size_EX.w),MIDDLE(posKey[i].y,s[k].heightKey,size_EX.h), size_EX.w, size_EX.h, colorTxtPressKey[i],colorTxtPressKey[i],bkColor);
 				}
 				else{
 					if(i<dimKeys[0]) _KeyQ2P(i,release);
-					else 				  KeyStr(k,posKey[i],txtKey[i],colorTxtKey[i]);
+					else					KeyStr(k,posKey[i],txtKey[i],colorTxtKey[i]);
 				}
 			}
 			s[k].widthKey = c.widthKey;
@@ -1861,10 +1873,10 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
 
-			XY_Touch_Struct poss = {s[k].interSpace, s[k].interSpace};
 			_DispTxtFieldInd();
-			_DispTxtInTxtField(poss.x, poss.y, "1234abc");
-
+			_SetCharBuff(*txtKey[selBlockPress-touchAction]);
+			_IncIndxCharBuff();
+			_DispTxtInFieldIndirect(s[k].interSpace, s[k].interSpace, _GetPtrToCharBuff(0));
 			_KeyQ2P(nr,press);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
