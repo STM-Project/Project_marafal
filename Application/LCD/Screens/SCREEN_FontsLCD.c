@@ -19,6 +19,7 @@
 #include "task.h"
 #include "Keyboard.h"
 #include "examples.h"
+#include "string.h"
 
 
 /*----------------- Main Settings ------------------*/
@@ -305,6 +306,7 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 	LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_##src, txt)
 
 #define ROLL_1		0
+#define KEYBUFF_SIZE		50
 
 typedef enum{
 	NoTouch = NO_TOUCH,
@@ -572,6 +574,9 @@ static void FRAMES_GROUP_combined(int argNmb, int startOffsX,int startOffsY, int
 static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY,  int boldFrame);
 
 static int *ppMain[7] = {(int*)FRAMES_GROUP_combined,(int*)FRAMES_GROUP_separat,(int*)"Rafal", (int*)&Test, NULL, NULL, NULL };
+static char keyBuff[KEYBUFF_SIZE]={0};
+
+static void ResetIndexKeyBuff(void){  memset(keyBuff,0,KEYBUFF_SIZE); }
 /*
 static char* TXT_PosCursor(void){
 	return Test.posCursor>0 ? Int2Str(Test.posCursor-1,' ',3,Sign_none) : StrAll(1,"off");
@@ -1296,8 +1301,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			break;
 
 		case KEYBOARD_setTxt:
-			static char keyboardSetTxt_buff[50]={0};
-			KEYBOARD__ServiceSetTxt(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Q, KEY_big, KEY_back, KEY_enter, v.FONT_COLOR_Descr, keyboardSetTxt_buff);
+			KEYBOARD__ServiceSetTxt(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Q, KEY_big, KEY_back, KEY_enter, v.FONT_COLOR_Descr, keyBuff,KEYBUFF_SIZE);
 			break;
 
 		default:
@@ -1719,6 +1723,7 @@ void FILE_NAME(setTouch)(void)
 					LCD_TOUCH_RestoreAllSusspendedTouchs();
 					FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
 					KEYBOARD_TYPE(KEYBOARD_none,0);
+					ResetIndexKeyBuff();
 				}
 				else{	_KEYS_RELEASE_setTxt;	KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_Q+(state-Touch_Q));  _SaveState(); }
 				break;
@@ -2366,7 +2371,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 	}
 
-	if(1)
+	if(1)	/* This display ever time */
 	{
 		LCD_TxtShadowInit(fontVar_40, v.FONT_ID_FontColor, v.COLOR_BkScreen, BK_Rectangle);
 		LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_FontColor, fontVar_40, 20,200, "12345", BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
@@ -2381,21 +2386,8 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 
 static void EXPER_FUNC_afterDispBuffLcd(void)
 {
-//	LCD_Txt(DisplayIndirect, NULL,  50,300, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, v.FONT_VAR_FontColor, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 1, RightDown);
-//	LCD_Txt(DisplayIndirect, NULL,  50,350, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, v.FONT_VAR_FontColor, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 2, RightDown);
-//	LCD_Txt(DisplayIndirect, NULL,  50,400, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, v.FONT_VAR_FontColor, 0,0, "abcde", WHITE, v.COLOR_BkScreen, fullHight,0,250, NoConstWidth, 0x777777, 3, RightDown);
 
-	LCD_TxtShadowInit(fontVar_40, v.FONT_ID_FontColor, v.COLOR_BkScreen, BK_Rectangle);
-	LCD_Txt(DisplayIndirect, NULL, 50,200, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, fontVar_40, 0,0, "12345", BLACK, RED, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
 
-	LCD_TxtShadowInit(fontVar_40, v.FONT_ID_FontColor, v.COLOR_BkScreen, BK_Round);
-	LCD_Txt(DisplayIndirect, NULL, 50,250, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, fontVar_40, 0,0, "12345", BLACK, RED, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
-
-	LCD_TxtShadowInit(fontVar_40, v.FONT_ID_FontColor, v.COLOR_BkScreen, BK_LittleRound);
-	LCD_Txt(DisplayIndirect, NULL, 50,300, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, fontVar_40, 0,0, "12345", BLACK, RED, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
-
-	LCD_TxtShadowInit(fontVar_40, v.FONT_ID_FontColor, v.COLOR_BkScreen, BK_None);
-	LCD_Txt(DisplayIndirect, NULL, 50,350, BK_SIZE_IS_TXT_SIZE, v.FONT_ID_FontColor, fontVar_40, 0,0, "12345", BLACK, RED, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
 }
 
 
