@@ -1818,11 +1818,14 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	char _GetCharBuff(char sign)		{ return charBuff[_GetIndxCharBuff()]; }
 	char *_GetPtrToCharBuff(int offs){ return charBuff+offs; }
 
-	void _ServiceCharBuff(int key){
+	void _DispTxt(void){ DispTxtIndirect(_GetPtrToCharBuff(0), s[k].x+3+s[k].interSpace, s[k].x+3+s[k].interSpace, BLACK, TXTFIELD_COLOR); }
+
+	void _ServiceCharBuff(int key){  //Wprowadz kursor migotajacy !!!!!!
 		_DispTxtFieldInd();
-		_SetCharBuff(*txtKey[key]);
+		if		 (STRING_CmpTxt((char*)txtKey[key],"space"))  _SetCharBuff(' ');
+		else 														 		 _SetCharBuff(*txtKey[key]);
 		_IncIndxCharBuff();
-		DispTxtIndirect(_GetPtrToCharBuff(0), s[k].x+3+s[k].interSpace, s[k].x+3+s[k].interSpace, BLACK, TXTFIELD_COLOR);//_DispTxtInFieldIndirect(s[k].interSpace, s[k].interSpace, _GetPtrToCharBuff(0));
+		_DispTxt();
 	}
 
 	void _KeyQ2P(int nr, int act){
@@ -1852,7 +1855,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	{
 		_DispMainField();
 		_DispTxtField();
-		 DispTxt(_GetPtrToCharBuff(0), 3+s[k].interSpace, 3+s[k].interSpace, BLACK, TXTFIELD_COLOR, widthAll, heightAll);//_DispTxtInField(s[k].interSpace, s[k].interSpace, _GetPtrToCharBuff(0));
+		 DispTxt(_GetPtrToCharBuff(0), 3+s[k].interSpace, 3+s[k].interSpace, BLACK, TXTFIELD_COLOR, widthAll, heightAll);
 
 		fillColor = BrightIncr(fillColor,0x10);
 		bkColor = colorFillBk;
@@ -1890,6 +1893,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		nr = selBlockPress-touchAction;
 		BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);		_PARAM_ARROW_LF;
 		KeyShapePressDisp_oneBlock(k,posKey[nr], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn,s[k].widthKey,s[k].heightKey, MIDDLE(0,s[k].widthKey,size_LF.w),MIDDLE(0,s[k].heightKey,size_LF.h), SetLineBold2Width(size_LF.w,bold_LF), SetTriangHeightCoeff2Height(size_LF.h,coeff_LF), colorTxtPressKey[nr],colorTxtPressKey[nr],bkColor, Left));
+		_DecIndxCharBuff(); _SetCharBuff(0x0);
+		if(_GetIndxCharBuff()>0) _DispTxt();
 		BKCOPY(s[k].widthKey,c.widthKey);
 	}
 	else if(tEnter == selBlockPress){
@@ -1899,7 +1904,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		BKCOPY(s[k].widthKey,c.widthKey);
 	}
 	else{
-		if(IS_RANGE(selBlockPress,touchAction,touchAction+9))
+		if(IS_RANGE(selBlockPress,touchAction,touchAction+9))			/* press keys from 'q' to 'p' */
 		{
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
@@ -1907,7 +1912,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			 _KeyQ2P(nr,press);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
-		else if(IS_RANGE(selBlockPress,touchAction+10,tEnter))
+		else if(IS_RANGE(selBlockPress,touchAction+10,tEnter))		/* press rest of keys */
 		{
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
