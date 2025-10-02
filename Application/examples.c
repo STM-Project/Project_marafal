@@ -152,6 +152,20 @@ void LCDEXAMPLE_LcdTxt(int FONT_ID_Fonts, int FONT_VAR_Fonts, u32 COLOR_FillMain
 	temp2 = temp2;
 	/* -------  END -------- */
 
+	/* Various shapes of text field  (here it is necessary to define additional bkColor for field of font,  in this example RED is bkColor for font but COLOR_BkScreen for field of font) */
+	LCD_TxtShadowInit(fontVar_40, FONT_ID_Fonts, COLOR_BkScreen, BK_Rectangle);
+	LCD_Txt(DisplayIndirect, NULL, 50,200, BK_SIZE_IS_TXT_SIZE, FONT_ID_Fonts, fontVar_40, 0,0, "12345", BLACK, RED, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
+
+	LCD_TxtShadowInit(fontVar_40, FONT_ID_Fonts, COLOR_BkScreen, BK_Round);
+	LCD_Txt(DisplayIndirect, NULL, 50,250, BK_SIZE_IS_TXT_SIZE, FONT_ID_Fonts, fontVar_40, 0,0, "12345", BLACK, RED, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
+
+	LCD_TxtShadowInit(fontVar_40, FONT_ID_Fonts, COLOR_BkScreen, BK_LittleRound);
+	LCD_Txt(DisplayIndirect, NULL, 50,300, BK_SIZE_IS_TXT_SIZE, FONT_ID_Fonts, fontVar_40, 0,0, "12345", BLACK, RED, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
+
+	LCD_TxtShadowInit(fontVar_40, FONT_ID_Fonts, COLOR_BkScreen, BK_None);
+	LCD_Txt(DisplayIndirect, NULL, 50,350, BK_SIZE_IS_TXT_SIZE, FONT_ID_Fonts, fontVar_40, 0,0, "12345", BLACK, RED, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
+	/* -------  END -------- */
+
 	/* In future:
 	 * - check if get we space sign as space shadow color in shadow option ?
 	 */

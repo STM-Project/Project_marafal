@@ -71,6 +71,13 @@ static struct KEYBOARD_SETTINGS{
 	uint32_t param2;
 } s[MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY]={0}, c={0};
 
+static struct TEXT_PARAM{
+	int fontId, OnlyDigits, space, maxVal, constWidth;
+	u32 shadeColor;
+	u8 deep;
+	DIRECTIONS dir;
+} textParam = {0,fullHight,0,250,NoConstWidth,0,0,0};
+
 static int fontID = 0;
 static int fontID_descr	= 0;
 static int colorDescr	= 0;
@@ -86,6 +93,16 @@ static int frameColor_c[5]={0}, fillColor_c[5]={0}, bkColor_c[5]={0};
 static uint16_t widthAll = 0, widthAll_c = 0;
 static uint16_t heightAll = 0, heightAll_c = 0;
 
+static void SetTxtParamInit(int font_id){
+	textParam.fontId = font_id;
+	textParam.OnlyDigits = fullHight;
+	textParam.space		= 0;
+	textParam.maxVal		= 250;
+	textParam.constWidth = NoConstWidth;
+	textParam.shadeColor = 0;	/* 0x777777  */
+	textParam.deep			= 0;	/* 3 			 */
+	textParam.dir			= 0;	/* RightDown */
+}
 static void _deleteAllTouchs(void){
 	for(int j=0; j<MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY; ++j){
 		for(int i=0; i<s[j].nmbTouch; ++i)
@@ -831,6 +848,15 @@ static void ScrollSel_Draw(int nr, XY_Touch_Struct* posKeys, uint16_t selFrame, 
 }
 static int ScrollSel_SetVisiblWin(int nr, int frameNmbVis){
 	return frameNmbVis * s[nr].heightKey - (frameNmbVis-1);
+}
+
+static void DispTxtIndirect(char *txt, u32 xPos,u32 yPos, u32 fontColor,u32 bkColor){
+	LCD_TxtShadowInit(fontVar_40, fontID, bkColor, BK_Rectangle);
+	LCD_Txt(DisplayIndirect, NULL, xPos,yPos, BK_SIZE_IS_TXT_SIZE, textParam.fontId, fontVar_40, 0,0, txt, fontColor,bkColor, textParam.OnlyDigits, textParam.space, textParam.maxVal, textParam.constWidth, textParam.shadeColor, textParam.deep, textParam.dir);
+}
+static void DispTxt(char *txt, u32 Xpos,u32 Ypos, u32 fontColor,u32 bkColor, u32 BkpSizeX,u32 BkpSizeY){
+	LCD_TxtShadowInit(fontVar_40, fontID, bkColor, BK_Rectangle);
+	LCD_Txt(Display,NULL, unUsed,unUsed, BkpSizeX,BkpSizeY, textParam.fontId, fontVar_40, Xpos,Ypos, txt, fontColor,bkColor, textParam.OnlyDigits, textParam.space, textParam.maxVal, textParam.constWidth, textParam.shadeColor, textParam.deep, textParam.dir);
 }
 
 /*	-----------	General Functions -----------------*/
@@ -1783,12 +1809,6 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	void _DispTxtField  	 (void){	 LCD_ShapeWindow( s[k].shape,0, widthAll,	  	  heightAll, 	   s[k].interSpace,s[k].interSpace, widthFieldTxt,heightFieldTxt, SetBold2Color(TXTFIELD_COLOR,s[k].bold), TXTFIELD_COLOR,  				  colorFillBk );	}
 	void _DispTxtFieldInd (void){	 LCD_ShapeWindow( s[k].shape,0, widthFieldTxt, heightFieldTxt, 0,					 0, 				   widthFieldTxt,heightFieldTxt, SetBold2Color(TXTFIELD_COLOR,s[k].bold), TXTFIELD_COLOR,  				  colorFillBk );  }
 
-	void _DispTxtInFieldIndirect(int xOffs, int yOffs, char *txt){	 LCD_TxtShadowInit(fontVar_40, fontID, TXTFIELD_COLOR, BK_Rectangle);
-																				 	 	 LCD_Txt(DisplayIndirect, NULL, s[k].x+3+xOffs, s[k].y+3+yOffs, BK_SIZE_IS_TXT_SIZE, fontID, fontVar_40, 0,0, 				txt, BLACK, TXTFIELD_COLOR, fullHight,0,250, NoConstWidth, TXTSHADE_NONE /*TXTSHADECOLOR_DEEP_DIR(0x777777,3,RightDown)*/ );	}
-
-	void _DispTxtInField(int xPos, int yPos, char *txt)		  {	 LCD_TxtShadowInit(fontVar_40, fontID, TXTFIELD_COLOR, BK_Rectangle);
-																			 	 	 	 LCD_Txt(Display,			  NULL, unUsed, unUsed, 			  	 	 widthAll, heightAll, fontID, fontVar_40, 3+xPos,3+yPos, txt, BLACK, TXTFIELD_COLOR, fullHight,0,250, NoConstWidth, TXTSHADE_NONE);	}
-
 	void _RstIndxCharBuff(void)		{ charBuff[charBuffSize-1]=0; }
 	void _SetIndxCharBuff(int indx)	{ if(IS_RANGE(indx,0,charBuffSize-1)) charBuff[charBuffSize-1]=indx; }
 	int  _GetIndxCharBuff(void)		{ return charBuff[charBuffSize-1]; };
@@ -1802,7 +1822,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		_DispTxtFieldInd();
 		_SetCharBuff(*txtKey[key]);
 		_IncIndxCharBuff();
-		_DispTxtInFieldIndirect(s[k].interSpace, s[k].interSpace, _GetPtrToCharBuff(0));
+		DispTxtIndirect(_GetPtrToCharBuff(0), s[k].x+3+s[k].interSpace, s[k].x+3+s[k].interSpace, BLACK, TXTFIELD_COLOR);//_DispTxtInFieldIndirect(s[k].interSpace, s[k].interSpace, _GetPtrToCharBuff(0));
 	}
 
 	void _KeyQ2P(int nr, int act){
@@ -1824,11 +1844,15 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		if(press==act)	LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
 	}
 
+	if(shape!=0){		/* Do only once when creating Keyboard */
+		SetTxtParamInit(fontID);
+	}
+
 	if(touchRelease == selBlockPress)
 	{
 		_DispMainField();
 		_DispTxtField();
-		_DispTxtInField(s[k].interSpace, s[k].interSpace, _GetPtrToCharBuff(0));
+		 DispTxt(_GetPtrToCharBuff(0), 3+s[k].interSpace, 3+s[k].interSpace, BLACK, TXTFIELD_COLOR, widthAll, heightAll);//_DispTxtInField(s[k].interSpace, s[k].interSpace, _GetPtrToCharBuff(0));
 
 		fillColor = BrightIncr(fillColor,0x10);
 		bkColor = colorFillBk;
@@ -1889,7 +1913,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
 			 _ServiceCharBuff(selBlockPress-touchAction);
 			 KeyStrPressDisp_oneBlock(k,posKey[nr],txtKey[nr],colorTxtPressKey[nr]);
-			BKCOPY(s[k].widthKey,c.widthKey); }
+			BKCOPY(s[k].widthKey,c.widthKey);
+		}
 	}
 
 
