@@ -31,6 +31,7 @@ typedef uint8_t u8;
 #define getName(var)  #var
 #define ABS(X)  ((X) > 0 ? (X) : -(X))
 #define TOOGLE(x)  ((x)=1-(x))
+#define TOOGLE_BIT(x,bit)  ( (x) = (x)&(bit) ? (x)&(~(bit)) : (x)|(bit) )
 #define INCR(x,step,max)  (((x)+(step)>(max)) ? ((x)=(max)) : ((x)+=(step)))
 #define DECR(x,step,min)  (((x)-(step)<(min)) ? ((x)=(min)) : ((x)-=(step)))
 #define INCR_WRAP(x,step,min,max)  (((x)+(step)>(max)) ? ((x)=(min)) : ((x)+=(step)))
@@ -132,6 +133,23 @@ typedef uint8_t u8;
 #define _ZEROS10 _ZEROS9,_ZERO
 #define _ZEROS11 _ZEROS10,_ZERO
 #define _ZEROS12 _ZEROS11,_ZERO
+
+#define BIT_1	1<<0
+#define BIT_2	1<<1
+#define BIT_3	1<<2
+#define BIT_4	1<<3
+#define BIT_5	1<<4
+#define BIT_6	1<<5
+#define BIT_7	1<<6
+#define BIT_8	1<<7
+#define BIT_9	1<<8
+#define BIT_10	1<<9
+#define BIT_11	1<<10
+#define BIT_12	1<<11
+#define BIT_13	1<<12
+#define BIT_14	1<<13
+#define BIT_15	1<<14
+#define BIT_16	1<<15
 
 #define _1SPACE 			" "
 #define _2SPACE 			"  "
