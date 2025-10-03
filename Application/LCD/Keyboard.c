@@ -1872,11 +1872,13 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		_DispTxt();
 	}
 
-	void _KeyUP(int nr){
-		BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);		_PARAM_ARROW_UP;
-		 KeyShapePressDisp_oneBlock(k,posKey[nr], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn,s[k].widthKey,s[k].heightKey, MIDDLE(0,s[k].widthKey,size_UP.w),MIDDLE(0,s[k].heightKey,size_UP.h), SetLineBold2Width(size_UP.w,bold_UP), SetTriangHeightCoeff2Height(size_UP.h,coeff_UP), colorTxtPressKey[nr],colorTxtPressKey[nr],bkColor, Up));
-		 TOOGLE_BIT(s[k].param,BIT_1);
-		BKCOPY(s[k].widthKey,c.widthKey);
+	void _KeyUP_ind(int nr){
+		_PARAM_ARROW_UP;
+		KeyShapePressDisp_oneBlock(k,posKey[nr], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn,s[k].widthKey,s[k].heightKey, MIDDLE(0,s[k].widthKey,size_UP.w),MIDDLE(0,s[k].heightKey,size_UP.h), SetLineBold2Width(size_UP.w,bold_UP), SetTriangHeightCoeff2Height(size_UP.h,coeff_UP), colorTxtPressKey[nr],colorTxtPressKey[nr],bkColor, Up));
+	}
+	void _KeyUP_win(int nr){
+		_PARAM_ARROW_UP;
+		 KeyShapePressDisp_win(k,posKey[nr], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn,widthAll,heightAll, posKey[nr].x+MIDDLE(0,s[k].widthKey,size_UP.w), posKey[nr].y+MIDDLE(0,s[k].heightKey,size_UP.h), SetLineBold2Width(size_UP.w,bold_UP), SetTriangHeightCoeff2Height(size_UP.h,coeff_UP), colorTxtPressKey[nr],colorTxtPressKey[nr],bkColor, Up));
 	}
 
 	void _KeyQ2P(int nr, int act){
@@ -1916,12 +1918,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				for(int i=0; i<countKey; ++i)
 				{
 					s[k].widthKey = wKey[i];
-					if(STRING_CmpTxt((char*)pTxtKey[i],_UP) && 0 < (s[k].param & BIT_1)){
+					if		 (STRING_CmpTxt((char*)pTxtKey[i],_UP) && 0 < (s[k].param & BIT_1))	_KeyUP_win(i);
 
-						_PARAM_ARROW_UP;
-						 KeyShapePressDisp_win(k,posKey[i], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn,widthAll,heightAll, posKey[i].x+MIDDLE(0,s[k].widthKey,size_UP.w), posKey[i].y+MIDDLE(0,s[k].heightKey,size_UP.h), SetLineBold2Width(size_UP.w,bold_UP), SetTriangHeightCoeff2Height(size_UP.h,coeff_UP), colorTxtPressKey[i],colorTxtPressKey[i],bkColor, Up));
-
-					}
 					else if(STRING_CmpTxt((char*)pTxtKey[i],_UP)){  Key(k,posKey[i]);		_PARAM_ARROW_UP;
 						LCD_Arrow(0,widthAll,heightAll, MIDDLE(posKey[i].x,s[k].widthKey,size_UP.w),MIDDLE(posKey[i].y,s[k].heightKey,size_UP.h), SetLineBold2Width(size_UP.w,bold_UP), SetTriangHeightCoeff2Height(size_UP.h,coeff_UP), frameColor,frameColor,bkColor, Up);
 					}
@@ -1949,7 +1947,10 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	}
 	else if(tBig == selBlockPress){
-		_KeyUP(selBlockPress-touchAction);
+		BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
+		 _KeyUP_ind(selBlockPress-touchAction);
+		BKCOPY(s[k].widthKey,c.widthKey);
+		TOOGLE_BIT(s[k].param,BIT_1);
 	}
 	else if(tBack == selBlockPress){
 		nr = selBlockPress-touchAction;
