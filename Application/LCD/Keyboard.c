@@ -138,6 +138,9 @@ static int GetStrPxlWidth(int IdFont, char* str, int constWidth){
 static void Str(const char *txt, uint32_t color){
 	LCD_StrDependOnColorsWindow(0,widthAll,heightAll,fontID, GET_X((char*)txt),GET_Y,(char*)txt, fullHight, 0, fillColor, color,FONT_COEFF, NoConstWidth);
 }
+static void Str_bkColorRead(const char *txt, uint32_t color){
+	LCD_StrDependOnColorsWindow(0,widthAll,heightAll,fontID, GET_X((char*)txt),GET_Y,(char*)txt, fullHight, 0, READ_BGCOLOR, color,FONT_COEFF, NoConstWidth);
+}
 static void StrDescr_XYoffs(XY_Touch_Struct pos,int offsX,int offsY, const char *txt, uint32_t color){
 	LCD_StrDependOnColorsWindow(0,widthAll,heightAll,fontID_descr, pos.x+offsX, pos.y+offsY,(char*)txt, fullHight, 0, fillColor, color,FONT_COEFF, NoConstWidth);
 }
@@ -218,6 +221,11 @@ static void KeyStr(int nr,XY_Touch_Struct pos,const char *txt, uint32_t color){
 	Key(nr,pos);
 	TxtPos(nr,pos);
 	Str(txt,color);
+}
+static void KeyStr_alt(int nr,XY_Touch_Struct pos,const char *txt, uint32_t color){
+	LCD_RoundRectangle2(0,PARAM32(Down,bold3,unUsed,Rectangle), widthAll,heightAll, pos.x,pos.y, s[nr].widthKey, s[nr].heightKey, BrightDecr(framePressColor,0x20),BrightIncr(framePressColor,0x65), 0xFF808080,BrightDecr(fillPressColor,0x44), bkColor, 0.0, Down);
+	TxtPos(nr,pos);
+	Str_bkColorRead(txt,color);
 }
 static void _KeyStr(int nr,XY_Touch_Struct pos,const char *txt, uint32_t color, int nrWH){
 	_Key(nr,pos,nrWH);
@@ -1859,27 +1867,31 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	void _IncIndxCharBuff(void)		{ if(IS_RANGE(charBuff[charBuffSize-1],0,charBuffSize-2)) charBuff[charBuffSize-1]++; }
 	void _DecIndxCharBuff(void)		{ if(IS_RANGE(charBuff[charBuffSize-1],1,charBuffSize-1)) charBuff[charBuffSize-1]--; }
 	void _SetCharBuff(char sign)		{ charBuff[_GetIndxCharBuff()]=sign; }
-	char _GetCharBuff(char sign)		{ return charBuff[_GetIndxCharBuff()]; }
+	char _GetCharBuff(int offs)		{ if(IS_RANGE(_GetIndxCharBuff()+offs,0,charBuff[charBuffSize-1])) return charBuff[_GetIndxCharBuff()+offs]; else return 0; }
 	char *_GetPtrToCharBuff(int offs){ return charBuff+offs; }
 
 	void _DispTxt(void){ DispTxtIndirect(_GetPtrToCharBuff(0), s[k].x+3+s[k].interSpace, s[k].x+3+s[k].interSpace, BLACK, TXTFIELD_COLOR); }
 
+	void _Cursor(int nr){
+		int widthCursor = _GetCharBuff(-1);
+		if(widthCursor > 0) LCD_ShapeIndirect(posKey[nr].x, posKey[nr].y+LCD_GetFontHeight(fontID), LCD_Rectangle, LCD_GetFontWidth(fontID,widthCursor),1, BLACK,BLACK,BLACK);
+		//LCD_ShapeIndirect(LCD_GetStrVar_x(v.FONT_VAR_Fonts)+LCD_GetStrPxlWidth(v.FONT_ID_Fonts,Test.txt,Test.posCursor-1,Test.spaceBetweenFonts,Test.constWidth),LCD_GetStrVar_y(v.FONT_VAR_Fonts)+LCD_GetFontHeight(v.FONT_ID_Fonts)+Test.spaceCoursorY,LCD_Rectangle, LCD_GetFontWidth(v.FONT_ID_Fonts,Test.txt[Test.posCursor-1]),Test.heightCursor, color,color,color);
+	}
 	void _ServiceCharBuff(int key){  //Wprowadz kursor migotajacy !!!!!!
 		_DispTxtFieldInd();
 		if		 (STRING_CmpTxt((char*)pTxtKey[key],"space"))  _SetCharBuff(' ');
 		else 														 		  _SetCharBuff(*pTxtKey[key]);
 		_IncIndxCharBuff();
 		_DispTxt();
+		_Cursor(key);
 	}
 
-	void _KeyUP_ind(int nr){
-		_PARAM_ARROW_UP;
-		KeyShapePressDisp_oneBlock(k,posKey[nr], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn,s[k].widthKey,s[k].heightKey, MIDDLE(0,s[k].widthKey,size_UP.w),MIDDLE(0,s[k].heightKey,size_UP.h), SetLineBold2Width(size_UP.w,bold_UP), SetTriangHeightCoeff2Height(size_UP.h,coeff_UP), colorTxtPressKey[nr],colorTxtPressKey[nr],bkColor, Up));
-	}
-	void _KeyUP_win(int nr){
-		_PARAM_ARROW_UP;
-		 KeyShapePressDisp_win(k,posKey[nr], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn,widthAll,heightAll, posKey[nr].x+MIDDLE(0,s[k].widthKey,size_UP.w), posKey[nr].y+MIDDLE(0,s[k].heightKey,size_UP.h), SetLineBold2Width(size_UP.w,bold_UP), SetTriangHeightCoeff2Height(size_UP.h,coeff_UP), colorTxtPressKey[nr],colorTxtPressKey[nr],bkColor, Up));
-	}
+	// okreslic space od brzegow np tam gdzie jest +3 jako define !!!!
+
+	void _KeyUP_ind(int nr){	_PARAM_ARROW_UP;
+		KeyShapePressDisp_oneBlock(k,posKey[nr], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn, s[k].widthKey, s[k].heightKey, MIDDLE(0,s[k].widthKey,size_UP.w),				   MIDDLE(0,s[k].heightKey,				  size_UP.h), SetLineBold2Width(size_UP.w,bold_UP), SetTriangHeightCoeff2Height(size_UP.h,coeff_UP), colorTxtPressKey[nr],colorTxtPressKey[nr],bkColor, Up));	}
+	void _KeyUP_win(int nr){	_PARAM_ARROW_UP;
+		KeyShapePressDisp_win	  (k,posKey[nr], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn, widthAll,		  heightAll, 	   posKey[nr].x+MIDDLE(0,s[k].widthKey,size_UP.w), posKey[nr].y+MIDDLE(0,s[k].heightKey, size_UP.h), SetLineBold2Width(size_UP.w,bold_UP), SetTriangHeightCoeff2Height(size_UP.h,coeff_UP), colorTxtPressKey[nr],colorTxtPressKey[nr],bkColor, Up));	}
 
 	void _KeyQ2P(int nr, int act){
 		if(release==act)	Key(k,posKey[nr]);
@@ -1938,7 +1950,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 							if(STRING_CmpTxt((char*)pTxtKey[i],_AL) && 0 < (s[k].param & BIT_2)){
 								KeyStrPressDisp_win(k,posKey[i],pTxtKey[i],colorTxtPressKey[i]);
 							}
-							else KeyStr(k,posKey[i],pTxtKey[i],colorTxtKey[i]);
+							else KeyStr_alt(k,posKey[i],pTxtKey[i],colorTxtKey[i]);
 						}
 					}
 				}
