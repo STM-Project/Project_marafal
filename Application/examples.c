@@ -21,7 +21,9 @@ void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLO
 
 	LCD_BkFontTransparent(fontVar_40, FONT_ID_Descr);
 
-	LCD_Rectangle2(0, LCD_X,LCD_Y, 20,240, 100, 40,  COLOR_FillFrame,BrightIncr(COLOR_FillFrame,0x55),   			  COLOR_FillFrame,ORANGE,  COLOR_BkScreen, 0.0, Down);  										_Str(60,250,"1");
+	/* Direction in PARAM32() is color gradient direction for frame of shape		and		Direction at the end of arguments is color gradient direction for fill of shape */
+
+	LCD_Rectangle2(0, LCD_X,LCD_Y, 220,190, 100, 40,  COLOR_FillFrame,BrightIncr(COLOR_FillFrame,0x55),   		  COLOR_FillFrame,ORANGE,  COLOR_BkScreen, 0.0, Down);  										_Str(260,200,"1");
 	LCD_Rectangle2(0, LCD_X,LCD_Y, 160,240, 100, 40, BrightDecr(COLOR_Frame,0xA5),BrightDecr(COLOR_Frame,0xAE),   COLOR_FillFrame,YELLOW,  COLOR_BkScreen, 0.0, Up);  										_Str(200,250,"2");
 	LCD_Rectangle2(0, LCD_X,LCD_Y, 270,240, 100, 40, BrightDecr(COLOR_Frame,0xA0),BrightIncr(COLOR_Frame,0x01),   COLOR_FillFrame,BrightDecr(COLOR_FillFrame,0x09),  COLOR_BkScreen, 0.0, Midd_Y);  _Str(310,250,"3");
 	LCD_Rectangle2(0, LCD_X,LCD_Y, 380,240, 100, 40, BrightDecr(COLOR_Frame,0xA0),BrightIncr(COLOR_Frame,0x01),   COLOR_FillFrame,BrightDecr(COLOR_FillFrame,0x15),  COLOR_BkScreen, 0.0, Midd_X);  _Str(420,250,"4");
@@ -50,8 +52,8 @@ void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLO
 	LCDSHAPE_Rectangle(0,par5); 	  _Str(590,250,"13");
 	LCDSHAPE_Rectangle(0,par6); 	  _Str(590,310,"14");
 
-	LCD_RoundRectangle2(0, PARAM32(Down2,bold5,3,Rectangle), LCD_X,LCD_Y,710,240,70,80, BrightDecr(COLOR_Frame,0x40),0x202020, 0xFF808080,BrightDecr(0xFF808080,0x40), COLOR_BkScreen, 0.0, Down); 	 	  _Str(730,260,"15");
-	LCD_RoundRectangle2(0, PARAM32(Down2,bold5,12,Rectangle), LCD_X,LCD_Y,710,340,70,80, BrightDecr(COLOR_Frame,0x40),0x202020, 0xFF808080,BrightDecr(0xFF808080,0x40), COLOR_BkScreen, 0.0, Down); 	  _Str(730,360,"16");
+	LCD_RoundRectangle2(0, PARAM32(Down2,bold5,3,Rectangle), LCD_X,LCD_Y,710,290,70,80, BrightDecr(COLOR_Frame,0x40),0x202020, 0xFF808080,BrightDecr(0xFF808080,0x40), COLOR_BkScreen, 0.0, Down); 	 	  _Str(730,310,"15");
+	LCD_RoundRectangle2(0, PARAM32(Down2,bold5,12,Rectangle), LCD_X,LCD_Y,710,390,70,80, BrightDecr(COLOR_Frame,0x40),0x202020, 0xFF808080,BrightDecr(0xFF808080,0x40), COLOR_BkScreen, 0.0, Down); 	  _Str(730,410,"16");
 
 	LCD_RoundRectangle2(0,PARAM32(AllEdge,bold10,unUsed,Rectangle),LCD_X,LCD_Y,370,390,70,80 ,BrightDecr(WHITE,0x50), BrightDecr(WHITE,0x50), 0xFFA0A0A0,BrightDecr(0xFFA0A0A0,0x50), COLOR_BkScreen, 0.0, Down);
 	LCD_RoundRectangle2(0,PARAM32(AllEdge,bold10,unUsed,Rectangle),LCD_X,LCD_Y,370,390,70,80 ,BrightDecr(WHITE,0x20),BrightDecr(WHITE,0x50),BrightDecr(0xFFAAAAAA,0x20) ,BrightDecr(0xFFAAAAAA,0x50), COLOR_BkScreen, 0.0, Down); 	 _Str(390,410,"17");
@@ -64,10 +66,10 @@ void LCDEXAMPLE_RectangleGradient(u32 COLOR_FillFrame, u32 COLOR_Frame, u32 COLO
 	LCDSHAPE_Rectangle_Indirect(par5); 	  _Str(590,250,"13");
 	LCDSHAPE_Rectangle_Indirect(par6);	  _Str(590,310,"14");
 */
-	LCD_RoundRectangleTransp	 (0, LCD_X,LCD_Y,   5,230, 120,60, WHITE, 					  DARKYELLOW, READ_BGCOLOR, 0.5);		/* version of background transparent (mixed with 2 colors) */
-	LCD_RoundFrameTransp			 (0, LCD_X,LCD_Y, 670,230, 120,60, WHITE, 					  unUsed, 	  READ_BGCOLOR, 0.5);
-	LCD_BoldRoundRectangleTransp(0, LCD_X,LCD_Y,   5,230, 120,60, SetBold2Color(WHITE,6), DARKYELLOW, READ_BGCOLOR, 0.5);
-	LCD_BoldRoundFrameTransp	 (0, LCD_X,LCD_Y, 670,230, 120,60, SetBold2Color(WHITE,6), unUsed, 	  READ_BGCOLOR, 0.5);
+	LCD_RoundRectangleTransp	 (0, LCD_X,LCD_Y,   5,210, 120,60, WHITE, 					  DARKYELLOW, READ_BGCOLOR, 0.85);		/* version of background transparent (mixed with 2 colors) */
+	LCD_RoundFrameTransp			 (0, LCD_X,LCD_Y, 670,210, 120,60, WHITE, 					  unUsed, 	  READ_BGCOLOR, 0.5);
+	LCD_BoldRoundRectangleTransp(0, LCD_X,LCD_Y,   5,210, 120,60, SetBold2Color(WHITE,6), DARKYELLOW, READ_BGCOLOR, 0.5);
+	LCD_BoldRoundFrameTransp	 (0, LCD_X,LCD_Y, 670,210, 120,60, SetBold2Color(WHITE,6), unUsed, 	  READ_BGCOLOR, 0.5);
 }
 
 void LCDEXAMPLE_GradientCircleButtonAndSlider(int FONT_ID_Title, int FONT_VAR_Title, u32 COLOR_FillMainFrame, u32 COLOR_Frame, u32 COLOR_BkScreen)

@@ -2365,10 +2365,13 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		StartMeasureTime_us();
+
+
+		LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen, v.FONT_ID_Descr);
+
+
+
 		StopMeasureTime_us("Time GRAPH:");
-
-
-
 	}
 
 	if(1)	/* This display ever time */
