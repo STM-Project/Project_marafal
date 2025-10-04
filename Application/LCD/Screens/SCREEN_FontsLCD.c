@@ -2367,7 +2367,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		StartMeasureTime_us();
 
 
-		LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen, v.FONT_ID_Descr);
+		//LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen, v.FONT_ID_Descr);
 
 
 
