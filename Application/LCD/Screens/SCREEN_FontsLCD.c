@@ -1459,12 +1459,6 @@ void FUNC_FontLenOffs(int k){ switch(k){
 		break;
 }}
 
-
-
-
-static USER_GRAPH_PARAM testGraph = {.par.scaleX=1.5, .par.scaleY=46.0, .funcType=Func_sin, .grad.bkType=Grad_Ystrip, .corr45degAA=1};
-
-
 void FILE_NAME(setTouch)(void)
 {/*
 	#define DESELECT_CURRENT_FONT(src,txt) \
@@ -1494,8 +1488,6 @@ void FILE_NAME(setTouch)(void)
 				KEYBOARD_TYPE(KEYBOARD_none,0);\
 				CLR_TOUCH(state);\
 			}}
-
-	#define _KEYS_RELEASE_setTxt 			if(_WasStatePrev( Touch_Q, 				  Touch_field)) 			KEYBOARD_TYPE( KEYBOARD_setTxt, 	   KEY_All_release)
 
 	static uint16_t statePrev=0, statePrev2=0;
 	uint16_t state, function=0;
@@ -1562,6 +1554,16 @@ void FILE_NAME(setTouch)(void)
 				LCD_TOUCH_RestoreSusspendedTouchs2(unblock1,unblock2,unblock3,unblock4,unblock5,unblock6,unblock7,unblock8,unblock9,unblock10);
 				statePrev2=0;
 	}}}
+	int KEYBOARD_setTxt__SERVICE(u16 state,int touchStart,int touchStop, int keyStart){
+		if(IS_RANGE(state,touchStart,touchStop)){
+			if(Touch_exit==state){	LCD_TOUCH_RestoreAllSusspendedTouchs(); FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	KEYBOARD_TYPE(KEYBOARD_none,	0);							 		 ResetIndexKeyBuff();	}
+			else						{	if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);	KEYBOARD_TYPE(KEYBOARD_setTxt,keyStart+(state-touchStart));  _SaveState(); 		 	}
+			return 1;
+		}
+		else if(_WasStateRange(touchStart,touchStop))	KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);
+		return 0;
+	}
+
 
 	state = LCD_TOUCH_GetTypeAndPosition(&pos);
 													/*if prevTouch is this... and actualTouch is not this...*/				/*and yet actualTouch not this...*/							/*then unblock touches this...*/
@@ -1712,22 +1714,9 @@ void FILE_NAME(setTouch)(void)
 			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
 			break;
 
-		case Touch_Chart_1:	if(GRAPH_IsMemReloaded(0)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,0);	break;		/* Attention:  Charts use memory for samples pointed by CounterBusyBytesForFontsImages what is changed by load fonts function... */
-		case Touch_Chart_2:	if(GRAPH_IsMemReloaded(0)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,0);	break;		/* 				... and you must reloaded charts if you have changed CounterBusyBytesForFontsImages before.								*/
-		case Touch_Chart_3:	if(GRAPH_IsMemReloaded(0)) FILE_NAME(main)(LoadPartScreen,(char**)ppMain); 	GRAPH_ptrTouchService(pos.x,pos.y,0);	break;
-
 
 		default:
-			if(IS_RANGE(state,Touch_Q,Touch_field)){
-				if(Touch_exit==state){
-					LCD_TOUCH_RestoreAllSusspendedTouchs();
-					FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
-					KEYBOARD_TYPE(KEYBOARD_none,0);
-					ResetIndexKeyBuff();
-				}
-				else{	_KEYS_RELEASE_setTxt;	KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_Q+(state-Touch_Q));  _SaveState(); }
-				break;
-			}
+			if(KEYBOARD_setTxt__SERVICE(state,Touch_Q,Touch_field,KEY_Q)) break;
 
 			/* ----- Service release specific Keys for Keyboard ----- */
 			_TouchEndService(Touch_fontRp, Touch_fontBm, KEYBOARD_fontRGB, KEY_All_release, FUNC_fontColorRGB);
@@ -1743,9 +1732,6 @@ void FILE_NAME(setTouch)(void)
 
 			_TouchEndService(Touch_LenWin_plus, Touch_ResetSpaces, KEYBOARD_LenOffsWin, 	KEY_All_release, FUNC_FontLenOffs);
 
-
-			if(_WasStateRange(Touch_Q,Touch_field))
-				KEYBOARD_TYPE( KEYBOARD_setTxt, KEY_All_release );
 
 #ifdef TOUCH_MAINFONTS_WITHOUT_DESCR
 			if(_WasState(Touch_FontStyle) ||

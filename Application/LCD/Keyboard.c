@@ -1792,8 +1792,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 																DARKRED,DARKRED,DARKRED,DARKRED,DARKRED,DARKRED };
 
 	const uint8_t dimKeys[] = {10,9,9,6};
-	static char **pTxtKey = NULL;
 	static int charBuffOffs = 0;
+	char **pTxtKey = (char**) CONDITION( s[k].param & BIT_1, txtBigKey, txtKey );
 
 	#define _PARAM_ARROW_UP		structSize 	size_UP = { (35*s[k].widthKey)/100,  (2*s[k].heightKey)/5 };		int bold_UP = 1;		int coeff_UP = 3
 	#define _PARAM_ARROW_LF		structSize 	size_LF = { ( 2*s[k].widthKey)/4,    (2*s[k].heightKey)/7 };		int bold_LF = 1;		int coeff_LF = 0
@@ -1897,8 +1897,6 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	if(touchRelease == selBlockPress)
 	{
-		pTxtKey = (char**) CONDITION( s[k].param & BIT_1, txtBigKey, txtKey );
-
 			_DispMainField();
 			_DispTxtField();
 			 DispTxt(_GetPtrToCharBuff(0), 3+s[k].interSpace, 3+s[k].interSpace, BLACK, TXTFIELD_COLOR, widthAll, heightAll);
