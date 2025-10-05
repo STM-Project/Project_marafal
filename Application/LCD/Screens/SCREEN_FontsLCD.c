@@ -412,7 +412,7 @@ typedef enum{
 	Point_1,
 	AnyPress,
 	AnyPressWithWait,
-	Touch_Q,Touch_W,Touch_E,Touch_R,Touch_T,Touch_Y,Touch_U,Touch_I,Touch_O,Touch_P,Touch_A,Touch_S,Touch_D,Touch_F,Touch_G,Touch_H,Touch_J,Touch_K,TOouch_L,Touch_big,Touch_Z,Touch_X,Touch_C,Touch_V,Touch_B,Touch_N,Touch_M,Touch_back,Touch_alt,Touch_exit,Touch_space,Touch_comma,Touch_dot,Touch_enter
+	Touch_Q,Touch_W,Touch_E,Touch_R,Touch_T,Touch_Y,Touch_U,Touch_I,Touch_O,Touch_P,Touch_A,Touch_S,Touch_D,Touch_F,Touch_G,Touch_H,Touch_J,Touch_K,TOouch_L,Touch_big,Touch_Z,Touch_X,Touch_C,Touch_V,Touch_B,Touch_N,Touch_M,Touch_back,Touch_alt,Touch_exit,Touch_space,Touch_comma,Touch_dot,Touch_enter,Touch_field
 }TOUCH_POINTS;		/* MAX_OPEN_TOUCH_SIMULTANEOUSLY */
 
 typedef enum{
@@ -504,7 +504,7 @@ typedef enum{
 	KEY_InfoSpacesRoll,
 	KEY_InfoSpacesSel,
 
-	KEY_Q,KEY_W,KEY_E,KEY_R,KEY_T,KEY_Y,KEY_U,KEY_I,KEY_O,KEY_P,KEY_A,KEY_S,KEY_D,KEY_F,KEY_G,KEY_H,KEY_J,KEY_K,KEY_L,KEY_big,KEY_Z,KEY_X,KEY_C,KEY_V,KEY_B,KEY_N,KEY_M,KEY_back,KEY_alt,KEY_exit,KEY_space,KEY_comma,KEY_dot,KEY_enter,
+	KEY_Q,KEY_W,KEY_E,KEY_R,KEY_T,KEY_Y,KEY_U,KEY_I,KEY_O,KEY_P,KEY_A,KEY_S,KEY_D,KEY_F,KEY_G,KEY_H,KEY_J,KEY_K,KEY_L,KEY_big,KEY_Z,KEY_X,KEY_C,KEY_V,KEY_B,KEY_N,KEY_M,KEY_back,KEY_alt,KEY_exit,KEY_space,KEY_comma,KEY_dot,KEY_enter,KEY_field,
 
 }SELECT_PRESS_BLOCK;
 
@@ -1301,7 +1301,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			break;
 
 		case KEYBOARD_setTxt:
-			KEYBOARD__ServiceSetTxt(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Q, KEY_big, KEY_back, KEY_alt, KEY_enter, v.FONT_COLOR_Descr, keyBuff,KEYBUFF_SIZE);
+			KEYBOARD__ServiceSetTxt(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Q, KEY_big, KEY_back, KEY_alt, KEY_enter,KEY_field, v.FONT_COLOR_Descr, keyBuff,KEYBUFF_SIZE);
 			break;
 
 		default:
@@ -1495,7 +1495,7 @@ void FILE_NAME(setTouch)(void)
 				CLR_TOUCH(state);\
 			}}
 
-	#define _KEYS_RELEASE_setTxt 			if(_WasStatePrev( Touch_Q, 				  Touch_enter)) 			KEYBOARD_TYPE( KEYBOARD_setTxt, 	   KEY_All_release)
+	#define _KEYS_RELEASE_setTxt 			if(_WasStatePrev( Touch_Q, 				  Touch_field)) 			KEYBOARD_TYPE( KEYBOARD_setTxt, 	   KEY_All_release)
 
 	static uint16_t statePrev=0, statePrev2=0;
 	uint16_t state, function=0;
@@ -1677,7 +1677,7 @@ void FILE_NAME(setTouch)(void)
 		/*	----- Touch parameter text and go to action ----- */
 		case Touch_SetTxt:
 			FILE_NAME(keyboard)(KEYBOARD_setTxt,KEY_All_release,LCD_RoundRectangle,0,15,15,KeysAutoSize,10,10,state,Touch_Q,KeysDel);
-			LCDTOUCH_ActiveOnly(0,0,0,0,0,0,0,0,0,0,Touch_Q,Touch_enter);
+			LCDTOUCH_ActiveOnly(0,0,0,0,0,0,0,0,0,0,Touch_Q,Touch_field);
 			break;
 
 		case Touch_FontStyle:
@@ -1718,7 +1718,7 @@ void FILE_NAME(setTouch)(void)
 
 
 		default:
-			if(IS_RANGE(state,Touch_Q,Touch_enter)){
+			if(IS_RANGE(state,Touch_Q,Touch_field)){
 				if(Touch_exit==state){
 					LCD_TOUCH_RestoreAllSusspendedTouchs();
 					FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
@@ -1744,7 +1744,7 @@ void FILE_NAME(setTouch)(void)
 			_TouchEndService(Touch_LenWin_plus, Touch_ResetSpaces, KEYBOARD_LenOffsWin, 	KEY_All_release, FUNC_FontLenOffs);
 
 
-			if(_WasStateRange(Touch_Q,Touch_enter))
+			if(_WasStateRange(Touch_Q,Touch_field))
 				KEYBOARD_TYPE( KEYBOARD_setTxt, KEY_All_release );
 
 #ifdef TOUCH_MAINFONTS_WITHOUT_DESCR

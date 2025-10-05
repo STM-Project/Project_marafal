@@ -1747,39 +1747,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	#undef _NMB2KEY
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-#define Ą "\xA5"
-#define ą "\xB9"
-#define Ć "\xC6"
-#define ć "\xE6"
-#define Ę "\xCA"
-#define ę "\xEA"
-#define Ł "\xA3"
-#define ł "\xB3"
-#define Ń "\xD1"
-#define ń "\xF1"
-#define Ó "\xD3"
-#define ó "\xF3"
-#define Ś "\x8C"
-#define ś "\x9C"
-#define Ź "\x8F"
-#define ź "\x9F"
-#define Ż "\xAF"
-#define ż "\xBF"
-
-
-void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int tBig,int tBack,int tAlt,int tEnter,uint32_t colorDescr, char *charBuff,int charBuffSize) // klawiatura malutka i duza na caly LCD_X z liczbami
+void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int tBig,int tBack,int tAlt,int tEnter,int tField,uint32_t colorDescr, char *charBuff,int charBuffSize) // klawiatura malutka i duza na caly LCD_X z liczbami
 {
 	#define TXTFIELD_COLOR		BrightDecr(frameColor,0x40)
 	#define _UP		"|"
@@ -1985,9 +1953,9 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		 KeyShapePressDisp_oneBlock(k,posKey[nr], LCDSHAPE_Enter, LCD_Enter(ToStructAndReturn,s[k].widthKey,s[k].heightKey, MIDDLE(0,s[k].widthKey,size_EN.w),MIDDLE(0,s[k].heightKey,size_EN.h), SetLineBold2Width(size_EN.w,bold_EN), SetTriangHeightCoeff2Height(size_EN.h,coeff_EN), colorTxtPressKey[nr],colorTxtPressKey[nr],bkColor));
 		BKCOPY(s[k].widthKey,c.widthKey);
 
-		charBuffOffs--;
-		_DispTxt();
-		_Cursor(nr,charBuffOffs);
+//		charBuffOffs--;
+//		_DispTxt();
+//		_Cursor(nr,charBuffOffs);
 
 	}
 	else if(tAlt == selBlockPress){
@@ -1996,6 +1964,9 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		 KeyStrPressDisp_oneBlock(k,posKey[nr],pTxtKey[nr],colorTxtPressKey[nr]);
 		BKCOPY(s[k].widthKey,c.widthKey);
 		TOOGLE_BIT(s[k].param,BIT_2);
+	}
+	else if(tField == selBlockPress){
+		asm("nop");
 	}
 	else{
 		if(IS_RANGE(selBlockPress,touchAction,touchAction+9))			/* press keys from 'q' to 'p' */
@@ -2020,11 +1991,20 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 
 	if(startTouchIdx){
-		for(int i=0; i<countKey; ++i){
+		int i;
+		for(i=0; i<countKey; ++i){
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[i]);
 			SetTouch(k,ID_TOUCH_POINT,s[k].startTouchIdx+i,press,posKey[i]);
 			BKCOPY(s[k].widthKey,c.widthKey);
-	}}
+		}
+		touchTemp[0].x= s[k].x+s[k].interSpace;
+		touchTemp[1].x= touchTemp[0].x + widthFieldTxt;
+		touchTemp[0].y= s[k].y+s[k].interSpace;
+		touchTemp[1].y= touchTemp[0].y + heightFieldTxt;
+		LCD_TOUCH_Set(ID_TOUCH_POINT, s[k].startTouchIdx+i,press);
+		s[k].nmbTouch++;
+	}
+
 	#undef P
 	#undef F
 	#undef W1
