@@ -1963,15 +1963,42 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		BKCOPY(s[k].widthKey,c.widthKey);
 		TOOGLE_BIT(s[k].param,BIT_2);
 	}
-	else if(tField == selBlockPress){
-		asm("nop");
+	else if(tField == selBlockPress){		//tField to nie touch ale key !!!!!
+		XY_Touch_Struct aaaa = LCD_TOUCH_GetPos();
+
+
+
+
+
+		if(GetTouchToTemp( s[k].startTouchIdx + countKey)){
+			INIT(nr,selBlockPress-touchAction);
+			int incTxt=0;
+			int xStart = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,charBuff, incTxt, textParam.space, textParam.constWidth);
+			//int widthCharPxl = LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(0), _GetIndxCharBuff()-1+offs, textParam.space, textParam.constWidth);   //LCD_GetFontWidth(fontID, charBuff[incTxt++]);
+			LOOP_FOR(i,_GetIndxCharBuff()){
+				if(xStart > aaaa.x){
+//					_DispTxtFieldInd();
+//					_DispTxt();
+					charBuffOffs = incTxt - _GetIndxCharBuff();
+					_Cursor(nr,charBuffOffs);
+					break;
+				}
+				incTxt++;
+				xStart = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,charBuff, incTxt, textParam.space, textParam.constWidth);
+			}
+		}
+
+
+
+
+
 	}
 	else{
 		if(IS_RANGE(selBlockPress,touchAction,touchAction+9))			/* press keys from 'q' to 'p' */
 		{
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
-			 _ServiceCharBuff(selBlockPress-touchAction);
+			 _ServiceCharBuff(nr);
 			 _KeyQ2P(nr,press);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
@@ -1979,7 +2006,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		{
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
-			 _ServiceCharBuff(selBlockPress-touchAction);
+			 _ServiceCharBuff(nr);
 			 KeyStrPressDisp_oneBlock_alt(k,posKey[nr],pTxtKey[nr],colorTxtPressKey[nr]);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
