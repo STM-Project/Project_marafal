@@ -1861,12 +1861,12 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 									 LCD_Rectangle, LCD_GetFontWidth(fontID,_char),2, BLACK,BLACK,BLACK);
 	}
 	void _ServiceCharBuff(int key){  //Wprowadz kursor migotajacy !!!!!!
-		_DispTxtFieldInd();
+		//_DispTxtFieldInd();  //to nie jest indirect !!!!!
 		if		 (STRING_CmpTxt((char*)pTxtKey[key],"space"))  _SetCharBuff(' ');
 		else 														 		  _SetCharBuff(*pTxtKey[key]);
 		_IncIndxCharBuff();
-		_DispTxt();
-		_Cursor(key,charBuffOffs);
+		_DispTxt();  // TO INDIRECT !!!!1
+		//_Cursor(key,charBuffOffs);
 	}
 
 	// okreslic space od brzegow np tam gdzie jest +3 jako define !!!!
@@ -1899,7 +1899,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	{
 			_DispMainField();
 			_DispTxtField();
-			 DispTxt(_GetPtrToCharBuff(0), 3+s[k].interSpace, 3+s[k].interSpace, BLACK, TXTFIELD_COLOR, widthAll, heightAll);
+			 DispTxt(_GetPtrToCharBuff(0), 3+s[k].interSpace, 3+s[k].interSpace, BLACK, TXTFIELD_COLOR, widthAll, heightAll);  //  // A TO NIE INDIRECT !!!!1
 
 			fillColor = BrightIncr(fillColor,0x10);
 			bkColor = colorFillBk;
@@ -1930,6 +1930,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				}
 			s[k].widthKey = c.widthKey;
 			LCD_Display(0, s[k].x, s[k].y, widthAll, heightAll);
+			_Cursor(nr,charBuffOffs);
 
 	}
 	else if(tBig == selBlockPress){
@@ -1974,18 +1975,33 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			INIT(nr,selBlockPress-touchAction);
 			int incTxt=0;
 			int xStart = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,charBuff, incTxt, textParam.space, textParam.constWidth);
+			int xStop  = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(0), _GetIndxCharBuff()-1, textParam.space, textParam.constWidth);
 			//int widthCharPxl = LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(0), _GetIndxCharBuff()-1+offs, textParam.space, textParam.constWidth);   //LCD_GetFontWidth(fontID, charBuff[incTxt++]);
-			LOOP_FOR(i,_GetIndxCharBuff()){
-				if(xStart > aaaa.x){
-//					_DispTxtFieldInd();
-//					_DispTxt();
-					charBuffOffs = incTxt - _GetIndxCharBuff();
-					_Cursor(nr,charBuffOffs);
-					break;
-				}
-				incTxt++;
-				xStart = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,charBuff, incTxt, textParam.space, textParam.constWidth);
+
+			if(xStop < aaaa.x){
+				_DispTxtFieldInd();
+				_DispTxt();
+				charBuffOffs = 0;
+				_Cursor(nr,charBuffOffs);
 			}
+			else
+			{
+				LOOP_FOR(i,_GetIndxCharBuff()){
+					if(xStart > aaaa.x){
+						charBuffOffs = (incTxt+1) - _GetIndxCharBuff();
+
+						_DispTxtFieldInd();
+						_DispTxt();
+						_Cursor(nr,charBuffOffs);
+
+						break;
+					}
+					incTxt++;
+					xStart = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,charBuff, incTxt, textParam.space, textParam.constWidth);
+				}
+			}
+
+
 		}
 
 
