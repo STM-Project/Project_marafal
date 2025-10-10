@@ -1792,7 +1792,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 																DARKRED,DARKRED,DARKRED,DARKRED,DARKRED,DARKRED };
 
 	const uint8_t dimKeys[] = {10,9,9,6};
-	static int charBuffOffs = 0;
+	static int charBuffOffs;
 	char **pTxtKey = (char**) CONDITION( s[k].param & BIT_1, txtBigKey, txtKey );
 
 	#define _PARAM_ARROW_UP		structSize 	size_UP = { (35*s[k].widthKey)/100,  (2*s[k].heightKey)/5 };		int bold_UP = 1;		int coeff_UP = 3
@@ -1801,6 +1801,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	#define _PARAM_ARROW_EX		structSize 	size_EX = { (35*s[k].heightKey)/100, (35*s[k].heightKey)/100 };
 
 	if(shape!=0){		/* Do only once when creating Keyboard */
+		charBuffOffs = 1;		/* 1 means cursor after text */
 		pTxtKey = (char**)txtKey;
 		SetTxtParamInit(fontID);
 		if(KeysAutoSize == widthKey){
@@ -1853,31 +1854,33 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	void _DispTxt(void){ DispTxtIndirect(_GetPtrToCharBuff(0), s[k].x+3+s[k].interSpace, s[k].x+3+s[k].interSpace, BLACK, TXTFIELD_COLOR); }
 
-	void _Cursor(int nr, int offs){
+	void _Cursor(int offs, u32 BkpSizeX,u32 BkpSizeY, int x,int y){
 		int _char = _GetCharBuff(-1+offs);
-		if(_char > 0)
-			LCD_ShapeIndirect( s[k].x + 3 + s[k].interSpace + LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(0), _GetIndxCharBuff()-1+offs, textParam.space, textParam.constWidth), \
-									 s[k].x + 3 + s[k].interSpace + LCD_GetFontHeight(fontID) + 1, \
-									 LCD_Rectangle, LCD_GetFontWidth(fontID,_char),2, BLACK,BLACK,BLACK);
+		if(offs < 2)		/* 1 cursor zaraz za tekstem a ukemny to w tekscie  */
+			LCD_ShapeWindow(LCD_Rectangle,0, BkpSizeX,BkpSizeY, \
+					x + LCD_GetStrPxlWidth(fontID, _GetPtrToCharBuff(0), _GetIndxCharBuff()-1+offs, textParam.space, textParam.constWidth), \
+					y + LCD_GetFontHeight(fontID) + 1, \
+					LCD_GetFontWidth(fontID,CONDITION(offs<1,_char,' ')),1, BLACK,BLACK,BLACK);
+
+//			LCD_ShapeIndirect( s[k].x + 3 + s[k].interSpace + LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(0), _GetIndxCharBuff()-1+offs, textParam.space, textParam.constWidth), \
+//									 s[k].x + 3 + s[k].interSpace + LCD_GetFontHeight(fontID) + 1, \
+//									 LCD_Rectangle, LCD_GetFontWidth(fontID,_char),2, BLACK,BLACK,BLACK);
+
+
+
+
 	}
+
 	void _ServiceCharBuff(int key){  //Wprowadz kursor migotajacy !!!!!!
-		//_DispTxtFieldInd();  //to nie jest indirect !!!!!
 		if		 (STRING_CmpTxt((char*)pTxtKey[key],"space"))  _SetCharBuff(' ');
 		else 														 		  _SetCharBuff(*pTxtKey[key]);
 		_IncIndxCharBuff();
-		_DispTxt();  // TO INDIRECT !!!!1
-		//_Cursor(key,charBuffOffs);
 	}
 
-	void _DispTxtField___(int cursorOffs){
-		INIT(_char,_GetCharBuff(-1+cursorOffs));
+	void _DispTxtFieldWin(int cursorOffs){
 		LCD_ShapeWindow( s[k].shape,0, widthFieldTxt, heightFieldTxt, 0,0, widthFieldTxt,heightFieldTxt, SetBold2Color(TXTFIELD_COLOR,s[k].bold), TXTFIELD_COLOR, colorFillBk );
 		DispTxt(_GetPtrToCharBuff(0), 3,3, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
-		if(_char > 0)
-			LCD_ShapeWindow(LCD_Rectangle,0, widthFieldTxt,heightFieldTxt, \
-					3 + LCD_GetStrPxlWidth(fontID, _GetPtrToCharBuff(0), _GetIndxCharBuff()-1+cursorOffs, textParam.space, textParam.constWidth), \
-					3 + LCD_GetFontHeight(fontID) + 1, \
-					LCD_GetFontWidth(fontID,_char),2, BLACK,BLACK,BLACK);
+		_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, 3,3);  //zrob cos z tym 3 !!!!!!
 		LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
 	}
 
@@ -1906,6 +1909,30 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		}
 		if(press==act)	LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
 	}
+
+	void _ServiceTxtFieldTouch(void){
+		XY_Touch_Struct touchFieldPos = LCD_TOUCH_GetPos();
+		if(GetTouchToTemp( s[k].startTouchIdx + countKey )){
+			int incTxt=0;
+			int xStart = s[k].x + 3 + s[k].interSpace;
+			int xStop  = xStart  +  LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(0), _GetIndxCharBuff()-1, textParam.space, textParam.constWidth);
+
+			if(xStop < touchFieldPos.x){
+				charBuffOffs = 1;
+				_DispTxtFieldWin(charBuffOffs);
+			}
+			else{
+				LOOP_FOR(i,_GetIndxCharBuff()){
+					if(xStart > touchFieldPos.x){
+						charBuffOffs = (incTxt+1) - _GetIndxCharBuff();
+						_DispTxtFieldWin(charBuffOffs);
+						break;
+					}
+					incTxt++;
+					xStart = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,charBuff, incTxt, textParam.space, textParam.constWidth);
+			}}
+	}}
+
 
 	if(touchRelease == selBlockPress)
 	{
@@ -1941,8 +1968,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 					}}
 				}
 			s[k].widthKey = c.widthKey;
+			_Cursor(charBuffOffs, widthAll,heightAll, 3+s[k].interSpace, 3+s[k].interSpace);
 			LCD_Display(0, s[k].x, s[k].y, widthAll, heightAll);
-			_Cursor(nr,charBuffOffs);
 
 	}
 	else if(tBig == selBlockPress){
@@ -1963,11 +1990,6 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);		_PARAM_ARROW_EN;
 		 KeyShapePressDisp_oneBlock(k,posKey[nr], LCDSHAPE_Enter, LCD_Enter(ToStructAndReturn,s[k].widthKey,s[k].heightKey, MIDDLE(0,s[k].widthKey,size_EN.w),MIDDLE(0,s[k].heightKey,size_EN.h), SetLineBold2Width(size_EN.w,bold_EN), SetTriangHeightCoeff2Height(size_EN.h,coeff_EN), colorTxtPressKey[nr],colorTxtPressKey[nr],bkColor));
 		BKCOPY(s[k].widthKey,c.widthKey);
-
-//		charBuffOffs--;
-//		_DispTxt();
-//		_Cursor(nr,charBuffOffs);
-
 	}
 	else if(tAlt == selBlockPress){
 		INIT(nr,selBlockPress-touchAction);
@@ -1977,53 +1999,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		TOOGLE_BIT(s[k].param,BIT_2);
 	}
 	else if(tField == selBlockPress){		//tField to nie touch ale key !!!!!
-		XY_Touch_Struct aaaa = LCD_TOUCH_GetPos();
-
-
-
-
-
-		if(GetTouchToTemp( s[k].startTouchIdx + countKey)){
-			//INIT(nr,selBlockPress-touchAction);
-			int incTxt=0;
-			int xStart = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,charBuff, incTxt, textParam.space, textParam.constWidth);
-			int xStop  = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(0), _GetIndxCharBuff()-1, textParam.space, textParam.constWidth);
-			//int widthCharPxl = LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(0), _GetIndxCharBuff()-1+offs, textParam.space, textParam.constWidth);   //LCD_GetFontWidth(fontID, charBuff[incTxt++]);
-
-			if(xStop < aaaa.x){
-//				_DispTxtFieldInd();
-//				_DispTxt();
-				charBuffOffs = 0;
-				//_Cursor(nr,charBuffOffs);
-				_DispTxtField___(charBuffOffs);
-			}
-			else
-			{
-				LOOP_FOR(i,_GetIndxCharBuff()){
-					if(xStart > aaaa.x){
-						charBuffOffs = (incTxt+1) - _GetIndxCharBuff();
-
-
-
-						_DispTxtField___(charBuffOffs);
-
-
-
-
-						break;
-					}
-					incTxt++;
-					xStart = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,charBuff, incTxt, textParam.space, textParam.constWidth);
-				}
-			}
-
-
-		}
-
-
-
-
-
+		_ServiceTxtFieldTouch();
 	}
 	else{
 		if(IS_RANGE(selBlockPress,touchAction,touchAction+9))			/* press keys from 'q' to 'p' */
@@ -2031,6 +2007,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
 			 _ServiceCharBuff(nr);
+			 _DispTxtFieldWin(charBuffOffs);
 			 _KeyQ2P(nr,press);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
@@ -2039,12 +2016,11 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
 			 _ServiceCharBuff(nr);
+			 _DispTxtFieldWin(charBuffOffs);
 			 KeyStrPressDisp_oneBlock_alt(k,posKey[nr],pTxtKey[nr],colorTxtPressKey[nr]);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
 	}
-
-
 
 
 	if(startTouchIdx){
