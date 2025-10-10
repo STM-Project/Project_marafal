@@ -1869,6 +1869,18 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		//_Cursor(key,charBuffOffs);
 	}
 
+	void _DispTxtField___(int cursorOffs){
+		INIT(_char,_GetCharBuff(-1+cursorOffs));
+		LCD_ShapeWindow( s[k].shape,0, widthFieldTxt, heightFieldTxt, 0,0, widthFieldTxt,heightFieldTxt, SetBold2Color(TXTFIELD_COLOR,s[k].bold), TXTFIELD_COLOR, colorFillBk );
+		DispTxt(_GetPtrToCharBuff(0), 3,3, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
+		if(_char > 0)
+			LCD_ShapeWindow(LCD_Rectangle,0, widthFieldTxt,heightFieldTxt, \
+					3 + LCD_GetStrPxlWidth(fontID, _GetPtrToCharBuff(0), _GetIndxCharBuff()-1+cursorOffs, textParam.space, textParam.constWidth), \
+					3 + LCD_GetFontHeight(fontID) + 1, \
+					LCD_GetFontWidth(fontID,_char),2, BLACK,BLACK,BLACK);
+		LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
+	}
+
 	// okreslic space od brzegow np tam gdzie jest +3 jako define !!!!
 
 	void _KeyUP_ind(int nr){	_PARAM_ARROW_UP;
@@ -1972,17 +1984,18 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 
 		if(GetTouchToTemp( s[k].startTouchIdx + countKey)){
-			INIT(nr,selBlockPress-touchAction);
+			//INIT(nr,selBlockPress-touchAction);
 			int incTxt=0;
 			int xStart = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,charBuff, incTxt, textParam.space, textParam.constWidth);
 			int xStop  = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(0), _GetIndxCharBuff()-1, textParam.space, textParam.constWidth);
 			//int widthCharPxl = LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(0), _GetIndxCharBuff()-1+offs, textParam.space, textParam.constWidth);   //LCD_GetFontWidth(fontID, charBuff[incTxt++]);
 
 			if(xStop < aaaa.x){
-				_DispTxtFieldInd();
-				_DispTxt();
+//				_DispTxtFieldInd();
+//				_DispTxt();
 				charBuffOffs = 0;
-				_Cursor(nr,charBuffOffs);
+				//_Cursor(nr,charBuffOffs);
+				_DispTxtField___(charBuffOffs);
 			}
 			else
 			{
@@ -1990,9 +2003,12 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 					if(xStart > aaaa.x){
 						charBuffOffs = (incTxt+1) - _GetIndxCharBuff();
 
-						_DispTxtFieldInd();
-						_DispTxt();
-						_Cursor(nr,charBuffOffs);
+
+
+						_DispTxtField___(charBuffOffs);
+
+
+
 
 						break;
 					}
