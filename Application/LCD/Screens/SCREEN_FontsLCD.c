@@ -412,7 +412,7 @@ typedef enum{
 	Point_1,
 	AnyPress,
 	AnyPressWithWait,
-	Touch_Q,Touch_W,Touch_E,Touch_R,Touch_T,Touch_Y,Touch_U,Touch_I,Touch_O,Touch_P,Touch_A,Touch_S,Touch_D,Touch_F,Touch_G,Touch_H,Touch_J,Touch_K,TOouch_L,Touch_big,Touch_Z,Touch_X,Touch_C,Touch_V,Touch_B,Touch_N,Touch_M,Touch_back,Touch_alt,Touch_exit,Touch_space,Touch_comma,Touch_dot,Touch_enter,Touch_field
+	Touch_Q,Touch_W,Touch_E,Touch_R,Touch_T,Touch_Y,Touch_U,Touch_I,Touch_O,Touch_P,Touch_A,Touch_S,Touch_D,Touch_F,Touch_G,Touch_H,Touch_J,Touch_K,TOouch_L,Touch_big,Touch_Z,Touch_X,Touch_C,Touch_V,Touch_B,Touch_N,Touch_M,Touch_back,Touch_alt,Touch_exit,Touch_space,Touch_comma,Touch_dot,Touch_enter,Touch_field,Touch_keyStyle
 }TOUCH_POINTS;		/* MAX_OPEN_TOUCH_SIMULTANEOUSLY */
 
 typedef enum{
@@ -1679,7 +1679,7 @@ void FILE_NAME(setTouch)(void)
 		/*	----- Touch parameter text and go to action ----- */
 		case Touch_SetTxt:
 			FILE_NAME(keyboard)(KEYBOARD_setTxt,KEY_All_release,LCD_RoundRectangle,0,15,15,KeysAutoSize,10,10,state,Touch_Q,KeysDel);
-			LCDTOUCH_ActiveOnly(0,0,0,0,0,0,0,0,0,0,Touch_Q,Touch_field);
+			LCDTOUCH_ActiveOnly(0,0,0,0,0,0,0,0,0,0,Touch_Q,Touch_keyStyle);
 			break;
 
 		case Touch_FontStyle:
@@ -1716,7 +1716,7 @@ void FILE_NAME(setTouch)(void)
 
 
 		default:
-			if(_KEYBOARD_setTxt__SERVICE(state,Touch_Q,Touch_field,KEY_Q)) break;
+			if(_KEYBOARD_setTxt__SERVICE(state,Touch_Q,Touch_keyStyle,KEY_Q)) break;
 
 			/* ----- Service release specific Keys for Keyboard ----- */
 			_TouchEndService(Touch_fontRp, Touch_fontBm, KEYBOARD_fontRGB, KEY_All_release, FUNC_fontColorRGB);
