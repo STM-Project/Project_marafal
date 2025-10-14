@@ -1838,6 +1838,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 																DARKRED,DARKRED,DARKRED,DARKRED,DARKRED,DARKRED };
 
 	const uint8_t dimKeys[] = {10,9,9,6};
+	int distTxtField = 3;
 	static int charBuffOffs;  //to mozna dac do s[k].param3 !!!!
 
 	#define _PARAM_ARROW_UP		structSize 	size_UP = { (35*s[k].widthKey)/100,  (2*s[k].heightKey)/5 };		int bold_UP = 1;		int coeff_UP = 3
@@ -1908,8 +1909,6 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	char _GetCharBuff(int offs)		{ if(IS_RANGE(_GetIndxCharBuff()+offs,0,charBuff[charBuffSize-1])) return charBuff[_GetIndxCharBuff()+offs]; else return 0; }
 	char *_GetPtrToCharBuff(int offs){ return charBuff+offs; }
 
-	void _DispTxtInd(void){ DispTxtIndirect(_GetPtrToCharBuff(0), s[k].x+3+s[k].interSpace, s[k].x+3+s[k].interSpace, BLACK, TXTFIELD_COLOR); }  //zrob cos z tym 3 !!!!!!
-
 	void _Cursor(int offs, u32 BkpSizeX,u32 BkpSizeY, int x,int y){
 		int _char = _GetCharBuff(-1+offs);
 		if(offs < 2)		/* offs=1 means cursor after text , offs<1 means cursor at text */
@@ -1926,15 +1925,11 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 
 	void _DispTxtFieldWin(int cursorOffs){
-		LCD_ShapeWindow( s[k].shape,0, widthFieldTxt, heightFieldTxt, 0,0, widthFieldTxt,heightFieldTxt, SetBold2Color(TXTFIELD_COLOR,s[k].bold), TXTFIELD_COLOR, colorFillBk );
-		DispTxt(_GetPtrToCharBuff(0), 3,3, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
-		_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, 3,3);  //zrob cos z tym 3 !!!!!!
+		_DispTxtFieldInd();
+		DispTxt(_GetPtrToCharBuff(0), distTxtField,distTxtField, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
+		_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField);
 		LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
 	}
-
-	// okreslic space od brzegow np tam gdzie jest +3 jako define !!!!
-
-
 
 	void _KeyUP_ind(int nr){	_PARAM_ARROW_UP;
 		u32 colorShape = CONDITION( _IsUpPress(), colorTxtPressKey[nr], frameColor );
@@ -2022,7 +2017,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		XY_Touch_Struct touchFieldPos = LCD_TOUCH_GetPos();
 		if(GetTouchToTemp( s[k].startTouchIdx + countKey )){
 			int incTxt=0;
-			int xStart = s[k].x + 3 + s[k].interSpace;	// z tym + 3 jako define daj !!!!!
+			int xStart = s[k].x + distTxtField + s[k].interSpace;
 			int xStop  = xStart  +  LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(0), _GetIndxCharBuff()-1, textParam.space, textParam.constWidth);
 
 			if(xStop < touchFieldPos.x){
@@ -2037,14 +2032,14 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 						break;
 					}
 					incTxt++;
-					xStart = s[k].x + 3 + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,charBuff, incTxt, textParam.space, textParam.constWidth);
+					xStart = s[k].x + distTxtField + s[k].interSpace  +  LCD_GetStrPxlWidth(fontID,charBuff, incTxt, textParam.space, textParam.constWidth);
 			}}
 	}}
 
 	void _DispAllReleaseKeyboard(void){
 		_DispMainField();
 		_DispTxtField();
-		DispTxt(_GetPtrToCharBuff(0), 3+s[k].interSpace, 3+s[k].interSpace, BLACK, TXTFIELD_COLOR, widthAll, heightAll);
+		DispTxt(_GetPtrToCharBuff(0), distTxtField+s[k].interSpace, distTxtField+s[k].interSpace, BLACK, TXTFIELD_COLOR, widthAll, heightAll);
 
 		BKCOPY_VAL(fillColor_c[0],fillColor,BrightIncr(fillColor,0x10));
 		BKCOPY_VAL(bkColor_c[0],bkColor,colorFillBk);
@@ -2068,7 +2063,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		BKCOPY(bkColor,bkColor_c[0]);
 		BKCOPY(fillColor,fillColor_c[0]);
 
-		_Cursor(charBuffOffs, widthAll,heightAll, 3+s[k].interSpace, 3+s[k].interSpace);
+		_Cursor(charBuffOffs, widthAll,heightAll, distTxtField+s[k].interSpace, distTxtField+s[k].interSpace);
 		LCD_Display(0, s[k].x, s[k].y, widthAll, heightAll);
 	}
 
