@@ -1839,6 +1839,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	const uint8_t dimKeys[] = {10,9,9,6};
 	int distTxtField = 3;
+	int howManyArrowsInFieldTxt = 3;
 	static int charBuffOffs;  //to mozna dac do s[k].param3 !!!!
 
 	#define _PARAM_ARROW_UP		structSize 	size_UP = { (35*s[k].widthKey)/100,  (2*s[k].heightKey)/5 };		int bold_UP = 1;		int coeff_UP = 3
@@ -1867,7 +1868,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}}
 
 	int widthFieldTxt = 0;
-	int heightFieldTxt = LCD_GetFontHeight(fontID) * 3;
+	int heightFieldTxt = LCD_GetFontHeight(fontID) * howManyArrowsInFieldTxt;
 	int head = s[k].interSpace + heightFieldTxt + s[k].interSpace;
 	int colorFillBk = BrightDecr(bkColor,0x00);
 
@@ -1924,11 +1925,46 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		_IncIndxCharBuff();
 	}
 
+	int _GetTxtLenToFieldWidth(int offs){  int i;
+		if(0==charBuff[offs]) return 0;
+		for(i=0; i<_GetIndxCharBuff(); ++i){	 if(LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(offs),i,textParam.space,textParam.constWidth) > widthFieldTxt) return i-1;   }
+		return i;	 /* less then text field width */
+	}
+
+	#define NARROWEST_SIGN		'i'
+
 	void _DispTxtFieldWin(int cursorOffs){
+		int len,len2;  char buffTemp[ 1 + (widthFieldTxt / LCD_GetFontWidth(fontID,NARROWEST_SIGN)) ];
+
+
 		_DispTxtFieldInd();
-		DispTxt(_GetPtrToCharBuff(0), distTxtField,distTxtField, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
-		_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField);
+
+
+   	len=_GetTxtLenToFieldWidth(0);
+   	if(len > 0){
+      	LOOP_FOR(i,len){ buffTemp[i]=charBuff[i]; }	buffTemp[len]=0;
+      	DispTxt(buffTemp, distTxtField,distTxtField, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
+   	}
+
+   	len2 = len;
+   	len=_GetTxtLenToFieldWidth(len);
+   	if(len > 0){
+      	LOOP_FOR(i,len){ buffTemp[i]=charBuff[len2+i]; }	buffTemp[len]=0;
+      	DispTxt(buffTemp, distTxtField,distTxtField+LCD_GetFontHeight(fontID), BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
+      	_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField+LCD_GetFontHeight(fontID));
+   	}
+   	else
+   		_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField);
+
+
 		LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
+
+
+
+//		_DispTxtFieldInd();
+//		DispTxt(_GetPtrToCharBuff(0), distTxtField,distTxtField, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
+//		_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField);
+//		LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
 	}
 
 	void _KeyUP_ind(int nr){	_PARAM_ARROW_UP;
@@ -1969,7 +2005,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 
 	void _KeyEXIT_win(int nr,int relPress){	_PARAM_ARROW_EX;
-		u32 colorShape = CONDITION( _IsUpPress(), colorTxtPressKey[nr], frameColor );
+		u32 colorShape = CONDITION( relPress, colorTxtPressKey[nr], colorTxtKey[nr] );
 		if(0==_GetStyle()) KeyShapeDisp_Win (k,posKey[nr], LCDSHAPE_Exit, LCD_Exit(ToStructAndReturn, widthAll,heightAll, MIDDLE(posKey[nr].x,s[k].widthKey,size_EX.w),MIDDLE(posKey[nr].y,s[k].heightKey,size_EX.h), size_EX.w, size_EX.h, colorShape,colorShape,unUsed), relPress);
 		else					 KeyShapeDisp2_Win(k,posKey[nr], LCDSHAPE_Exit, LCD_Exit(ToStructAndReturn, widthAll,heightAll, MIDDLE(posKey[nr].x,s[k].widthKey,size_EX.w),MIDDLE(posKey[nr].y,s[k].heightKey,size_EX.h), size_EX.w, size_EX.h, colorShape,colorShape,unUsed), relPress);
 	}
