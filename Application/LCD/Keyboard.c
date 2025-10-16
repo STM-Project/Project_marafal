@@ -1938,7 +1938,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		int i, j=0, m=0, cnt=0;							/* buff[0] 			 - number of rows 		*/ /* buff[1..2..3..] - number of signs in row 1..2..3.. */
 
 		for(i=0; i<strlen(txt); ++i){
-			if(LCD_GetStrPxlWidth(fontID,txt+m,++cnt,param_space,param_constWidth) > fieldWidth-2*distTxtField-2){
+			if(LCD_GetStrPxlWidth(fontID,txt+m,++cnt,param_space,param_constWidth) >= fieldWidth-2*distTxtField){
 				m=i;
 				buff[1+j++]=cnt-1;
 				cnt=0;
@@ -2128,7 +2128,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		{
 			LOOP_FOR(j,buuffA[1+i]){  txt_temp[j]=buff_test[offss_buff+j]; }   txt_temp[ buuffA[1+i] ] = 0;
 
-			DispTxt(txt_temp, 	distTxtField+s[k].interSpace, distTxtField+s[k].interSpace + offss_yPos, 	BLACK, TXTFIELD_COLOR, widthAll, heightAll);
+			DispTxt(CONDITION(' '==txt_temp[0],txt_temp+1,txt_temp), distTxtField+s[k].interSpace, distTxtField+s[k].interSpace + offss_yPos, 	BLACK, TXTFIELD_COLOR, widthAll, heightAll);
 			offss_buff += buuffA[1+i];
 			offss_yPos += LCD_GetFontHeight(fontID);
 		}
