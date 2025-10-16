@@ -1839,7 +1839,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	const uint8_t dimKeys[] = {10,9,9,6};
 	int distTxtField = 3;
-	int howManyArrowsInFieldTxt = 3;
+	int howManyArrowsInFieldTxt = 6;
 	static int charBuffOffs;  //to mozna dac do s[k].param3 !!!!
 
 	#define _PARAM_ARROW_UP		structSize 	size_UP = { (35*s[k].widthKey)/100,  (2*s[k].heightKey)/5 };		int bold_UP = 1;		int coeff_UP = 3
@@ -1928,26 +1928,27 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 
 
-  u8 buff_test[10]={0};
+  char buff_test[350]="Rafal Markielowski robi fajne uklady jak tylko mu umiejetnosci pozwalaja AAAAAAAAAAA BBBBBB  CCCCCC DDDDDD EEEEEE moja wlasnosc jest fajna jesli krasnoludki sa male i szczuple. Jest fajna jesli krasnoludki sa male i szczuple.";
+
+  u8 buuffA[20];
 
 
 
 	void _SeperateTxt2Field(char *txt, int param_space, int param_constWidth, int fieldWidth, u8 *buff){
-		int i, j=0, m=0, cnt=1;							/* buff[0] 			 - number of rows 						*/
-		buff[j++]=0;								/* buff[1] = 0 	 										 	   */
-		buff[j++]=0;								/* buff[2] - number of signs in row 1..2..3.. */
-		LOOP_FOR(i,10) buff_test[i]=0;
-		for(i=1; i<strlen(txt); ++i){
-			if(LCD_GetStrPxlWidth(fontID,txt+m,cnt++,param_space,param_constWidth) > fieldWidth){
-				buff[j]=(i-1)-buff[j-1];
-				j++;
-				m=i+1;
-				buff[j++]=i+1;
-				cnt=1;
+		int i, j=0, m=0, cnt=0;							/* buff[0] 			 - number of rows 		*/ /* buff[1..2..3..] - number of signs in row 1..2..3.. */
+
+		for(i=0; i<strlen(txt); ++i){
+			if(LCD_GetStrPxlWidth(fontID,txt+m,++cnt,param_space,param_constWidth) > fieldWidth-2*distTxtField-2){
+				m=i;
+				buff[1+j++]=cnt-1;
+				cnt=0;
 			}
 		}
+		if(cnt>0){
+			buff[1+j]=cnt+j;
+			j++;
+		}
 		buff[0]=j;
-		buff[j]=(i-1)-buff[j-1];
 	}
 
 
@@ -2111,7 +2112,32 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	void _DispAllReleaseKeyboard(void){
 		_DispMainField();
 		_DispTxtField();
-		DispTxt(_GetPtrToCharBuff(0), distTxtField+s[k].interSpace, distTxtField+s[k].interSpace, BLACK, TXTFIELD_COLOR, widthAll, heightAll);
+		//DispTxt(_GetPtrToCharBuff(0), distTxtField+s[k].interSpace, distTxtField+s[k].interSpace, BLACK, TXTFIELD_COLOR, widthAll, heightAll);
+
+
+
+
+		_SeperateTxt2Field(buff_test, textParam.space,textParam.constWidth, widthFieldTxt, buuffA);
+
+
+		int offss_buff = 0;
+		int offss_yPos = 0;
+		char txt_temp[100];
+
+		LOOP_FOR(i,buuffA[0])
+		{
+			LOOP_FOR(j,buuffA[1+i]){  txt_temp[j]=buff_test[offss_buff+j]; }   txt_temp[ buuffA[1+i] ] = 0;
+
+			DispTxt(txt_temp, 	distTxtField+s[k].interSpace, distTxtField+s[k].interSpace + offss_yPos, 	BLACK, TXTFIELD_COLOR, widthAll, heightAll);
+			offss_buff += buuffA[1+i];
+			offss_yPos += LCD_GetFontHeight(fontID);
+		}
+
+
+
+
+
+
 
 		BKCOPY_VAL(fillColor_c[0],fillColor,BrightIncr(fillColor,0x10));
 		BKCOPY_VAL(bkColor_c[0],bkColor,colorFillBk);
@@ -2172,13 +2198,6 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
 		_KeyStr_ind(nr);
 		BKCOPY(s[k].widthKey,c.widthKey);
-
-
-		_SeperateTxt2Field(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, buff_test);
-
-
-
-
 	}
 	else if(tField == selBlockPress){
 		_ServiceTxtFieldTouch();
