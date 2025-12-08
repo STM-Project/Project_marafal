@@ -1868,7 +1868,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}}
 
 	int widthFieldTxt = 0;
-	int heightFieldTxt = LCD_GetFontHeight(fontID) * howManyArrowsInFieldTxt;
+	int heightFieldTxt = distTxtField + LCD_GetFontHeight(fontID) * howManyArrowsInFieldTxt + distTxtField;
 	int head = s[k].interSpace + heightFieldTxt + s[k].interSpace;
 	int colorFillBk = BrightDecr(bkColor,0x00);
 
@@ -1952,17 +1952,17 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	void _DisplayTxt2Field(char *txtBuff, u8 *seperateParam){
 		int offss_buff = 0,	offss_yPos = 0;												char narrowestChar = '.';
-		int editWidthPxl 	= widthAll  - 2*(distTxtField+s[k].interSpace),			minWidthPxl = LCD_GetFontWidth(fontID,narrowestChar);
-		int editHeightPxl = heightAll - 2*(distTxtField+s[k].interSpace);
-		int editWidth 	  = editWidthPxl / minWidthPxl;
-		char txt_temp[editWidth];   // !!!!!!!!!!!! Zdebuguj rozmiar !!!!! i spraewdz !!!
-		int fontHeight = LCD_GetFontHeight(fontID);
+		int editWidthPxl 	= widthFieldTxt - 2*distTxtField,							minWidthPxl = LCD_GetFontWidth(fontID,narrowestChar);
+		int editHeightPxl = heightFieldTxt,													fontHeight  = LCD_GetFontHeight(fontID);
+		int editWidth  = editWidthPxl / minWidthPxl;
+	/*	int editHeight = editHeightPxl / fontHeight; */
+		char txt_temp[editWidth];
 		LOOP_FOR(i,seperateParam[0]){
 			LOOP_FOR(j,seperateParam[1+i]){  txt_temp[j]=txtBuff[offss_buff+j]; }   txt_temp[ seperateParam[1+i] ] = 0;
-			DispTxt(CONDITION(' '==txt_temp[0],txt_temp+1,txt_temp), distTxtField+s[k].interSpace, distTxtField+s[k].interSpace + offss_yPos, 	BLACK, TXTFIELD_COLOR, widthAll, heightAll);
+			DispTxt(CONDITION(' '==txt_temp[0],txt_temp+1,txt_temp), s[k].interSpace+distTxtField, s[k].interSpace+distTxtField + offss_yPos, 	BLACK, TXTFIELD_COLOR, widthAll, heightAll);
 			offss_buff += seperateParam[1+i];
 			offss_yPos += fontHeight;
-			if(offss_yPos + fontHeight > editHeightPxl) return;
+			if(distTxtField + offss_yPos + fontHeight + distTxtField > editHeightPxl) return;
 		}
 	}
 
