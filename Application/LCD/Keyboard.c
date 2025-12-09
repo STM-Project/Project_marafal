@@ -1795,7 +1795,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 
 void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int tBig,int tBack,int tAlt,int tEnter,int tField,uint32_t colorDescr, char *charBuff,int charBuffSize) // klawiatura malutka i duza na caly LCD_X z liczbami
 {
-	#define TXTFIELD_COLOR		BrightDecr(frameColor,0x40)
+	#define TXTFIELD_COLOR		BrightDecr(frameColor,0x40)  //po KLAWIATURZE rob ustawienie calegho textu aby dopasowac spacje pomiedzy roznuymoi literami
 	#define _UP		"|"
 	#define _LF		"<--"
 	#define _EN		"<-|"
@@ -1839,7 +1839,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	const uint8_t dimKeys[] = {10,9,9,6};
 	int distTxtField = 3;
-	int howManyArrowsInFieldTxt = 6;
+	int howManyArrowsInFieldTxt = 3;
 	static int touchCharsBuffOffs;
 
 	#define _PARAM_ARROW_UP		structSize 	size_UP = { (35*s[k].widthKey)/100,  (2*s[k].heightKey)/5 };		int bold_UP = 1;		int coeff_UP = 3
@@ -1856,12 +1856,15 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	int  _GetStyle	  (void){ return MASK(s[k].param2,F); 		 }
 	void _ChangeStyle(void){   INCR_WRAP(s[k].param2,1, 0,1); }
 
+	void _InitCharBuff(void){ charBuff[charBuffSize-1]=strlen(charBuff); }
+
 
 	if(shape!=0){						/* Do only once when creating Keyboard */
 		touchCharsBuffOffs = 1;		/* 1 means cursor after text */
 		s[k].param2 = 0;				/* keys style 0-1 */
 		pTxtKey = (char**)txtKey;
 		SetTxtParamInit(fontID);
+		_InitCharBuff();
 		if(KeysAutoSize == widthKey){
 			s[k].widthKey =  heightKey + LCD_GetWholeStrPxlWidth(fontID,(char*)pTxtKey[0],textParam.space,textParam.constWidth) + heightKey;
 			s[k].heightKey = heightKey + LCD_GetFontHeight(fontID) + heightKey;
@@ -1919,20 +1922,19 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 					LCD_GetFontWidth(fontID,CONDITION(offs<1,_char,' ')),1, BLACK,BLACK,BLACK);
 	}
 
-	void _ServiceCharBuff(int key){  //Wprowadz kursor migotajacy !!!!!!
-		if		 (STRING_CmpTxt((char*)pTxtKey[key],"space"))  _SetCharBuff(' ');
-		else 														 		  _SetCharBuff(*pTxtKey[key]);
+	void _InsertSignToCharBuff(int key){  //Wprowadz kursor migotajacy !!!!!!
+		if(touchCharsBuffOffs < 1){		/* Set new char between chars of the text  */
+			int offs = ABS(touchCharsBuffOffs)+1;
+			LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];	 }
+
+				  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = ' ';
+				  else 														 charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = *pTxtKey[key];
+		}
+		else{	  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) _SetCharBuff(' ');
+				  else 														 _SetCharBuff(*pTxtKey[key]);
+		}
 		_IncIndxCharBuff();
 	}
-
-
-
-
-  char buff_test[350]="Rafal Markielowski robi fajne uklady jak tylko mu umiejetnosci pozwalaja AAAAAAAAAAA BBBBBB  CCCCCC DDDDDD EEEEEE moja wlasnosc jest fajna jesli krasnoludki sa male i szczuple. Jest fajna jesli krasnoludki sa male i szczuple.";
-
-
-
-
 
 	void _SeperateTxt2Field(char *txtBuff, int param_space, int param_constWidth, int fieldWidth, u8 *seperateParam){
 		int i, j=0, m=0, cnt=0;							/* buff[0] - number of rows */ 		/* buff[1..2..3..] - number of signs in row 1..2..3.. */
@@ -1971,6 +1973,15 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		DispTxt(_GetPtrToCharBuff(0), distTxtField,distTxtField, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
 		_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField);
 		LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
+	}
+
+	void _DeleteSignInCharBuff(void){
+		if(touchCharsBuffOffs < 1){		/* Delete char between chars of the text */
+			int offs = ABS(touchCharsBuffOffs)+1;
+			LOOP_FOR(i,offs){	 charBuff[(_GetIndxCharBuff()-1)-(offs-1)-i-1] = charBuff[(_GetIndxCharBuff()-1)-(offs-1)-i];	}
+			_DecIndxCharBuff();
+		}
+		else{	 _DecIndxCharBuff(); _SetCharBuff(0x0); _DispTxtFieldWin(touchCharsBuffOffs);  }
 	}
 
 	void _KeyUP_ind(int nr){	_PARAM_ARROW_UP;
@@ -2012,8 +2023,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	void _KeyEXIT_win(int nr,int relPress){	_PARAM_ARROW_EX;
 		u32 colorShape = CONDITION( relPress, colorTxtPressKey[nr], colorTxtKey[nr] );
-		if(0==_GetStyle()) KeyShapeDisp_Win (k,posKey[nr], LCDSHAPE_Exit, LCD_Exit(ToStructAndReturn, widthAll,heightAll, MIDDLE(posKey[nr].x,s[k].widthKey,size_EX.w),MIDDLE(posKey[nr].y,s[k].heightKey,size_EX.h), size_EX.w, size_EX.h, colorShape,colorShape,unUsed), relPress);
-		else					 KeyShapeDisp2_Win(k,posKey[nr], LCDSHAPE_Exit, LCD_Exit(ToStructAndReturn, widthAll,heightAll, MIDDLE(posKey[nr].x,s[k].widthKey,size_EX.w),MIDDLE(posKey[nr].y,s[k].heightKey,size_EX.h), size_EX.w, size_EX.h, colorShape,colorShape,unUsed), relPress);
+		if(0==_GetStyle()) KeyShapeDisp_Win (k,posKey[nr], LCDSHAPE_Exit, LCD_Exit(ToStructAndReturn, widthAll,heightAll, MIDDLE(posKey[nr].x,s[k].widthKey,size_EX.w),MIDDLE(posKey[nr].y,s[k].heightKey,size_EX.h), size_EX.w, size_EX.h, RED/*colorShape*/,colorShape,unUsed), relPress);
+		else					 KeyShapeDisp2_Win(k,posKey[nr], LCDSHAPE_Exit, LCD_Exit(ToStructAndReturn, widthAll,heightAll, MIDDLE(posKey[nr].x,s[k].widthKey,size_EX.w),MIDDLE(posKey[nr].y,s[k].heightKey,size_EX.h), size_EX.w, size_EX.h, RED/*colorShape*/,colorShape,unUsed), relPress);
 	}
 
 
@@ -2080,12 +2091,12 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	void _DispAllReleaseKeyboard(void)
 	{
-		u8 seperateTxtParam[20];
+		u8 seperateTxtParam[howManyArrowsInFieldTxt+1];
 
 		_DispMainField();
 		_DispTxtField();
-		_SeperateTxt2Field(buff_test, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
-		_DisplayTxt2Field(buff_test,seperateTxtParam);
+		_SeperateTxt2Field(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
+		_DisplayTxt2Field(charBuff,seperateTxtParam);
 
 		BKCOPY_VAL(fillColor_c[0],fillColor,BrightIncr(fillColor,0x10));
 		BKCOPY_VAL(bkColor_c[0],bkColor,colorFillBk);
@@ -2131,7 +2142,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		 _KeyBACK_ind(nr);
 		BKCOPY(fillColor,fillColor_c[0]);
 		BKCOPY(s[k].widthKey,c.widthKey);
-		_DecIndxCharBuff(); _SetCharBuff(0x0);	_DispTxtFieldWin(touchCharsBuffOffs);
+		_DeleteSignInCharBuff();
 	}
 	else if(tEnter == selBlockPress){
 		nr = selBlockPress-touchAction;
@@ -2147,7 +2158,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		_KeyStr_ind(nr);
 		BKCOPY(s[k].widthKey,c.widthKey);
 	}
-	else if(tField == selBlockPress){
+	else if(tField == selBlockPress){	 /* TOUCH of the text field */
 		_ServiceTxtFieldTouch();
 	}
 	else if(tField + 1 == selBlockPress){		/*	KEY_style = tField + 1 */
@@ -2159,7 +2170,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		{
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
-			 _ServiceCharBuff(nr);
+			 _InsertSignToCharBuff(nr);
 			 _DispTxtFieldWin(touchCharsBuffOffs);
 			 _KeyQ2P(nr,press);
 			BKCOPY(s[k].widthKey,c.widthKey);
@@ -2168,7 +2179,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		{
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
-			 _ServiceCharBuff(nr);
+			 _InsertSignToCharBuff(nr);
 			 _DispTxtFieldWin(touchCharsBuffOffs);
 			 _KeyStr_ind(nr);
 			BKCOPY(s[k].widthKey,c.widthKey);
