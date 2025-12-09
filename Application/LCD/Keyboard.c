@@ -1977,11 +1977,11 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	void _DeleteSignInCharBuff(void){
 		if(touchCharsBuffOffs < 1){		/* Delete char between chars of the text */
-			int offs = ABS(touchCharsBuffOffs)+1;
-			LOOP_FOR(i,offs){	 charBuff[(_GetIndxCharBuff()-1)-(offs-1)-i-1] = charBuff[(_GetIndxCharBuff()-1)-(offs-1)-i];	}
-			_DecIndxCharBuff();
+			int backOffs = ABS(touchCharsBuffOffs)+1;
+			int buffIndx = (_GetIndxCharBuff()-1)-(backOffs-1);	 if(buffIndx==0) return;
+			LOOP_FOR(i,backOffs){	charBuff[buffIndx-1+i] = charBuff[buffIndx+i];	}
 		}
-		else{	 _DecIndxCharBuff(); _SetCharBuff(0x0); _DispTxtFieldWin(touchCharsBuffOffs);  }
+		_DecIndxCharBuff(); _SetCharBuff(0x0); _DispTxtFieldWin(touchCharsBuffOffs);
 	}
 
 	void _KeyUP_ind(int nr){	_PARAM_ARROW_UP;
