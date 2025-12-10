@@ -2066,45 +2066,64 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		if(press==act)	LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
 	}
 
-	void _ServiceTxtFieldTouch(void){
-		XY_Touch_Struct touchFieldPos = LCD_TOUCH_GetPos();
-		if(GetTouchToTemp( s[k].startTouchIdx + countKey )){
-			int incTxt=0;
-			int xStart = s[k].x + s[k].interSpace /*+ distTxtField*/;
-			//int xStop  = xStart  +  LCD_GetStrPxlWidth(fontID,_GetPtrToCharBuff(0), _GetIndxCharBuff()-1, textParam.space, textParam.constWidth);
-			int xStop = xStart + widthFieldTxt;
+	void _ServiceTxtFieldTouch(void)
+	{
+		int _GetCharBuffIndx(int row, u8 *param){
+			int indx = 0;
+			LOOP_FOR(i,row){	 indx += param[1+i];  }
+			return indx;
+		}
+		int _CalcYstop(u8 *param){
+			_SeperateTxt2Field(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, param);
+			return  ( distTxtField + param[0] * LCD_GetFontHeight(fontID) );
+		}
 
-			int xTouchCharPos, yTouchCharPos;
-
-			//----------------------------------------
-
-			int yStart = s[k].y + s[k].interSpace/* + distTxtField*/;
-
+		if(GetTouchToTemp( s[k].startTouchIdx + countKey ))
+		{
+			XY_Touch_Struct touchFieldPos = LCD_TOUCH_GetPos();
 			u8 seperateTxtParam[howManyArrowsInFieldTxt+1];
-			_SeperateTxt2Field(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
-
-			int yStop = yStart + distTxtField + seperateTxtParam[0] * LCD_GetFontHeight(fontID);
-
+			int xStart = s[k].x + s[k].interSpace,	  xStop = xStart + widthFieldTxt;
+			int yStart = s[k].y + s[k].interSpace,	  yStop = yStart + _CalcYstop(seperateTxtParam);
 
 			if(IS_RANGE(touchFieldPos.y, yStart, yStop))
 			{
 				if(IS_RANGE(touchFieldPos.x, xStart, xStop))
 				{
-					int nrTouchCol = (touchFieldPos.y-(yStart+distTxtField))/LCD_GetFontHeight(fontID);
+					int incTxt = 0;
+					int nrTouchRow = (touchFieldPos.y-(yStart+distTxtField))/LCD_GetFontHeight(fontID);
+					int xTouchCharPos = xStart,	 yTouchCharPos = yStart + distTxtField + LCD_GetFontHeight(fontID) * nrTouchRow;
 
-					yTouchCharPos = yStart + distTxtField + LCD_GetFontHeight(fontID) * nrTouchCol;
-					xTouchCharPos = xStart;
 
-					if(touchFieldPos.x > xStop){
-						touchCharsBuffOffs = 1;
-						_DispTxtFieldWin(touchCharsBuffOffs);
-					}
+//					if(touchFieldPos.x > xStop){
+//						touchCharsBuffOffs = 1;
+//						_DispTxtFieldWin(touchCharsBuffOffs);
+//					}
 
-					int offsBuff = 0;
-					LOOP_FOR(i,nrTouchCol){	 offsBuff += seperateTxtParam[1+i];  }
 
+					int offsBuff = _GetCharBuffIndx(nrTouchRow,seperateTxtParam);
 					while(xTouchCharPos+distTxtField < touchFieldPos.x){	xTouchCharPos += LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff], incTxt++, textParam.space, textParam.constWidth);	}
 
+
+
+					_DispTxtFieldInd();
+					DispTxt(_GetPtrToCharBuff(0), distTxtField,distTxtField, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
+					//_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField);
+					LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
+
+
+
+
+
+
+//					_DisplayTxt2Field(charBuff,seperateTxtParam);
+//
+//					LCD_ShapeWindow(LCD_Rectangle,0, widthFieldTxt, heightFieldTxt, \
+//							distTxtField + xTouchCharPos, \
+//							distTxtField + yTouchCharPos + /*LCD_GetFontHeight(fontID)*/ + 1, \
+//							LCD_GetFontWidth(fontID,' '/*CONDITION(offs<1,_char,' ')*/),1, BLACK,BLACK,BLACK);
+//
+//					//_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField);
+//					LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
 
 				}
 			}
