@@ -1936,7 +1936,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		_IncIndxCharBuff();
 	}
 
-	void _SeperateTxt2Field(char *txtBuff, int param_space, int param_constWidth, int fieldWidth, u8 *seperateParam){
+	void _SeperateTxt2RowField(char *txtBuff, int param_space, int param_constWidth, int fieldWidth, u8 *seperateParam){
 		int i, j=0, m=0, cnt=0;							/* seperateParam[0] - number of rows */ 			/* seperateParam[1..2..3..] - number of signs in row 1..2..3.. */
 		for(i=0; i<strlen(txtBuff); ++i){
 			if(LCD_GetStrPxlWidth(fontID, txtBuff+m, ++cnt,param_space,param_constWidth) >= fieldWidth-2*distTxtField){
@@ -1952,7 +1952,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		seperateParam[0]=j;
 	}
 
-	void _DisplayTxt2Field(char *txtBuff, u8 *seperateParam){
+	void _DisplayTxt2Field(char *txtBuff, u8 *seperateParam, u32 bkSizeX,u32 bkSizeY, u8 offsX,u8 offsY){
 		int offss_buff = 0,	offss_yPos = 0;												char narrowestChar = '.';
 		int editWidthPxl 	= widthFieldTxt - 2*distTxtField,							minWidthPxl = LCD_GetFontWidth(fontID,narrowestChar);
 		int editHeightPxl = heightFieldTxt - 2*distTxtField,							fontHeight  = LCD_GetFontHeight(fontID);
@@ -1961,7 +1961,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		char txt_temp[editWidth];
 		LOOP_FOR(i,seperateParam[0]){
 			LOOP_FOR(j,seperateParam[1+i]){  txt_temp[j]=txtBuff[offss_buff+j]; }   txt_temp[ seperateParam[1+i] ] = 0;
-			DispTxt(CONDITION(' '==txt_temp[0],txt_temp+1,txt_temp), s[k].interSpace+distTxtField, s[k].interSpace+distTxtField + offss_yPos, 	BLACK, TXTFIELD_COLOR, widthAll, heightAll);
+			DispTxt(CONDITION(' '==txt_temp[0],txt_temp+1,txt_temp), offsX+distTxtField, offsY+distTxtField + offss_yPos, 	BLACK, TXTFIELD_COLOR, bkSizeX, bkSizeY);
 			offss_buff += seperateParam[1+i];
 			offss_yPos += fontHeight;
 			if(offss_yPos + fontHeight > editHeightPxl) return;
@@ -2066,6 +2066,19 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		if(press==act)	LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
 	}
 
+
+
+
+//	void _DispTxtFieldWin___(int cursorOffs){
+//		_DispTxtFieldInd();
+//
+//
+//
+//
+//		LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
+//	}
+
+
 	void _ServiceTxtFieldTouch(void)
 	{
 		int _GetCharBuffIndx(int row, u8 *param){
@@ -2074,7 +2087,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			return indx;
 		}
 		int _CalcYstop(u8 *param){
-			_SeperateTxt2Field(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, param);
+			_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, param);
 			return  ( distTxtField + param[0] * LCD_GetFontHeight(fontID) );
 		}
 
@@ -2091,7 +2104,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				{
 					int incTxt = 0;
 					int nrTouchRow = (touchFieldPos.y-(yStart+distTxtField))/LCD_GetFontHeight(fontID);
-					int xTouchCharPos = xStart,	 yTouchCharPos = yStart + distTxtField + LCD_GetFontHeight(fontID) * nrTouchRow;
+					int xTouchCharPos = xStart + distTxtField,	 yTouchCharPos = yStart + distTxtField + LCD_GetFontHeight(fontID) * nrTouchRow;
 
 
 //					if(touchFieldPos.x > xStop){
@@ -2101,29 +2114,29 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 
 					int offsBuff = _GetCharBuffIndx(nrTouchRow,seperateTxtParam);
-					while(xTouchCharPos+distTxtField < touchFieldPos.x){	xTouchCharPos += LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff], incTxt++, textParam.space, textParam.constWidth);	}
+					while( xTouchCharPos + LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff], ++incTxt, textParam.space, textParam.constWidth) < touchFieldPos.x );
+
+
+
+//					_DispTxtFieldInd();
+//					DispTxt(_GetPtrToCharBuff(0), distTxtField,distTxtField, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
+//					//_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField);
+//					LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
+
+
 
 
 
 					_DispTxtFieldInd();
-					DispTxt(_GetPtrToCharBuff(0), distTxtField,distTxtField, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
-					//_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField);
-					LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
+					_DisplayTxt2Field(charBuff,seperateTxtParam,  widthFieldTxt,heightFieldTxt, 0,0);
 
-
-
-
-
-
-//					_DisplayTxt2Field(charBuff,seperateTxtParam);
-//
-//					LCD_ShapeWindow(LCD_Rectangle,0, widthFieldTxt, heightFieldTxt, \
-//							distTxtField + xTouchCharPos, \
-//							distTxtField + yTouchCharPos + /*LCD_GetFontHeight(fontID)*/ + 1, \
-//							LCD_GetFontWidth(fontID,' '/*CONDITION(offs<1,_char,' ')*/),1, BLACK,BLACK,BLACK);
+					LCD_ShapeWindow(LCD_Rectangle,0, widthFieldTxt, heightFieldTxt, \
+							distTxtField + xTouchCharPos, \
+							distTxtField + yTouchCharPos + /*LCD_GetFontHeight(fontID)*/ + 1, \
+							LCD_GetFontWidth(fontID,charBuff[offsBuff+(incTxt-1)]/*CONDITION(offs<1,_char,' ')*/),1, BLACK,BLACK,BLACK);
 //
 //					//_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField);
-//					LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
+					LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
 
 				}
 			}
@@ -2156,8 +2169,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 		_DispMainField();
 		_DispTxtField();
-		_SeperateTxt2Field(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
-		_DisplayTxt2Field(charBuff,seperateTxtParam);
+		_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
+		_DisplayTxt2Field(charBuff,seperateTxtParam, widthAll,heightAll, s[k].interSpace,s[k].interSpace);
 
 		BKCOPY_VAL(fillColor_c[0],fillColor,BrightIncr(fillColor,0x10));
 		BKCOPY_VAL(bkColor_c[0],bkColor,colorFillBk);
