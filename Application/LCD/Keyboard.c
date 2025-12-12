@@ -2082,48 +2082,38 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, param);
 			return  ( param[0] * LCD_GetFontHeight(fontID) );
 		}
+		char _CalcCursorPosX(int yStart, XY_Touch_Struct touchPos, u8 seperateParam[], XY_Touch_Struct *touchCharPos){
+			int nrTouchRow = (touchPos.y-yStart)/LCD_GetFontHeight(fontID);
+			touchCharPos->x = 0;		touchCharPos->y = LCD_GetFontHeight(fontID) * (nrTouchRow+1);
+			int offsBuff = _GetCharBuffIndx(nrTouchRow,seperateParam), 	 incTxt = 1, 	temp;
+			while( (incTxt <= seperateParam[1+nrTouchRow]) && ((temp = LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff],incTxt,textParam.space,textParam.constWidth)) < touchPos.x - (s[k].x+s[k].interSpace+distTxtField)) ){  incTxt++;  touchCharPos->x=temp;  }
+			if(incTxt > seperateParam[1+nrTouchRow]) return ' ';
+			else												  return charBuff[offsBuff+(--incTxt)];
+		}
 
 		if(GetTouchToTemp( s[k].startTouchIdx + countKey ))
 		{
-			XY_Touch_Struct touchFieldPos = LCD_TOUCH_GetPos();		touchFieldPos.x+=5; //!!!!!!!! daj jako korekt dla x i y !!!
+			XY_Touch_Struct touchFieldPos = LCD_TOUCH_GetPos();				touchFieldPos.x+=0;	touchFieldPos.y+=0;		/* Here give offset correct for touch to trimmed keyboard touch */
 			u8 seperateTxtParam[howManyArrowsInFieldTxt+1];
 			int xStart = s[k].x + s[k].interSpace + distTxtField,	  xStop = xStart + widthFieldTxt;
 			int yStart = s[k].y + s[k].interSpace + distTxtField,	  yStop = yStart + _CalcYstop(seperateTxtParam);
 
-			if(IS_RANGE(touchFieldPos.y, yStart, yStop))
+			if(IS_RANGE(touchFieldPos.x, xStart, xStop) && IS_RANGE(touchFieldPos.y, yStart, yStop))
 			{
-				if(IS_RANGE(touchFieldPos.x, xStart, xStop))
-				{
+				XY_Touch_Struct cursorPos;
+				char cursorChar = _CalcCursorPosX(yStart, touchFieldPos, seperateTxtParam, &cursorPos);
 
-					int nrTouchRow = (touchFieldPos.y-yStart)/LCD_GetFontHeight(fontID);
-					int xTouchCharPos = 0,	  yTouchCharPos = LCD_GetFontHeight(fontID) * (nrTouchRow+1);
+				_DispTxtFieldInd();
+				_DisplayTxt2Field(charBuff,seperateTxtParam,  widthFieldTxt,heightFieldTxt, 0,0);
 
-					char __char;
-					int offsBuff = _GetCharBuffIndx(nrTouchRow,seperateTxtParam), incTxt = 1, temp;
-					while( (incTxt <= seperateTxtParam[1+nrTouchRow]) && ((temp = LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff],incTxt,textParam.space,textParam.constWidth)) < touchFieldPos.x - (s[k].x+s[k].interSpace+distTxtField)) ){  incTxt++;  xTouchCharPos=temp;  }
+				LCD_ShapeWindow(LCD_Rectangle,0, widthFieldTxt, heightFieldTxt, \
+						distTxtField + cursorPos.x, \
+						distTxtField + cursorPos.y + 1, \
+						LCD_GetFontWidth(fontID,cursorChar),1, RED,RED,RED);
 
-					if(incTxt > seperateTxtParam[1+nrTouchRow])
-						__char=' ';
-					else{
-						incTxt--;  __char=charBuff[offsBuff+incTxt];
-					}
-
-
-					_DispTxtFieldInd();
-					_DisplayTxt2Field(charBuff,seperateTxtParam,  widthFieldTxt,heightFieldTxt, 0,0);
-
-					LCD_ShapeWindow(LCD_Rectangle,0, widthFieldTxt, heightFieldTxt, \
-							distTxtField + xTouchCharPos, \
-							distTxtField + yTouchCharPos + 1, \
-							LCD_GetFontWidth(fontID,__char),1, RED,RED,RED);
-
-					LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
-
-				}
-			}
-
-
-	}}
+				LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
+		}}
+	}
 
 	void _DispAllReleaseKeyboard(void)
 	{
