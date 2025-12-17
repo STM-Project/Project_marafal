@@ -2076,6 +2076,21 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		LCD_ShapeWindow(LCD_Rectangle,0, BkpSizeX,BkpSizeY, distTxtField+pos.x, distTxtField+pos.y, LCD_GetFontWidth(fontID,charAboveCursor),1, RED,RED,RED);
 	}
 
+	char _GetCursorChar(void){	return CONDITION(cursorVar.offs==_GetIndxCharBuff(),' ',charBuff[cursorVar.offs]);	}
+
+	void _DispTxt2Field(u8 *seperateTxtParam){
+		_DispTxtFieldInd();
+		_DisplayTxt2Field(charBuff,seperateTxtParam,  widthFieldTxt,heightFieldTxt, 0,0);
+		_CursorShapeWin(cursorVar.pos, widthFieldTxt,widthFieldTxt,_GetCursorChar());
+		LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
+	}
+
+	void _DispSeperateTxt2Field(void){
+		u8 seperateTxtParam[howManyArrowsInFieldTxt+1];
+		_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
+		_DispTxt2Field(seperateTxtParam);
+	}
+
 	void _ServiceTxtFieldTouch(void)
 	{
 		int _GetCharBuffIndx(int row, u8 *param){
@@ -2087,13 +2102,13 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, param);
 			return  ( param[0] * LCD_GetFontHeight(fontID) );
 		}
-		char _CalcCursorPosX(int yStart, XY_Touch_Struct touchPos, u8 seperateParam[], XY_Touch_Struct *touchCharPos){
+		void _CalcCursorPosX(int yStart, XY_Touch_Struct touchPos, u8 seperateParam[], XY_Touch_Struct *touchCharPos){
 			int nrTouchRow = (touchPos.y-yStart)/LCD_GetFontHeight(fontID);
 			touchCharPos->x = 0;		touchCharPos->y = LCD_GetFontHeight(fontID) * (nrTouchRow+1);
 			int offsBuff = _GetCharBuffIndx(nrTouchRow,seperateParam), 	 incTxt = 1, 	temp;
 			while( (incTxt <= seperateParam[1+nrTouchRow]) && ((temp = LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff],incTxt,textParam.space,textParam.constWidth)) < touchPos.x - (s[k].x+s[k].interSpace+distTxtField)) ){  incTxt++;  touchCharPos->x=temp;  }
-			if(incTxt > seperateParam[1+nrTouchRow]){ cursorVar.offs =_GetIndxCharBuff(); 	return ' '; 							}
-			else												 { cursorVar.offs = offsBuff+(incTxt-1);	return charBuff[cursorVar.offs]; }
+			if(incTxt > seperateParam[1+nrTouchRow]) cursorVar.offs =_GetIndxCharBuff();
+			else												  cursorVar.offs = offsBuff+(incTxt-1);
 		}
 
 		if(GetTouchToTemp( s[k].startTouchIdx + countKey ))
@@ -2105,13 +2120,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 			if(IS_RANGE(touchFieldPos.x, xStart, xStop) && IS_RANGE(touchFieldPos.y, yStart, yStop))
 			{
-				char cursorChar = _CalcCursorPosX(yStart, touchFieldPos, seperateTxtParam, &cursorVar.pos);
-
-				_DispTxtFieldInd();
-				_DisplayTxt2Field(charBuff,seperateTxtParam,  widthFieldTxt,heightFieldTxt, 0,0);
-				_CursorShapeWin(cursorVar.pos, widthFieldTxt,widthFieldTxt, cursorChar);
-
-				LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
+				_CalcCursorPosX(yStart, touchFieldPos, seperateTxtParam, &cursorVar.pos);
+				_DispTxt2Field(seperateTxtParam);
 		}}
 	}
 
@@ -2210,8 +2220,13 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		{
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
-			 _InsertSignToCharBuff(nr);
-			 _DispTxtFieldWin(touchCharsBuffOffs);
+
+//			 _InsertSignToCharBuff(nr);
+//			 _DispTxtFieldWin(touchCharsBuffOffs);
+
+			_XXXXXXXXXXXXXXXXXXXXXXXXX(nr); // to tu musicz przesunac wskazania CursorVar !!!!!
+			_DispSeperateTxt2Field();
+
 			 _KeyQ2P(nr,press);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
@@ -2219,8 +2234,12 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		{
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
-			 _InsertSignToCharBuff(nr);
-			 _DispTxtFieldWin(touchCharsBuffOffs);
+
+//			 _InsertSignToCharBuff(nr);
+//			 _DispTxtFieldWin(touchCharsBuffOffs);
+			_XXXXXXXXXXXXXXXXXXXXXXXXX(nr);   // to tu musicz przesunac wskazania CursorVar !!!!!
+			_DispSeperateTxt2Field();
+
 			 _KeyStr_ind(nr);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
