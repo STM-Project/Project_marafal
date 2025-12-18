@@ -306,7 +306,7 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 	LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_##src, txt)
 
 #define ROLL_1		0
-#define KEYBUFF_SIZE		300
+#define KEYBUFF_SIZE		500
 
 typedef enum{
 	NoTouch = NO_TOUCH,
@@ -1678,7 +1678,7 @@ void FILE_NAME(setTouch)(void)
 
 		/*	----- Touch parameter text and go to action ----- */
 		case Touch_SetTxt:
-			mini_snprintf(keyBuff,KEYBUFF_SIZE-1,"yyyyyyyyyyyelowski idzie na obiad kiedy"ś"1234|W6"Ń""Ć""Ś""Ź"78901234567890 Markielowski Rafal 78901234567890 Markielowski Rafal 78901234567890 Markielowski Rafal 78901234567890 Markielowski Rafal");
+			mini_snprintf(keyBuff,KEYBUFF_SIZE-1,"yyyyyyyyyyyelowski idzie na obiadkiedy"ś"1234|W6"Ń""Ć""Ś""Ź"78901234567890MarkielowskiRafal78901234567890MarkielowskiRafal78901234567890MarkielowskiRafal78901234567890MarkielowskiRafal");
 			FILE_NAME(keyboard)(KEYBOARD_setTxt,KEY_All_release,LCD_RoundRectangle,0,15,15,KeysAutoSize,10,10,state,Touch_Q,KeysDel);			/* Here call Keyboard only one at the start */
 			LCDTOUCH_ActiveOnly(0,0,0,0,0,0,0,0,0,0,Touch_Q,Touch_keyStyle);
 			break;
