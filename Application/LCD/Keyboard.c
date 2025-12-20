@@ -1945,6 +1945,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				m=i;
 				seperateParam[1+j++]=cnt-1;
 				cnt=0;
+				if(i>0) i--;
 			}
 		}
 		if(cnt>0){
