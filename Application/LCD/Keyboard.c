@@ -2109,8 +2109,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			touchCharPos->x = 0;		touchCharPos->y = LCD_GetFontHeight(fontID) * (nrTouchRow+1);
 			int offsBuff = _GetCharBuffIndx(nrTouchRow,seperateParam), 	 incTxt = 1, 	temp;
 			while( (incTxt <= seperateParam[1+nrTouchRow]) && ((temp = LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff],incTxt,textParam.space,textParam.constWidth)) < touchPos.x - (s[k].x+s[k].interSpace+distTxtField)) ){  incTxt++;  touchCharPos->x=temp;  }
-			if(incTxt > seperateParam[1+nrTouchRow]) cursorVar.offs =_GetIndxCharBuff();
-			else												  cursorVar.offs = offsBuff+(incTxt-1);
+			if( nrTouchRow == (seperateParam[0]-1) && incTxt > seperateParam[1+nrTouchRow]) cursorVar.offs =_GetIndxCharBuff();
+			else												  													  cursorVar.offs = offsBuff+(incTxt-1);
 		}
 
 		if(GetTouchToTemp( s[k].startTouchIdx + countKey ))
@@ -2134,6 +2134,12 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 				  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = ' ';
 				  else 														 charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = *pTxtKey[key];
+
+				  int temp2 = LCD_GetStrPxlWidth(fontID,&charBuff[cursorVar.offs],2,textParam.space,textParam.constWidth);  /* 2 - means get 2 chars to calculate width */
+				  int temp1 = LCD_GetStrPxlWidth(fontID,&charBuff[cursorVar.offs],1,textParam.space,textParam.constWidth);
+				  if( cursorVar.pos.x + temp2  >  widthFieldTxt - 2*distTxtField ){ cursorVar.pos.x = 0;		if(cursorVar.pos.y < howManyArrowsInFieldTxt*LCD_GetFontHeight(fontID))  cursorVar.pos.y += LCD_GetFontHeight(fontID); }
+				  else 																				{ cursorVar.pos.x += temp1; }
+				  cursorVar.offs++;
 		}
 		else{	  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) _SetCharBuff(' ');
 				  else 														 _SetCharBuff(*pTxtKey[key]);
