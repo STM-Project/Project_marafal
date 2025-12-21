@@ -1964,7 +1964,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		char txt_temp[editWidth];
 		LOOP_FOR(i,seperateParam[0]){
 			LOOP_FOR(j,seperateParam[1+i]){  txt_temp[j]=txtBuff[offss_buff+j]; }   txt_temp[ seperateParam[1+i] ] = 0;
-			DispTxt(CONDITION(' '==txt_temp[0],txt_temp+1,txt_temp), offsX+distTxtField, offsY+distTxtField + offss_yPos, 	BLACK, TXTFIELD_COLOR, bkSizeX, bkSizeY);
+			DispTxt(CONDITION(' '==txt_temp[0],txt_temp/*+1*/,txt_temp), offsX+distTxtField, offsY+distTxtField + offss_yPos, 	BLACK, TXTFIELD_COLOR, bkSizeX, bkSizeY);
 			offss_buff += seperateParam[1+i];
 			offss_yPos += fontHeight;
 			if(offss_yPos + fontHeight > editHeightPxl) return;
@@ -2134,17 +2134,23 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 				  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = ' ';
 				  else 														 charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = *pTxtKey[key];
-
+				  _IncIndxCharBuff();
 				  int temp2 = LCD_GetStrPxlWidth(fontID,&charBuff[cursorVar.offs],2,textParam.space,textParam.constWidth);  /* 2 - means get 2 chars to calculate width */
 				  int temp1 = LCD_GetStrPxlWidth(fontID,&charBuff[cursorVar.offs],1,textParam.space,textParam.constWidth);
 				  if( cursorVar.pos.x + temp2  >  widthFieldTxt - 2*distTxtField ){ cursorVar.pos.x = 0;		if(cursorVar.pos.y < howManyArrowsInFieldTxt*LCD_GetFontHeight(fontID))  cursorVar.pos.y += LCD_GetFontHeight(fontID); }
 				  else 																				{ cursorVar.pos.x += temp1; }
 				  cursorVar.offs++;
 		}
-		else{	  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) _SetCharBuff(' ');
-				  else 														 _SetCharBuff(*pTxtKey[key]);
+		else{	  char tempBuff[3]={0,' ',0};
+				  if(STRING_CmpTxt((char*)pTxtKey[key],"space")){ _SetCharBuff(' '); 			 tempBuff[0]=' '; 			  }
+				  else 														{ _SetCharBuff(*pTxtKey[key]); tempBuff[0]=*pTxtKey[key];  }
+		 	 	  _IncIndxCharBuff();  //DAJ bufor 2 znakow : wpisu + '.' !!!!!! bo odstepy pomiedzy releazie !!!!
+				  int temp2 = LCD_GetStrPxlWidth(fontID,tempBuff,2,textParam.space,textParam.constWidth);  /* 2 - means get 2 chars to calculate width */
+				  int temp1 = LCD_GetStrPxlWidth(fontID,tempBuff,1,textParam.space,textParam.constWidth);
+				  if( cursorVar.pos.x + temp2  >  widthFieldTxt - 2*distTxtField ){ cursorVar.pos.x = 0;		if(cursorVar.pos.y < howManyArrowsInFieldTxt*LCD_GetFontHeight(fontID))  cursorVar.pos.y += LCD_GetFontHeight(fontID); }
+				  else 																				{ cursorVar.pos.x += temp1; }
+				  cursorVar.offs =_GetIndxCharBuff();
 		}
-		_IncIndxCharBuff();
 	}
 
 	void _DispAllReleaseKeyboard(void)
