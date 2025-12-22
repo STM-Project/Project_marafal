@@ -1840,7 +1840,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	const uint8_t dimKeys[] = {10,9,9,6};
 	int distTxtField = 3;
 	int howManyArrowsInFieldTxt = 6;
-	static struct CURSOR_VARIABLES{ XY_Touch_Struct pos; int offs; } cursorVar = {0};
+	static struct CURSOR_VARIABLES{ structPosition pos; int offs; } cursorVar = {0};
 	static int touchCharsBuffOffs;  //DO USUNIECIA !!!!!
 
 	#define _PARAM_ARROW_UP		structSize 	size_UP = { (35*s[k].widthKey)/100,  (2*s[k].heightKey)/5 };		int bold_UP = 1;		int coeff_UP = 3
@@ -1915,28 +1915,28 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	char _GetCharBuff(int offs)		{ if(IS_RANGE(_GetIndxCharBuff()+offs,0,charBuff[charBuffSize-1])) return charBuff[_GetIndxCharBuff()+offs]; else return 0; }
 	char *_GetPtrToCharBuff(int offs){ return charBuff+offs; }
 
-	void _Cursor(int offs, u32 BkpSizeX,u32 BkpSizeY, int x,int y){ //DO USUNIECIA !!!!!
-		int _char = _GetCharBuff(-1+offs);
-		if(offs < 2)		/* offs=1 means cursor after text , offs<1 means cursor at text */
-			LCD_ShapeWindow(LCD_Rectangle,0, BkpSizeX,BkpSizeY, \
-					x + LCD_GetStrPxlWidth(fontID, _GetPtrToCharBuff(0), _GetIndxCharBuff()-1+offs, textParam.space, textParam.constWidth), \
-					y + LCD_GetFontHeight(fontID) + 1, \
-					LCD_GetFontWidth(fontID,CONDITION(offs<1,_char,' ')),1, BLACK,BLACK,BLACK);
-	}
+//	void _Cursor(int offs, u32 BkpSizeX,u32 BkpSizeY, int x,int y){ //DO USUNIECIA !!!!!
+//		int _char = _GetCharBuff(-1+offs);
+//		if(offs < 2)		/* offs=1 means cursor after text , offs<1 means cursor at text */
+//			LCD_ShapeWindow(LCD_Rectangle,0, BkpSizeX,BkpSizeY, \
+//					x + LCD_GetStrPxlWidth(fontID, _GetPtrToCharBuff(0), _GetIndxCharBuff()-1+offs, textParam.space, textParam.constWidth), \
+//					y + LCD_GetFontHeight(fontID) + 1, \
+//					LCD_GetFontWidth(fontID,CONDITION(offs<1,_char,' ')),1, BLACK,BLACK,BLACK);
+//	}
 
-	void _InsertSignToCharBuff(int key){  //Wprowadz kursor migotajacy !!!!!!
-		if(touchCharsBuffOffs < 1){		/* Set new char between chars of the text  */
-			int offs = ABS(touchCharsBuffOffs)+1;
-			LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];	 }
-
-				  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = ' ';
-				  else 														 charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = *pTxtKey[key];
-		}
-		else{	  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) _SetCharBuff(' ');
-				  else 														 _SetCharBuff(*pTxtKey[key]);
-		}
-		_IncIndxCharBuff();
-	}
+//	void _InsertSignToCharBuff(int key){  //Wprowadz kursor migotajacy !!!!!!
+//		if(touchCharsBuffOffs < 1){		/* Set new char between chars of the text  */
+//			int offs = ABS(touchCharsBuffOffs)+1;
+//			LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];	 }
+//
+//				  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = ' ';
+//				  else 														 charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = *pTxtKey[key];
+//		}
+//		else{	  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) _SetCharBuff(' ');
+//				  else 														 _SetCharBuff(*pTxtKey[key]);
+//		}
+//		_IncIndxCharBuff();
+//	}
 
 	void _SeperateTxt2RowField(char *txtBuff, int param_space, int param_constWidth, int fieldWidth, u8 *seperateParam){
 		int i, j=0, m=0, cnt=0;							/* seperateParam[0] - number of rows */ 			/* seperateParam[1..2..3..] - number of signs in row 1..2..3.. */
@@ -1964,28 +1964,28 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		char txt_temp[editWidth];
 		LOOP_FOR(i,seperateParam[0]){
 			LOOP_FOR(j,seperateParam[1+i]){  txt_temp[j]=txtBuff[offss_buff+j]; }   txt_temp[ seperateParam[1+i] ] = 0;
-			DispTxt(CONDITION(' '==txt_temp[0],txt_temp/*+1*/,txt_temp), offsX+distTxtField, offsY+distTxtField + offss_yPos, 	BLACK, TXTFIELD_COLOR, bkSizeX, bkSizeY);
+			DispTxt(txt_temp, offsX+distTxtField, offsY+distTxtField + offss_yPos, 	BLACK, TXTFIELD_COLOR, bkSizeX, bkSizeY);
 			offss_buff += seperateParam[1+i];
 			offss_yPos += fontHeight;
 			if(offss_yPos + fontHeight > editHeightPxl) return;
 		}
 	}
 
-	void _DispTxtFieldWin(int cursorOffs){
-		_DispTxtFieldInd();
-		DispTxt(_GetPtrToCharBuff(0), distTxtField,distTxtField, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
-		_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField);
-		LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
-	}
-
-	void _DeleteSignInCharBuff(void){
-		if(touchCharsBuffOffs < 1){		/* Delete char between chars of the text */
-			int backOffs = ABS(touchCharsBuffOffs)+1;
-			int buffIndx = (_GetIndxCharBuff()-1)-(backOffs-1);	 if(buffIndx==0) return;
-			LOOP_FOR(i,backOffs){	charBuff[buffIndx-1+i] = charBuff[buffIndx+i];	}
-		}
-		_DecIndxCharBuff(); _SetCharBuff(0x0); _DispTxtFieldWin(touchCharsBuffOffs);
-	}
+//	void _DispTxtFieldWin(int cursorOffs){ //DO USUNIECIA !!!!!
+//		_DispTxtFieldInd();
+//		DispTxt(_GetPtrToCharBuff(0), distTxtField,distTxtField, BLACK, TXTFIELD_COLOR, widthFieldTxt,heightFieldTxt);
+//		_Cursor(cursorOffs, widthFieldTxt, heightFieldTxt, distTxtField,distTxtField);
+//		LCD_Display(0, s[k].x+s[k].interSpace, s[k].y+s[k].interSpace, widthFieldTxt,heightFieldTxt);
+//	}
+//
+//	void _DeleteSignInCharBuff(void){ //DO USUNIECIA !!!!
+//		if(touchCharsBuffOffs < 1){		/* Delete char between chars of the text */
+//			int backOffs = ABS(touchCharsBuffOffs)+1;
+//			int buffIndx = (_GetIndxCharBuff()-1)-(backOffs-1);	 if(buffIndx==0) return;
+//			LOOP_FOR(i,backOffs){	charBuff[buffIndx-1+i] = charBuff[buffIndx+i];	}
+//		}
+//		_DecIndxCharBuff(); _SetCharBuff(0x0); _DispTxtFieldWin(touchCharsBuffOffs);
+//	}
 
 	void _KeyUP_ind(int nr){	_PARAM_ARROW_UP;
 		u32 colorShape = CONDITION( _IsUpPress(), colorTxtPressKey[nr], frameColor );
@@ -2074,7 +2074,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 
 
-	void _CursorShapeWin(XY_Touch_Struct pos, uint32_t BkpSizeX,uint32_t BkpSizeY, char charAboveCursor){
+	void _CursorShapeWin(structPosition pos, uint32_t BkpSizeX,uint32_t BkpSizeY, char charAboveCursor){
 		LCD_ShapeWindow(LCD_Rectangle,0, BkpSizeX,BkpSizeY, distTxtField+pos.x, distTxtField+pos.y, LCD_GetFontWidth(fontID,charAboveCursor),1, RED,RED,RED);
 	}
 
@@ -2093,18 +2093,19 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		_DispTxt2Field_Ind(seperateTxtParam);
 	}
 
+	int _GetCharBuffIndx(int row, u8 *param){
+		int indx = 0;
+		LOOP_FOR(i,row){	 indx += param[1+i];  }
+		return indx;
+	}
+
 	void _ServiceTxtFieldTouch(void)
 	{
-		int _GetCharBuffIndx(int row, u8 *param){
-			int indx = 0;
-			LOOP_FOR(i,row){	 indx += param[1+i];  }
-			return indx;
-		}
 		int _CalcYstop(u8 *param){
 			_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, param);
 			return  ( param[0] * LCD_GetFontHeight(fontID) );
 		}
-		void _CalcCursorPosX(int yStart, XY_Touch_Struct touchPos, u8 seperateParam[], XY_Touch_Struct *touchCharPos){
+		void _CalcCursorPosX(int yStart, XY_Touch_Struct touchPos, u8 seperateParam[], structPosition *touchCharPos){
 			int nrTouchRow = (touchPos.y-yStart)/LCD_GetFontHeight(fontID);
 			touchCharPos->x = 0;		touchCharPos->y = LCD_GetFontHeight(fontID) * (nrTouchRow+1);
 			int offsBuff = _GetCharBuffIndx(nrTouchRow,seperateParam), 	 incTxt = 1, 	temp;
@@ -2127,8 +2128,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		}}
 	}
 
-	void _XXXXXXXXXXXXXXXXXXXXXXXXX(int key){
-		if(cursorVar.offs < _GetIndxCharBuff()){		/* Set new char between chars of the text  */
+	void _ServiceTxtFieldPressKey(int key){
+		if(cursorVar.offs < _GetIndxCharBuff()){		/* Set new char between chars of the text */
 			int offs = _GetIndxCharBuff() - cursorVar.offs;
 			LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];	 }
 
@@ -2141,10 +2142,10 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				  else 																				{ cursorVar.pos.x += temp1; }
 				  cursorVar.offs++;
 		}
-		else{	  char tempBuff[3]={0,' ',0};
+		else{	  char tempBuff[3]={0,' ',0};				/* Set new char at the end of the text */
 				  if(STRING_CmpTxt((char*)pTxtKey[key],"space")){ _SetCharBuff(' '); 			 tempBuff[0]=' '; 			  }
 				  else 														{ _SetCharBuff(*pTxtKey[key]); tempBuff[0]=*pTxtKey[key];  }
-		 	 	  _IncIndxCharBuff();  //DAJ bufor 2 znakow : wpisu + '.' !!!!!! bo odstepy pomiedzy releazie !!!!
+		 	 	  _IncIndxCharBuff();
 				  int temp2 = LCD_GetStrPxlWidth(fontID,tempBuff,2,textParam.space,textParam.constWidth);  /* 2 - means get 2 chars to calculate width */
 				  int temp1 = LCD_GetStrPxlWidth(fontID,tempBuff,1,textParam.space,textParam.constWidth);
 				  if( cursorVar.pos.x + temp2  >  widthFieldTxt - 2*distTxtField ){ cursorVar.pos.x = 0;		if(cursorVar.pos.y < howManyArrowsInFieldTxt*LCD_GetFontHeight(fontID))  cursorVar.pos.y += LCD_GetFontHeight(fontID); }
@@ -2152,6 +2153,40 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				  cursorVar.offs =_GetIndxCharBuff();
 		}
 	}
+
+	void _ServiceTxtFieldDeleteChar(void){
+		int deletedCharWidth = LCD_GetStrPxlWidth(fontID,&charBuff[cursorVar.offs-1],1,textParam.space,textParam.constWidth);
+
+		if(cursorVar.offs < _GetIndxCharBuff()){			/* Delete the char selected by cursor in the text */
+			if(cursorVar.offs > 0){
+				int offs = _GetIndxCharBuff() - cursorVar.offs;
+				LOOP_FOR(i,offs){	 charBuff[(cursorVar.offs-1)+i] = charBuff[cursorVar.offs+i];  }
+				_DecIndxCharBuff(); _SetCharBuff(0x0);
+
+
+		}}
+		else{	_DecIndxCharBuff(); _SetCharBuff(0x0);   /* Delete the last char (at the end of the text) */
+
+		}
+
+		if(cursorVar.pos.x >= deletedCharWidth){ cursorVar.pos.x -= deletedCharWidth; 	 }
+		else{
+			if(cursorVar.pos.y > LCD_GetFontHeight(fontID))
+				cursorVar.pos.y -= LCD_GetFontHeight(fontID);
+
+			u8 seperateTxtParam[howManyArrowsInFieldTxt+1];
+			_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
+
+			int nrRow = cursorVar.pos.y / LCD_GetFontHeight(fontID);
+			int offsBuff = _GetCharBuffIndx(nrRow-1,seperateTxtParam);
+
+			cursorVar.pos.x = LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff],seperateTxtParam[nrRow]-1,textParam.space,textParam.constWidth);
+
+		}
+		cursorVar.offs--;
+	}
+
+
 
 	void _DispAllReleaseKeyboard(void)
 	{
@@ -2184,7 +2219,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		BKCOPY(bkColor,bkColor_c[0]);
 		BKCOPY(fillColor,fillColor_c[0]);
 
-		//_Cursor(touchCharsBuffOffs, widthAll,heightAll, distTxtField+s[k].interSpace, distTxtField+s[k].interSpace);
+		_CursorShapeWin( RetStructPos(s[k].interSpace+cursorVar.pos.x, s[k].interSpace+cursorVar.pos.y), widthAll,heightAll, _GetCursorChar() );
+
 		LCD_Display(0, s[k].x, s[k].y, widthAll, heightAll);
 	}
 
@@ -2206,7 +2242,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		 _KeyBACK_ind(nr);
 		BKCOPY(fillColor,fillColor_c[0]);
 		BKCOPY(s[k].widthKey,c.widthKey);
-		_DeleteSignInCharBuff();
+		_ServiceTxtFieldDeleteChar();
+		_DispSeperatedTxt2Field_Ind();
 	}
 	else if(tEnter == selBlockPress){
 		nr = selBlockPress-touchAction;
@@ -2234,27 +2271,18 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		{
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
-
-//			 _InsertSignToCharBuff(nr);
-//			 _DispTxtFieldWin(touchCharsBuffOffs);
-
-			_XXXXXXXXXXXXXXXXXXXXXXXXX(nr); // to tu musicz przesunac wskazania CursorVar !!!!!
-			_DispSeperatedTxt2Field_Ind();
-
-			 _KeyQ2P(nr,press);
+				_ServiceTxtFieldPressKey(nr);
+				_DispSeperatedTxt2Field_Ind();
+				_KeyQ2P(nr,press);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
 		else if(IS_RANGE(selBlockPress,touchAction+10,tEnter))		/* press rest of keys */
 		{
 			INIT(nr,selBlockPress-touchAction);
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
-
-//			 _InsertSignToCharBuff(nr);
-//			 _DispTxtFieldWin(touchCharsBuffOffs);
-			_XXXXXXXXXXXXXXXXXXXXXXXXX(nr);   // to tu musicz przesunac wskazania CursorVar !!!!!
-			_DispSeperatedTxt2Field_Ind();
-
-			 _KeyStr_ind(nr);
+				_ServiceTxtFieldPressKey(nr);
+				_DispSeperatedTxt2Field_Ind();
+				_KeyStr_ind(nr);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
 	}
