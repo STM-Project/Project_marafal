@@ -267,7 +267,7 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 
 #define USE_DBG_CLR	0
 
-#define TEXT_TO_SHOW		"+-456.7890"//"Rafa"ł" Markielowski"
+#define TEXT_TO_SHOW		"jej rozwija"ł"a si"ę""
 
 #define ID_MIDDLE_TXT	LCD_XY_MIDDLE_MAX_NUMBER_USE-1
 #define POS_X_TXT		LCD_Xmiddle(ID_MIDDLE_TXT,GetPos,v.FONT_ID_Fonts,Test.txt,Test.spaceBetweenFonts,Test.constWidth)
@@ -1678,7 +1678,7 @@ void FILE_NAME(setTouch)(void)
 
 		/*	----- Touch parameter text and go to action ----- */
 		case Touch_SetTxt:
-			mini_snprintf(keyBuff,KEYBUFF_SIZE-1,"yyyyyyyyyyyelowski idzie na obiadkiedy"ś" 1234 |W 6"Ń""Ć""Ś""Ź" 789 0123456789 0 Markielowski Rafal 789 0123456789 0 Markielowski Rafal 789 01234567890 Markielowski Rafal 789 01234567890 Markielowski Rafal");
+			mini_snprintf(keyBuff,KEYBUFF_SIZE-1,"Vanessa Paradis, kt"ó"ra w m"ł"odo"ś"ci zyska"ł"a reputacj"ę" gwiazdy show, dzi"ś" prowadzi znacznie spokojniejsze "ż"ycie. Pomimo burzliwych początk"ó"w, jej kariera artystyczna rozwija"ł"a si"ę" nieprzerwanie. 22 grudnia Paradis obchodzi"ł"a 53. urodziny");
 			FILE_NAME(keyboard)(KEYBOARD_setTxt,KEY_All_release,LCD_RoundRectangle,0,15,15,KeysAutoSize,10,10,state,Touch_Q,KeysDel);			/* Here call Keyboard only one at the start */
 			LCDTOUCH_ActiveOnly(0,0,0,0,0,0,0,0,0,0,Touch_Q,Touch_keyStyle);
 			break;

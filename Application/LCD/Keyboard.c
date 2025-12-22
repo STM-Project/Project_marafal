@@ -1861,7 +1861,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 
 	if(shape!=0){						/* Do only once when creating Keyboard */
-		cursorVar.pos.x = 0;		cursorVar.pos.y = 0;		cursorVar.offs = 0;
+		cursorVar.pos.x = 0;		cursorVar.pos.y = LCD_GetFontHeight(fontID);		cursorVar.offs = 0;
 		touchCharsBuffOffs = 1;		/* 1 means cursor after text */
 		s[k].param2 = 0;				/* keys style 0-1 */
 		pTxtKey = (char**)txtKey;
@@ -2110,8 +2110,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			touchCharPos->x = 0;		touchCharPos->y = LCD_GetFontHeight(fontID) * (nrTouchRow+1);
 			int offsBuff = _GetCharBuffIndx(nrTouchRow,seperateParam), 	 incTxt = 1, 	temp;
 			while( (incTxt <= seperateParam[1+nrTouchRow]) && ((temp = LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff],incTxt,textParam.space,textParam.constWidth)) < touchPos.x - (s[k].x+s[k].interSpace+distTxtField)) ){  incTxt++;  touchCharPos->x=temp;  }
-			if( nrTouchRow == (seperateParam[0]-1) && incTxt > seperateParam[1+nrTouchRow]) cursorVar.offs =_GetIndxCharBuff();
-			else												  													  cursorVar.offs = offsBuff+(incTxt-1);
+			if( nrTouchRow == (seperateParam[0]-1) && incTxt > seperateParam[1+nrTouchRow])  cursorVar.offs =_GetIndxCharBuff();
+			else												  													 { cursorVar.offs = offsBuff+(incTxt-1); 		if(incTxt > seperateParam[1+nrTouchRow]){ touchCharPos->x=0;  touchCharPos->y += LCD_GetFontHeight(fontID); } 	}
 		}
 
 		if(GetTouchToTemp( s[k].startTouchIdx + countKey ))
@@ -2138,8 +2138,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				  _IncIndxCharBuff();
 				  int temp2 = LCD_GetStrPxlWidth(fontID,&charBuff[cursorVar.offs],2,textParam.space,textParam.constWidth);  /* 2 - means get 2 chars to calculate width */
 				  int temp1 = LCD_GetStrPxlWidth(fontID,&charBuff[cursorVar.offs],1,textParam.space,textParam.constWidth);
-				  if( cursorVar.pos.x + temp2  >  widthFieldTxt - 2*distTxtField ){ cursorVar.pos.x = 0;		if(cursorVar.pos.y < howManyArrowsInFieldTxt*LCD_GetFontHeight(fontID))  cursorVar.pos.y += LCD_GetFontHeight(fontID); }
-				  else 																				{ cursorVar.pos.x += temp1; }
+				  if( cursorVar.pos.x + temp2 >  widthFieldTxt - 2*distTxtField ){ cursorVar.pos.x = 0;		if(cursorVar.pos.y < howManyArrowsInFieldTxt*LCD_GetFontHeight(fontID))  cursorVar.pos.y += LCD_GetFontHeight(fontID); }
+				  else 																			  { cursorVar.pos.x += temp1; }
 				  cursorVar.offs++;
 		}
 		else{	  char tempBuff[3]={0,' ',0};				/* Set new char at the end of the text */
@@ -2148,7 +2148,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		 	 	  _IncIndxCharBuff();
 				  int temp2 = LCD_GetStrPxlWidth(fontID,tempBuff,2,textParam.space,textParam.constWidth);  /* 2 - means get 2 chars to calculate width */
 				  int temp1 = LCD_GetStrPxlWidth(fontID,tempBuff,1,textParam.space,textParam.constWidth);
-				  if( cursorVar.pos.x + temp2  >  widthFieldTxt - 2*distTxtField ){ cursorVar.pos.x = 0;		if(cursorVar.pos.y < howManyArrowsInFieldTxt*LCD_GetFontHeight(fontID))  cursorVar.pos.y += LCD_GetFontHeight(fontID); }
+				  if( cursorVar.pos.x + temp2  >  widthFieldTxt - 2*distTxtField ){ cursorVar.pos.x = temp1;		if(cursorVar.pos.y < howManyArrowsInFieldTxt*LCD_GetFontHeight(fontID))  cursorVar.pos.y += LCD_GetFontHeight(fontID); }
 				  else 																				{ cursorVar.pos.x += temp1; }
 				  cursorVar.offs =_GetIndxCharBuff();
 		}
@@ -2292,7 +2292,15 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		int i;
 		for(i=0; i<countKey; ++i){
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[i]);
-			SetTouch(k,ID_TOUCH_POINT,s[k].startTouchIdx+i,press,posKey[i]);
+
+			/* SetTouch(k,ID_TOUCH_POINT,s[k].startTouchIdx+i,press,posKey[i]); */
+			touchTemp[0].x= s[k].x + posKey[i].x;
+			touchTemp[1].x= touchTemp[0].x + s[k].widthKey;
+			touchTemp[0].y= s[k].y + posKey[i].y;
+			touchTemp[1].y= touchTemp[0].y + s[k].heightKey;
+			LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT_WITH_WAIT, s[k].startTouchIdx+i, TOUCH_GET_PER_X_PROBE );
+			s[k].nmbTouch++;
+
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
 		touchTemp[0].x= s[k].x+s[k].interSpace;
