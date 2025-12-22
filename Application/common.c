@@ -31,6 +31,8 @@ int _RetVal	(int in, 						int val)	{ return val; };
 int _RetVal2(int in1,int in2, 			int val)	{ return val; };
 int _RetVal3(int in1,int in2,	int in3, int val)	{ return val; };
 
+structPosition RetStructPos(int x, int y){  structPosition temp={x,y};  return temp;  }
+
 void Int16ToCharBuff(char* buff, uint16_t val){
 	buff[0] = val>>8;
 	buff[1] = val;
