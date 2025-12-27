@@ -2035,7 +2035,10 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		charsInGivenRow = offsCharBuff-offsBuff;
 		cursorVar.pos.y = LCD_GetFontHeight(fontID) * CONDITION(nrRow,nrRow,1);
 		cursorVar.pos.x = CONDITION(0==charsInGivenRow, 0, LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff], charsInGivenRow ,textParam.space,textParam.constWidth));
-	}
+		if( cursorVar.pos.x + LCD_GetFontWidth(fontID,_GetCursorChar()) > widthFieldTxt-2*distTxtField  	&&  	nrRow < howManyArrowsInFieldTxt ){
+			cursorVar.pos.y = LCD_GetFontHeight(fontID)*(nrRow+1);
+			cursorVar.pos.x = 0;
+	}}
 
 	void _DispTxt2Field_Ind(u8 *seperateTxtParam){
 		_DispTxtFieldInd();
