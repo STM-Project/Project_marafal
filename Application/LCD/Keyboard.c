@@ -1838,9 +1838,12 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 																DARKRED,DARKRED,DARKRED,DARKRED,DARKRED,DARKRED };
 
 	const uint8_t dimKeys[] = {10,9,9,6};
+
+	static struct CURSOR_VARIABLES{ structPosition pos; int offs; } cursorVar = {0};
+	static int keyPressPrev = 0;
+
 	int distTxtField = 3;
 	int howManyArrowsInFieldTxt = 6;
-	static struct CURSOR_VARIABLES{ structPosition pos; int offs; } cursorVar = {0};
 
 	#define _PARAM_ARROW_UP		structSize 	size_UP = { (35*s[k].widthKey)/100,  (2*s[k].heightKey)/5 };		int bold_UP = 1;		int coeff_UP = 3
 	#define _PARAM_ARROW_LF		structSize 	size_LF = { ( 2*s[k].widthKey)/4,    (2*s[k].heightKey)/7 };		int bold_LF = 1;		int coeff_LF = 0
@@ -2054,6 +2057,17 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		_DispTxt2Field_Ind(seperateTxtParam);
 	}
 
+	void _ServiceTxtFieldDeleteChar(void){
+		if(cursorVar.offs < _GetIndxCharBuff()){			/* Delete the char selected by cursor in the text */
+			if(cursorVar.offs > 0){
+				int offs = _GetIndxCharBuff() - cursorVar.offs;
+				LOOP_FOR(i,offs){	 charBuff[(cursorVar.offs-1)+i] = charBuff[cursorVar.offs+i];  }
+				_DecIndxCharBuff(); _SetCharBuff(0x0);
+		}}
+		else{	_DecIndxCharBuff(); _SetCharBuff(0x0); }  /* Delete the last char (at the end of the text) */
+		if(cursorVar.offs>0) cursorVar.offs--;
+	}
+
 	void _ServiceTxtFieldTouch(void)
 	{
 		int _CalcYstop(u8 *param){
@@ -2084,6 +2098,9 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 
 	void _ServiceTxtFieldPressKey(int key){
+		int _IsAlternativeSign		 (void){  return CONDITION(key<10 && keyPressPrev==key, 1, 0);		}
+		void _ServiceAlternativeSign(void){  if(_IsAlternativeSign()) _ServiceTxtFieldDeleteChar();  }
+
 		if(_GetIndxCharBuff() < charBuffSize - 2)
 		{
 			u8 seperateTxtParam[howManyArrowsInFieldTxt+1];
@@ -2098,33 +2115,26 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 			if(cursorVar.offs < _GetIndxCharBuff()){															/* Set new char between chars of the text */
 				int offs = _GetIndxCharBuff() - cursorVar.offs;
+				_ServiceAlternativeSign();
 				LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];	 }
 					  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = ' ';
-					  else 														 charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = *pTxtKey[key];
+					  else 														 charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = CONDITION(_IsAlternativeSign(), 0x30|key, *pTxtKey[key]);
 					  _IncIndxCharBuff();
 					  cursorVar.offs++;
 			}
-			else{	 if(STRING_CmpTxt((char*)pTxtKey[key],"space")) _SetCharBuff(' '); 				/* Set new char at the end of the text */
-			  	  	 else 													 	_SetCharBuff(*pTxtKey[key]);
+			else{	 _ServiceAlternativeSign();
+					 if(STRING_CmpTxt((char*)pTxtKey[key],"space")) _SetCharBuff(' '); 				/* Set new char at the end of the text */
+			  	  	 else 													 	_SetCharBuff(CONDITION(_IsAlternativeSign(), 0x30|key, *pTxtKey[key]));
 			 	 	 _IncIndxCharBuff();
 					 cursorVar.offs =_GetIndxCharBuff();
 			}
+			keyPressPrev = key;
 	}}
-
-	void _ServiceTxtFieldDeleteChar(void){
-		if(cursorVar.offs < _GetIndxCharBuff()){			/* Delete the char selected by cursor in the text */
-			if(cursorVar.offs > 0){
-				int offs = _GetIndxCharBuff() - cursorVar.offs;
-				LOOP_FOR(i,offs){	 charBuff[(cursorVar.offs-1)+i] = charBuff[cursorVar.offs+i];  }
-				_DecIndxCharBuff(); _SetCharBuff(0x0);
-		}}
-		else{	_DecIndxCharBuff(); _SetCharBuff(0x0); }  /* Delete the last char (at the end of the text) */
-		if(cursorVar.offs>0) cursorVar.offs--;
-	}
 
 	void _DispAllReleaseKeyboard(void)
 	{
 		u8 seperateTxtParam[howManyArrowsInFieldTxt+1];
+		keyPressPrev = 0xFFFF;
 
 		_DispMainField();
 		_DispTxtField();
@@ -2154,10 +2164,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		BKCOPY(fillColor,fillColor_c[0]);
 
 		_CursorShapeWin( RetStructPos(s[k].interSpace+cursorVar.pos.x, s[k].interSpace+cursorVar.pos.y), widthAll,heightAll, _GetCursorChar() );
-
 		LCD_Display(0, s[k].x, s[k].y, widthAll, heightAll);
 	}
-
 
 	if(touchRelease == selBlockPress) _DispAllReleaseKeyboard();
 

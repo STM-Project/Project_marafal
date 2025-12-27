@@ -503,9 +503,8 @@ static int isTouchTemp(void)
 		return 0;
 }
 
-int LCD_TOUCH_isPress(void){
-	return ServiceTouch.press;
-}
+int LCD_TOUCH_isPress(void){ return ServiceTouch.press; }
+
 XY_Touch_Struct LCD_TOUCH_GetPos(void){
 	XY_Touch_Struct pos = {0};
 	int i = ServiceTouch.idx > 0 ? ServiceTouch.idx-1 : 0;
