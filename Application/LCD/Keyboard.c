@@ -1842,7 +1842,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	static struct CURSOR_VARIABLES{ structPosition pos; int offs; } cursorVar = {0};
 	static int keyPressPrev = 0;
 
-	int distTxtField = 3;
+	int distTxtField = 7;
 	int howManyArrowsInFieldTxt = 6;
 
 	#define _PARAM_ARROW_UP		structSize 	size_UP = { (35*s[k].widthKey)/100,  (2*s[k].heightKey)/5 };		int bold_UP = 1;		int coeff_UP = 3
@@ -2003,25 +2003,55 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		else					 KeyStrDisp2_Win(k,posKey[nr],pTxtKey[nr],colorStr,relPress);
 	}
 
-	void _KeyQ2P(int nr, int act){
-		if(release==act){	 if(0==_GetStyle()) KeyBk_Win (k,posKey[nr],act);
-								 else					  KeyBk2_Win(k,posKey[nr],act);	}
-		else{					 if(0==_GetStyle()) KeyBk_Ind (k,act);
-		 	 	 	 	 	 	 else					  KeyBk2_Ind(k,act);					}
+	void _KeyXXX(int nr, int act)
+	{
+		void _AAAAAAA(int nr, int act, char* descr){
+			if(release==act){	 if(0==_GetStyle()) KeyBk_Win (k,posKey[nr],act);
+									 else					  KeyBk2_Win(k,posKey[nr],act);	}
+			else{					 if(0==_GetStyle()) KeyBk_Ind (k,act);
+			 	 	 	 	 	 	 else					  KeyBk2_Ind(k,act);					}
 
-		char *ptrTxt = Int2Str(nr,None,1,Sign_none);
-		int widthDescr = LCD_GetWholeStrPxlWidth(fontID_descr,ptrTxt,0,ConstWidth);
-		int heightTxt = LCD_GetFontHeight(fontID);
+			int widthDescr = LCD_GetWholeStrPxlWidth(fontID_descr,descr,0,ConstWidth);
+			int heightTxt = LCD_GetFontHeight(fontID);
 
-		if(release==act){	 StrDescr_XYoffs(posKey[nr], 	 s[k].widthKey-VALPERC(widthDescr,180),  VALPERC(widthDescr,35), ptrTxt, 		BrightIncr(colorDescr,0x20));
-								 Str_Xmidd_Yoffs(k,posKey[nr], s[k].heightKey-VALPERC(heightTxt,115), 							     pTxtKey[nr], colorTxtKey[nr]);
+			if(release==act){	 StrDescr_XYoffs(posKey[nr], 	 s[k].widthKey-VALPERC(widthDescr,180),  VALPERC(widthDescr,35), descr, 		BrightIncr(colorDescr,0x20));
+									 Str_Xmidd_Yoffs(k,posKey[nr], s[k].heightKey-VALPERC(heightTxt,115), 							     pTxtKey[nr], colorTxtKey[nr]);
+			}
+			else{			BKCOPY_VAL(fillColor_c[0],fillColor,fillPressColor);
+									StrDescrWin_XYoffs(k,s[k].widthKey-VALPERC(widthDescr,180), VALPERC(widthDescr,35), descr, 	    BrightIncr(colorDescr,0x20));
+									StrWin_Xmidd_Yoffs(k,s[k].heightKey-VALPERC(heightTxt,115), 								pTxtKey[nr], colorTxtPressKey[nr]);
+							BKCOPY(fillColor,fillColor_c[0]);
+			}
+			if(press==act)	LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
 		}
-		else{			BKCOPY_VAL(fillColor_c[0],fillColor,fillPressColor);
-								StrDescrWin_XYoffs(k,s[k].widthKey-VALPERC(widthDescr,180), VALPERC(widthDescr,35), ptrTxt, 	    BrightIncr(colorDescr,0x20));
-								StrWin_Xmidd_Yoffs(k,s[k].heightKey-VALPERC(heightTxt,115), 								pTxtKey[nr], colorTxtPressKey[nr]);
-						BKCOPY(fillColor,fillColor_c[0]);
+
+		if(nr < dimKeys[0])
+		{
+			char *ptrTxt = Int2Str(nr,None,1,Sign_none);;
+			_AAAAAAA(nr,act,ptrTxt);
 		}
-		if(press==act)	LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
+		else
+		{
+				  if(STRING_CmpTxt((char*)pTxtKey[nr],"a") && !STRING_CmpTxt((char*)pTxtKey[nr],_AL))  _AAAAAAA(nr,act,ą);
+			else if(STRING_CmpTxt((char*)pTxtKey[nr],"A"))  _AAAAAAA(nr,act,Ą);
+			else if(STRING_CmpTxt((char*)pTxtKey[nr],"s"))  _AAAAAAA(nr,act,ś);
+			else if(STRING_CmpTxt((char*)pTxtKey[nr],"S"))  _AAAAAAA(nr,act,Ś);
+
+
+
+			else
+			{
+				if(press==act)
+					_KeyStr_ind(nr);
+				else
+				{
+					if(STRING_CmpTxt((char*)pTxtKey[nr],_AL) && 0 < _IsAltPress()) _KeyStr_win(nr,press);
+					else 																			   _KeyStr_win(nr,release);
+				}
+
+			}
+
+		}
 	}
 
 	void _CursorShapeWin(structPosition pos, uint32_t BkpSizeX,uint32_t BkpSizeY, char charAboveCursor){
@@ -2098,11 +2128,22 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 
 	void _ServiceTxtFieldPressKey(int key){
-		int _IsAlternativeSign		 (void){  return CONDITION(key<10 && keyPressPrev==key, 1, 0);		}
+		char _IsAlternativeSign(void){
+			if(key==keyPressPrev){
+			if(key<dimKeys[0]) return (0x30|key);
+			else{
+					  if(STRING_CmpTxt((char*)pTxtKey[key],"a") && !STRING_CmpTxt((char*)pTxtKey[key],_AL))  return 0xB9;
+				else if(STRING_CmpTxt((char*)pTxtKey[key],"A"))  return 0xA5;
+				else if(STRING_CmpTxt((char*)pTxtKey[key],"s"))  return 0x9C;
+				else if(STRING_CmpTxt((char*)pTxtKey[key],"S"))  return 0x8C;
+			}}
+			return 0;
+		}
 		void _ServiceAlternativeSign(void){  if(_IsAlternativeSign()) _ServiceTxtFieldDeleteChar();  }
 
 		if(_GetIndxCharBuff() < charBuffSize - 2)
 		{
+			char tempChar;
 			u8 seperateTxtParam[howManyArrowsInFieldTxt+1];
 			_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
 			if(seperateTxtParam[0]==howManyArrowsInFieldTxt){												/* Check the max-allowed number of characters in the last row */
@@ -2118,13 +2159,13 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				_ServiceAlternativeSign();
 				LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];	 }
 					  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = ' ';
-					  else 														 charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = CONDITION(_IsAlternativeSign(), 0x30|key, *pTxtKey[key]);
+					  else 														 charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey[key]);
 					  _IncIndxCharBuff();
 					  cursorVar.offs++;
 			}
 			else{	 _ServiceAlternativeSign();
 					 if(STRING_CmpTxt((char*)pTxtKey[key],"space")) _SetCharBuff(' '); 				/* Set new char at the end of the text */
-			  	  	 else 													 	_SetCharBuff(CONDITION(_IsAlternativeSign(), 0x30|key, *pTxtKey[key]));
+			  	  	 else 													 	_SetCharBuff(CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey[key]));
 			 	 	 _IncIndxCharBuff();
 					 cursorVar.offs =_GetIndxCharBuff();
 			}
@@ -2152,12 +2193,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			else if(STRING_CmpTxt((char*)pTxtKey[i],_LF))  _KeyBACK_win	(i,0);
 			else if(STRING_CmpTxt((char*)pTxtKey[i],_EN))  _KeyENTER_win(i,0);
 			else if(STRING_CmpTxt((char*)pTxtKey[i],_EX))  _KeyEXIT_win	(i,0);
-			else{
-				if(i<dimKeys[0]) _KeyQ2P(i,release);
-				else{
-					if(STRING_CmpTxt((char*)pTxtKey[i],_AL) && 0 < _IsAltPress()) _KeyStr_win(i,1);
-					else 																			  _KeyStr_win(i,0);
-			}}
+			else														  _KeyXXX(i,release);
 		}
 		s[k].widthKey = c.widthKey;
 		BKCOPY(bkColor,bkColor_c[0]);
@@ -2198,7 +2234,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	else if(tAlt == selBlockPress){		_ToogleAlt();
 		INIT(nr,selBlockPress-touchAction);
 		BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
-		_KeyStr_ind(nr);
+		_KeyXXX(nr,press);
 		BKCOPY(s[k].widthKey,c.widthKey);
 	}
 	else if(tField == selBlockPress){	 /* TOUCH of the text field */
@@ -2215,7 +2251,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
 				_ServiceTxtFieldPressKey(nr);
 				_DispSeperatedTxt2Field_Ind();
-				_KeyQ2P(nr,press);
+				_KeyXXX(nr,press);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
 		else if(IS_RANGE(selBlockPress,touchAction+10,tEnter))		/* press rest of keys */
@@ -2224,7 +2260,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
 				_ServiceTxtFieldPressKey(nr);
 				_DispSeperatedTxt2Field_Ind();
-				_KeyStr_ind(nr);
+				_KeyXXX(nr,press);
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
 	}
@@ -2234,15 +2270,18 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		int i;
 		for(i=0; i<countKey; ++i){
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[i]);
-
-			/* SetTouch(k,ID_TOUCH_POINT,s[k].startTouchIdx+i,press,posKey[i]); */
-			touchTemp[0].x= s[k].x + posKey[i].x;
-			touchTemp[1].x= touchTemp[0].x + s[k].widthKey;
-			touchTemp[0].y= s[k].y + posKey[i].y;
-			touchTemp[1].y= touchTemp[0].y + s[k].heightKey;
-			LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT_WITH_WAIT, s[k].startTouchIdx+i, TOUCH_GET_PER_X_PROBE );
-			s[k].nmbTouch++;
-
+			if(STRING_CmpTxt((char*)pTxtKey[i],_UP) ||
+				STRING_CmpTxt((char*)pTxtKey[i],_AL) ||
+				STRING_CmpTxt((char*)pTxtKey[i],_EN))
+				SetTouch(k,ID_TOUCH_POINT,s[k].startTouchIdx+i,press,posKey[i]);
+			else{
+				touchTemp[0].x= s[k].x + posKey[i].x;
+				touchTemp[1].x= touchTemp[0].x + s[k].widthKey;
+				touchTemp[0].y= s[k].y + posKey[i].y;
+				touchTemp[1].y= touchTemp[0].y + s[k].heightKey;
+				LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT_WITH_WAIT, s[k].startTouchIdx+i, TOUCH_GET_PER_X_PROBE );
+				s[k].nmbTouch++;
+			}
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
 		touchTemp[0].x= s[k].x+s[k].interSpace;
