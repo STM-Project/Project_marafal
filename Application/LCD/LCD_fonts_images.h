@@ -255,6 +255,8 @@ extern LIST_TXT 		  LIST_TXT_Zero;
 extern StructTxtPxlLen StructTxtPxlLen_Zero;
 extern LCD_STR_PARAM	  LCD_STR_PARAM_Zero;
 
+char GetLetterCode(char *sign);
+
 u32 GET_nmbrBytesForFontsImages(void);
 int SETVAL_char(uint32_t nrVal, char val);
 int SETVAL_str(uint32_t nrVal, char* val, uint32_t len);

@@ -1464,6 +1464,8 @@ static int ReadSpacesBetweenFontsFromSDcard(void){
 
 /* ------------ Global Declarations ------------ */
 
+char GetLetterCode(char *sign){ return sign[0]; }
+
 u32 GET_nmbrBytesForFontsImages(void){
 	return CounterBusyBytesForFontsImages;
 }

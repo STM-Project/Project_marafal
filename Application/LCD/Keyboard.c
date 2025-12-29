@@ -1801,21 +1801,22 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	#define _EN		"<-|"
 	#define _EX		"exit"
 	#define _AL		"alt"
+	#define _SP		"space"
 
 	const char *txtKey[]								= {"q","w","e","r","t","y","u","i","o","p", \
 																  "a","s","d","f","g","h","j","k","l", \
 																_UP,"z","x","c","v","b","n","m",_LF, \
-																_AL,_EX,"space",",",".",_EN };
+																_AL,_EX,  _SP,  ",",".",_EN };
 
 	const char *txtBigKey[]							= {"Q","W","E","R","T","Y","U","I","O","P", \
 																  "A","S","D","F","G","H","J","K","L", \
 																_UP,"Z","X","C","V","B","N","M",_LF, \
-																_AL,_EX,"space",",",".",_EN };
+																_AL,_EX,  _SP,  ",",".",_EN };
 
 	const char *txtAltKey[]							= {" "," ", ę ," "," "," "," "," ", ó ," ", \
 																   ą , ś ," "," "," "," "," "," ", ł , \
 																_UP, ź , ż , ć ," "," ", ń ," ",_LF, \
-																_AL,_EX,"space",",",".",_EN };
+																_AL,_EX,  _SP,  ",",".",_EN };
 //
 //	const char *txtAltBigKey[]						= {"Q","W","E","R","T","Y","U","I","O","P", \
 //																  "A","S","D","F","G","H","J","K","L", \
@@ -1840,7 +1841,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	const uint8_t dimKeys[] = {10,9,9,6};
 
 	static struct CURSOR_VARIABLES{ structPosition pos; int offs; } cursorVar = {0};
-	static int keyPressPrev = 0;
+	static struct ALT_KEY_PARAM{ int keyPressPrev; int pressTime; } altParam = {0xFFFF,0};
 
 	int distTxtField = 7;
 	int howManyArrowsInFieldTxt = 6;
@@ -2014,12 +2015,12 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			int widthDescr = LCD_GetWholeStrPxlWidth(fontID_descr,descr,0,ConstWidth);
 			int heightTxt = LCD_GetFontHeight(fontID);
 
-			if(release==act){	 StrDescr_XYoffs(posKey[nr], 	 s[k].widthKey-VALPERC(widthDescr,180),  VALPERC(widthDescr,35), descr, 		BrightIncr(colorDescr,0x20));
-									 Str_Xmidd_Yoffs(k,posKey[nr], s[k].heightKey-VALPERC(heightTxt,115), 							     pTxtKey[nr], colorTxtKey[nr]);
+			if(release==act){	 StrDescr_XYoffs(posKey[nr], 	 VALPERC(s[k].widthKey,20) + MIDDLE(0, s[k].widthKey, widthDescr), 2, descr, 		BrightIncr(colorDescr,0x20));
+									 Str_Xmidd_Yoffs(k,posKey[nr], VALPERC(s[k].heightKey,15) + MIDDLE(0, s[k].heightKey, heightTxt), 	 pTxtKey[nr], colorTxtKey[nr]);
 			}
 			else{			BKCOPY_VAL(fillColor_c[0],fillColor,fillPressColor);
-									StrDescrWin_XYoffs(k,s[k].widthKey-VALPERC(widthDescr,180), VALPERC(widthDescr,35), descr, 	    BrightIncr(colorDescr,0x20));
-									StrWin_Xmidd_Yoffs(k,s[k].heightKey-VALPERC(heightTxt,115), 								pTxtKey[nr], colorTxtPressKey[nr]);
+									StrDescrWin_XYoffs(k,			VALPERC(s[k].widthKey,20) + MIDDLE(0, s[k].widthKey, widthDescr), 2, descr, 	    BrightIncr(colorDescr,0x20));
+									StrWin_Xmidd_Yoffs(k,			VALPERC(s[k].heightKey,15) + MIDDLE(0, s[k].heightKey, heightTxt), 	pTxtKey[nr], colorTxtPressKey[nr]);
 							BKCOPY(fillColor,fillColor_c[0]);
 			}
 			if(press==act)	LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
@@ -2027,15 +2028,14 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 		if(nr < dimKeys[0])
 		{
-			char *ptrTxt = Int2Str(nr,None,1,Sign_none);;
+			char *ptrTxt = Int2Str(nr,None,1,Sign_none);
 			_AAAAAAA(nr,act,ptrTxt);
 		}
 		else
 		{
-				  if(STRING_CmpTxt((char*)pTxtKey[nr],"a") && !STRING_CmpTxt((char*)pTxtKey[nr],_AL))  _AAAAAAA(nr,act,ą);
-			else if(STRING_CmpTxt((char*)pTxtKey[nr],"A"))  _AAAAAAA(nr,act,Ą);
-			else if(STRING_CmpTxt((char*)pTxtKey[nr],"s"))  _AAAAAAA(nr,act,ś);
-			else if(STRING_CmpTxt((char*)pTxtKey[nr],"S"))  _AAAAAAA(nr,act,Ś);
+				  if((STRING_CmpTxt((char*)pTxtKey[nr],"a") || STRING_CmpTxt((char*)pTxtKey[nr],"A")) && !STRING_CmpTxt((char*)pTxtKey[nr],_AL))  _AAAAAAA(nr,act,ą);
+			else if((STRING_CmpTxt((char*)pTxtKey[nr],"s") || STRING_CmpTxt((char*)pTxtKey[nr],"S")) && !STRING_CmpTxt((char*)pTxtKey[nr],_SP))  _AAAAAAA(nr,act,ś);
+			else if( STRING_CmpTxt((char*)pTxtKey[nr],"c") || STRING_CmpTxt((char*)pTxtKey[nr],"C"))  _AAAAAAA(nr,act,ć);
 
 
 
@@ -2128,15 +2128,22 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 
 	void _ServiceTxtFieldPressKey(int key){
+		int _IsAlternativeSign2(void){	altParam.pressTime++;  if(IS_RANGE(altParam.pressTime,20,30)){ if(altParam.pressTime==30) altParam.pressTime=0; return 1; } else return 0;	}
 		char _IsAlternativeSign(void){
-			if(key==keyPressPrev){
-			if(key<dimKeys[0]) return (0x30|key);
-			else{
-					  if(STRING_CmpTxt((char*)pTxtKey[key],"a") && !STRING_CmpTxt((char*)pTxtKey[key],_AL))  return 0xB9;
-				else if(STRING_CmpTxt((char*)pTxtKey[key],"A"))  return 0xA5;
-				else if(STRING_CmpTxt((char*)pTxtKey[key],"s"))  return 0x9C;
-				else if(STRING_CmpTxt((char*)pTxtKey[key],"S"))  return 0x8C;
-			}}
+			if(key==altParam.keyPressPrev){
+				if(key<dimKeys[0]){		if(_IsAlternativeSign2()){		if(STRING_CmpTxt((char*)pTxtKey[key],"e") && !STRING_CmpTxt((char*)pTxtKey[key],_EX))  return GetLetterCode(ę);
+												 	 	 	 	 	 	 	 	 else if(STRING_CmpTxt((char*)pTxtKey[key],"E"))  															return GetLetterCode(Ę); }
+					return (0x30|key);
+				}
+				else{
+					  	  if(STRING_CmpTxt((char*)pTxtKey[key],"a") && !STRING_CmpTxt((char*)pTxtKey[key],_AL))  return GetLetterCode(ą);
+					else if(STRING_CmpTxt((char*)pTxtKey[key],"A"))  return GetLetterCode(Ą);
+					else if(STRING_CmpTxt((char*)pTxtKey[key],"s") && !STRING_CmpTxt((char*)pTxtKey[key],_SP))  return GetLetterCode(ś);
+					else if(STRING_CmpTxt((char*)pTxtKey[key],"S"))  return GetLetterCode(Ś);
+					else if(STRING_CmpTxt((char*)pTxtKey[key],"c"))  return GetLetterCode(ć);
+					else if(STRING_CmpTxt((char*)pTxtKey[key],"C"))  return GetLetterCode(Ć); }
+			}
+			altParam.pressTime=0;
 			return 0;
 		}
 		void _ServiceAlternativeSign(void){  if(_IsAlternativeSign()) _ServiceTxtFieldDeleteChar();  }
@@ -2169,13 +2176,13 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			 	 	 _IncIndxCharBuff();
 					 cursorVar.offs =_GetIndxCharBuff();
 			}
-			keyPressPrev = key;
+			altParam.keyPressPrev = key;
 	}}
 
 	void _DispAllReleaseKeyboard(void)
 	{
 		u8 seperateTxtParam[howManyArrowsInFieldTxt+1];
-		keyPressPrev = 0xFFFF;
+		altParam.keyPressPrev = 0xFFFF;
 
 		_DispMainField();
 		_DispTxtField();
@@ -2308,6 +2315,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	#undef _LF
 	#undef _EN
 	#undef _EX
+	#undef _SP
 	#undef TXTFIELD_COLOR
 }
 
