@@ -1948,7 +1948,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			if(offss_yPos + fontHeight > editHeightPxl) return;
 		}
 	}
-
+	  /* _Key... 	only for graphic, not for text */
 	void _KeyUP_ind(int nr){	_PARAM_ARROW_UP;
 		u32 colorShape = CONDITION( _IsUpPress(), colorTxtPressKey[nr], frameColor );
 		int relPress 	= CONDITION( _IsUpPress(), 1, 0 );
@@ -2004,9 +2004,13 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		else					 KeyStrDisp2_Win(k,posKey[nr],pTxtKey[nr],colorStr,relPress);
 	}
 
+	int _IsSign(int key, char* sign1,char* sign2, char* NotSign ){
+		return ( ( CONDITION(NULL==sign1,0,STRING_CmpTxt((char*)pTxtKey[key],sign1)) || CONDITION(NULL==sign2,0,STRING_CmpTxt((char*)pTxtKey[key],sign2)) ) && CONDITION(NULL==NotSign,1,!STRING_CmpTxt((char*)pTxtKey[key],NotSign)) );
+	}
+
 	void _KeyXXX(int nr, int act)
 	{
-		void _AAAAAAA(int nr, int act, char* descr){
+		void _DispKey(int nr, int act, char* descr){
 			if(release==act){	 if(0==_GetStyle()) KeyBk_Win (k,posKey[nr],act);
 									 else					  KeyBk2_Win(k,posKey[nr],act);	}
 			else{					 if(0==_GetStyle()) KeyBk_Ind (k,act);
@@ -2026,33 +2030,28 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			if(press==act)	LCD_Display(0,s[k].x+posKey[nr].x,s[k].y+posKey[nr].y,s[k].widthKey,s[k].heightKey);
 		}
 
-		if(nr < dimKeys[0])
+		if(nr < dimKeys[0])		/* Display the text on the keys */
 		{
 			char *ptrTxt = Int2Str(nr,None,1,Sign_none);
-			_AAAAAAA(nr,act,ptrTxt);
+			_DispKey(nr,act,ptrTxt);
 		}
 		else
 		{
-				  if((STRING_CmpTxt((char*)pTxtKey[nr],"a") || STRING_CmpTxt((char*)pTxtKey[nr],"A")) && !STRING_CmpTxt((char*)pTxtKey[nr],_AL))  _AAAAAAA(nr,act,ą);
-			else if((STRING_CmpTxt((char*)pTxtKey[nr],"s") || STRING_CmpTxt((char*)pTxtKey[nr],"S")) && !STRING_CmpTxt((char*)pTxtKey[nr],_SP))  _AAAAAAA(nr,act,ś);
-			else if( STRING_CmpTxt((char*)pTxtKey[nr],"c") || STRING_CmpTxt((char*)pTxtKey[nr],"C"))  _AAAAAAA(nr,act,ć);
-
-
-
+			  	  if(_IsSign(nr,"a","A",_AL))  _DispKey(nr,act,ą);
+			else if(_IsSign(nr,"s","S",_SP))  _DispKey(nr,act,ś);
+			else if(_IsSign(nr,"c","C",NULL)) _DispKey(nr,act,ć);
+			else if(_IsSign(nr,"z","Z",NULL)) _DispKey(nr,act,ż);
+			else if(_IsSign(nr,"l","L",NULL)) _DispKey(nr,act,ł);
 			else
 			{
 				if(press==act)
 					_KeyStr_ind(nr);
 				else
 				{
-					if(STRING_CmpTxt((char*)pTxtKey[nr],_AL) && 0 < _IsAltPress()) _KeyStr_win(nr,press);
-					else 																			   _KeyStr_win(nr,release);
+					if(_IsSign(nr,_AL,NULL,NULL) && 0 < _IsAltPress()) _KeyStr_win(nr,press);			/* _AL has only text then it is here 		_UP has graphic then it is not here */
+					else 																_KeyStr_win(nr,release);
 				}
-
-			}
-
-		}
-	}
+	}}}
 
 	void _CursorShapeWin(structPosition pos, uint32_t BkpSizeX,uint32_t BkpSizeY, char charAboveCursor){
 		LCD_ShapeWindow(LCD_Rectangle,0, BkpSizeX,BkpSizeY, distTxtField+pos.x, distTxtField+pos.y, LCD_GetFontWidth(fontID,charAboveCursor),2, DARKRED,DARKRED,DARKRED);
@@ -2128,21 +2127,30 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 
 	void _ServiceTxtFieldPressKey(int key){
-		int _IsAlternativeSign2(void){	altParam.pressTime++;  if(IS_RANGE(altParam.pressTime,20,30)){ if(altParam.pressTime==30) altParam.pressTime=0; return 1; } else return 0;	}
+		int _IsAlternativeSign2(void){	altParam.pressTime++;  if(IS_RANGE(altParam.pressTime,20,40)){ if(altParam.pressTime==40) altParam.pressTime=0; return 1; } else return 0;	}
 		char _IsAlternativeSign(void){
-			if(key==altParam.keyPressPrev){
-				if(key<dimKeys[0]){		if(_IsAlternativeSign2()){		if(STRING_CmpTxt((char*)pTxtKey[key],"e") && !STRING_CmpTxt((char*)pTxtKey[key],_EX))  return GetLetterCode(ę);
-												 	 	 	 	 	 	 	 	 else if(STRING_CmpTxt((char*)pTxtKey[key],"E"))  															return GetLetterCode(Ę); }
-					return (0x30|key);
+			if(key==altParam.keyPressPrev){			/* Display the alternative text on the field of the text */
+				if(key<dimKeys[0]){		/* if key: q,w,e,r,t,y,u,i,o,p */
+					if(_IsAlternativeSign2()){			if(_IsSign(key,"e",NULL,_EX))  return GetLetterCode(ę);	/* Display the alternative-2 sign */
+														 else if(_IsSign(key,"E",NULL,NULL)) return GetLetterCode(Ę);
+														 else if(_IsSign(key,"o",NULL,NULL)) return GetLetterCode(ó);
+														 else if(_IsSign(key,"O",NULL,NULL)) return GetLetterCode(Ó);	 }
+					return (0x30|key);																							/* Display the alternative sign */
 				}
+				else if(_IsSign(key,"z",NULL,NULL)){ if(_IsAlternativeSign2()) return GetLetterCode(ź);  else return GetLetterCode(ż); }	/* Display the alternative-2 sign  or  the alternative sign*/
+				else if(_IsSign(key,"Z",NULL,NULL)){ if(_IsAlternativeSign2()) return GetLetterCode(Ź);  else return GetLetterCode(Ż); }
 				else{
-					  	  if(STRING_CmpTxt((char*)pTxtKey[key],"a") && !STRING_CmpTxt((char*)pTxtKey[key],_AL))  return GetLetterCode(ą);
-					else if(STRING_CmpTxt((char*)pTxtKey[key],"A"))  return GetLetterCode(Ą);
-					else if(STRING_CmpTxt((char*)pTxtKey[key],"s") && !STRING_CmpTxt((char*)pTxtKey[key],_SP))  return GetLetterCode(ś);
-					else if(STRING_CmpTxt((char*)pTxtKey[key],"S"))  return GetLetterCode(Ś);
-					else if(STRING_CmpTxt((char*)pTxtKey[key],"c"))  return GetLetterCode(ć);
-					else if(STRING_CmpTxt((char*)pTxtKey[key],"C"))  return GetLetterCode(Ć); }
-			}
+						  if(_IsSign(key,"a",NULL,_AL))  return GetLetterCode(ą);
+					else if(_IsSign(key,"A",NULL,NULL)) return GetLetterCode(Ą);
+					else if(_IsSign(key,"s",NULL,_SP))  return GetLetterCode(ś);
+					else if(_IsSign(key,"S",NULL,NULL)) return GetLetterCode(Ś);
+					else if(_IsSign(key,"c",NULL,NULL)) return GetLetterCode(ć);
+					else if(_IsSign(key,"C",NULL,NULL)) return GetLetterCode(Ć);
+					else if(_IsSign(key,"l",NULL,NULL)) return GetLetterCode(ł);
+					else if(_IsSign(key,"L",NULL,NULL)) return GetLetterCode(Ł);
+					else if(_IsSign(key,"n",NULL,NULL)) return GetLetterCode(ń);
+					else if(_IsSign(key,"N",NULL,NULL)) return GetLetterCode(Ń);
+			}}
 			altParam.pressTime=0;
 			return 0;
 		}
@@ -2161,18 +2169,18 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				if(lenInLastRow > maxLenAllowed) return;
 			}
 
-			if(cursorVar.offs < _GetIndxCharBuff()){															/* Set new char between chars of the text */
+			if(cursorVar.offs < _GetIndxCharBuff()){										/* Set new char between chars of the text */
 				int offs = _GetIndxCharBuff() - cursorVar.offs;
 				_ServiceAlternativeSign();
-				LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];	 }
-					  if(STRING_CmpTxt((char*)pTxtKey[key],"space")) charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = ' ';
-					  else 														 charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey[key]);
+				LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];  }
+					  if(_IsSign(key,"space",NULL,NULL)) charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = ' ';
+					  else 										 charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey[key]);
 					  _IncIndxCharBuff();
 					  cursorVar.offs++;
 			}
 			else{	 _ServiceAlternativeSign();
-					 if(STRING_CmpTxt((char*)pTxtKey[key],"space")) _SetCharBuff(' '); 				/* Set new char at the end of the text */
-			  	  	 else 													 	_SetCharBuff(CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey[key]));
+					 if(_IsSign(key,"space",NULL,NULL)) _SetCharBuff(' '); 			/* Set new char at the end of the text */
+			  	  	 else 										_SetCharBuff(CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey[key]));
 			 	 	 _IncIndxCharBuff();
 					 cursorVar.offs =_GetIndxCharBuff();
 			}
@@ -2195,12 +2203,11 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		for(int i=0; i<countKey; ++i)
 		{
 			s[k].widthKey = wKey[i];
-
-			if		 (STRING_CmpTxt((char*)pTxtKey[i],_UP))  _KeyUP_win	(i);
-			else if(STRING_CmpTxt((char*)pTxtKey[i],_LF))  _KeyBACK_win	(i,0);
-			else if(STRING_CmpTxt((char*)pTxtKey[i],_EN))  _KeyENTER_win(i,0);
-			else if(STRING_CmpTxt((char*)pTxtKey[i],_EX))  _KeyEXIT_win	(i,0);
-			else														  _KeyXXX(i,release);
+			if		 (_IsSign(i,_UP,NULL,NULL))  _KeyUP_win	(i);
+			else if(_IsSign(i,_LF,NULL,NULL))  _KeyBACK_win	(i,0);
+			else if(_IsSign(i,_EN,NULL,NULL))  _KeyENTER_win(i,0);
+			else if(_IsSign(i,_EX,NULL,NULL))  _KeyEXIT_win	(i,0);
+			else										  _KeyXXX(i,release);
 		}
 		s[k].widthKey = c.widthKey;
 		BKCOPY(bkColor,bkColor_c[0]);
@@ -2277,9 +2284,9 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		int i;
 		for(i=0; i<countKey; ++i){
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[i]);
-			if(STRING_CmpTxt((char*)pTxtKey[i],_UP) ||
-				STRING_CmpTxt((char*)pTxtKey[i],_AL) ||
-				STRING_CmpTxt((char*)pTxtKey[i],_EN))
+			if(_IsSign(i,_UP,NULL,NULL) ||
+				_IsSign(i,_AL,NULL,NULL) ||
+				_IsSign(i,_EN,NULL,NULL))
 				SetTouch(k,ID_TOUCH_POINT,s[k].startTouchIdx+i,press,posKey[i]);
 			else{
 				touchTemp[0].x= s[k].x + posKey[i].x;
