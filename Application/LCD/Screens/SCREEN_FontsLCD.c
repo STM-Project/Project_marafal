@@ -2414,7 +2414,7 @@ static void EXPER_FUNC_afterDispBuffLcd(void)
 
 
 
-
+//po KLAWIATURZE rob ustawienie calegho textu aby dopasowac spacje pomiedzy roznuymoi literami
 
 //ZROBIC cieniowanie pol i text 3d na nim jak w biletcie automatu na muzeum naradowe
 
