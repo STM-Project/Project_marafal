@@ -2088,6 +2088,18 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			else if(_IsSign(nr,"c","C",NULL)) _DispKey(nr,act,ć);
 			else if(_IsSign(nr,"z","Z",NULL)) _DispKey(nr,act,ż);
 			else if(_IsSign(nr,"l","L",NULL)) _DispKey(nr,act,ł);
+			else if(_IsSign(nr,"d","D",NULL)) _DispKey(nr,act,"()");
+			else if(_IsSign(nr,"f","F",NULL)) _DispKey(nr,act,"{}");
+			else if(_IsSign(nr,"g","G",NULL)) _DispKey(nr,act,"-+");
+			else if(_IsSign(nr,"h","H",NULL)) _DispKey(nr,act,"<>");
+			else if(_IsSign(nr,"j","J",NULL)) _DispKey(nr,act,": ;");
+			else if(_IsSign(nr,"k","K",NULL)) _DispKey(nr,act,"~\'");
+			else if(_IsSign(nr,"v","V",NULL)) _DispKey(nr,act,"#&");
+			else if(_IsSign(nr,"b","B",NULL)) _DispKey(nr,act,"=_");
+			else if(_IsSign(nr,"n","N",NULL)) _DispKey(nr,act,"%$");
+			else if(_IsSign(nr,"m","M",NULL)) _DispKey(nr,act,"^*");
+			else if(_IsSign(nr,".",NULL,NULL)) _DispKey(nr,act,"?!");
+			else if(_IsSign(nr,",",NULL,NULL)) _DispKey(nr,act,"@|");
 			else
 			{
 				if(press==act) _KeyStr_ind(nr);
@@ -2097,6 +2109,19 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 					else _KeyStr_win(nr,release);
 				}
 	}}}
+
+//	else if(_IsSign(key,"d","D",NULL)) { if(_IsAlternativeSign2()) return ')';  else return '('; }
+//	else if(_IsSign(key,"f","F",NULL)) { if(_IsAlternativeSign2()) return '}';  else return '{'; }
+//	else if(_IsSign(key,"g","G",NULL)) { if(_IsAlternativeSign2()) return '+';  else return '-'; }
+//	else if(_IsSign(key,"h","H",NULL)) { if(_IsAlternativeSign2()) return '>';  else return '<'; }
+//	else if(_IsSign(key,"j","J",NULL)) { if(_IsAlternativeSign2()) return ';';  else return ':'; }
+//	else if(_IsSign(key,"k","K",NULL)) { if(_IsAlternativeSign2()) return '\'';  else return '~'; }
+//	else if(_IsSign(key,"v","V",NULL)) { if(_IsAlternativeSign2()) return '&';  else return '#'; }
+//	else if(_IsSign(key,"b","B",NULL)) { if(_IsAlternativeSign2()) return '_';  else return '='; }
+//	else if(_IsSign(key,"n","N",NULL)) { if(_IsAlternativeSign2()) return '$';  else return '%'; }
+//	else if(_IsSign(key,"m","M",NULL)) { if(_IsAlternativeSign2()) return '*';  else return '^'; }
+//	else if(_IsSign(key,".",NULL,NULL)) { if(_IsAlternativeSign2()) return '!';  else return '?'; }
+//	else if(_IsSign(key,",",NULL,NULL)) { if(_IsAlternativeSign2()) return '|';  else return '@'; }
 
 	void _ServiceDispKey2(int nr, int act)
 	{
@@ -2232,12 +2257,24 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 														 else if(_IsSign(key,"E",NULL,NULL)) return GetLetterCode(Ę);
 														 else if(_IsSign(key,"o",NULL,NULL)) return GetLetterCode(ó);
 														 else if(_IsSign(key,"O",NULL,NULL)) return GetLetterCode(Ó);	 }
-					return (0x30|key);																							/* Display the alternative sign */
+					return (0x30|key);																								/* Display the alternative sign */
 				}
 				else if(_IsSign(key,"z",NULL,NULL)){ if(_IsAlternativeSign2()) return GetLetterCode(ź);  else return GetLetterCode(ż); }	/* Display the alternative-2 sign  or  the alternative sign*/
 				else if(_IsSign(key,"Z",NULL,NULL)){ if(_IsAlternativeSign2()) return GetLetterCode(Ź);  else return GetLetterCode(Ż); }
+				else if(_IsSign(key,"d","D",NULL)) { if(_IsAlternativeSign2()) return ')';  else return '('; }
+				else if(_IsSign(key,"f","F",NULL)) { if(_IsAlternativeSign2()) return '}';  else return '{'; }
+				else if(_IsSign(key,"g","G",NULL)) { if(_IsAlternativeSign2()) return '+';  else return '-'; }
+				else if(_IsSign(key,"h","H",NULL)) { if(_IsAlternativeSign2()) return '>';  else return '<'; }
+				else if(_IsSign(key,"j","J",NULL)) { if(_IsAlternativeSign2()) return ';';  else return ':'; }
+				else if(_IsSign(key,"k","K",NULL)) { if(_IsAlternativeSign2()) return '\'';  else return '~'; }
+				else if(_IsSign(key,"v","V",NULL)) { if(_IsAlternativeSign2()) return '&';  else return '#'; }
+				else if(_IsSign(key,"b","B",NULL)) { if(_IsAlternativeSign2()) return '_';  else return '='; }
+				else if(_IsSign(key,"n","N",NULL)) { if(_IsAlternativeSign2()) return '$';  else return '%'; }
+				else if(_IsSign(key,"m","M",NULL)) { if(_IsAlternativeSign2()) return '*';  else return '^'; }
+				else if(_IsSign(key,".",NULL,NULL)) { if(_IsAlternativeSign2()) return '!';  else return '?'; }
+				else if(_IsSign(key,",",NULL,NULL)) { if(_IsAlternativeSign2()) return '|';  else return '@'; }
 				else{
-						  if(_IsSign(key,"a",NULL,_AL))  return GetLetterCode(ą);
+						  if(_IsSign(key,"a",NULL,_AL))  return GetLetterCode(ą);		/* Display the alternative sign */
 					else if(_IsSign(key,"A",NULL,NULL)) return GetLetterCode(Ą);
 					else if(_IsSign(key,"s",NULL,_SP))  return GetLetterCode(ś);
 					else if(_IsSign(key,"S",NULL,NULL)) return GetLetterCode(Ś);
@@ -2505,7 +2542,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 	else{
 
-		if(IS_RANGE(selBlockPress,touchAction,tEnter))		/* press rest of keys */
+		if(IS_RANGE(selBlockPress,touchAction,tEnter))		/* press keys */
 		{
 			INIT(nr,selBlockPress-touchAction);
 			if(_IsAltPress() && IS_RANGE(nr,0,countKey2-1)){
@@ -2524,36 +2561,6 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			}
 		}
 	}
-//	else{
-//		if(IS_RANGE(selBlockPress,touchAction,touchAction+9))			/* press keys from 'q' to 'p' */
-//		{
-//			INIT(nr,selBlockPress-touchAction);
-//			if(_IsAltPress() && IS_RANGE(nr,0,dimKeys2[0]+dimKeys2[1]+dimKeys2[2]-1)){
-//				BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey2[nr]);
-//					_ServiceTxtFieldPressKey2(nr);
-//					_DispSeperatedTxt2Field_Ind();
-//					_ServiceDispKey2(nr,press);
-//				BKCOPY(s[k].widthKey,c.widthKey);
-//			}
-//			else{
-//				BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
-//					_ServiceTxtFieldPressKey(nr);
-//					_DispSeperatedTxt2Field_Ind();
-//					_ServiceDispKey(nr,press);
-//				BKCOPY(s[k].widthKey,c.widthKey);
-//			}
-//		}
-//		else if(IS_RANGE(selBlockPress,touchAction+10,tEnter))		/* press rest of keys */
-//		{
-//			INIT(nr,selBlockPress-touchAction);
-//				BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[nr]);
-//					_ServiceTxtFieldPressKey(nr);
-//					_DispSeperatedTxt2Field_Ind();
-//					_ServiceDispKey(nr,press);
-//				BKCOPY(s[k].widthKey,c.widthKey);
-//		}
-//	}
-
 
 	if(startTouchIdx){
 		int i;
