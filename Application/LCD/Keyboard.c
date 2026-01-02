@@ -1846,6 +1846,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	int distTxtField = 7;
 	int howManyArrowsInFieldTxt = 6;
+	u32 colorSelKey = BrightDecr(fillColor,0x0F);
 
 	#define _PARAM_ARROW_UP		structSize 	size_UP = { (35*s[k].widthKey)/100,  (2*s[k].heightKey)/5 };		int bold_UP = 1;		int coeff_UP = 3
 	#define _PARAM_ARROW_LF		structSize 	size_LF = { ( 2*s[k].widthKey)/4,    (2*s[k].heightKey)/7 };		int bold_LF = 1;		int coeff_LF = 0
@@ -1981,8 +1982,10 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	void _KeyUP_win(int nr){	_PARAM_ARROW_UP;
 		u32 colorShape = CONDITION( _IsUpPress(), colorTxtPressKey[nr], frameColor );
 		int relPress 	= CONDITION( _IsUpPress(), 1, 0 );
+		BKCOPY_VAL(fillColor_c[0],fillColor,colorSelKey);
 		if(0==_GetStyle()) KeyShapeDisp_Win (k,posKey[nr], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn, widthAll, heightAll, posKey[nr].x+MIDDLE(0,s[k].widthKey,size_UP.w), posKey[nr].y+MIDDLE(0,s[k].heightKey, size_UP.h), SetLineBold2Width(size_UP.w,bold_UP), SetTriangHeightCoeff2Height(size_UP.h,coeff_UP), colorShape,colorShape,unUsed, Up), relPress);
 		else					 KeyShapeDisp2_Win(k,posKey[nr], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn, widthAll, heightAll, posKey[nr].x+MIDDLE(0,s[k].widthKey,size_UP.w), posKey[nr].y+MIDDLE(0,s[k].heightKey, size_UP.h), SetLineBold2Width(size_UP.w,bold_UP), SetTriangHeightCoeff2Height(size_UP.h,coeff_UP), colorShape,colorShape,unUsed, Up), relPress);
+		BKCOPY(fillColor,fillColor_c[0]);
 	}
 
 	void _KeyBACK_ind(int nr){	_PARAM_ARROW_LF;
@@ -1993,8 +1996,10 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 	void _KeyBACK_win(int nr,int relPress){	_PARAM_ARROW_LF;
 		u32 colorShape = CONDITION( relPress, colorTxtPressKey[nr], colorTxtKey[nr] );
+		BKCOPY_VAL(fillColor_c[0],fillColor,colorSelKey);
 		if(0==_GetStyle()) KeyShapeDisp_Win (k,posKey[nr], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn, widthAll, heightAll, posKey[nr].x+MIDDLE(0,s[k].widthKey,size_LF.w), posKey[nr].y+MIDDLE(0,s[k].heightKey, size_LF.h), SetLineBold2Width(size_LF.w,bold_LF), SetTriangHeightCoeff2Height(size_LF.h,coeff_LF), colorShape,colorShape,unUsed, Left), relPress);
 		else					 KeyShapeDisp2_Win(k,posKey[nr], LCDSHAPE_Arrow, LCD_Arrow(ToStructAndReturn, widthAll, heightAll, posKey[nr].x+MIDDLE(0,s[k].widthKey,size_LF.w), posKey[nr].y+MIDDLE(0,s[k].heightKey, size_LF.h), SetLineBold2Width(size_LF.w,bold_LF), SetTriangHeightCoeff2Height(size_LF.h,coeff_LF), colorShape,colorShape,unUsed, Left), relPress);
+		BKCOPY(fillColor,fillColor_c[0]);
 	}
 
 	void _KeyENTER_ind(int nr){	_PARAM_ARROW_EN;
@@ -2005,8 +2010,10 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 	void _KeyENTER_win(int nr,int relPress){	_PARAM_ARROW_EN;
 		u32 colorShape = CONDITION( relPress, colorTxtPressKey[nr], colorTxtKey[nr] );
+		BKCOPY_VAL(fillColor_c[0],fillColor,colorSelKey);
 		if(0==_GetStyle()) KeyShapeDisp_Win (k,posKey[nr], LCDSHAPE_Enter, LCD_Enter(ToStructAndReturn, widthAll, heightAll, posKey[nr].x+MIDDLE(0,s[k].widthKey,size_EN.w), posKey[nr].y+MIDDLE(0,s[k].heightKey,size_EN.h), SetLineBold2Width(size_EN.w,bold_EN), SetTriangHeightCoeff2Height(size_EN.h,coeff_EN), colorShape,colorShape,unUsed), relPress);
 		else					 KeyShapeDisp2_Win(k,posKey[nr], LCDSHAPE_Enter, LCD_Enter(ToStructAndReturn, widthAll, heightAll, posKey[nr].x+MIDDLE(0,s[k].widthKey,size_EN.w), posKey[nr].y+MIDDLE(0,s[k].heightKey,size_EN.h), SetLineBold2Width(size_EN.w,bold_EN), SetTriangHeightCoeff2Height(size_EN.h,coeff_EN), colorShape,colorShape,unUsed), relPress);
+		BKCOPY(fillColor,fillColor_c[0]);
 	}
 
 	void _KeyEXIT_win(int nr,int relPress){	_PARAM_ARROW_EX;
@@ -2041,6 +2048,9 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	int _IsSign(int key, char* sign1,char* sign2, char* NotSign ){
 		return ( ( CONDITION(NULL==sign1,0,STRING_CmpTxt((char*)pTxtKey[key],sign1)) || CONDITION(NULL==sign2,0,STRING_CmpTxt((char*)pTxtKey[key],sign2)) ) && CONDITION(NULL==NotSign,1,!STRING_CmpTxt((char*)pTxtKey[key],NotSign)) );
 	}
+	int _IsSign2(int key, char* sign1,char* sign2, char* NotSign ){
+		return ( ( CONDITION(NULL==sign1,0,STRING_CmpTxt((char*)pTxtKey2[key],sign1)) || CONDITION(NULL==sign2,0,STRING_CmpTxt((char*)pTxtKey2[key],sign2)) ) && CONDITION(NULL==NotSign,1,!STRING_CmpTxt((char*)pTxtKey2[key],NotSign)) );
+	}
 
 	void _ServiceDispKey(int nr, int act)
 	{
@@ -2067,10 +2077,9 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		if(nr < dimKeys[0])		/* Display the text on the keys */
 		{
 			char *ptrTxt = Int2Str(nr,None,1,Sign_none);
-			BKCOPY_VAL(fillColor_c[0],fillColor,0x303030);
+			BKCOPY_VAL(fillColor_c[1],fillColor,BrightDecr(fillColor,0x00));
 			_DispKey(nr,act,ptrTxt);
-			BKCOPY(fillColor,fillColor_c[0]);
-
+			BKCOPY(fillColor,fillColor_c[1]);
 		}
 		else
 		{
@@ -2083,53 +2092,62 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			{
 				if(press==act) _KeyStr_ind(nr);
 				else{
-					if(_IsSign(nr,_AL,NULL,NULL) && 0 < _IsAltPress()) _KeyStr_win(nr,press);			/* _AL has only text then it is here 		_UP has graphic then it is not here */
-					else 																_KeyStr_win(nr,release);
+					if(_IsSign(nr,_AL,NULL,NULL)){		if(_IsAltPress()) _KeyStr_win(nr,press);
+																	else				 { BKCOPY_VAL(fillColor_c[0],fillColor,colorSelKey); _KeyStr_win(nr,release); BKCOPY(fillColor,fillColor_c[0]); }		  }
+					else _KeyStr_win(nr,release);
 				}
 	}}}
 
 	void _ServiceDispKey2(int nr, int act)
 	{
-		void _DispKey(int nr, int act, char* descr){
-			if(release==act){	 if(0==_GetStyle()) KeyBk_Win (k,posKey2[nr],act);
-									 else					  KeyBk2_Win(k,posKey2[nr],act);	}
-			else{					 if(0==_GetStyle()) KeyBk_Ind (k,act);
-			 	 	 	 	 	 	 else					  KeyBk2_Ind(k,act);					}
-
-			int widthDescr = LCD_GetWholeStrPxlWidth(fontID_descr,descr,0,ConstWidth);
-			int heightTxt = LCD_GetFontHeight(fontID);
-
-			if(release==act){	 StrDescr_XYoffs(posKey2[nr], 	 VALPERC(s[k].widthKey,20) + MIDDLE(0, s[k].widthKey, widthDescr), 2, descr, 		BrightIncr(colorDescr,0x20));
-									 Str_Xmidd_Yoffs(k,posKey2[nr], VALPERC(s[k].heightKey,15) + MIDDLE(0, s[k].heightKey, heightTxt), 	 pTxtKey2[nr], colorTxtKey2[nr]);
-			}
-			else{			BKCOPY_VAL(fillColor_c[0],fillColor,fillPressColor);
-									StrDescrWin_XYoffs(k,			VALPERC(s[k].widthKey,20) + MIDDLE(0, s[k].widthKey, widthDescr), 2, descr, 	    BrightIncr(colorDescr,0x20));
-									StrWin_Xmidd_Yoffs(k,			VALPERC(s[k].heightKey,15) + MIDDLE(0, s[k].heightKey, heightTxt), 	pTxtKey2[nr], colorTxtPressKey2[nr]);
-							BKCOPY(fillColor,fillColor_c[0]);
-			}
-			if(press==act)	LCD_Display(0,s[k].x+posKey2[nr].x,s[k].y+posKey2[nr].y,s[k].widthKey,s[k].heightKey);
-		}
+//		void _DispKey(int nr, int act, char* descr){
+//			if(release==act){	 if(0==_GetStyle()) KeyBk_Win (k,posKey2[nr],act);
+//									 else					  KeyBk2_Win(k,posKey2[nr],act);	}
+//			else{					 if(0==_GetStyle()) KeyBk_Ind (k,act);
+//			 	 	 	 	 	 	 else					  KeyBk2_Ind(k,act);					}
+//
+//			int widthDescr = LCD_GetWholeStrPxlWidth(fontID_descr,descr,0,ConstWidth);
+//			int heightTxt = LCD_GetFontHeight(fontID);
+//
+//			if(release==act){	 StrDescr_XYoffs(posKey2[nr], 	 VALPERC(s[k].widthKey,20) + MIDDLE(0, s[k].widthKey, widthDescr), 2, descr, 		BrightIncr(colorDescr,0x20));
+//									 Str_Xmidd_Yoffs(k,posKey2[nr], VALPERC(s[k].heightKey,15) + MIDDLE(0, s[k].heightKey, heightTxt), 	 pTxtKey2[nr], colorTxtKey2[nr]);
+//			}
+//			else{			BKCOPY_VAL(fillColor_c[0],fillColor,fillPressColor);
+//									StrDescrWin_XYoffs(k,			VALPERC(s[k].widthKey,20) + MIDDLE(0, s[k].widthKey, widthDescr), 2, descr, 	    BrightIncr(colorDescr,0x20));
+//									StrWin_Xmidd_Yoffs(k,			VALPERC(s[k].heightKey,15) + MIDDLE(0, s[k].heightKey, heightTxt), 	pTxtKey2[nr], colorTxtPressKey2[nr]);
+//							BKCOPY(fillColor,fillColor_c[0]);
+//			}
+//			if(press==act)	LCD_Display(0,s[k].x+posKey2[nr].x,s[k].y+posKey2[nr].y,s[k].widthKey,s[k].heightKey);
+//		}
 
 		if(nr < countKey2)		/* Display the text on the keys */
 		{
 			if(press==act) _KeyStr2_ind(nr);
-			else 				_KeyStr2_win(nr,release);
-		}
-		else
-		{
-			  	  if(_IsSign(nr,"a","A",_AL))  _DispKey(nr,act,ą);
-			else if(_IsSign(nr,"s","S",_SP))  _DispKey(nr,act,ś);
-			else if(_IsSign(nr,"c","C",NULL)) _DispKey(nr,act,ć);
-			else if(_IsSign(nr,"z","Z",NULL)) _DispKey(nr,act,ż);
-			else if(_IsSign(nr,"l","L",NULL)) _DispKey(nr,act,ł);
-			else
-			{
-				if(press==act) _KeyStr2_ind(nr);
-				else{
-					if(_IsSign(nr,_AL,NULL,NULL) && 0 < _IsAltPress()) _KeyStr2_win(nr,press);			/* _AL has only text then it is here 		_UP has graphic then it is not here */
-					else 																_KeyStr2_win(nr,release);
+			else{
+				if(_IsSign2(nr,"+",NULL,NULL)||_IsSign2(nr,"-",NULL,NULL)||_IsSign2(nr,"*",NULL,NULL)||_IsSign2(nr,"/",NULL,NULL)||_IsSign2(nr,"=",NULL,NULL)||_IsSign2(nr,".",NULL,NULL)){
+					BKCOPY_VAL(fillColor_c[0],fillColor,colorSelKey);
+					_KeyStr2_win(nr,release);
+					BKCOPY(fillColor,fillColor_c[0]);
 				}
-	}}
+				else _KeyStr2_win(nr,release);
+			}
+		}
+//		else
+//		{
+//			  	  if(_IsSign(nr,"a","A",_AL))  _DispKey(nr,act,ą);
+//			else if(_IsSign(nr,"s","S",_SP))  _DispKey(nr,act,ś);
+//			else if(_IsSign(nr,"c","C",NULL)) _DispKey(nr,act,ć);
+//			else if(_IsSign(nr,"z","Z",NULL)) _DispKey(nr,act,ż);
+//			else if(_IsSign(nr,"l","L",NULL)) _DispKey(nr,act,ł);
+//			else
+//			{
+//				if(press==act) _KeyStr2_ind(nr);
+//				else{
+//					if(_IsSign(nr,_AL,NULL,NULL) && 0 < _IsAltPress()) _KeyStr2_win(nr,press);			/* _AL has only text then it is here 		_UP has graphic then it is not here */
+//					else 																_KeyStr2_win(nr,release);
+//				}
+//			}
+//		}
 	}
 
 	void _CursorShapeWin(structPosition pos, uint32_t BkpSizeX,uint32_t BkpSizeY, char charAboveCursor){
