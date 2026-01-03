@@ -285,6 +285,16 @@ static int RealizeTempSpaceCorrect(char *txt, int id){
 		case 1:
 			if((IS_RANGE(txt[0],'0','9')&&(txt[1]==','))||((txt[0]==',')&&IS_RANGE(txt[1],'0','9'))) return 2;
 			break;
+		case 2:
+				  if((txt[0]=='<')&&(txt[1]=='>')) return 2;
+			else if((txt[0]=='{')&&(txt[1]=='}')) return 2;
+			else if((txt[0]=='(')&&(txt[1]==')')) return 2;
+			else if((txt[0]=='@')&&(txt[1]=='|')) return 2;
+			else if((txt[0]=='%')&&(txt[1]=='$')) return 2;
+			else if((txt[0]=='#')&&(txt[1]=='&')) return 2;
+			else if((txt[0]=='?')&&(txt[1]=='!')) return 2;
+			else if((txt[0]==GetLetterCode(ł))&&(txt[1]==':')) return 2;
+			break;
 		default: break;
 	}
 	return 0;
@@ -1465,6 +1475,8 @@ static int ReadSpacesBetweenFontsFromSDcard(void){
 /* ------------ Global Declarations ------------ */
 
 char GetLetterCode(char *sign){ return sign[0]; }
+void FONTS_SetSpaceTemp(int spacePxl){ TempSpaceCorr=spacePxl; }
+void FONTS_RstSpaceTemp(void)			 { TempSpaceCorr=0; }
 
 u32 GET_nmbrBytesForFontsImages(void){
 	return CounterBusyBytesForFontsImages;

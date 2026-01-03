@@ -256,6 +256,8 @@ extern StructTxtPxlLen StructTxtPxlLen_Zero;
 extern LCD_STR_PARAM	  LCD_STR_PARAM_Zero;
 
 char GetLetterCode(char *sign);
+void FONTS_SetSpaceTemp(int spacePxl);
+void FONTS_RstSpaceTemp(void);
 
 u32 GET_nmbrBytesForFontsImages(void);
 int SETVAL_char(uint32_t nrVal, char val);

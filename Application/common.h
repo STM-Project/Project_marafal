@@ -46,7 +46,8 @@ typedef uint8_t u8;
 #define INCR_FLOAT_WRAP(x,step,min,max)  ((x<max-step/2) ? (x+=step) : (x=min))
 #define DECR_FLOAT_WRAP(x,step,min,max)  ((x<step/2) ?     (x=max)   : (x-=step))
 
-#define MIDDLE(startPos,widthBk,width)	((startPos)+((widthBk)-(width))/2)
+#define MIDDLE(startPos,widthBk,width)					((startPos)+((widthBk)-(width))/2)
+#define MIDDLE_PERC(startPos,widthBk,width,perc)	((startPos)+((perc)*((widthBk)-(width)))/100)
 #define IS_RANGE(val,min,max) (((val)>=(min))&&((val)<=(max)))
 #define EQUAL2_OR(val,eq1,eq2)		(((eq1)==(val))||((eq2)==(val)))
 #define EQUAL2_AND(val,eq1,eq2)		(((eq1)==(val))&&((eq2)==(val)))
