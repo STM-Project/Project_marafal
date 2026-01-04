@@ -2085,24 +2085,24 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		}
 		else
 		{
-			  	  if(_IsSign(nr,"a","A",_AL))  _DispKey(nr,act,ą,0,2);
-			else if(_IsSign(nr,"s","S",_SP))  _DispKey(nr,act,ś,0,2);
-			else if(_IsSign(nr,"c","C",NULL)) _DispKey(nr,act,ć,0,2);
-			else if(_IsSign(nr,"z","Z",NULL)) _DispKey(nr,act,ż,0,2);
-			else if(_IsSign(nr,"l","L",NULL)) _DispKey(nr,act,ł":",0,2);
-			else if(_IsSign(nr,"n","N",NULL)) _DispKey(nr,act,ń,0,2);
-			else if(_IsSign(nr,"h","H",NULL)) _DispKey(nr,act,"()",0,2);
-			else if(_IsSign(nr,"g","G",NULL)) _DispKey(nr,act,"{}",0,2);
-			else if(_IsSign(nr,"f","F",NULL)) _DispKey(nr,act,"-+",0,2);
-			else if(_IsSign(nr,"d","D",NULL)) _DispKey(nr,act,"<>",0,2);
-			else if(_IsSign(nr,"j","J",NULL)) _DispKey(nr,act,"\xB0 ;",0,2);
-			else if(_IsSign(nr,"k","K",NULL)) _DispKey(nr,act,"~\'",0,2);
-			else if(_IsSign(nr,"v","V",NULL)) _DispKey(nr,act,"#&",0,2);
-			else if(_IsSign(nr,"b","B",NULL)) _DispKey(nr,act,"=_",0,-2);
-			else if(_IsSign(nr,"m","M",NULL)) _DispKey(nr,act,"^*",0,2);
+			  	  if(_IsSign(nr,"a","A",_AL))  _DispKey(nr,act,ą,	 0,2);
+			else if(_IsSign(nr,"s","S",_SP))  _DispKey(nr,act,ś,	 0,2);
+			else if(_IsSign(nr,"c","C",NULL)) _DispKey(nr,act,ć,	 0,2);
+			else if(_IsSign(nr,"z","Z",NULL)) _DispKey(nr,act,ż,	 0,2);
+			else if(_IsSign(nr,"l","L",NULL)) _DispKey(nr,act,ł"|",0,2);
+			else if(_IsSign(nr,"n","N",NULL)) _DispKey(nr,act,ń,	 0,2);
+			else if(_IsSign(nr,"h","H",NULL)) _DispKey(nr,act,"()",0,1);
+			else if(_IsSign(nr,"g","G",NULL)) _DispKey(nr,act,"{}",0,1);
+			else if(_IsSign(nr,"f","F",NULL)) _DispKey(nr,act,"-+",0,0);
+			else if(_IsSign(nr,"d","D",NULL)) _DispKey(nr,act,"<>",0,0);
+			else if(_IsSign(nr,"j","J",NULL)) _DispKey(nr,act,"\xB0\'",0,2);
+			else if(_IsSign(nr,"k","K",NULL)) _DispKey(nr,act,"~;", 0,-2);
+			else if(_IsSign(nr,"v","V",NULL)) _DispKey(nr,act,"#&", 0,2);
+			else if(_IsSign(nr,"b","B",NULL)) _DispKey(nr,act,"=_", 0,-2);
+			else if(_IsSign(nr,"m","M",NULL)) _DispKey(nr,act,"^*", 0,2);
 			else if(_IsSign(nr,".",NULL,NULL)) _DispKey(nr,act,"%$",0,2);
-			else if(_IsSign(nr,",",NULL,NULL)) _DispKey(nr,act,"@|",0,2);
-			else if(_IsSign(nr,"x","X",NULL)) _DispKey(nr,act,"?!",0,2);
+			else if(_IsSign(nr,",",NULL,NULL)) _DispKey(nr,act,"@:",0,2);
+			else if(_IsSign(nr,"x","X",NULL)) _DispKey(nr,act,"?!", 0,2);
 			else
 			{
 				if(press==act) _KeyStr_ind(nr);
@@ -2113,30 +2113,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				}
 	}}}
 
-	void _ServiceDispKey2(int nr, int act)
-	{
-//		void _DispKey(int nr, int act, char* descr){
-//			if(release==act){	 if(0==_GetStyle()) KeyBk_Win (k,posKey2[nr],act);
-//									 else					  KeyBk2_Win(k,posKey2[nr],act);	}
-//			else{					 if(0==_GetStyle()) KeyBk_Ind (k,act);
-//			 	 	 	 	 	 	 else					  KeyBk2_Ind(k,act);					}
-//
-//			int widthDescr = LCD_GetWholeStrPxlWidth(fontID_descr,descr,0,ConstWidth);
-//			int heightTxt = LCD_GetFontHeight(fontID);
-//
-//			if(release==act){	 StrDescr_XYoffs(posKey2[nr], 	 VALPERC(s[k].widthKey,20) + MIDDLE(0, s[k].widthKey, widthDescr), 2, descr, 		BrightIncr(colorDescr,0x20));
-//									 Str_Xmidd_Yoffs(k,posKey2[nr], VALPERC(s[k].heightKey,15) + MIDDLE(0, s[k].heightKey, heightTxt), 	 pTxtKey2[nr], colorTxtKey2[nr]);
-//			}
-//			else{			BKCOPY_VAL(fillColor_c[0],fillColor,fillPressColor);
-//									StrDescrWin_XYoffs(k,			VALPERC(s[k].widthKey,20) + MIDDLE(0, s[k].widthKey, widthDescr), 2, descr, 	    BrightIncr(colorDescr,0x20));
-//									StrWin_Xmidd_Yoffs(k,			VALPERC(s[k].heightKey,15) + MIDDLE(0, s[k].heightKey, heightTxt), 	pTxtKey2[nr], colorTxtPressKey2[nr]);
-//							BKCOPY(fillColor,fillColor_c[0]);
-//			}
-//			if(press==act)	LCD_Display(0,s[k].x+posKey2[nr].x,s[k].y+posKey2[nr].y,s[k].widthKey,s[k].heightKey);
-//		}
-
-		if(nr < countKey2)		/* Display the text on the keys */
-		{
+	void _ServiceDispKey2(int nr, int act){
+		if(nr < countKey2){		/* Display the text on the keys */
 			if(press==act) _KeyStr2_ind(nr);
 			else{
 				if(_IsSign2(nr,"+",NULL,NULL)||_IsSign2(nr,"-",NULL,NULL)||_IsSign2(nr,"*",NULL,NULL)||_IsSign2(nr,"/",NULL,NULL)||_IsSign2(nr,"=",NULL,NULL)||_IsSign2(nr,".",NULL,NULL)){
@@ -2145,24 +2123,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 					BKCOPY(fillColor,fillColor_c[0]);
 				}
 				else _KeyStr2_win(nr,release);
-			}
-		}
-//		else
-//		{
-//			  	  if(_IsSign(nr,"a","A",_AL))  _DispKey(nr,act,ą);
-//			else if(_IsSign(nr,"s","S",_SP))  _DispKey(nr,act,ś);
-//			else if(_IsSign(nr,"c","C",NULL)) _DispKey(nr,act,ć);
-//			else if(_IsSign(nr,"z","Z",NULL)) _DispKey(nr,act,ż);
-//			else if(_IsSign(nr,"l","L",NULL)) _DispKey(nr,act,ł);
-//			else
-//			{
-//				if(press==act) _KeyStr2_ind(nr);
-//				else{
-//					if(_IsSign(nr,_AL,NULL,NULL) && 0 < _IsAltPress()) _KeyStr2_win(nr,press);			/* _AL has only text then it is here 		_UP has graphic then it is not here */
-//					else 																_KeyStr2_win(nr,release);
-//				}
-//			}
-//		}
+		}}
 	}
 
 	void _CursorShapeWin(structPosition pos, uint32_t BkpSizeX,uint32_t BkpSizeY, char charAboveCursor){
@@ -2255,16 +2216,16 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				else if(_IsSign(key,"g","G",NULL)) { if(_IsAlternativeSign2()) return '}';  else return '{'; }
 				else if(_IsSign(key,"f","F",NULL)) { if(_IsAlternativeSign2()) return '+';  else return '-'; }
 				else if(_IsSign(key,"d","D",NULL)) { if(_IsAlternativeSign2()) return '>';  else return '<'; }
-				else if(_IsSign(key,"j","J",NULL)) { if(_IsAlternativeSign2()) return ';';  else return ':'; }
-				else if(_IsSign(key,"k","K",NULL)) { if(_IsAlternativeSign2()) return '\'';  else return '~'; }
+				else if(_IsSign(key,"j","J",NULL)) { if(_IsAlternativeSign2()) return '\'';  else return '\xB0'; }
+				else if(_IsSign(key,"k","K",NULL)) { if(_IsAlternativeSign2()) return ';';  else return '~'; }
 				else if(_IsSign(key,"v","V",NULL)) { if(_IsAlternativeSign2()) return '&';  else return '#'; }
 				else if(_IsSign(key,"b","B",NULL)) { if(_IsAlternativeSign2()) return '_';  else return '='; }
 				else if(_IsSign(key,"x","X",NULL)) { if(_IsAlternativeSign2()) return '!';  else return '?'; }
 				else if(_IsSign(key,"m","M",NULL)) { if(_IsAlternativeSign2()) return '*';  else return '^'; }
 				else if(_IsSign(key,".",NULL,NULL)) { if(_IsAlternativeSign2()) return '$';  else return '%'; }
-				else if(_IsSign(key,",",NULL,NULL)) { if(_IsAlternativeSign2()) return '|';  else return '@'; }
-				else if(_IsSign(key,"l",NULL,NULL)) { if(_IsAlternativeSign2()) return ';';  else return GetLetterCode(ł); }
-				else if(_IsSign(key,"L",NULL,NULL)) { if(_IsAlternativeSign2()) return ';';  else return GetLetterCode(Ł); }
+				else if(_IsSign(key,",",NULL,NULL)) { if(_IsAlternativeSign2()) return ':';  else return '@'; }
+				else if(_IsSign(key,"l",NULL,NULL)) { if(_IsAlternativeSign2()) return '|';  else return GetLetterCode(ł); }
+				else if(_IsSign(key,"L",NULL,NULL)) { if(_IsAlternativeSign2()) return '|';  else return GetLetterCode(Ł); }
 				else{
 						  if(_IsSign(key,"a",NULL,_AL))  return GetLetterCode(ą);		/* Display the alternative sign */
 					else if(_IsSign(key,"A",NULL,NULL)) return GetLetterCode(Ą);
@@ -2272,8 +2233,6 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 					else if(_IsSign(key,"S",NULL,NULL)) return GetLetterCode(Ś);
 					else if(_IsSign(key,"c",NULL,NULL)) return GetLetterCode(ć);
 					else if(_IsSign(key,"C",NULL,NULL)) return GetLetterCode(Ć);
-//					else if(_IsSign(key,"l",NULL,NULL)) return GetLetterCode(ł);
-//					else if(_IsSign(key,"L",NULL,NULL)) return GetLetterCode(Ł);
 					else if(_IsSign(key,"n",NULL,NULL)) return GetLetterCode(ń);
 					else if(_IsSign(key,"N",NULL,NULL)) return GetLetterCode(Ń);
 
@@ -2315,34 +2274,9 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}}
 
 	void _ServiceTxtFieldPressKey2(int key){
-		//int _IsAlternativeSign2(void){	altParam.pressTime++;  if(IS_RANGE(altParam.pressTime,20,40)){ if(altParam.pressTime==40) altParam.pressTime=0; return 1; } else return 0;	}
-		char _IsAlternativeSign(void){
-//			if(key==altParam.keyPressPrev){			/* Display the alternative text on the field of the text */
-//				if(key<dimKeys[0]){		/* if key: q,w,e,r,t,y,u,i,o,p */
-//					if(_IsAlternativeSign2()){			if(_IsSign(key,"e",NULL,_EX))  return GetLetterCode(ę);	/* Display the alternative-2 sign */
-//														 else if(_IsSign(key,"E",NULL,NULL)) return GetLetterCode(Ę);
-//														 else if(_IsSign(key,"o",NULL,NULL)) return GetLetterCode(ó);
-//														 else if(_IsSign(key,"O",NULL,NULL)) return GetLetterCode(Ó);	 }
-//					return (0x30|key);																							/* Display the alternative sign */
-//				}
-//				else if(_IsSign(key,"z",NULL,NULL)){ if(_IsAlternativeSign2()) return GetLetterCode(ź);  else return GetLetterCode(ż); }	/* Display the alternative-2 sign  or  the alternative sign*/
-//				else if(_IsSign(key,"Z",NULL,NULL)){ if(_IsAlternativeSign2()) return GetLetterCode(Ź);  else return GetLetterCode(Ż); }
-//				else{
-//						  if(_IsSign(key,"a",NULL,_AL))  return GetLetterCode(ą);
-//					else if(_IsSign(key,"A",NULL,NULL)) return GetLetterCode(Ą);
-//					else if(_IsSign(key,"s",NULL,_SP))  return GetLetterCode(ś);
-//					else if(_IsSign(key,"S",NULL,NULL)) return GetLetterCode(Ś);
-//					else if(_IsSign(key,"c",NULL,NULL)) return GetLetterCode(ć);
-//					else if(_IsSign(key,"C",NULL,NULL)) return GetLetterCode(Ć);
-//					else if(_IsSign(key,"l",NULL,NULL)) return GetLetterCode(ł);
-//					else if(_IsSign(key,"L",NULL,NULL)) return GetLetterCode(Ł);
-//					else if(_IsSign(key,"n",NULL,NULL)) return GetLetterCode(ń);
-//					else if(_IsSign(key,"N",NULL,NULL)) return GetLetterCode(Ń);
-//			}}
-//			altParam.pressTime=0;
-			return 0;
-		}
-		void _ServiceAlternativeSign(void){  if(_IsAlternativeSign()) _ServiceTxtFieldDeleteChar();  }
+		int _IsAlternativeSign2		 (void){ return 0; }
+		char _IsAlternativeSign		 (void){ if(_IsAlternativeSign2()) return 1; else return 0; }
+		void _ServiceAlternativeSign(void){ if(_IsAlternativeSign()) _ServiceTxtFieldDeleteChar(); }
 
 		if(_GetIndxCharBuff() < charBuffSize - 2)
 		{
@@ -2387,11 +2321,6 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey2[i]);
 			if(_IsSign(i,_AL,NULL,NULL) || _IsSign(i,_EN,NULL,NULL) || _IsSign(i,_LF,NULL,NULL) || _IsSign(i,_EX,NULL,NULL));
 			else if(IS_RANGE(i,0,countKey2-1)){
-//				touchTemp[0].x= s[k].x + posKey2[i].x;
-//				touchTemp[1].x= touchTemp[0].x + s[k].widthKey;
-//				touchTemp[0].y= s[k].y + posKey2[i].y;
-//				touchTemp[1].y= touchTemp[0].y + s[k].heightKey;
-//				LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT_WITH_WAIT, s[k].startTouchIdx+i, TOUCH_GET_PER_X_PROBE );
 				SetTouch(k,ID_TOUCH_POINT,s[k].startTouchIdx+i,press,posKey2[i]);
 			}
 			BKCOPY(s[k].widthKey,c.widthKey);
@@ -2424,16 +2353,11 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
 		_DisplayTxt2Field(charBuff,seperateTxtParam, widthAll,heightAll, s[k].interSpace,s[k].interSpace);
 
-
 		if(_IsAltPress())
 		{
-
-
 			if(_GetBitAlt()){		_ClrBitAlt();		/* This procedure is called only one after _SetBitAlt() */
 				_SetTouchForAltKeys();
 			}
-
-
 
 			BKCOPY_VAL(fillColor_c[0],fillColor,BrightIncr(fillColor,0x10));
 			BKCOPY_VAL(bkColor_c[0],bkColor,colorFillBk);
@@ -2455,19 +2379,12 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			BKCOPY(bkColor,bkColor_c[0]);
 			BKCOPY(fillColor,fillColor_c[0]);
 
-
-
-
-
 		}
 		else
 		{
-
 			if(_GetBitAlt()){		_ClrBitAlt();		/* This procedure is called only one after _SetBitAlt() */
 				_RestoreTouchBeforeAltKeys();
 			}
-
-
 
 			BKCOPY_VAL(fillColor_c[0],fillColor,BrightIncr(fillColor,0x10));
 			BKCOPY_VAL(bkColor_c[0],bkColor,colorFillBk);
@@ -2485,8 +2402,6 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			BKCOPY(bkColor,bkColor_c[0]);
 			BKCOPY(fillColor,fillColor_c[0]);
 		}
-
-
 
 		_CursorShapeWin( RetStructPos(s[k].interSpace+cursorVar.pos.x, s[k].interSpace+cursorVar.pos.y), widthAll,heightAll, _GetCursorChar() );
 		LCD_Display(0, s[k].x, s[k].y, widthAll, heightAll);
@@ -2589,8 +2504,13 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 
 	#undef P
+	#undef P2
 	#undef F
+	#undef G
+	#undef H
 	#undef W1
+	#undef W2
+	#undef W3
 	#undef WS
 	#undef WA
 	#undef _UP

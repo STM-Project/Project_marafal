@@ -293,7 +293,12 @@ static int RealizeTempSpaceCorrect(char *txt, int id){
 			else if((txt[0]=='%')&&(txt[1]=='$')) return 2;
 			else if((txt[0]=='#')&&(txt[1]=='&')) return 2;
 			else if((txt[0]=='?')&&(txt[1]=='!')) return 2;
-			else if((txt[0]==GetLetterCode(ł))&&(txt[1]==':')) return 2;
+			else if((txt[0]=='-')&&(txt[1]=='+')) return 2;
+			else if((txt[0]=='@')&&(txt[1]==':')) return 2;
+			else if((txt[0]==GetLetterCode(ł))&&(txt[1]=='|')) return 2;
+			else if((txt[0]=='~')&&(txt[1]==';')) return 2;
+			else if((txt[0]=='^')&&(txt[1]=='*')) return 2;
+			else if((txt[0]=='\xB0')&&(txt[1]=='\'')) return 2;
 			break;
 		default: break;
 	}
