@@ -1928,33 +1928,48 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	heightAll = sizeof(dimKeys)*s[k].heightKey + (sizeof(dimKeys)+1)*s[k].interSpace + head;
 	widthFieldTxt = widthAll - 2*s[k].interSpace;
 
+
+
+  int maxLine = widthFieldTxt-2*distTxtField;
+	int KKKKKKKK_[6]={VALPERC(maxLine,20),\
+							VALPERC(maxLine,40),\
+							VALPERC(maxLine,50),\
+							VALPERC(maxLine,70),\
+							VALPERC(maxLine,80),\
+							VALPERC(maxLine,90) };
+
+
+
+
 	void _DispMainField 	 (void){	 LCD_ShapeWindow( s[k].shape,0, widthAll,	  	  heightAll, 	   0,					 0, 				   widthAll,	  heightAll, 		SetBold2Color(frameMainColor,s[k].bold), fillMainColor/*colorFillBk*/, bkColor 	  );	}
 	void _DispTxtField  	 (void){	 LCD_ShapeWindow( s[k].shape,0, widthAll,	  	  heightAll, 	   s[k].interSpace,s[k].interSpace, widthFieldTxt,heightFieldTxt, SetBold2Color(TXTFIELD_COLOR,s[k].bold), TXTFIELD_COLOR,  				  colorFillBk );	}
 	void _DispTxtFieldInd (void){	 LCD_ShapeWindow( s[k].shape,0, widthFieldTxt, heightFieldTxt, 0,					 0, 				   widthFieldTxt,heightFieldTxt, SetBold2Color(TXTFIELD_COLOR,s[k].bold), TXTFIELD_COLOR,  				  colorFillBk );  }
 
-	int  _GetIndxCharBuff(void)		{ return CharBuffToInt16(&charBuff[charBuffSize-2]); };
+	int  _GetIndxCharBuff(void)		{ return CharBuffToInt16(&charBuff[charBuffSize-2]); 		 };
+	void _SetIndxCharBuff(int size)	{ 			Int16ToCharBuff(&charBuff[charBuffSize-2],size); };
 	void _IncIndxCharBuff(void)		{ int temp=CharBuffToInt16(&charBuff[charBuffSize-2]); if(IS_RANGE(temp,0,charBuffSize-3)) Int16ToCharBuff(&charBuff[charBuffSize-2],++temp); }
 	void _DecIndxCharBuff(void)		{ int temp=CharBuffToInt16(&charBuff[charBuffSize-2]); if(IS_RANGE(temp,1,charBuffSize-2)) Int16ToCharBuff(&charBuff[charBuffSize-2],--temp); }
 	void _SetCharBuff(char sign)		{ charBuff[_GetIndxCharBuff()]=sign; }
 
+	int _GetCharBuffIndxViaParam(int row, u8 *param){
+		int indx = 0;
+		LOOP_FOR(i,row){	 indx += param[1+i];  }
+		return indx;
+	}
+
 	void _SeperateTxt2RowField(char *txtBuff, int param_space, int param_constWidth, int fieldWidth, u8 *seperateParam){
-		int i, j=0, m=0, cnt=0;							/* seperateParam[0] - number of rows */ 			/* seperateParam[1..2..3..] - number of signs in row 1..2..3.. */
+		int i, j=0, m=0, cnt=0, status=0;							/* seperateParam[0] - number of rows */ 			/* seperateParam[1..2..3..] - number of signs in row 1..2..3.. */
 		for(i=0; i<strlen(txtBuff); ++i){
-			if(LCD_GetStrPxlWidth(fontID, txtBuff+m, ++cnt,param_space,param_constWidth) >= fieldWidth-2*distTxtField){
+			if(LCD_GetStrPxlWidth(fontID, txtBuff+m, ++cnt,param_space,param_constWidth) >= KKKKKKKK_[j]/*fieldWidth-2*distTxtField*/){
 				m=i;
-				seperateParam[1+j++]=cnt-1;	if(j>howManyArrowsInFieldTxt){ j--; goto END_SeperateTxt2RowField; }
+				seperateParam[1+j++]=cnt-1;	if(j>howManyArrowsInFieldTxt){ j--; status=1; goto END_SeperateTxt2RowField; }
 				cnt=0;
 				if(i>0) i--;
 		}}
 		if(cnt>0){  seperateParam[1+j]=cnt;  j++;  }
 		END_SeperateTxt2RowField:
 		seperateParam[0]=j;
-	}
-
-	int _GetCharBuffIndx(int row, u8 *param){
-		int indx = 0;
-		LOOP_FOR(i,row){	 indx += param[1+i];  }
-		return indx;
+		if(status){	  _SetIndxCharBuff(_GetCharBuffIndxViaParam(seperateParam[0],seperateParam));	   txtBuff[_GetIndxCharBuff()]=0; 	}
 	}
 
 	void _DisplayTxt2Field(char *txtBuff, u8 *seperateParam, u32 bkSizeX,u32 bkSizeY, u8 offsX,u8 offsY){
@@ -2140,7 +2155,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		charsInGivenRow = offsCharBuff-offsBuff;
 		cursorVar.pos.y = LCD_GetFontHeight(fontID) * CONDITION(nrRow,nrRow,1);
 		cursorVar.pos.x = CONDITION(0==charsInGivenRow, 0, LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff], charsInGivenRow ,textParam.space,textParam.constWidth));
-		if( cursorVar.pos.x + LCD_GetFontWidth(fontID,_GetCursorChar()) > widthFieldTxt-2*distTxtField  	&&  	nrRow < howManyArrowsInFieldTxt ){
+		if( cursorVar.pos.x + LCD_GetFontWidth(fontID,_GetCursorChar()) > KKKKKKKK_[nrRow]/*widthFieldTxt-2*distTxtField*/  	&&  	nrRow < howManyArrowsInFieldTxt ){
 			cursorVar.pos.y = LCD_GetFontHeight(fontID)*(nrRow+1);
 			cursorVar.pos.x = 0;
 	}}
@@ -2179,7 +2194,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		void _CalcCursorPos(int yStart, XY_Touch_Struct touchPos, u8 seperateParam[], structPosition *cursorCharPos){
 			int nrTouchRow = (touchPos.y-yStart)/LCD_GetFontHeight(fontID);
 			cursorCharPos->x = 0;		cursorCharPos->y = LCD_GetFontHeight(fontID) * (nrTouchRow+1);
-			int offsBuff = _GetCharBuffIndx(nrTouchRow,seperateParam), 	 incTxt = 1, 	temp;
+			int offsBuff = _GetCharBuffIndxViaParam(nrTouchRow,seperateParam), 	 incTxt = 1, 	temp;
 			while( (incTxt <= seperateParam[1+nrTouchRow]) && ((temp = LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff],incTxt,textParam.space,textParam.constWidth)) < touchPos.x - (s[k].x+s[k].interSpace+distTxtField)) ){  incTxt++;  cursorCharPos->x=temp;  }
 			if( nrTouchRow == (seperateParam[0]-1) && incTxt > seperateParam[1+nrTouchRow])  cursorVar.offs =_GetIndxCharBuff();																																										/* if the last ROW and above the last CHAR of the text */
 			else												  													 { cursorVar.offs = offsBuff+(incTxt-1); 		if(incTxt > seperateParam[1+nrTouchRow] && nrTouchRow!=(seperateParam[0]-1)){ cursorCharPos->x=0;  cursorCharPos->y += LCD_GetFontHeight(fontID); } 	}
@@ -2249,9 +2264,9 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
 			if(seperateTxtParam[0]==howManyArrowsInFieldTxt){												/* Check the max-allowed number of characters in the last row */
 				char widestChar 	= 'W';
-				int offsBuff 		= _GetCharBuffIndx(seperateTxtParam[0]-1,seperateTxtParam);
+				int offsBuff 		= _GetCharBuffIndxViaParam(seperateTxtParam[0]-1,seperateTxtParam);
 				int lenInLastRow 	= LCD_GetWholeStrPxlWidth(fontID,&charBuff[offsBuff],textParam.space,textParam.constWidth);
-				int maxLenAllowed = widthFieldTxt-2*distTxtField-1.5*LCD_GetFontWidth(fontID,widestChar);
+				int maxLenAllowed = KKKKKKKK_[seperateTxtParam[0]-1]/*widthFieldTxt-2*distTxtField*/-1.5*LCD_GetFontWidth(fontID,widestChar);
 				if(lenInLastRow > maxLenAllowed) return;
 			}
 
@@ -2285,9 +2300,9 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
 			if(seperateTxtParam[0]==howManyArrowsInFieldTxt){												/* Check the max-allowed number of characters in the last row */
 				char widestChar 	= 'W';
-				int offsBuff 		= _GetCharBuffIndx(seperateTxtParam[0]-1,seperateTxtParam);
+				int offsBuff 		= _GetCharBuffIndxViaParam(seperateTxtParam[0]-1,seperateTxtParam);
 				int lenInLastRow 	= LCD_GetWholeStrPxlWidth(fontID,&charBuff[offsBuff],textParam.space,textParam.constWidth);
-				int maxLenAllowed = widthFieldTxt-2*distTxtField-1.5*LCD_GetFontWidth(fontID,widestChar);
+				int maxLenAllowed = KKKKKKKK_[seperateTxtParam[0]-1]/*widthFieldTxt-2*distTxtField*/-1.5*LCD_GetFontWidth(fontID,widestChar);
 				if(lenInLastRow > maxLenAllowed) return;
 			}
 
