@@ -1843,6 +1843,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	static struct CURSOR_VARIABLES{ structPosition pos; int offs; } cursorVar = {0};
 	static struct ALT_KEY_PARAM{ int keyPressPrev; int pressTime; } altParam = {0xFFFF,0};
+	static int KKKKKKKK_[6] = {0};
 
 	int distTxtField = 7;
 	int howManyArrowsInFieldTxt = 6;
@@ -1928,18 +1929,15 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	heightAll = sizeof(dimKeys)*s[k].heightKey + (sizeof(dimKeys)+1)*s[k].interSpace + head;
 	widthFieldTxt = widthAll - 2*s[k].interSpace;
 
-
-
-  int maxLine = widthFieldTxt-2*distTxtField;
-	int KKKKKKKK_[6]={VALPERC(maxLine,20),\
-							VALPERC(maxLine,40),\
-							VALPERC(maxLine,50),\
-							VALPERC(maxLine,70),\
-							VALPERC(maxLine,80),\
-							VALPERC(maxLine,90) };
-
-
-
+	if(shape!=0){
+		int maxLine = widthFieldTxt-2*distTxtField;
+		KKKKKKKK_[0] = maxLine; //!!!!!!!!!!!!!!!
+		KKKKKKKK_[1] = maxLine;
+		KKKKKKKK_[2] = maxLine;
+		KKKKKKKK_[3] = maxLine;
+		KKKKKKKK_[4] = maxLine;
+		KKKKKKKK_[5] = maxLine;
+	}
 
 	void _DispMainField 	 (void){	 LCD_ShapeWindow( s[k].shape,0, widthAll,	  	  heightAll, 	   0,					 0, 				   widthAll,	  heightAll, 		SetBold2Color(frameMainColor,s[k].bold), fillMainColor/*colorFillBk*/, bkColor 	  );	}
 	void _DispTxtField  	 (void){	 LCD_ShapeWindow( s[k].shape,0, widthAll,	  	  heightAll, 	   s[k].interSpace,s[k].interSpace, widthFieldTxt,heightFieldTxt, SetBold2Color(TXTFIELD_COLOR,s[k].bold), TXTFIELD_COLOR,  				  colorFillBk );	}
@@ -1970,6 +1968,16 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		END_SeperateTxt2RowField:
 		seperateParam[0]=j;
 		if(status){	  _SetIndxCharBuff(_GetCharBuffIndxViaParam(seperateParam[0],seperateParam));	   txtBuff[_GetIndxCharBuff()]=0; 	}
+	}
+
+	void _SSSSS(void){
+		u8 seperateTxtParam[howManyArrowsInFieldTxt+1];
+		_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
+		int row = cursorVar.pos.y / LCD_GetFontHeight(fontID);
+		int offsBuff 			= _GetCharBuffIndxViaParam(row-1, seperateTxtParam );
+		int charsInGivenRow  = cursorVar.offs-offsBuff;
+		int lenInSelectRow 	= LCD_GetStrPxlWidth(fontID,&charBuff[offsBuff], charsInGivenRow ,textParam.space,textParam.constWidth);
+		KKKKKKKK_[row-1] = lenInSelectRow;
 	}
 
 	void _DisplayTxt2Field(char *txtBuff, u8 *seperateParam, u32 bkSizeX,u32 bkSizeY, u8 offsX,u8 offsY){
@@ -2262,7 +2270,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			char tempChar;
 			u8 seperateTxtParam[howManyArrowsInFieldTxt+1];
 			_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
-			if(seperateTxtParam[0]==howManyArrowsInFieldTxt){												/* Check the max-allowed number of characters in the last row */
+			if(seperateTxtParam[0]==howManyArrowsInFieldTxt){						/* Check the max-allowed number of characters in the last row */
 				char widestChar 	= 'W';
 				int offsBuff 		= _GetCharBuffIndxViaParam(seperateTxtParam[0]-1,seperateTxtParam);
 				int lenInLastRow 	= LCD_GetWholeStrPxlWidth(fontID,&charBuff[offsBuff],textParam.space,textParam.constWidth);
@@ -2270,7 +2278,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				if(lenInLastRow > maxLenAllowed) return;
 			}
 
-			if(cursorVar.offs < _GetIndxCharBuff()){										/* Set new char between chars of the text */
+			if(cursorVar.offs < _GetIndxCharBuff()){									/* Set new char between chars of the text */
 				int offs = _GetIndxCharBuff() - cursorVar.offs;
 				_ServiceAlternativeSign();
 				LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];  }
@@ -2449,6 +2457,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		 _KeyENTER_ind(nr);
 		BKCOPY(fillColor,fillColor_c[0]);
 		BKCOPY(s[k].widthKey,c.widthKey);
+		_SSSSS();
+		_DispSeperatedTxt2Field_Ind();
 	}
 	else if(tAlt == selBlockPress){		_ToogleAlt();	_SetBitAlt();
 		INIT(nr,selBlockPress-touchAction);
