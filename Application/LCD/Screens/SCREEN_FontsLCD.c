@@ -1679,6 +1679,7 @@ void FILE_NAME(setTouch)(void)
 		/*	----- Touch parameter text and go to action ----- */
 		case Touch_SetTxt:
 			mini_snprintf(keyBuff,KEYBUFF_SIZE-1,"Vanessa Paradis, kt"ó"ra w m"ł"odo"ś"ci zyska"ł"a reputacj"ę" gwiazdy show, dzi"ś" prowadzi znacznie spokojniejsze "ż"ycie. Pomimo burzliwych początk"ó"w, jej kariera artystyczna rozwija"ł"a si"ę" nieprzerwanie. 22 grudnia Paradis obchodzi"ł"a 53. urodziny");
+			//mini_snprintf(keyBuff,KEYBUFF_SIZE-1,"012345");
 			FILE_NAME(keyboard)(KEYBOARD_setTxt,KEY_All_release,LCD_RoundRectangle,0,15,15,KeysAutoSize,10,10,state,Touch_Q,KeysDel);			/* Here call Keyboard only one at the start */
 			LCDTOUCH_ActiveOnly(0,0,0,0,0,0,0,0,0,0,Touch_Q,Touch_keyStyle);
 			break;
