@@ -1793,7 +1793,7 @@ int KEYBOARD_ServiceLenOffsWin(int k, int selBlockPress, INIT_KEYBOARD_PARAM, in
 	#undef _NMB2KEY
 }
 
-void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int tBig,int tBack,int tAlt,int tEnter,int tField,uint32_t colorDescr, char *charBuff,int charBuffSize) // klawiatura malutka i duza na caly LCD_X z liczbami
+void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int touchRelease, int touchAction, int tBig,int tBack,int tAlt,int tEnter,int tField,int tStyle,int tExit,uint32_t colorDescr, char *charBuff,int charBuffSize) // klawiatura malutka i duza na caly LCD_X z liczbami
 {
 	#define _ARROWS_NMBR	 6
 	#define _EDGE_DIST	 7
@@ -2232,7 +2232,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		int _IsAlternativeSign2(void){	altParam.pressTime++;  if(IS_RANGE(altParam.pressTime,20,40)){ if(altParam.pressTime==40) altParam.pressTime=0; return 1; } else return 0;	}
 		char _IsAlternativeSign(void){
 			if(key==altParam.keyPressPrev){			/* Display the alternative text on the field of the text */
-				if(key<dimKeys[0]){		/* if key: q,w,e,r,t,y,u,i,o,p */
+				if(key<dimKeys[0]){						/* if key: q,w,e,r,t,y,u,i,o,p */
 					if(_IsAlternativeSign2()){			if(_IsSign(key,"e",NULL,_EX))  return GetLetterCode(ę);	/* Display the alternative-2 sign */
 														 else if(_IsSign(key,"E",NULL,NULL)) return GetLetterCode(Ę);
 														 else if(_IsSign(key,"o",NULL,NULL)) return GetLetterCode(ó);
@@ -2256,7 +2256,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				else if(_IsSign(key,"l",NULL,NULL)) { if(_IsAlternativeSign2()) return '|';  else return GetLetterCode(ł); }
 				else if(_IsSign(key,"L",NULL,NULL)) { if(_IsAlternativeSign2()) return '|';  else return GetLetterCode(Ł); }
 				else{
-						  if(_IsSign(key,"a",NULL,_AL))  return GetLetterCode(ą);		/* Display the alternative sign */
+						  if(_IsSign(key,"a",NULL,_AL))  return GetLetterCode(ą);										/* Display the alternative sign */
 					else if(_IsSign(key,"A",NULL,NULL)) return GetLetterCode(Ą);
 					else if(_IsSign(key,"s",NULL,_SP))  return GetLetterCode(ś);
 					else if(_IsSign(key,"S",NULL,NULL)) return GetLetterCode(Ś);
@@ -2312,7 +2312,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			char tempChar;
 			u8 seperateTxtParam[_ARROWS_NMBR+1];
 			_SeperateTxt2RowField(charBuff, textParam.space,textParam.constWidth, widthFieldTxt, seperateTxtParam);
-			if(seperateTxtParam[0]==_ARROWS_NMBR){												/* Check the max-allowed number of characters in the last row */
+			if(seperateTxtParam[0]==_ARROWS_NMBR){										/* Check the max-allowed number of characters in the last row */
 				char widestChar 	= 'W';
 				int offsBuff 		= _GetCharBuffIndxViaParam(seperateTxtParam[0]-1,seperateTxtParam);
 				int lenInLastRow 	= LCD_GetWholeStrPxlWidth(fontID,&charBuff[offsBuff],textParam.space,textParam.constWidth);
@@ -2320,7 +2320,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				if(lenInLastRow > maxLenAllowed) return;
 			}
 
-			if(cursorVar.offs < _GetIndxCharBuff()){										/* Set new char between chars of the text */
+			if(cursorVar.offs < _GetIndxCharBuff()){									/* Set new char between chars of the text */
 				int offs = _GetIndxCharBuff() - cursorVar.offs;
 				_ServiceAlternativeSign();
 				LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];  }
@@ -2480,12 +2480,15 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		_ServiceDispKey(nr,press);
 		BKCOPY(s[k].widthKey,c.widthKey);
 	}
-	else if(tField == selBlockPress){	 /* TOUCH of the text field */
+	else if(tField == selBlockPress){	 		/* TOUCH of the text field */
 		_ServiceTxtFieldTouch();
 	}
-	else if(tField + 1 == selBlockPress){		/*	KEY_style = tField + 1 */
+	else if(tStyle == selBlockPress){
 		_ChangeStyle();
 		_DispAllReleaseKeyboard();
+	}
+	else if(tExit == selBlockPress){
+		_DispSeperatedTxt2Field_Ind();
 	}
 	else{
 
@@ -2527,14 +2530,14 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			}
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
-		touchTemp[0].x= s[k].x+s[k].interSpace;
+		touchTemp[0].x= s[k].x+s[k].interSpace;				/* Configure touch for the field of the txt */
 		touchTemp[1].x= touchTemp[0].x + widthFieldTxt;
 		touchTemp[0].y= s[k].y+s[k].interSpace;
 		touchTemp[1].y= touchTemp[0].y + heightFieldTxt;
 		LCD_TOUCH_Set(ID_TOUCH_POINT, s[k].startTouchIdx+i,press);
 		s[k].nmbTouch++;
 
-		touchTemp[0].x= 700;   //tymczasowe dotyk zmiany stylu !!!!
+		touchTemp[0].x= 700;   										/* Touch for the change of the style */
 		touchTemp[1].x= 800;
 		touchTemp[0].y= 400;
 		touchTemp[1].y= 480;
