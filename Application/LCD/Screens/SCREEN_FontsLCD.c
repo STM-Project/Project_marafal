@@ -1301,7 +1301,7 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 			break;
 
 		case KEYBOARD_setTxt:
-			KEYBOARD__ServiceSetTxt(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Q, KEY_big, KEY_back, KEY_alt, KEY_enter,KEY_field, v.FONT_COLOR_Descr, keyBuff,KEYBUFF_SIZE);
+			KEYBOARD__ServiceSetTxt(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Q, KEY_big, KEY_back, KEY_alt, KEY_enter,KEY_field,KEY_style,KEY_exit, v.FONT_COLOR_Descr, keyBuff,KEYBUFF_SIZE);
 			break;
 
 		default:
@@ -1556,8 +1556,8 @@ void FILE_NAME(setTouch)(void)
 	}}}
 	int _KEYBOARD_setTxt__SERVICE(u16 state,int touchStart,int touchStop, int keyStart){
 		if(IS_RANGE(state,touchStart,touchStop)){
-			if(Touch_exit==state){	LCD_TOUCH_RestoreAllSusspendedTouchs(); FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	KEYBOARD_TYPE(KEYBOARD_none,	0);							 		 ResetIndexKeyBuff();	}
-			else						{	if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);	KEYBOARD_TYPE(KEYBOARD_setTxt,keyStart+(state-touchStart));  _SaveState(); 		 	}
+			if(Touch_exit==state /*&& release==LCD_TOUCH_isPress()*/){	LCD_TOUCH_RestoreAllSusspendedTouchs(); FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	KEYBOARD_TYPE(KEYBOARD_none,	0);							 		 ResetIndexKeyBuff();	}
+			else																  {	if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);	KEYBOARD_TYPE(KEYBOARD_setTxt,keyStart+(state-touchStart));  _SaveState(); 		 	}
 			return 1;
 		}
 		else if(_WasStateRange(touchStart,touchStop))	KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);
@@ -1717,10 +1717,10 @@ void FILE_NAME(setTouch)(void)
 			break;
 
 
-		default:
+		default:		 /* ----- Service release specific Keys for Keyboard ----- */
+
 			if(_KEYBOARD_setTxt__SERVICE(state,Touch_Q,Touch_keyStyle,KEY_Q)) break;
 
-			/* ----- Service release specific Keys for Keyboard ----- */
 			_TouchEndService(Touch_fontRp, Touch_fontBm, KEYBOARD_fontRGB, KEY_All_release, FUNC_fontColorRGB);
 			_TouchEndService(Touch_bkRp, Touch_bkBm, 	   KEYBOARD_bkRGB,   KEY_All_release, FUNC_bkFontColorRGB);
 
