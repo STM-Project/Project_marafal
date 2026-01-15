@@ -57,13 +57,13 @@ extern uint8_t touchDetect;
 extern XY_Touch_Struct  touchTemp[];
 extern XY_Touch_Struct  structXY_Zero;
 
-void		LCD_TOUCH_Service			(void);
-uint16_t LCD_TOUCH_GetTypeAndPosition				(XY_Touch_Struct *posXY);
-void 		LCD_TOUCH_DeleteAllSetTouch				(void);
-int 		GetTouchToTemp				(uint16_t idx);
+void		LCD_TOUCH_Service					(void);
+uint16_t LCD_TOUCH_GetTypeAndPosition	(XY_Touch_Struct *posXY);
+void 		LCD_TOUCH_DeleteAllSetTouch	(void);
+int 		GetTouchToTemp						(uint16_t idx);
 int 		LCD_TOUCH_SetNewPos				(uint16_t idx, uint16_t x, uint16_t y, uint16_t xLen, uint16_t yLen);
-void 		LCD_TOUCH_DeleteSelectTouch			(uint16_t idx);
-void 		DeleteAllTouchWithout	(uint16_t idx);
+void 		LCD_TOUCH_DeleteSelectTouch	(uint16_t idx);
+void 		DeleteAllTouchWithout			(uint16_t idx);
 
 void LCD_TOUCH_SusspendAllTouchsWithout(uint16_t start_idx, uint16_t stop_idx);
 void LCD_TOUCH_SusspendAllTouchs(void);
@@ -108,5 +108,6 @@ int LCDTOUCH_IsScrollRelease(uint8_t IDroll, FUNC1_DEF(pFunc), VOID_FUNCTION *pf
 
 int LCDTOUCH_Set(uint16_t startX, uint16_t startY, uint16_t width, uint16_t height, uint16_t ID, uint16_t idx, uint8_t param);
 int LCDTOUCH_Update(uint16_t startX, uint16_t startY, uint16_t width, uint16_t height, uint16_t ID, uint16_t idx, uint8_t param);
+int _AAAAAAAAAAAAAAA(int nr);
 
 #endif

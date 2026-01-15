@@ -1556,12 +1556,36 @@ void FILE_NAME(setTouch)(void)
 	}}}
 	int _KEYBOARD_setTxt__SERVICE(u16 state,int touchStart,int touchStop, int keyStart){
 		if(IS_RANGE(state,touchStart,touchStop)){
-			if(Touch_exit==state /*&& release==LCD_TOUCH_isPress()*/){	LCD_TOUCH_RestoreAllSusspendedTouchs(); FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	KEYBOARD_TYPE(KEYBOARD_none,	0);							 		 ResetIndexKeyBuff();	}
-			else																  {	if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);	KEYBOARD_TYPE(KEYBOARD_setTxt,keyStart+(state-touchStart));  _SaveState(); 		 	}
+			if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);
+			KEYBOARD_TYPE(KEYBOARD_setTxt,keyStart+(state-touchStart));  _SaveState();
 			return 1;
 		}
-		else if(_WasStateRange(touchStart,touchStop))	KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);
+		else if(_WasStateRange(Touch_exit,Touch_exit) && 1!=_AAAAAAAAAAAAAAA(-1)){
+			LCD_TOUCH_RestoreAllSusspendedTouchs(); FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	KEYBOARD_TYPE(KEYBOARD_none,	0);							 		 ResetIndexKeyBuff();
+			return 1;
+		}
+		else if(_WasStateRange(touchStart,touchStop)){
+			KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);
+			return 1;
+		}
+
 		return 0;
+
+
+//		if(IS_RANGE(state,touchStart,touchStop)){
+//			if(Touch_exit==state /*&& release==LCD_TOUCH_isPress()*/)
+//			{
+//				LCD_TOUCH_RestoreAllSusspendedTouchs(); FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	KEYBOARD_TYPE(KEYBOARD_none,	0);							 		 ResetIndexKeyBuff();
+//
+//			}
+//			else																  {
+//				if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);	KEYBOARD_TYPE(KEYBOARD_setTxt,keyStart+(state-touchStart));  _SaveState();
+//			}
+//			return 1;
+//		}
+//		else if(_WasStateRange(touchStart,touchStop))
+//			KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);
+//		return 0;
 	}
 
 
@@ -2352,14 +2376,14 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	static int only_one = 0;
 	if(only_one==0)
 	{
-		StartMeasureTime_us();
+		//StartMeasureTime_us();
 
 
 		//LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen, v.FONT_ID_Descr);
 
 
 
-		StopMeasureTime_us("Time GRAPH:");
+		//StopMeasureTime_us("Time GRAPH:");
 	}
 
 	if(1)	/* This display ever time */

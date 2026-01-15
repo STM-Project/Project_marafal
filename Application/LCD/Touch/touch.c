@@ -1046,3 +1046,11 @@ int LCDTOUCH_Update(uint16_t startX, uint16_t startY, uint16_t width, uint16_t h
  	return LCD_TOUCH_Update(ID,idx,param);
 }
 
+static int dddddd=0;
+int _AAAAAAAAAAAAAAA(int nr){  //takie info w trakcie trwania dotyku !!!!
+	if(nr==-1) return dddddd;
+	else dddddd = nr;
+
+	return nr;
+}
+
