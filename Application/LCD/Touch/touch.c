@@ -37,6 +37,7 @@ typedef struct
   XY_Touch_Struct  pos[MAX_NUMBER_PIONTS_TOUCH];
 }Touch_Struct;
 
+static int userStatusTouch=0;
 static Service_lcd_Touch_Struct  ServiceTouch = {.idx=0};
 static Touch_Struct  Touch[MAX_OPEN_TOUCH_SIMULTANEOUSLY];
 static uint16_t susspendTouch[MAX_OPEN_TOUCH_SIMULTANEOUSLY];
@@ -1046,11 +1047,8 @@ int LCDTOUCH_Update(uint16_t startX, uint16_t startY, uint16_t width, uint16_t h
  	return LCD_TOUCH_Update(ID,idx,param);
 }
 
-static int dddddd=0;
-int _AAAAAAAAAAAAAAA(int nr){  //takie info w trakcie trwania dotyku !!!!
-	if(nr==-1) return dddddd;
-	else dddddd = nr;
-
-	return nr;
+int LCDTOUCH_UserStatus(int nr){
+	if(nr!=_GET) return (userStatusTouch=nr);
+	else			 return userStatusTouch;
 }
 
