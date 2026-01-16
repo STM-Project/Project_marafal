@@ -1877,7 +1877,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		altParam.keyPressPrev=0;
 		altParam.pressTime=0;
 		pTxtKey = (char**)txtKey;
-		SetTxtParamInit(fontID);
+		SetTxtParamInit(fontID);		LCDTOUCH_UserStatus(_SET);
 		_InitCharBuff();
 		if(KeysAutoSize == widthKey){
 			s[k].widthKey =  heightKey + LCD_GetWholeStrPxlWidth(fontID,(char*)pTxtKey[0],textParam.space,textParam.constWidth) + heightKey;
@@ -1935,7 +1935,6 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	if(shape!=0){						/* Do only once when creating Keyboard */
 		LOOP_FOR(i,_ARROWS_NMBR){  LineLenBuff[i]= maxLineLen;  }
-		_AAAAAAAAAAAAAAA(0);
 	}
 
 	void _DispMainField 	 (void){	 LCD_ShapeWindow( s[k].shape,0, widthAll,	  	  heightAll, 	   0,					 0, 				   widthAll,	  heightAll, 		SetBold2Color(frameMainColor,s[k].bold), fillMainColor/*colorFillBk*/, bkColor 	  );	}
@@ -2202,6 +2201,20 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		return 1;
 	}
 
+	void _ExitTouchService(void){
+
+			  if(altParam.pressTime < 20)  altParam.pressTime++;
+		else if(altParam.pressTime > 21)  altParam.pressTime=0;
+		else if(altParam.pressTime==20){  altParam.pressTime=21;
+			cursorVar.offs=0;
+			_DispSeperatedTxt2Field_Ind();
+			Dbg(1,"\r\nXXXXXXXXXXXXX");
+			 memset(charBuff,0,charBuffSize);
+			LCDTOUCH_UserStatus(_SET1);
+		}
+
+	}
+
 	void _ServiceTxtFieldTouch(void)
 	{
 		int _CalcYstop(u8 *param){
@@ -2439,7 +2452,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 
 	if(tExit != selBlockPress){
-		_AAAAAAAAAAAAAAA(0);
+		LCDTOUCH_UserStatus(_SET);
 	}
 
 	if(touchRelease == selBlockPress) _DispAllReleaseKeyboard();
@@ -2494,22 +2507,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		_DispAllReleaseKeyboard();
 	}
 	else if(tExit == selBlockPress){
-
-		if(altParam.pressTime > 21){
-			altParam.pressTime = 0;
-		}
-
-
-		if(altParam.pressTime==20){
-			altParam.pressTime = 21;
-			//_DispSeperatedTxt2Field_Ind();
-			Dbg(1,"\r\nXXXXXXXXXXXXX");
-			_AAAAAAAAAAAAAAA(1);
-		}
-		else if(altParam.pressTime < 20){
-			altParam.pressTime++;
-		}
-
+		_ExitTouchService();
 	}
 	else{
 
