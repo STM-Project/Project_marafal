@@ -1555,37 +1555,10 @@ void FILE_NAME(setTouch)(void)
 				statePrev2=0;
 	}}}
 	int _KEYBOARD_setTxt__SERVICE(u16 state,int touchStart,int touchStop, int keyStart){
-		if(IS_RANGE(state,touchStart,touchStop)){
-			if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);
-			KEYBOARD_TYPE(KEYBOARD_setTxt,keyStart+(state-touchStart));  _SaveState();
-			return 1;
-		}
-		else if(_WasStateRange(Touch_exit,Touch_exit) && 1!=_AAAAAAAAAAAAAAA(-1)){
-			LCD_TOUCH_RestoreAllSusspendedTouchs(); FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	KEYBOARD_TYPE(KEYBOARD_none,	0);							 		 ResetIndexKeyBuff();
-			return 1;
-		}
-		else if(_WasStateRange(touchStart,touchStop)){
-			KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);
-			return 1;
-		}
-
+			  if( IS_RANGE(state,touchStart,touchStop))									 			{		if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);	KEYBOARD_TYPE(KEYBOARD_setTxt, keyStart+(state-touchStart));  _SaveState();	 		 return 1;  }
+		else if(_WasStateRange(Touch_exit,Touch_exit) && _SET==LCDTOUCH_UserStatus(_GET)){		LCD_TOUCH_RestoreAllSusspendedTouchs(); FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	KEYBOARD_TYPE(KEYBOARD_none,	 0);									   ResetIndexKeyBuff();  return 1;  }
+		else if(_WasStateRange(touchStart,touchStop))									 			{																																KEYBOARD_TYPE(KEYBOARD_setTxt, KEY_All_release);  												 return 1;  }
 		return 0;
-
-
-//		if(IS_RANGE(state,touchStart,touchStop)){
-//			if(Touch_exit==state /*&& release==LCD_TOUCH_isPress()*/)
-//			{
-//				LCD_TOUCH_RestoreAllSusspendedTouchs(); FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	KEYBOARD_TYPE(KEYBOARD_none,	0);							 		 ResetIndexKeyBuff();
-//
-//			}
-//			else																  {
-//				if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);	KEYBOARD_TYPE(KEYBOARD_setTxt,keyStart+(state-touchStart));  _SaveState();
-//			}
-//			return 1;
-//		}
-//		else if(_WasStateRange(touchStart,touchStop))
-//			KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);
-//		return 0;
 	}
 
 
