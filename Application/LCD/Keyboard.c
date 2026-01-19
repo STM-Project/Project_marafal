@@ -1870,6 +1870,12 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 
 	void _InitCharBuff(void){ Int16ToCharBuff(&charBuff[charBuffSize-2],strlen(charBuff)); }
 
+	void _TouchExitFlag_AsDeleteKeyboard  (void){ LCDTOUCH_UserStatus(_SET);  		}
+	void _TouchExitFlag_AsClearBufferTxt  (void){ LCDTOUCH_UserStatus(_SET1); 		}
+/*	int  _TouchExitFlag_Read				  (void){ return LCDTOUCH_UserStatus(_GET); }
+	int  _TouchExitFlag_IsAsDeleteKeyboard(void){	if(_SET==LCDTOUCH_UserStatus(_GET)) return 1; else return 0;	} */
+	int  _TouchExitFlag_IsAsClearBufferTxt(void){	if(_SET1==LCDTOUCH_UserStatus(_GET)) return 1; else return 0;	}
+
 
 	if(shape!=0){						/* Do only once when creating Keyboard */
 		cursorVar.pos.x = 0;		cursorVar.pos.y = LCD_GetFontHeight(fontID);		cursorVar.offs = 0;
@@ -1877,7 +1883,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		altParam.keyPressPrev=0;
 		altParam.pressTime=0;
 		pTxtKey = (char**)txtKey;
-		SetTxtParamInit(fontID);		LCDTOUCH_UserStatus(_SET);
+		SetTxtParamInit(fontID);		_TouchExitFlag_AsDeleteKeyboard();
 		_InitCharBuff();
 		if(KeysAutoSize == widthKey){
 			s[k].widthKey =  heightKey + LCD_GetWholeStrPxlWidth(fontID,(char*)pTxtKey[0],textParam.space,textParam.constWidth) + heightKey;
@@ -2210,7 +2216,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			_DispSeperatedTxt2Field_Ind();
 			Dbg(1,"\r\nXXXXXXXXXXXXX");
 			 memset(charBuff,0,charBuffSize);
-			LCDTOUCH_UserStatus(_SET1);
+			 _TouchExitFlag_AsClearBufferTxt();
 		}
 
 	}
@@ -2451,9 +2457,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 		LCD_Display(0, s[k].x, s[k].y, widthAll, heightAll);
 	}
 
-	if(tExit != selBlockPress){
-		LCDTOUCH_UserStatus(_SET);
-	}
+
+	if(_TouchExitFlag_IsAsClearBufferTxt()){	if(tExit != selBlockPress) _TouchExitFlag_AsDeleteKeyboard();	}
 
 	if(touchRelease == selBlockPress) _DispAllReleaseKeyboard();
 
