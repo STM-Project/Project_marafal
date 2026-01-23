@@ -2208,18 +2208,14 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 
 	void _ExitTouchService(void){
-
-			  if(altParam.pressTime < 20)  altParam.pressTime++;
-		else if(altParam.pressTime > 21)  altParam.pressTime=0;
-		else if(altParam.pressTime==20){  altParam.pressTime=21;
+			  if(altParam.pressTime < 10)  altParam.pressTime++;
+		else if(altParam.pressTime > 11)  altParam.pressTime=0;
+		else if(altParam.pressTime==10){  altParam.pressTime=11;
 			cursorVar.offs=0;
+			memset(charBuff,0,charBuffSize);		_DeleteRowsInLineLenBuff(0,_ARROWS_NMBR-1);
+			_TouchExitFlag_AsClearBufferTxt();
 			_DispSeperatedTxt2Field_Ind();
-			Dbg(1,"\r\nXXXXXXXXXXXXX");
-			 memset(charBuff,0,charBuffSize);
-			 _TouchExitFlag_AsClearBufferTxt();
-		}
-
-	}
+	}}
 
 	void _ServiceTxtFieldTouch(void)
 	{
@@ -2348,6 +2344,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];  }
 					  if(_IsSign(key,_SP,NULL,NULL)) charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = ' ';
 					  else 									charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey2[key]);  //! incopatible
+					  _IncIndxCharBuff();
 					  cursorVar.offs++;
 			}
 			else{	 _ServiceAlternativeSign();
@@ -2458,7 +2455,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 	}
 
 
-	if(_TouchExitFlag_IsAsClearBufferTxt()){	if(tExit != selBlockPress) _TouchExitFlag_AsDeleteKeyboard();	}
+	if(_TouchExitFlag_IsAsClearBufferTxt()){	if(tExit != selBlockPress){ _TouchExitFlag_AsDeleteKeyboard(); altParam.pressTime=0; }	}
 
 	if(touchRelease == selBlockPress) _DispAllReleaseKeyboard();
 
