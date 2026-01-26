@@ -1350,6 +1350,8 @@ static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create
 		BlockTouchForTime(_OFF);
 	}
 	CycleRefreshFunc();
+
+	if(LCD_IsRefreshScreenTimeout(refresh_7,60)) LCD_StrMovVIndirect(v.FONT_VAR_Speed,1);
 }
 
 void FUNC_fontColorRGB(int k){ switch(k){
@@ -2353,6 +2355,8 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		//StartMeasureTime_us();
+
+		LCD_StrChangeColorMovV(v.FONT_VAR_Speed,Rotate_0,0,100,50,v.FONT_ID_Speed,650,240,"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  SEX _XY",fullHight,0,LIGHTGRAY,DARKBLUE,249,0);
 
 
 		//LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen, v.FONT_ID_Descr);
