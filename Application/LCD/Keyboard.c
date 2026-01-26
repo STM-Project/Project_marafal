@@ -2307,13 +2307,13 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				_ServiceAlternativeSign();
 				LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];  }
 					  if(_IsSign(key,_SP,NULL,NULL)) charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = ' ';
-					  else 									charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey[key]); //! incopatible
+					  else 									charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey[key]);
 					  _IncIndxCharBuff();
 					  cursorVar.offs++;
 			}
 			else{	 _ServiceAlternativeSign();
 					 if(_IsSign(key,_SP,NULL,NULL)) _SetCharBuff(' '); 			/* Set new char at the end of the text */
-			  	  	 else 								  _SetCharBuff(CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey[key])); //! incopatible
+			  	  	 else 								  _SetCharBuff(CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey[key]));
 			 	 	 _IncIndxCharBuff();
 					 cursorVar.offs =_GetIndxCharBuff();
 			}
@@ -2343,13 +2343,13 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 				_ServiceAlternativeSign();
 				LOOP_FOR(i,offs){	 charBuff[_GetIndxCharBuff()-i] = charBuff[(_GetIndxCharBuff()-1)-i];  }
 					  if(_IsSign(key,_SP,NULL,NULL)) charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = ' ';
-					  else 									charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey2[key]);  //! incopatible
+					  else 									charBuff[(_GetIndxCharBuff()-1)-(offs-1)] = CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey2[key]);
 					  _IncIndxCharBuff();
 					  cursorVar.offs++;
 			}
 			else{	 _ServiceAlternativeSign();
 					 if(_IsSign(key,_SP,NULL,NULL)) _SetCharBuff(' '); 			/* Set new char at the end of the text */
-			  	  	 else 								  _SetCharBuff(CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey2[key])); //! incopatible
+			  	  	 else 								  _SetCharBuff(CONDITION(tempChar=_IsAlternativeSign(),tempChar,*pTxtKey2[key]));
 			 	 	 _IncIndxCharBuff();
 					 cursorVar.offs =_GetIndxCharBuff();
 			}
@@ -2378,13 +2378,8 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			BKCOPY_VAL(c.widthKey,s[k].widthKey,wKey[i]);
 			if(_IsSign(i,_AL,NULL,NULL) || _IsSign(i,_EN,NULL,NULL) || _IsSign(i,_LF,NULL,NULL) || _IsSign(i,_EX,NULL,NULL));
 			else{
-				LCD_TOUCH_DeleteSelectTouch(s[k].startTouchIdx+i);  //To jest to samo i lepiej  "SetTouch" !!!!!
-				touchTemp[0].x= s[k].x + posKey[i].x;
-				touchTemp[1].x= touchTemp[0].x + s[k].widthKey;
-				touchTemp[0].y= s[k].y + posKey[i].y;
-				touchTemp[1].y= touchTemp[0].y + s[k].heightKey;
-				LCD_TOUCH_Set(ID_TOUCH_GET_ANY_POINT_WITH_WAIT, s[k].startTouchIdx+i, TOUCH_GET_PER_X_PROBE );
-				s[k].nmbTouch++;
+				LCD_TOUCH_DeleteSelectTouch(s[k].startTouchIdx+i);
+				SetTouch(k,ID_TOUCH_GET_ANY_POINT_WITH_WAIT,s[k].startTouchIdx+i,TOUCH_GET_PER_X_PROBE,posKey[i]);
 			}
 			BKCOPY(s[k].widthKey,c.widthKey);
 		}
