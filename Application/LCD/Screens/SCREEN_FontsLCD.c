@@ -283,7 +283,7 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 #define TXT_OFFS_WIN		Int2Str(Test.offsWin,' ',3,Sign_none)
 #define TXT_LENOFFS_WIN StrAll(5," ",TXT_LEN_WIN," ",TXT_OFFS_WIN," ")
 #define TXT_TIMESPEED 			StrAll(4,Int2Str(Test.loadFontTime,' ',5,Sign_none)," ms   ",Int2Str(Test.speed,' ',6,Sign_none)," us")
-#define TXT_CPU_USAGE		   StrAll(2,INT2STR(osGetCPUUsage()),"c")
+#define TXT_CPU_USAGE		   StrAll(2,INT2STR(osGetCPUUsage()),"\%")
 
 #define RGB_FONT 	RGB2INT(Test.font[0],Test.font[1],Test.font[2])
 #define RGB_BK    RGB2INT(Test.bk[0],  Test.bk[1],  Test.bk[2])
@@ -577,7 +577,7 @@ static int *ppMain[7] = {(int*)FRAMES_GROUP_combined,(int*)FRAMES_GROUP_separat,
 static char keyBuff[KEYBUFF_SIZE]={0};
 
 static void KEYBOARD_SETTXT_ServiceTxtBuffer(char *buf, int size){
-	Dbg(1,"\r\n\r\n"); Dbg(1,buf); Dbg(1,"\r\n\r\n");
+	Dbg(1,"\r\n"); Dbg(1,buf); Dbg(1,"\r\n");
 }
 static void ResetIndexKeyBuff(void){  KEYBOARD_SETTXT_ServiceTxtBuffer(keyBuff,KEYBUFF_SIZE); memset(keyBuff,0,KEYBUFF_SIZE); }
 /*
@@ -1332,6 +1332,7 @@ static int CheckTouchForTime(uint16_t touchName){
 static void CycleRefreshFunc(void){
 	if(vTimerService(TIMER_Cpu, check_restart_time,1000))
 		Data2Refresh(PARAM_CPU_USAGE);
+	if(LCD_IsRefreshScreenTimeout(refresh_7,60)) LCD_StrMovVIndirect(v.FONT_VAR_Speed,1);
 }
 
 static void BlockingFunc(void){		/* Call this function in long during while(1) */
@@ -2355,9 +2356,10 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		//StartMeasureTime_us();
+		StructTxtPxlLen lenStr__;
 
-		LCD_StrChangeColorMovV(v.FONT_VAR_Speed,Rotate_0,0,100,50,v.FONT_ID_Speed,650,240,"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  SEX _XY",fullHight,0,LIGHTGRAY,DARKBLUE,249,0);
-
+		lenStr__ = LCD_StrChangeColorMovV(v.FONT_VAR_Speed,Rotate_0,0,100,50,v.FONT_ID_Speed,LCD_Xpos(lenStr__,SetPos,480),LCD_Ypos(lenStr__,SetPos,240),"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  SEX _XY",fullHight,0,v.COLOR_BkScreen,ORANGE,249,0);
+		LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),		LCD_Xpos(lenStr__,GetPos,-4),LCD_Ypos(lenStr__,GetPos,-4), lenStr__.inPixel+8,lenStr__.height+8,COLOR_GRAY(0xAA),unUsed,v.COLOR_BkScreen);
 
 		//LCDEXAMPLE_RectangleGradient(v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen, v.FONT_ID_Descr);
 
