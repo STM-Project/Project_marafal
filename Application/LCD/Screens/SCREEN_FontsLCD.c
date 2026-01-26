@@ -576,7 +576,10 @@ static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int 
 static int *ppMain[7] = {(int*)FRAMES_GROUP_combined,(int*)FRAMES_GROUP_separat,(int*)"Rafal", (int*)&Test, NULL, NULL, NULL };
 static char keyBuff[KEYBUFF_SIZE]={0};
 
-static void ResetIndexKeyBuff(void){  memset(keyBuff,0,KEYBUFF_SIZE); }
+static void KEYBOARD_SETTXT_ServiceTxtBuffer(char *buf, int size){
+	Dbg(1,"\r\n\r\n"); Dbg(1,buf); Dbg(1,"\r\n\r\n");
+}
+static void ResetIndexKeyBuff(void){  KEYBOARD_SETTXT_ServiceTxtBuffer(keyBuff,KEYBUFF_SIZE); memset(keyBuff,0,KEYBUFF_SIZE); }
 /*
 static char* TXT_PosCursor(void){
 	return Test.posCursor>0 ? Int2Str(Test.posCursor-1,' ',3,Sign_none) : StrAll(1,"off");
