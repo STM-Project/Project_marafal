@@ -9,7 +9,7 @@
 #include "timer.h"
 #include "_debug.h"
 
-#define MAX_OPEN_TOUCH_SIMULTANEOUSLY	 180  //Tymczasowo zwiekszam ale rozwiaz ta kwestie !!!!!!!
+#define MAX_OPEN_TOUCH_SIMULTANEOUSLY	 180
 #define BUF_LCD_TOUCH_SIZE		100
 #define MAX_NUMBER_PIONTS_TOUCH	 2
 #define AB_COEFF_TAB_SIZE	4
