@@ -1332,8 +1332,7 @@ static int CheckTouchForTime(uint16_t touchName){
 static void CycleRefreshFunc(void){
 	if(vTimerService(TIMER_Cpu, check_restart_time,1000))
 		Data2Refresh(PARAM_CPU_USAGE);
-	if(LCD_IsRefreshScreenTimeout(refresh_7,60)) LCD_StrMovVIndirect(v.FONT_VAR_Speed,1);
-	if(LCD_IsRefreshScreenTimeout(refresh_10,20)) LCD_StrMovVIndirect(fontVar_39,1);
+
 }
 
 static void BlockingFunc(void){		/* Call this function in long during while(1) */					/* This thread in this function-BlockingFunc() can be expropriate by another thread with the some or greater priority (like Ethernet Thread having the some priority as LCD thread) */
@@ -1353,8 +1352,10 @@ static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create
 	}
 	CycleRefreshFunc();
 
-	if(LCD_IsRefreshScreenTimeout(refresh_7,60)) LCD_StrMovVIndirect(v.FONT_VAR_Speed,1);
-	if(LCD_IsRefreshScreenTimeout(refresh_10,20)) LCD_StrMovVIndirect(fontVar_39,1);
+
+	if(LCD_IsRefreshScreenTimeout(refresh_1,20)) LCD_StrMovHIndirect(fontVar_28+0,1);
+
+
 }
 
 void FUNC_fontColorRGB(int k){ switch(k){
@@ -2359,16 +2360,8 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	{
 		//StartMeasureTime_us();
 
-		//LCDEXAMPLE_RotMovText(v.FONT_ID_Speed, v.FONT_ID_Descr, fontVar_28, v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
+		LCDEXAMPLE_RotMovText(v.FONT_ID_Speed, v.FONT_ID_Descr, fontVar_28, v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 
-
-		StructTxtPxlLen lenStr__;
-
-		lenStr__ = LCD_StrChangeColorMovV(v.FONT_VAR_Speed,Rotate_0,0,100,50,v.FONT_ID_Speed,	 LCD_Xpos(lenStr__,SetPos,480),LCD_Ypos(lenStr__,SetPos,240),	"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  SEX _XY",fullHight,0,v.COLOR_BkScreen,ORANGE,249,0);
-		LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),		LCD_Xpos(lenStr__,GetPos,-4),LCD_Ypos(lenStr__,GetPos,-4), lenStr__.inPixel+8,lenStr__.height+8,COLOR_GRAY(0xAA),unUsed,v.COLOR_BkScreen);
-
-		lenStr__ = LCD_StrMovH(fontVar_39,Rotate_90,0,109,   v.FONT_ID_Press, 	LCD_Xpos(lenStr__,SetPos,300),LCD_Ypos(lenStr__,SetPos,240),	"BBB1111111111222222222222222 33333333333333333333B",fullHight,0,DARKBLUE,0,1);
-		LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),		LCD_Xpos(lenStr__,GetPos,-4),LCD_Ypos(lenStr__,GetPos,-4), lenStr__.inPixel+8,lenStr__.height+8,COLOR_GRAY(0xAA),unUsed,v.COLOR_BkScreen);
 
 
 
