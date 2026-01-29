@@ -1332,7 +1332,6 @@ static int CheckTouchForTime(uint16_t touchName){
 static void CycleRefreshFunc(void){
 	if(vTimerService(TIMER_Cpu, check_restart_time,1000))
 		Data2Refresh(PARAM_CPU_USAGE);
-
 }
 
 static void BlockingFunc(void){		/* Call this function in long during while(1) */					/* This thread in this function-BlockingFunc() can be expropriate by another thread with the some or greater priority (like Ethernet Thread having the some priority as LCD thread) */
@@ -1353,7 +1352,23 @@ static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create
 	CycleRefreshFunc();
 
 
-	if(LCD_IsRefreshScreenTimeout(refresh_1,20)) LCD_StrMovHIndirect(fontVar_28+0,1);
+
+		if(LCD_IsRefreshScreenTimeout(refresh_1,60)) LCD_StrMovHIndirect(fontVar_28,1);
+		if(LCD_IsRefreshScreenTimeout(refresh_2,60)) LCD_StrMovHIndirect(fontVar_29,1);
+		if(LCD_IsRefreshScreenTimeout(refresh_3,20)) LCD_StrMovHIndirect(fontVar_30,1);
+
+//		if(LCD_IsRefreshScreenTimeout(refresh_4,60)) LCD_StrMovHIndirect(fontVar_31,1);
+//		if(LCD_IsRefreshScreenTimeout(refresh_5,60)) LCD_StrMovHIndirect(fontVar_32,1);
+//		if(LCD_IsRefreshScreenTimeout(refresh_6,20)) LCD_StrMovHIndirect(fontVar_33,1);
+//
+//		if(LCD_IsRefreshScreenTimeout(refresh_7,60)) LCD_StrMovVIndirect(fontVar_34,1);
+//		if(LCD_IsRefreshScreenTimeout(refresh_8,20)) LCD_StrMovVIndirect(fontVar_35,1);
+//
+//		if(LCD_IsRefreshScreenTimeout(refresh_9,60))  LCD_StrMovVIndirect(fontVar_36,1);
+//		if(LCD_IsRefreshScreenTimeout(refresh_10,20)) LCD_StrMovVIndirect(fontVar_37,1);
+//
+//		if(LCD_IsRefreshScreenTimeout(refresh_11,60)) LCD_StrMovVIndirect(fontVar_38,1);
+//		if(LCD_IsRefreshScreenTimeout(refresh_12,20)) LCD_StrMovVIndirect(fontVar_39,1);
 
 
 }
