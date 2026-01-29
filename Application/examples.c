@@ -547,81 +547,73 @@ void LCDEXAMPLE_BezierCurves(u32 xMidd,u32 yMidd, u32 xRight,u32 yRight, u32 Bkp
 
 void LCDEXAMPLE_RotMovText(int FONT_ID1, int FONT_ID2, int FONT_VAR_Start, u32 COLOR_FillMainFrame, u32 COLOR_Frame, u32 COLOR_BkScreen)
 {
-	char txt1[] = "Analizator z serii RSA6000 oferuje wyświetlanie w wielu oknach, doskonały poziom szumu średniego wyświetlanego (DANL), najwyższą klasę szumu fazowego i szeroki zakres dynamiczny";
-	char txt2[] = "Stanowi cenne wsparcie zarówno dla laboratoriów, jak i dla produkcji oraz testów terenowych";
+	char txt1[] = "Analizator z serii RSA6000 oferuje wyswietlanie w wielu oknach, doskonaly poziom szumu średniego wyświetlanego (DANL), najwyższą klasę szumu fazowego i szeroki zakres dynamiczny";
+	char txt2[] = "Stanowi cenne wsparcie zarowno dla laboratoriow, jak i dla produkcji oraz testow terenowych";
 	char txt3[] = "W komplecie są dwie oryginalne sondy na 500MHz";
 	StructTxtPxlLen lenStr1, lenStr2, lenStr3;
-	int widthWin1=109, widthWin2=110, widthWin3=111;
+	int fontId1 = FONT_ID1,		fontId2 = FONT_ID1,		fontId3 = FONT_ID2,		margin = 8;
+	int widthWin1 = 109,			heightWin1 = LCD_GetFontHeight(FONT_ID1) + margin;
+	int widthWin2 = 110,			heightWin2 = LCD_GetFontHeight(FONT_ID1) + margin;
+	int widthWin3 = 111,			heightWin3 = LCD_GetFontHeight(FONT_ID2) + margin;
 
-//	widthWin1 = LCD_GetWholeStrPxlWidth(FONT_ID1,txt1,0,ConstWidth) + 8;
-//	widthWin2 = LCD_GetWholeStrPxlWidth(FONT_ID1,txt2,0,ConstWidth) + 8;
-//	widthWin3 = LCD_GetWholeStrPxlWidth(FONT_ID2,txt3,0,ConstWidth) + 8;
+	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(0,lenStr1,SetPos,10 ), LCD_posY(0,lenStr1,SetPos,240), widthWin1,heightWin1, COLOR_GRAY(0xAA),DARKYELLOW,COLOR_BkScreen);		/* lenStr1..3 are used in LCD_Xpos()-LCD_posX() or LCD_Ypos()-LCD_posY only for 'IncPos' */
+	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(1,lenStr2,SetPos,130), LCD_posY(1,lenStr2,SetPos,240), widthWin2,heightWin2, COLOR_GRAY(0xAA),DARKBLUE,  COLOR_BkScreen);
+	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(2,lenStr3,SetPos,260), LCD_posY(2,lenStr3,SetPos,240), widthWin3,heightWin3, COLOR_GRAY(0xAA),unUsed,		COLOR_BkScreen);
+	LCD_StrMovH( FONT_VAR_Start+0,Rotate_0,	0,widthWin1-margin,fontId1, LCD_posX(0,lenStr1,GetPos,+4), LCD_posY(0,lenStr1,GetPos,+4), txt1, fullHight,0, DARKYELLOW,	 0,NoConstWidth );
+	LCD_StrMovH( FONT_VAR_Start+1,Rotate_0,	0,widthWin2-margin,fontId2, LCD_posX(1,lenStr2,GetPos,+4), LCD_posY(1,lenStr2,GetPos,+4), txt2, fullHight,0, DARKBLUE,	 0,NoConstWidth );
+	LCD_StrMovH( FONT_VAR_Start+2,Rotate_0,	0,widthWin3-margin,fontId3, LCD_posX(2,lenStr3,GetPos,+4), LCD_posY(2,lenStr3,GetPos,+4), txt3, fullHight,0, COLOR_BkScreen,0,NoConstWidth );		/* READ_BGCOLOR here it does not run */
 
-	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr1,SetPos,10 ), LCD_Ypos(lenStr1,SetPos,240), widthWin1, LCD_GetFontHeight(FONT_ID1)+8, COLOR_GRAY(0xAA),DARKYELLOW,COLOR_BkScreen);		/* lenStr1..3 are used only for 'IncPos' */
-//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr2,SetPos,130), LCD_Ypos(lenStr2,SetPos,240), pxlTxtLen2, pxlTxtLen2, COLOR_GRAY(0xAA),DARKBLUE,		  COLOR_BkScreen);
-//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr3,SetPos,260), LCD_Ypos(lenStr3,SetPos,240), pxlTxtLen3, pxlTxtLen3, COLOR_GRAY(0xAA),unUsed,			  COLOR_BkScreen);
-	LCD_StrMovH( FONT_VAR_Start+0,Rotate_0,	0,widthWin1-8,FONT_ID1, LCD_Xpos(lenStr1,GetPos,+4), LCD_Ypos(lenStr1,GetPos,+4), txt1, fullHight,0, DARKYELLOW,0,NoConstWidth   );
-//	LCD_StrMovH( FONT_VAR_Start+1,Rotate_90,	0,109,FONT_ID1, LCD_Xpos(lenStr2,GetPos,+4), LCD_Ypos(lenStr2,GetPos,+4), txt2, fullHight,0, DARKBLUE,		  0,ConstWidth   );
-//	LCD_StrMovH( FONT_VAR_Start+2,Rotate_180,	0,109,FONT_ID1, LCD_Xpos(lenStr3,GetPos,+4), LCD_Ypos(lenStr3,GetPos,+4), txt3, fullHight,0, READ_BGCOLOR,	  0,ConstWidth   );
-
-//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr1,SetPos,10 ), LCD_Ypos(lenStr1,SetPos,270), pxlTxtLen1, pxlTxtLen1, COLOR_GRAY(0xAA),unUsed,		COLOR_BkScreen);
-//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr2,SetPos,130), LCD_Ypos(lenStr2,SetPos,270), pxlTxtLen2, pxlTxtLen2, COLOR_GRAY(0xAA),DARKYELLOW,COLOR_BkScreen);
-//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr3,SetPos,260), LCD_Ypos(lenStr3,SetPos,270), pxlTxtLen3, pxlTxtLen3, COLOR_GRAY(0xAA),unUsed,		COLOR_BkScreen);
-//	LCD_StrChangeColorMovH( FONT_VAR_Start+3,Rotate_0,  0,80,FONT_ID2, LCD_Xpos(lenStr1,GetPos,+4), LCD_Ypos(lenStr1,GetPos,+4), txt1,fullHight,0, READ_BGCOLOR,DARKRED, 254,0 );
-//	LCD_StrChangeColorMovH( FONT_VAR_Start+4,Rotate_90, 0,80,FONT_ID2, LCD_Xpos(lenStr2,GetPos,+4), LCD_Ypos(lenStr2,GetPos,+4), txt2,fullHight,0, DARKYELLOW,	DARKBLUE,254,0 );
-//	LCD_StrChangeColorMovH( FONT_VAR_Start+5,Rotate_180,0,80,FONT_ID2, LCD_Xpos(lenStr3,GetPos,+4), LCD_Ypos(lenStr3,GetPos,+4), txt3,fullHight,0, READ_BGCOLOR,ORANGE,  254,0 );
+//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr1,SetPos,10 ), LCD_Ypos(lenStr1,SetPos,270), widthWin1,heightWin1, COLOR_GRAY(0xAA),unUsed,	 COLOR_BkScreen);
+//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr2,SetPos,130), LCD_Ypos(lenStr2,SetPos,270), widthWin2,heightWin2, COLOR_GRAY(0xAA),DARKYELLOW,COLOR_BkScreen);
+//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr3,SetPos,260), LCD_Ypos(lenStr3,SetPos,270), widthWin3,heightWin3, COLOR_GRAY(0xAA),unUsed,	 COLOR_BkScreen);
+//	LCD_StrChangeColorMovH( FONT_VAR_Start+3,Rotate_0,  0,80,fontId1, LCD_Xpos(lenStr1,GetPos,+4), LCD_Ypos(lenStr1,GetPos,+4), txt1,fullHight,0, READ_BGCOLOR,DARKRED, 254,0 );
+//	LCD_StrChangeColorMovH( FONT_VAR_Start+4,Rotate_90, 0,80,fontId2, LCD_Xpos(lenStr2,GetPos,+4), LCD_Ypos(lenStr2,GetPos,+4), txt2,fullHight,0, DARKYELLOW,  DARKBLUE,254,0 );
+//	LCD_StrChangeColorMovH( FONT_VAR_Start+5,Rotate_180,0,80,fontId3, LCD_Xpos(lenStr3,GetPos,+4), LCD_Ypos(lenStr3,GetPos,+4), txt3,fullHight,0, READ_BGCOLOR,ORANGE,  254,0 );
 //
-//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr1,SetPos,10 ), LCD_Ypos(lenStr1,SetPos,310), pxlTxtLen1, pxlTxtLen1, COLOR_GRAY(0xAA),unUsed,				COLOR_BkScreen );
-//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr2,SetPos,10 ), LCD_Ypos(lenStr2,SetPos,310), pxlTxtLen2, pxlTxtLen2, COLOR_GRAY(0xAA),COLOR_GRAY(0x29),COLOR_BkScreen );
-//	LCD_StrChangeColorMovV( FONT_VAR_Start+6,Rotate_0,0,100,50,FONT_ID2, LCD_Xpos(lenStr1,GetPos,+4), LCD_Ypos(lenStr1,GetPos,+4), txt1,fullHight,0, READ_BGCOLOR,DARKBLUE,249,0 );
-//	LCD_StrMovV           ( FONT_VAR_Start+7,Rotate_0,0,100,50,FONT_ID1, LCD_Xpos(lenStr2,GetPos,+4), LCD_Ypos(lenStr2,GetPos,+4), txt2,fullHight,0, COLOR_GRAY(0x29),	  0,  0 );
+//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr1,SetPos,10), LCD_Ypos(lenStr1,SetPos,310), widthWin1,heightWin1, COLOR_GRAY(0xAA),unUsed,				COLOR_BkScreen );
+//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr2,SetPos,10), LCD_Ypos(lenStr2,SetPos,310), widthWin2,heightWin2, COLOR_GRAY(0xAA),COLOR_GRAY(0x29),COLOR_BkScreen );
+//	LCD_StrChangeColorMovV( FONT_VAR_Start+6,Rotate_0,0,widthWin1,heightWin1,fontId1, LCD_Xpos(lenStr1,GetPos,+4), LCD_Ypos(lenStr1,GetPos,+4), txt1,fullHight,0, READ_BGCOLOR,DARKBLUE,249,0 );
+//	LCD_StrMovV           ( FONT_VAR_Start+7,Rotate_0,0,widthWin2,heightWin2,fontId2, LCD_Xpos(lenStr2,GetPos,+4), LCD_Ypos(lenStr2,GetPos,+4), txt2,fullHight,0, COLOR_GRAY(0x29),	  	 0,  0 );
 //
-//	LCD_StrChangeColorMovV( FONT_VAR_Start+8,Rotate_90,0,100,50,FONT_ID2,10,370,txt1,fullHight,0,COLOR_BkScreen,DARKBLUE,249,0 );
-//	LCD_StrMovV           ( FONT_VAR_Start+9,Rotate_90,0,100,50,FONT_ID1,10,400,txt2,fullHight,0,MYGRAY,0,0 );
+//	LCD_StrChangeColorMovV( FONT_VAR_Start+8,Rotate_90,0,widthWin1,heightWin1,FONT_ID2,10,370,txt1,fullHight,0,COLOR_BkScreen,DARKBLUE,249,0 );
+//	LCD_StrMovV           ( FONT_VAR_Start+9,Rotate_90,0,widthWin2,heightWin2,FONT_ID1,10,400,txt2,fullHight,0,MYGRAY,						0,	0 );
 //
-//	LCD_StrChangeColorMovV( FONT_VAR_Start+10,Rotate_180,0,100,50,FONT_ID2,650,370,txt1,fullHight,0,COLOR_BkScreen,DARKBLUE,249,0 );
-//	LCD_StrMovV           ( FONT_VAR_Start+11,Rotate_180,0,100,50,FONT_ID1,650,400,txt2,fullHight,0,MYGRAY,0,0 );
+//	LCD_StrChangeColorMovV( FONT_VAR_Start+10,Rotate_180,0,widthWin1,heightWin1,FONT_ID2,650,370,txt1,fullHight,0,COLOR_BkScreen,DARKBLUE,249,0 );
+//	LCD_StrMovV           ( FONT_VAR_Start+11,Rotate_180,0,widthWin2,heightWin2,FONT_ID1,650,400,txt2,fullHight,0,MYGRAY,						0,	0 );
 
 
-	//if(LCD_IsRefreshScreenTimeout(refresh_1,20)) LCD_StrMovHIndirect(FONT_VAR_Start+0,1);
+/* Refresh Test 	-  use only if cyclic refresh is necessary in function FILE_NAME(timer)() */
+
+/*	if(LCD_IsRefreshScreenTimeout(refresh_1,60)) LCD_StrMovHIndirect(fontVar_28,1);
+	if(LCD_IsRefreshScreenTimeout(refresh_2,60)) LCD_StrMovHIndirect(fontVar_29,1);
+	if(LCD_IsRefreshScreenTimeout(refresh_3,20)) LCD_StrMovHIndirect(fontVar_30,1);
+
+	if(LCD_IsRefreshScreenTimeout(refresh_4,60)) LCD_StrMovHIndirect(fontVar_31,1);
+	if(LCD_IsRefreshScreenTimeout(refresh_5,60)) LCD_StrMovHIndirect(fontVar_32,1);
+	if(LCD_IsRefreshScreenTimeout(refresh_6,20)) LCD_StrMovHIndirect(fontVar_33,1);
+
+	if(LCD_IsRefreshScreenTimeout(refresh_7,60)) LCD_StrMovVIndirect(fontVar_34,1);
+	if(LCD_IsRefreshScreenTimeout(refresh_8,20)) LCD_StrMovVIndirect(fontVar_35,1);
+
+	if(LCD_IsRefreshScreenTimeout(refresh_9,60))  LCD_StrMovVIndirect(fontVar_36,1);
+	if(LCD_IsRefreshScreenTimeout(refresh_10,20)) LCD_StrMovVIndirect(fontVar_37,1);
+
+	if(LCD_IsRefreshScreenTimeout(refresh_11,60)) LCD_StrMovVIndirect(fontVar_38,1);
+	if(LCD_IsRefreshScreenTimeout(refresh_12,20)) LCD_StrMovVIndirect(fontVar_39,1);
+*/
 
 
+/* Another method displaying */
 
-
-
-
-//Przuklad samego frame daj !!!!!!
-
-//	lenStr1 = LCD_StrMovH( FONT_VAR_Start+0,Rotate_0,	0,109,FONT_ID1, LCD_Xpos(lenStr1,SetPos,10 ), LCD_Ypos(lenStr1,SetPos,240), txt2, fullHight,0, COLOR_GRAY(0x33),0,ConstWidth   );
-//	lenStr2 = LCD_StrMovH( FONT_VAR_Start+1,Rotate_90,	0,109,FONT_ID1, LCD_Xpos(lenStr2,SetPos,130), LCD_Ypos(lenStr2,SetPos,240), txt1, fullHight,0, DARKBLUE,			 0,ConstWidth   );
-//	lenStr3 = LCD_StrMovH( FONT_VAR_Start+2,Rotate_180,0,109,FONT_ID1, LCD_Xpos(lenStr3,SetPos,260), LCD_Ypos(lenStr3,SetPos,240), txt2, fullHight,0, READ_BGCOLOR,	 0,NoConstWidth );
-//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr1,GetPos,-4), LCD_Ypos(lenStr1,GetPos,-4), lenStr1.inPixel+8, lenStr1.height+8, COLOR_GRAY(0xAA),COLOR_GRAY(0x33),COLOR_BkScreen);
-//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr2,GetPos,-4), LCD_Ypos(lenStr2,GetPos,-4), lenStr2.inPixel+8, lenStr2.height+8, COLOR_GRAY(0xAA),DARKBLUE,			 COLOR_BkScreen);
-//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr3,GetPos,-4), LCD_Ypos(lenStr3,GetPos,-4), lenStr3.inPixel+8, lenStr3.height+8, COLOR_GRAY(0xAA),unUsed,			 COLOR_BkScreen);
-
-//	lenStr1 = LCD_StrChangeColorMovH( FONT_VAR_Start+3,Rotate_0,  0,80,FONT_ID2, LCD_Xpos(lenStr1,SetPos,10 ), LCD_Ypos(lenStr1,SetPos,270),txt2,fullHight,0, COLOR_BkScreen,DARKRED,254,0 );
-//	lenStr2 = LCD_StrChangeColorMovH( FONT_VAR_Start+4,Rotate_90, 0,80,FONT_ID2, LCD_Xpos(lenStr1,SetPos,130), LCD_Ypos(lenStr1,SetPos,270),txt1,fullHight,0, COLOR_BkScreen,DARKRED,254,0 );
-//	lenStr3 = LCD_StrChangeColorMovH( FONT_VAR_Start+5,Rotate_180,0,80,FONT_ID2, LCD_Xpos(lenStr1,SetPos,260), LCD_Ypos(lenStr1,SetPos,270),txt2,fullHight,0, COLOR_BkScreen,ORANGE, 254,0 );
-//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr1,GetPos,-4), LCD_Ypos(lenStr1,GetPos,-4), lenStr1.inPixel+8, lenStr1.height+8, COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
-//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr2,GetPos,-4), LCD_Ypos(lenStr2,GetPos,-4), lenStr2.inPixel+8, lenStr2.height+8, COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
-//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr3,GetPos,-4), LCD_Ypos(lenStr3,GetPos,-4), lenStr3.inPixel+8, lenStr3.height+8, COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
-
-
-//	lenStr=LCD_StrChangeColorMovV( FONT_VAR_Start+6,Rotate_0,0,100,50,FONT_ID2, LCD_Xpos(lenStr1,SetPos,10 ), LCD_Ypos(lenStr1,SetPos,310), txt1,fullHight,0, COLOR_BkScreen,DARKBLUE,249,0 );
-//	lenStr=LCD_StrMovV           ( FONT_VAR_Start+7,Rotate_0,0,100,50,FONT_ID1, LCD_Xpos(lenStr2,SetPos,230), LCD_Ypos(lenStr2,SetPos,310), txt1,fullHight,0, MYGRAY,						 0,  0 );
-//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr1,GetPos,-4), LCD_Ypos(lenStr1,GetPos,-4), lenStr1.inPixel+8, lenStr1.height+8, COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen );
-//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr2,GetPos,-4), LCD_Ypos(lenStr2,GetPos,-4), lenStr2.inPixel+8, lenStr2.height+8, COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen );
-
-//	lenStr=LCD_StrChangeColorMovV( FONT_VAR_Start+8,Rotate_90,0,100,50,FONT_ID2,10,370,txt1,fullHight,0,COLOR_BkScreen,DARKBLUE,249,0 );
-//	lenStr=LCD_StrMovV           ( FONT_VAR_Start+9,Rotate_90,0,100,50,FONT_ID1,10,400,txt1,fullHight,0,MYGRAY,0,0 );
+//	lenStr1 = LCD_StrChangeColorMovV( FONT_VAR_Start+0,Rotate_0, 0, 100,50, fontId1,LCD_Xpos(lenStr1,SetPos,480),LCD_Ypos(lenStr1,SetPos,240),	txt1,fullHight,0,COLOR_BkScreen,ORANGE,249,0 );
+//	lenStr2 = LCD_StrMovH			  ( FONT_VAR_Start+1,Rotate_90,0, 109,    fontId2,LCD_Xpos(lenStr2,SetPos,100),LCD_Ypos(lenStr2,SetPos,240),txt2,fullHight,0,DARKBLUE,0,1);
 //
-//	lenStr=LCD_StrChangeColorMovV( FONT_VAR_Start+10,Rotate_180,0,100,50,FONT_ID2,650,370,txt1,fullHight,0,COLOR_BkScreen,DARKBLUE,249,0 );
-//	lenStr=LCD_StrMovV           ( FONT_VAR_Start+11,Rotate_180,0,100,50,FONT_ID1,650,400,txt1,fullHight,0,MYGRAY,0,0 );
-
-
-
-
-
+//	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),		LCD_Xpos(lenStr1,GetPos,-4),LCD_Ypos(lenStr1,GetPos,-4), lenStr1.inPixel+8,lenStr1.height+8,COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
+//
+//
+//	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),		LCD_Xpos(lenStr2,GetPos,-4),LCD_Ypos(lenStr2,GetPos,-4), lenStr2.inPixel+8,lenStr2.height+8,COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
+//
+//
 
 
 
