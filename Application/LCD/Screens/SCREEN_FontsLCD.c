@@ -2379,7 +2379,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 		LCDEXAMPLE_RotMovText(v.FONT_ID_Speed, v.FONT_ID_Descr, fontVar_28, v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
 
 
-
+		PCF8575_Test();
 
 
 

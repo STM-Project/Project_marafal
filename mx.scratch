@@ -3,10 +3,10 @@
   <FileVersion>3.0</FileVersion>
   <Workspace>
     <WorkspaceType>Single-project</WorkspaceType>
-    <WorkspacePath>C:\Projekty_id109\Stm32F769bit6\</WorkspacePath>
+    <WorkspacePath>C:\STM32F7\Stm32F769bit6\</WorkspacePath>
     <underRoot>true</underRoot>
     <TrustZone>0</TrustZone>
-    <HAL_Driver>C:\Users\maraf\STM32Cube\Repository\STM32Cube_FW_F7_V1.17.1</HAL_Driver>
+    <HAL_Driver>C:\Users\Admin\STM32Cube\Repository\STM32Cube_FW_F7_V1.17.1</HAL_Driver>
     <CMSIS>Drivers/CMSIS</CMSIS>
     <Toolchain>STM32CubeIDE</Toolchain>
     <IocFile>Stm32F769bit6.ioc</IocFile>
@@ -30,7 +30,7 @@
             <memory access="xrw" name="RAM" size="524288" start="0x20000000" />
             <memory access="rx" name="FLASH" size="2097152" start="0x8000000" />
           </memories>
-          <startup>C:\Users\maraf\STM32Cube\Repository\STM32Cube_FW_F7_V1.17.1\Drivers\CMSIS\Device\ST\STM32F7xx\Source\Templates\gcc\startup_stm32f769xx.s</startup>
+          <startup>C:\Users\Admin\STM32Cube\Repository\STM32Cube_FW_F7_V1.17.1\Drivers\CMSIS\Device\ST\STM32F7xx\Source\Templates\gcc\startup_stm32f769xx.s</startup>
           <LinkSettings>
             <LinkAdditionalLibs />
           </LinkSettings>
@@ -41,7 +41,39 @@
           <debugprobe>swd</debugprobe>
           <optimization />
           <Aincludes>
-            <include />
+            <include>Core\Inc</include>
+            <include>FATFS\Target</include>
+            <include>FATFS\App</include>
+            <include>LWIP\App</include>
+            <include>LWIP\Target</include>
+            <include>MBEDTLS\App</include>
+            <include>Middlewares\Third_Party\LwIP\src\include</include>
+            <include>Middlewares\Third_Party\LwIP\system</include>
+            <include>Middlewares\Third_Party\LwIP\src\include</include>
+            <include>Middlewares\Third_Party\LwIP\system</include>
+            <include>Drivers\STM32F7xx_HAL_Driver\Inc</include>
+            <include>Drivers\STM32F7xx_HAL_Driver\Inc\Legacy</include>
+            <include>Middlewares\Third_Party\FreeRTOS\Source\include</include>
+            <include>Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS</include>
+            <include>Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM7\r0p1</include>
+            <include>Middlewares\Third_Party\FatFs\src</include>
+            <include>Drivers\BSP\Components\lan8742</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\netif\ppp</include>
+            <include>Middlewares\Third_Party\mbedTLS\include\mbedtls</include>
+            <include>Drivers\CMSIS\Device\ST\STM32F7xx\Include</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\lwip</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\lwip\apps</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\lwip\priv</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\lwip\prot</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\netif</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\compat\posix</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\compat\posix\arpa</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\compat\posix\net</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\compat\posix\sys</include>
+            <include>Middlewares\Third_Party\LwIP\src\include\compat\stdc</include>
+            <include>Middlewares\Third_Party\LwIP\system\arch</include>
+            <include>Middlewares\Third_Party\mbedTLS\include</include>
+            <include>Drivers\CMSIS\Include</include>
           </Aincludes>
           <Adefines />
           <Cdefines>

@@ -35,6 +35,7 @@
 #include "ltdc.h"
 #include "tim.h"
 #include "stdlib.h"
+#include "i2c.h"
 
 /* USER CODE END Includes */
 
@@ -87,6 +88,7 @@ void HARDWARE_Init(void)
 	MX_DMA2D_Init();
 
 	MX_TIM5_Init();
+	MX_I2C4_Init();
 }
 
 /* USER CODE END 0 */
@@ -127,7 +129,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   /* Call PreOsInit function */
-  //MX_MBEDTLS_Init();
+  MX_MBEDTLS_Init();
   /* USER CODE BEGIN 2 */
   HARDWARE_Init();
 
