@@ -21,7 +21,6 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
-#include "usart.h"
 #include "mbedtls.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -89,6 +88,7 @@ void HARDWARE_Init(void)
 
 	MX_TIM5_Init();
 	MX_I2C4_Init();
+	MX_USART6_UART_Init();
 }
 
 /* USER CODE END 0 */
