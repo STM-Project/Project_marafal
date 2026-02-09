@@ -5,6 +5,7 @@
  *      Author: maraf
  */
 #include "SCREEN_CalibrationLCD.h"
+#include "SCREEN_ReadPanel.h"
 #include "LCD_BasicGraphics.h"
 #include "LCD_fonts_images.h"
 #include <stdio.h>
