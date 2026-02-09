@@ -11,6 +11,7 @@
 #include <stdarg.h>
 #include "double_float.h"
 #include "common.h"
+#include "mini_printf.h"
 
 #define SIZE_STRBUFF		200
 #define SIZE_STRBUFF_OUT	150
@@ -331,3 +332,48 @@ char* DispLongNmb(uint32_t nmb, char* bufStr){
 	}
 	else return buf;
 }
+
+void StrBuffCopy(char *dest, char *src){
+	int i,len=mini_strlen(src);
+	for(i=0;i<len;++i) dest[i]=src[i];
+	dest[i]=0;
+}
+
+void StrBuffCopylimit(char *dest, char *src, int lenSrc){
+	int i;
+	for(i=0;i<lenSrc;++i) dest[i]=src[i];
+	dest[i]=0;
+}
+
+uint32_t IPStr2Int(char *str)
+{
+	char *ptr;
+	StrBuffCopylimit(strBuff,str,16);
+	return IPDOT(strtoll(strBuff,&ptr,10),strtoll(ptr+1,&ptr,10),strtoll(ptr+1,&ptr,10),strtoll(ptr+1,NULL,10));
+}
+
+uint64_t MACStr2Int64(char *str)
+{
+	char *ptr;
+	uint64_t mac[6];
+	StrBuffCopylimit(strBuff,str,40);
+	mac[0]=strtoll(strBuff,&ptr,16);
+	mac[1]=strtoll(ptr+1,&ptr,16);
+	mac[2]=strtoll(ptr+1,&ptr,16);
+	mac[3]=strtoll(ptr+1,&ptr,16);
+	mac[4]=strtoll(ptr+1,&ptr,16);
+	mac[5]=strtoll(ptr+1,NULL,16);
+	return mac[0]<<40 | mac[1]<<32 | mac[2]<<24 | mac[3]<<16 | mac[4]<<8 | mac[5];
+}
+
+char* IP2Str(uint32_t value)
+{
+	int len, MaxSize=16;
+
+	if(idx+MaxSize >= SIZE_STRBUFF)
+		idx=0;
+	len=1+mini_snprintf(strBuff+idx,MaxSize,"%d.%d.%d.%d",(uint8_t)(value>>24),(uint8_t)(value>>16),(uint8_t)(value>>8),(uint8_t)value);
+	idx+=len;
+	return strBuff+idx-len;
+}
+
