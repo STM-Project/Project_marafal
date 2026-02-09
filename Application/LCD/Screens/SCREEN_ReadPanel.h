@@ -29,4 +29,6 @@ int SCREEN_SetTouchForNewEndPos(int idVar, int touchIdx, StructTxtPxlLen lenStr)
 void Measure_Start();
 void Measure_Stop();
 
+void SCREEN_ResetAllParameters(void);
+
 #endif /* LCD_SCREENS_SCREEN_READPANEL_H_ */
