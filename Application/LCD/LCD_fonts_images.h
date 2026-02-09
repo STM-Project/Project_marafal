@@ -431,8 +431,6 @@ uint16_t LCD_Ymiddle(int nr, int cmd, uint32_t val);
 uint16_t LCD_Xmiddle(int nr, int cmd, uint32_t val, char *txt, int space, int constWidth);
 uint32_t SetPosAndWidth(uint16_t pos, uint16_t width);
 
-void SCREEN_ResetAllParameters(void);
-
 StructFieldPos LCD_StrDependOnColorsDescrVar_array(int noDisp, int idVar,int fontID, uint32_t fontColor, uint32_t bkColor, uint32_t bkScreenColor, int Xpos, int Ypos, char *txt, int OnlyDigits, int space,int maxVal, int constWidth, \
 		int fontID1, uint32_t fontColor1, uint32_t bkColor1, int interspace1, int directionDescr1, char *txt1, int OnlyDigits1, int space1,int maxVal1, int constWidth1, \
 		int fontID2, uint32_t fontColor2, uint32_t bkColor2, int interspace2, int directionDescr2, char *txt2, int OnlyDigits2, int space2,int maxVal2, int constWidth2, \
