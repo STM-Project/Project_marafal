@@ -40,6 +40,8 @@
 #include "mbedtls.h"
 #include "crc.h"
 #include "rng.h"
+#include "esp32wroom.h"
+#include <_debug.h>
 
 /* USER CODE END Includes */
 
@@ -215,6 +217,8 @@ void StartDefaultTask(void const * argument)
 	Create_TouchLcd_Task(); //sprawdz ustawienia w MXCUbe ustawienia freeRTOS z FP70 i wygeneruj projekt jeszcze raz
 	Create_ScreensSelectLCD_Task();
 	//Create_TEST_Task();
+
+	//CreateWifiTask();
 
 	#if HTTP_THREAD_ON
 	 http_server_netconn_init();
