@@ -3646,14 +3646,6 @@ uint32_t SetPosAndWidth(uint16_t pos, uint16_t width){
 	return ((uint32_t)pos&0x0000FFFF)|width<<16;
 }
 
-void SCREEN_ResetAllParameters(void)
-{
-	LCD_AllRefreshScreenClear();
-	LCD_ResetStrMovBuffPos();
-	LCD_DeleteAllFontAndImages();
-	LCD_ResetAllBasicGraphicsParams();
-}
-
 uint32_t LCD_LoadFont_DependOnColors(int fontSize, int fontStyle, uint32_t bkColor, uint32_t fontColor, uint32_t fontID)
 {
 	if		 (bkColor==MYGRAY && fontColor == WHITE)
