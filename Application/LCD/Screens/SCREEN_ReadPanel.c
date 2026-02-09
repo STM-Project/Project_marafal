@@ -39,6 +39,14 @@ int SCREEN_number=0, SCREEN_number_prev=-1;  //LOAD IMAGE !!!!!
 StructTxtPxlLen lenStr;
 int startScreen=0;
 
+void SCREEN_ResetAllParameters(void)
+{
+	LCD_AllRefreshScreenClear();
+	LCD_ResetStrMovBuffPos();
+	LCD_DeleteAllFontAndImages();
+	LCD_ResetAllBasicGraphicsParams();
+}
+
 void LCD_ArrowTxt(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor, DIRECTIONS direct, int fontId, char *txt, uint32_t txtColor)
 {
 	int boldLine = 0;
