@@ -65,6 +65,8 @@
 #define TXTSHADECOLOR_DEEP_DIR(color,deep,dir)	color,deep,dir
 #define TXTSHADE_NONE	0,0,0
 
+#define SEL_ITEM(nrItem,color)	(nrItem<<24)|(color&0xFFFFFF)
+
 enum FontsSize{
 	FONT_8,
 	FONT_8_bold,
