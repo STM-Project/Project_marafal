@@ -287,20 +287,12 @@ void NOWY_2(void)  //dac mozliwosc zablokowania Dbg definem!!!
 
 }
 
-void NOWY_3(void)  //dac mozliwosc zablokowania Dbg definem!!!
+void NOWY_3(void)
 {
 	SCREEN_ResetAllParameters();
 	LCD_Clear(MYGRAY);
 	LCD_LoadFont_DarkgrayWhite(FONT_10, Arial, fontID_6);
 	LCD_LoadFont_DarkgrayGreen(FONT_10, Arial, fontID_7);
-
-
-
-	// w winHeight dac automatic zeby dopasowac wysokosc do textu
-	//przed LCD_StrMovV dac obrys ramki np
-
-
-// ZMIENIC lOGIKE width i heght gdy tot80 lub 90 !!!
 
 	lenStr=LCD_StrMovH(fontVar_1,Rotate_0,0,109,   fontID_6,  100,0,"AAA11111111111222222222222222 33333333333333333333A",fullHight,0,DARKBLUE,0,1);
 	lenStr=LCD_StrMovH(fontVar_2,Rotate_90,0,109,   fontID_6, 0,0,"BBB1111111111222222222222222 33333333333333333333B",fullHight,0,DARKBLUE,0,1);
@@ -311,22 +303,14 @@ void NOWY_3(void)  //dac mozliwosc zablokowania Dbg definem!!!
 	lenStr=LCD_StrChangeColorMovH(fontVar_6,Rotate_180,0,80,fontID_7, 435,0,"Zeszyty i ksi��ki to podr�czniki do szko�y dla ��o�A_XY",fullHight,0,DARKYELLOW,DARKRED,254,0);
 
 
-	lenStr=LCD_StrChangeColorMovV(fontVar_7,Rotate_0,0,100,50,fontID_7,100,100,"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  SEX _XY",fullHight,0,LIGHTGRAY,DARKBLUE,249,0);
+	lenStr=LCD_StrChangeColorMovV(fontVar_7,Rotate_0,0,100,50,fontID_7,100,100,"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  S",fullHight,0,LIGHTGRAY,DARKBLUE,249,0);
 	lenStr=LCD_StrMovV           (fontVar_8,Rotate_0,0,100,50,fontID_6,210,100,"1234567890 abcdefghijklnn opqrstuvw ABCDEFGHIJKLMNOPQRTSUVWXYZ iiiiiiiiiiiijjjjjjjjjjjjSSSSSSSSSSEEEEEEEEEERRRRRRRRRA _XY",fullHight,0,MYGRAY,0,0);
 
-	lenStr=LCD_StrChangeColorMovV(fontVar_9,Rotate_90,0,100,50,fontID_7,0,160,"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  SEX _XY",fullHight,0,LIGHTGRAY,DARKBLUE,249,0);
+	lenStr=LCD_StrChangeColorMovV(fontVar_9,Rotate_90,0,100,50,fontID_7,0,160,"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  _XY",fullHight,0,LIGHTGRAY,DARKBLUE,249,0);
 	lenStr=LCD_StrMovV           (fontVar_10,Rotate_90,0,100,50,fontID_6,110,160,"1234567890 abcdefghijklnn opqrstuvw ABCDEFGHIJKLMNOPQRTSUVWXYZ iiiiiiiiiiiijjjjjjjjjjjjSSSSSSSSSSEEEEEEEEEERRRRRRRRRA _XY",fullHight,0,MYGRAY,0,0);
 
-	lenStr=LCD_StrChangeColorMovV(fontVar_11,Rotate_180,0,100,50,fontID_7,220,160,"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  SEX _XY",fullHight,0,LIGHTGRAY,DARKBLUE,249,0);
-	lenStr=LCD_StrMovV           (fontVar_12,Rotate_180,0,100,50,fontID_6,330,160,"1234567890 abcdefghijklnn opqrstuvw ABCDEFGHIJKLMNOPQRTSUVWXYZ iiiiiiiiiiiijjjjjjjjjjjjSSSSSSSSSSEEEEEEEEEERRRRRRRRRA _XY",fullHight,0,MYGRAY,0,0);
-
-
-
-
-	// wyzej funkcje pobieraja bufor w ktorym sa przewijane texty zastanowic sie ??
-
-
-
+	lenStr=LCD_StrChangeColorMovV(fontVar_11,Rotate_180,0,100,50,fontID_7,220,160,"Rafa� Markielowski jest ww p omieszczeniu gospodarczym lubi krasnale www doku na drzewie takie jego bojowe zadanie  _XY",fullHight,0,LIGHTGRAY,DARKBLUE,249,0);
+	lenStr=LCD_StrMovV           (fontVar_12,Rotate_180,0,100,50,fontID_6,330,160,"1234567890 abcdefghijklnn opqrstuvw ABCDEFGHIJKLMNOPQRTSUVWXYZ iiiiiiiiiiiijjjjjjjjjjjjSSSSSSSSSSEEEEEEEEEERRRRRRRRRA _ABC",fullHight,0,MYGRAY,0,0);
 
 	LCD_Show();
 	DisplayFontsStructState();
