@@ -556,39 +556,39 @@ void LCDEXAMPLE_RotMovText(int FONT_ID1, int FONT_ID2, int FONT_VAR_Start, u32 C
 	int widthWin2 = 110,			heightWin2 = LCD_GetFontHeight(FONT_ID1) + margin;
 	int widthWin3 = 111,			heightWin3 = LCD_GetFontHeight(FONT_ID2) + margin;
 
-	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(0,lenStr1,SetPos,10 ), LCD_posY(0,lenStr1,SetPos,240), widthWin1,heightWin1, COLOR_GRAY(0xAA),DARKYELLOW,COLOR_BkScreen);		/* lenStr1..3 are used in LCD_Xpos()-LCD_posX() or LCD_Ypos()-LCD_posY only for 'IncPos' */
-	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(1,lenStr2,SetPos,130), LCD_posY(1,lenStr2,SetPos,240), widthWin2,heightWin2, COLOR_GRAY(0xAA),DARKBLUE,  COLOR_BkScreen);
-	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(2,lenStr3,SetPos,260), LCD_posY(2,lenStr3,SetPos,240), widthWin3,heightWin3, COLOR_GRAY(0xAA),unUsed,	 COLOR_BkScreen);
-	LCD_StrMovH( FONT_VAR_Start+0,Rotate_0,	0,widthWin1-margin,fontId1, LCD_posX(0,lenStr1,GetPos,+margin/2), LCD_posY(0,lenStr1,GetPos,+margin/2), txt1, fullHight,0, DARKYELLOW,	 	0,NoConstWidth );
-	LCD_StrMovH( FONT_VAR_Start+1,Rotate_0,	0,widthWin2-margin,fontId2, LCD_posX(1,lenStr2,GetPos,+margin/2), LCD_posY(1,lenStr2,GetPos,+margin/2), txt2, fullHight,0, DARKBLUE,		0,NoConstWidth );
-	LCD_StrMovH( FONT_VAR_Start+2,Rotate_0,	0,widthWin3-margin,fontId3, LCD_posX(2,lenStr3,GetPos,+margin/2), LCD_posY(2,lenStr3,GetPos,+margin/2), txt3, fullHight,0, COLOR_BkScreen,0,NoConstWidth );		/* READ_BGCOLOR here it does not run */
-
-	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(0,lenStr1,SetPos,10 ), LCD_posY(0,lenStr1,SetPos,290), widthWin1,heightWin1, COLOR_GRAY(0xAA),unUsed,	 COLOR_BkScreen);
-	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(1,lenStr2,SetPos,130), LCD_posY(1,lenStr2,SetPos,290), heightWin2,widthWin2, COLOR_GRAY(0xAA),DARKYELLOW,COLOR_BkScreen);
-	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(2,lenStr3,SetPos,260), LCD_posY(2,lenStr3,SetPos,290), heightWin3,widthWin3, COLOR_GRAY(0xAA),unUsed,	 COLOR_BkScreen);
-	LCD_StrChangeColorMovH( FONT_VAR_Start+3,Rotate_0,  0,widthWin1-margin,fontId1, LCD_posX(0,lenStr1,GetPos,+margin/2), LCD_posY(0,lenStr1,GetPos,+margin/2), txt1,fullHight,0, COLOR_BkScreen,DARKRED, unUsed,NoConstWidth );
-	LCD_StrChangeColorMovH( FONT_VAR_Start+4,Rotate_90, 0,widthWin2-margin,fontId2, LCD_posX(1,lenStr2,GetPos,+margin/2), LCD_posY(1,lenStr2,GetPos,+margin/2), txt2,fullHight,0, DARKYELLOW,    DARKBLUE,unUsed,NoConstWidth );
-	LCD_StrChangeColorMovH( FONT_VAR_Start+5,Rotate_180,0,widthWin3-margin,fontId3, LCD_posX(2,lenStr3,GetPos,+margin/2), LCD_posY(2,lenStr3,GetPos,+margin/2), txt3,fullHight,0, COLOR_BkScreen,ORANGE,  unUsed,NoConstWidth );
+//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(0,lenStr1,SetPos,10 ), LCD_posY(0,lenStr1,SetPos,240), widthWin1,heightWin1, COLOR_GRAY(0xAA),DARKYELLOW,COLOR_BkScreen);		/* lenStr1..3 are used in LCD_Xpos()-LCD_posX() or LCD_Ypos()-LCD_posY only for 'IncPos' */
+//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(1,lenStr2,SetPos,130), LCD_posY(1,lenStr2,SetPos,240), widthWin2,heightWin2, COLOR_GRAY(0xAA),DARKBLUE,  COLOR_BkScreen);
+//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(2,lenStr3,SetPos,260), LCD_posY(2,lenStr3,SetPos,240), widthWin3,heightWin3, COLOR_GRAY(0xAA),unUsed,	 COLOR_BkScreen);
+//	LCD_StrMovH( FONT_VAR_Start+0,Rotate_0,	0,widthWin1-margin,fontId1, LCD_posX(0,lenStr1,GetPos,+margin/2), LCD_posY(0,lenStr1,GetPos,+margin/2), txt1, fullHight,0, DARKYELLOW,	 	0,NoConstWidth );
+//	LCD_StrMovH( FONT_VAR_Start+1,Rotate_0,	0,widthWin2-margin,fontId2, LCD_posX(1,lenStr2,GetPos,+margin/2), LCD_posY(1,lenStr2,GetPos,+margin/2), txt2, fullHight,0, DARKBLUE,		0,NoConstWidth );
+//	LCD_StrMovH( FONT_VAR_Start+2,Rotate_0,	0,widthWin3-margin,fontId3, LCD_posX(2,lenStr3,GetPos,+margin/2), LCD_posY(2,lenStr3,GetPos,+margin/2), txt3, fullHight,0, COLOR_BkScreen,0,NoConstWidth );		/* READ_BGCOLOR here it does not run */
 //
-//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr1,SetPos,10 ), LCD_Ypos(lenStr1,SetPos,310), widthWin1,5*heightWin1, COLOR_GRAY(0xAA),unUsed,			  COLOR_BkScreen );
-//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_Xpos(lenStr2,SetPos,130), LCD_Ypos(lenStr2,SetPos,310), widthWin2,2*heightWin2, COLOR_GRAY(0xAA),COLOR_GRAY(0x29),COLOR_BkScreen );
-//	LCD_StrChangeColorMovV( FONT_VAR_Start+6,Rotate_0,0,widthWin1,5*heightWin1,fontId1, LCD_Xpos(lenStr1,GetPos,+margin/2), LCD_Ypos(lenStr1,GetPos,+margin/2), txt1,fullHight,0, COLOR_BkScreen,DARKBLUE,unUsed,NoConstWidth );
-//	LCD_StrMovV           ( FONT_VAR_Start+7,Rotate_0,0,widthWin2,2*heightWin2,fontId2, LCD_Xpos(lenStr2,GetPos,+margin/2), LCD_Ypos(lenStr2,GetPos,+margin/2), txt2,fullHight,0, COLOR_GRAY(0x29),	  	 	0,  	 NoConstWidth );
+//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(0,lenStr1,SetPos,130), LCD_posY(0,lenStr1,SetPos,210), widthWin1,heightWin1, COLOR_GRAY(0xAA),unUsed,	 COLOR_BkScreen);
+//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(1,lenStr2,SetPos,380), LCD_posY(1,lenStr2,SetPos,210), heightWin2,widthWin2, COLOR_GRAY(0xAA),DARKYELLOW,COLOR_BkScreen);
+//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(2,lenStr3,SetPos,415), LCD_posY(2,lenStr3,SetPos,210), heightWin3,widthWin3, COLOR_GRAY(0xAA),unUsed,	 COLOR_BkScreen);
+//	LCD_StrChangeColorMovH( FONT_VAR_Start+3,Rotate_0,  0,widthWin1-margin,fontId1, LCD_posX(0,lenStr1,GetPos,+margin/2), LCD_posY(0,lenStr1,GetPos,+margin/2), txt1,fullHight,0, COLOR_BkScreen,LIGHTRED,unUsed,NoConstWidth );
+//	LCD_StrChangeColorMovH( FONT_VAR_Start+4,Rotate_90, 0,widthWin2-margin,fontId2, LCD_posX(1,lenStr2,GetPos,+margin/2), LCD_posY(1,lenStr2,GetPos,+margin/2), txt2,fullHight,0, DARKYELLOW,    DARKBLUE,unUsed,NoConstWidth );
+//	LCD_StrChangeColorMovH( FONT_VAR_Start+5,Rotate_180,0,widthWin3-margin,fontId3, LCD_posX(2,lenStr3,GetPos,+margin/2), LCD_posY(2,lenStr3,GetPos,+margin/2), txt3,fullHight,0, COLOR_BkScreen,ORANGE,  unUsed,NoConstWidth );
 //
-//	LCD_StrChangeColorMovV( FONT_VAR_Start+8,Rotate_90,0,widthWin1,1*heightWin1,FONT_ID2,550,240,txt2,fullHight,0,COLOR_BkScreen,DARKBLUE,unUsed,NoConstWidth );
-//	LCD_StrMovV           ( FONT_VAR_Start+9,Rotate_90,0,widthWin2,8*heightWin2,FONT_ID1,680,240,txt1,fullHight,0,MYGRAY,					  0,	 	NoConstWidth );
+//	LCD_RoundFrame		(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(0,lenStr1,SetPos,10 ), LCD_posY(0,lenStr1,SetPos,290), widthWin1,5*heightWin1, COLOR_GRAY(0xAA),unUsed,			  COLOR_BkScreen );
+//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(1,lenStr2,SetPos,130), LCD_posY(1,lenStr2,SetPos,290), widthWin2,2*heightWin2, COLOR_GRAY(0xAA),COLOR_GRAY(0x29),COLOR_BkScreen );
+//	LCD_StrChangeColorMovV( FONT_VAR_Start+6,Rotate_0,0,widthWin1-margin,5*heightWin1-margin,fontId1, LCD_posX(0,lenStr1,GetPos,+margin/2), LCD_posY(0,lenStr1,GetPos,+margin/2), txt1,fullHight,0, COLOR_BkScreen,  LIGHTBLUE,unUsed,NoConstWidth );
+//	LCD_StrMovV           ( FONT_VAR_Start+7,Rotate_0,0,widthWin2-margin,2*heightWin2-margin,fontId2, LCD_posX(1,lenStr2,GetPos,+margin/2), LCD_posY(1,lenStr2,GetPos,+margin/2), txt2,fullHight,0, COLOR_GRAY(0x29),	  	  	   0,  	 NoConstWidth );
 //
-//	LCD_StrChangeColorMovV( FONT_VAR_Start+10,Rotate_180,0,widthWin1,3*heightWin1,FONT_ID2,550,280,txt1,fullHight,0,COLOR_BkScreen,DARKBLUE,unUsed,NoConstWidth );
-//	LCD_StrMovV           ( FONT_VAR_Start+11,Rotate_180,0,widthWin2,3*heightWin2,FONT_ID1,550,350,txt2,fullHight,0,DARKRED,					 0,	  NoConstWidth );
+//	LCD_StrChangeColorMovV( FONT_VAR_Start+8,Rotate_90,0,widthWin1,1*heightWin1,FONT_ID2,510,210,txt2,fullHight,0,COLOR_BkScreen,LIGHTMAGENTA,unUsed,NoConstWidth );
+//	LCD_StrMovV           ( FONT_VAR_Start+9,Rotate_90,0,widthWin2,5*heightWin2,FONT_ID1,640,210,txt1,fullHight,0,MYGRAY,				  			0,	 	 NoConstWidth );
+//
+//	LCD_StrChangeColorMovV( FONT_VAR_Start+10,Rotate_180,0,widthWin1,2*heightWin1,FONT_ID2,510,340,txt2,fullHight,0,COLOR_BkScreen,	WHITE,unUsed,NoConstWidth );
+//	LCD_StrMovV           ( FONT_VAR_Start+11,Rotate_180,0,widthWin2,5*heightWin2,FONT_ID1,640,340,txt1,fullHight,0,COLOR_GRAY(0x20),		0,	  	 NoConstWidth );
 
 
 /* Another method displaying */
 
-/*	lenStr1 = LCD_StrChangeColorMovV( FONT_VAR_Start+0,Rotate_0, 0, 100,50, fontId1,LCD_Xpos(lenStr1,SetPos,480),LCD_Ypos(lenStr1,SetPos,240), txt1,fullHight,0,COLOR_BkScreen,ORANGE,249,NoConstWidth );
-	lenStr2 = LCD_StrMovH			  ( FONT_VAR_Start+1,Rotate_90,0, 109,    fontId2,LCD_Xpos(lenStr2,SetPos,100),LCD_Ypos(lenStr2,SetPos,240), txt2,fullHight,0,DARKBLUE,				 0,  NoConstWidth);
-	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),		LCD_Xpos(lenStr1,GetPos,-4),LCD_Ypos(lenStr1,GetPos,-4), lenStr1.inPixel+8,lenStr1.height+8,COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
-	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),		LCD_Xpos(lenStr2,GetPos,-4),LCD_Ypos(lenStr2,GetPos,-4), lenStr2.inPixel+8,lenStr2.height+8,COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
-*/
+	lenStr1 = LCD_StrChangeColorMovV( FONT_VAR_Start+0,Rotate_0, 0, 100,50, fontId1,LCD_posX(0,lenStr1,SetPos,480),LCD_posY(0,lenStr1,SetPos,240), txt1,fullHight,0,COLOR_BkScreen,ORANGE,unUsed,NoConstWidth );
+	lenStr2 = LCD_StrMovH			  ( FONT_VAR_Start+1,Rotate_90,0, 109,    fontId2,LCD_posX(1,lenStr2,SetPos,100),LCD_posY(1,lenStr2,SetPos,240), txt2,fullHight,0,COLOR_BkScreen,		  0,  	NoConstWidth);
+	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),		LCD_posX(0,lenStr1,GetPos,-4),LCD_posY(0,lenStr1,GetPos,-4), lenStr1.inPixel+8,lenStr1.height+8,COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
+	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),		LCD_posX(1,lenStr2,GetPos,-4),LCD_posY(1,lenStr2,GetPos,-4), lenStr2.inPixel+8,lenStr2.height+8,COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
+
 
 
 /* Refresh Test 	-  use only if cyclic refresh is necessary in function FILE_NAME(timer)() */
@@ -609,6 +609,11 @@ void LCDEXAMPLE_RotMovText(int FONT_ID1, int FONT_ID2, int FONT_VAR_Start, u32 C
 
 	if(LCD_IsRefreshScreenTimeout(refresh_11,60)) LCD_StrMovVIndirect(fontVar_38,1);
 	if(LCD_IsRefreshScreenTimeout(refresh_12,20)) LCD_StrMovVIndirect(fontVar_39,1);
+*/
+
+	/* Another method displaying */
+/*	if(LCD_IsRefreshScreenTimeout(refresh_1,60)) LCD_StrMovVIndirect(fontVar_28,1);
+	if(LCD_IsRefreshScreenTimeout(refresh_2,60)) LCD_StrMovHIndirect(fontVar_29,1);
 */
 
 }
