@@ -2671,7 +2671,7 @@ StructTxtPxlLen LCD_StrChangeColorRotWin(int rot, int winWidth, int fontID, int 
 
 	int i=0,it=0,iH=0,j;
 	int movableFontsBuffer_pos_copy=movableFontsBuffer_pos;
-	char bufTxt[winWidth/LCD_GetFontWidth(fontID,'1')];
+	char bufTxt[winWidth/LCD_GetFontWidth(fontID,'1')];						int nrItem=maxVal>>24, colorItem=maxVal|0xFF000000;
 
 		do
 		{	if(iH>0){ if(txt[it]==' ') it++; }
@@ -2684,8 +2684,8 @@ StructTxtPxlLen LCD_StrChangeColorRotWin(int rot, int winWidth, int fontID, int 
 			}
 			bufTxt[j]=0;
 			it+=i;
-			if(iH==2)
-				temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, winWidth, fontHeight, fontID,0,0,bufTxt,movableFontsBuffer,OnlyDigits,space,DARKBLUE,fontColor,maxVal,constWidth);
+			if(nrItem>0 && iH==nrItem-1)
+				temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, winWidth, fontHeight, fontID,0,0,bufTxt,movableFontsBuffer,OnlyDigits,space,colorItem,fontColor,maxVal,constWidth);
 			else
 				temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, winWidth, fontHeight, fontID,0,0,bufTxt,movableFontsBuffer,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
 
@@ -3095,7 +3095,7 @@ StructTxtPxlLen LCD_StrChangeColorMovV(int idVar, int rot, int posWin, int winWi
 			return StructTxtPxlLen_ZeroValue;
 
 		int i=0,it=0,iH=0,j;
-		char bufTxt[winWidth/LCD_GetFontWidth(fontID,'1')];						int nrItem=maxVal>>24, colorItem=maxVal&0xFFFFFF;
+		char bufTxt[winWidth/LCD_GetFontWidth(fontID,'1')];						int nrItem=maxVal>>24, colorItem=maxVal|0xFF000000;
 
 		FontVar[idVar].id=fontID;
 		FontVar[idVar].xPos=Xpos;
@@ -3128,7 +3128,7 @@ StructTxtPxlLen LCD_StrChangeColorMovV(int idVar, int rot, int posWin, int winWi
 			if(nrItem>0 && iH==nrItem-1)
 				temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, FontVar[idVar].FontMov.xImgWidth, fontHeight, fontID,0,0,bufTxt,movableFontsBuffer,OnlyDigits,space,colorItem,fontColor,maxVal,constWidth);
 			else
-				temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, FontVar[idVar].FontMov.xImgWidth, fontHeight, fontID,0,0,bufTxt,movableFontsBuffer,OnlyDigits,space,bkColor,fontColor,maxVal,constWidth);
+				temp=LCD_DrawStrChangeColor(movableFontsBuffer_pos, FontVar[idVar].FontMov.xImgWidth, fontHeight, fontID,0,0,bufTxt,movableFontsBuffer,OnlyDigits,space,bkColor,	fontColor,maxVal,constWidth);
 
 			int diffWidth=winWidth-temp.inPixel;
 			if(diffWidth>0)
@@ -3704,7 +3704,7 @@ StructTxtPxlLen LCD_DisplayTxt(u32 posBuff, u32 *buff, int displayOn, int fontID
 	}
 	lenTxt=i;
 
-	if(displayOn | (bkColor&0xFFFFFF)){
+	if(displayOn | bkColor/*(bkColor&0xFFFFFF)*/){
 		if(fontID==LCD_GetStrVar_fontID(idVar)){
 			switch(LCD_GetStrVar_bkRoundRect(idVar)){
 			case BK_Rectangle:
