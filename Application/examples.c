@@ -632,25 +632,25 @@ void LCDEXAMPLE_RotVarText(int FONT_ID1, int FONT_ID2, int FONT_VAR_Start, u32 C
 	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(0,lenStr1,SetPos,10 ), LCD_posY(0,lenStr1,SetPos,240), widthWin1,heightWin1, COLOR_GRAY(0xAA),DARKRED,  COLOR_BkScreen);		/* lenStr1..2 are used in LCD_Xpos()-LCD_posX() or LCD_Ypos()-LCD_posY only for 'IncPos' */
 	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(), LCD_posX(1,lenStr2,SetPos,210), LCD_posY(1,lenStr2,SetPos,210), heightWin2,widthWin2, COLOR_GRAY(0xAA),DARKBLUE, COLOR_BkScreen);
 	LCD_StrRot				( Rotate_0,	fontId1, LCD_posX(0,lenStr1,GetPos,+margin/2), LCD_posY(0,lenStr1,GetPos,+margin/2), txt1,fullHight,0,DARKRED,		     1,	   NoConstWidth );
-	LCD_StrChangeColorRot( Rotate_90,fontId2, LCD_posX(1,lenStr2,GetPos,+margin/2), LCD_posY(1,lenStr2,GetPos,+margin/2), txt2,fullHight,0,DARKBLUE,MAGENTA,unUsed,NoConstWidth	);
+	LCD_StrChangeColorRot( Rotate_90,fontId2, LCD_posX(1,lenStr2,GetPos,+margin/2), LCD_posY(1,lenStr2,GetPos,+margin/2), txt2,fullHight,0,DARKBLUE,MAGENTA,unUsed,NoConstWidth );
 
 	lenStr1=LCD_StrChangeColorRotWin( Rotate_0,  widthWin3,fontId1, LCD_posX(0,lenStr1,SetPos,60), LCD_posY(0,lenStr1,SetPos,280), txt3,fullHight,0,COLOR_BkScreen,CYAN,	SEL_ITEM(2,DARKBLUE),NoConstWidth,unUsed );
 	lenStr2=LCD_StrRotWin			  ( Rotate_180,widthWin3,fontId2, LCD_posX(1,lenStr2,SetPos,600),LCD_posY(1,lenStr2,SetPos,210), txt3,fullHight,0,COLOR_BkScreen, 		1,	  					   NoConstWidth,unUsed );
 	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),	LCD_posX(0,lenStr1,GetPos,-margin/2),LCD_posY(0,lenStr1,GetPos,-margin/2), lenStr1.inPixel+margin,lenStr1.height+margin,COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
 	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),	LCD_posX(1,lenStr2,GetPos,-margin/2),LCD_posY(1,lenStr2,GetPos,-margin/2), lenStr2.inPixel+margin,lenStr2.height+margin,COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
 
-//	lenStr1=LCD_StrRotVar			  ( FONT_VAR_Start+0,Rotate_90, fontId1, LCD_posX(0,lenStr1,SetPos,600),LCD_posY(0,lenStr1,SetPos,210), txt1,fullHight,0,COLOR_BkScreen,		   0,ConstWidth,COLOR_BkScreen );		/* It can be also first LCD_Str..() and than LCD_Round..() */
-//	lenStr2=LCD_StrChangeColorRotVar( FONT_VAR_Start+1,Rotate_180,fontId2, LCD_posX(1,lenStr2,SetPos,600),LCD_posY(1,lenStr2,SetPos,320), txt2,fullHight,0,COLOR_BkScreen,MAGENTA,0,ConstWidth,COLOR_BkScreen );
-//	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),	LCD_posX(0,lenStr1,GetPos,-margin/2),LCD_posY(0,lenStr1,GetPos,-margin/2), lenStr1.inPixel+margin,lenStr1.height+margin,COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
-//	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),	LCD_posX(0,lenStr2,GetPos,-margin/2),LCD_posY(0,lenStr2,GetPos,-margin/2), lenStr2.inPixel+margin,lenStr2.height+margin,COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
+	lenStr1=LCD_StrRotVar			  ( FONT_VAR_Start+0,Rotate_90, fontId1, LCD_posX(0,lenStr1,SetPos,520),LCD_posY(0,lenStr1,SetPos,210), txt1,fullHight,0,COLOR_BkScreen,		   0,NoConstWidth,COLOR_BkScreen );		/* It can be also first LCD_Str..() and than LCD_Round..() */
+	lenStr2=LCD_StrChangeColorRotVar( FONT_VAR_Start+1,Rotate_180,fontId2, LCD_posX(1,lenStr2,SetPos,560),LCD_posY(1,lenStr2,SetPos,210), txt2,fullHight,0,COLOR_BkScreen,MAGENTA,0,NoConstWidth,COLOR_BkScreen );
+	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),	LCD_posX(0,lenStr1,GetPos,-margin/2),LCD_posY(0,lenStr1,GetPos,-margin/2), lenStr1.inPixel+margin,lenStr1.height+margin,COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
+	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),	LCD_posX(1,lenStr2,GetPos,-margin/2),LCD_posY(1,lenStr2,GetPos,-margin/2), lenStr2.inPixel+margin,lenStr2.height+margin,COLOR_GRAY(0xAA),unUsed,COLOR_BkScreen);
 
 	/* Refresh Test 	-  use only if cyclic refresh is necessary in function FILE_NAME(timer)() */
 
-/*		  if(LCD_IsRefreshScreenTimeout(refresh_1,2000) ) LCD_StrRotVarIndirect(fontVar_28,INT2STR(6));
-	else if(LCD_IsRefreshScreenTimeout(refresh_2,1000))  LCD_StrRotVarIndirect(fontVar_28,INT2STR(12345));
+/*		  if(LCD_IsRefreshScreenTimeout(refresh_1,2000)){ LCD_StrRotVarIndirect(fontVar_28,INT2STR(6)); 	LCD_RefreshScreenClear(refresh_2); }
+	else if(LCD_IsRefreshScreenTimeout(refresh_2,1000))  LCD_StrRotVarIndirect(fontVar_28,"123450000000000000000");
 
-		  if(LCD_IsRefreshScreenTimeout(refresh_3,2000) ) LCD_StrChangeColorRotVarIndirect(fontVar_29,INT2STR(7));
-	else if(LCD_IsRefreshScreenTimeout(refresh_4,1000))  LCD_StrChangeColorRotVarIndirect(fontVar_29,INT2STR(54321));
+		  if(LCD_IsRefreshScreenTimeout(refresh_3,2000)){ LCD_StrChangeColorRotVarIndirect(fontVar_29,INT2STR(7)); 	 LCD_RefreshScreenClear(refresh_4);}
+	else if(LCD_IsRefreshScreenTimeout(refresh_4,1000))  LCD_StrChangeColorRotVarIndirect(fontVar_29,"5432100000000000000");
 */
 
 }
