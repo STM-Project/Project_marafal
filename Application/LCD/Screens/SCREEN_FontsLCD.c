@@ -1352,24 +1352,12 @@ static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create
 	CycleRefreshFunc();
 
 
-
-		if(LCD_IsRefreshScreenTimeout(refresh_1,60)) LCD_StrMovHIndirect(fontVar_28,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_2,60)) LCD_StrMovHIndirect(fontVar_29,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_3,20)) LCD_StrMovHIndirect(fontVar_30,1);
-
-		if(LCD_IsRefreshScreenTimeout(refresh_4,60)) LCD_StrMovHIndirect(fontVar_31,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_5,60)) LCD_StrMovHIndirect(fontVar_32,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_6,20)) LCD_StrMovHIndirect(fontVar_33,1);
-
-		if(LCD_IsRefreshScreenTimeout(refresh_7,60)) LCD_StrMovVIndirect(fontVar_34,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_8,20)) LCD_StrMovVIndirect(fontVar_35,1);
-
-		if(LCD_IsRefreshScreenTimeout(refresh_9,60))  LCD_StrMovVIndirect(fontVar_36,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_10,20)) LCD_StrMovVIndirect(fontVar_37,1);
-
-		if(LCD_IsRefreshScreenTimeout(refresh_11,60)) LCD_StrMovVIndirect(fontVar_38,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_12,20)) LCD_StrMovVIndirect(fontVar_39,1);
-
+//			  if(LCD_IsRefreshScreenTimeout(refresh_1,2000) ) LCD_StrRotVarIndirect(fontVar_28,INT2STR(6));
+//		else if(LCD_IsRefreshScreenTimeout(refresh_2,1000))  LCD_StrRotVarIndirect(fontVar_28,INT2STR(12345));
+//
+//			  if(LCD_IsRefreshScreenTimeout(refresh_3,2000) ) LCD_StrChangeColorRotVarIndirect(fontVar_29,INT2STR(7));
+//		else if(LCD_IsRefreshScreenTimeout(refresh_4,1000))  LCD_StrChangeColorRotVarIndirect(fontVar_29,INT2STR(54321));
+//
 
 
 }
@@ -2376,7 +2364,7 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	{
 		//StartMeasureTime_us();
 
-		LCDEXAMPLE_RotMovText(v.FONT_ID_Speed, v.FONT_ID_Descr, fontVar_28, v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);
+		LCDEXAMPLE_RotVarText(v.FONT_ID_Speed, v.FONT_ID_Descr, fontVar_28, v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);		//static void FILE_NAME(timer)(void)
 
 
 		PCF8575_Test();
