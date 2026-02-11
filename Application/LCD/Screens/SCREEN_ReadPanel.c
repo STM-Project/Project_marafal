@@ -112,7 +112,7 @@ int SCREEN_SetTouchForNewEndPos(int idVar, int nrTouchIdx, StructTxtPxlLen lenSt
 }
 
 
-void NOWY_1(void)  //dac mozliwosc zablokowania Dbg definem!!!
+void NOWY_1(void)
 {
 	int bkColor=MYGRAY;
 
@@ -170,7 +170,7 @@ void NOWY_1(void)  //dac mozliwosc zablokowania Dbg definem!!!
 }
 
 int test[6]={0,0,0,0,0,0};
-void NOWY_2(void)  //dac mozliwosc zablokowania Dbg definem!!!
+void NOWY_2(void)
 {
 	int bkColor=MYGRAY;
 
@@ -204,30 +204,30 @@ void NOWY_2(void)  //dac mozliwosc zablokowania Dbg definem!!!
 
 	lenStr=LCD_StrRotVar				 (fontVar_7,Rotate_180, fontID_6, LCD_Xpos(lenStr,SetPos,100),LCD_Ypos(lenStr,SetPos,50), "1234567890", halfHight, 0,DARKRED,5,NoConstWidth,bkColor);
 	lenStr=LCD_StrChangeColorRotVar(fontVar_8,Rotate_90, fontID_7, LCD_Xpos(lenStr,IncPos,50),  LCD_Ypos(lenStr,GetPos,0),   "1234567890", halfHight, 0,GRAY,MYBLUE,249,ConstWidth,bkColor);
+/*
+	StartMeasureTime_us();
+	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(),230,0, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
+	StopMeasureTime_us("\r\nLCD_DrawRoundRectangle:");
 
-//	StartMeasureTime_us();
-//	LCD_RoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(),230,0, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
-//	StopMeasureTime_us("\r\nLCD_DrawRoundRectangle:");
-//
-//	StartMeasureTime_us();
-//	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),230,50, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
-//	StopMeasureTime_us("\r\nLCD_DrawRoundFrame:");
-//
-//	LCD_BoldRoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(),230,100, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
-//	LCD_BoldRoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),230,150, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
-//
-//	StartMeasureTime_us();
-//	LCD_BoldRoundRectangle_AA(0,LCD_GetXSize(),LCD_GetYSize(),350,0, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
-//	StopMeasureTime_us("\r\nLCD_DrawBoldRoundRectangle_AA:");
-//
-//	StartMeasureTime_us();
-//	LCD_BoldRoundFrame_AA(0,LCD_GetXSize(),LCD_GetYSize(),350,50, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
-//	StopMeasureTime_us("\r\nLCD_DrawBoldRoundFrame_AA:");
-//
-//	StartMeasureTime_us();
-//	LCD_RoundRectangle_AA(0,LCD_GetXSize(),LCD_GetYSize(),350,100, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
-//	StopMeasureTime_us("\r\nLCD_DrawRoundRectangle_AA:");
+	StartMeasureTime_us();
+	LCD_RoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),230,50, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
+	StopMeasureTime_us("\r\nLCD_DrawRoundFrame:");
 
+	LCD_BoldRoundRectangle(0,LCD_GetXSize(),LCD_GetYSize(),230,100, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
+	LCD_BoldRoundFrame(0,LCD_GetXSize(),LCD_GetYSize(),230,150, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
+
+	StartMeasureTime_us();
+	LCD_BoldRoundRectangle_AA(0,LCD_GetXSize(),LCD_GetYSize(),350,0, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
+	StopMeasureTime_us("\r\nLCD_DrawBoldRoundRectangle_AA:");
+
+	StartMeasureTime_us();
+	LCD_BoldRoundFrame_AA(0,LCD_GetXSize(),LCD_GetYSize(),350,50, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
+	StopMeasureTime_us("\r\nLCD_DrawBoldRoundFrame_AA:");
+
+	StartMeasureTime_us();
+	LCD_RoundRectangle_AA(0,LCD_GetXSize(),LCD_GetYSize(),350,100, 100,45,LIGHTGRAY,MYGRAY,MYGRAY);
+	StopMeasureTime_us("\r\nLCD_DrawRoundRectangle_AA:");
+*/
 
 	int frameColor=LIGHTGRAY;
 	//int fillColor=GRAY;
@@ -272,11 +272,6 @@ void NOWY_2(void)  //dac mozliwosc zablokowania Dbg definem!!!
 
 
  //Frame Indirect nie dziala !!!!!!!!!!!!!!!!!
-
-
-
-//RotWin jako select rozwijane zanaczyc text w select !!!!!!!!!!!!!!!!!!!!!!!!
-
 
 
 	LCD_Show();
