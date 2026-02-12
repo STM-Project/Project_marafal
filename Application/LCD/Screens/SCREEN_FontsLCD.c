@@ -575,7 +575,7 @@ static void FRAMES_GROUP_combined(int argNmb, int startOffsX,int startOffsY, int
 static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY,  int boldFrame);
 
 static int *ppMain[7] = {(int*)FRAMES_GROUP_combined,(int*)FRAMES_GROUP_separat,(int*)"Rafal", (int*)&Test, NULL, NULL, NULL };
-static char keyBuff[KEYBUFF_SIZE]={0};
+static char keyBuff[KEYBUFF_SIZE]="Test";
 
 static void KEYBOARD_SETTXT_ServiceTxtBuffer(char *buf, int size){
 	Dbg(1,"\r\n"); Dbg(1,buf); Dbg(1,"\r\n");
@@ -1560,9 +1560,9 @@ void FILE_NAME(setTouch)(void)
 				statePrev2=0;
 	}}}
 	int _KEYBOARD_setTxt__SERVICE(u16 state,int touchStart,int touchStop, int keyStart){
-			  if( IS_RANGE(state,touchStart,touchStop))									 			{		if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);	KEYBOARD_TYPE(KEYBOARD_setTxt, keyStart+(state-touchStart));  _SaveState();	 		  return 1;  }
-		else if(_WasStateRange(Touch_exit,Touch_exit) && _SET==LCDTOUCH_UserStatus(_GET)){		LCD_TOUCH_RestoreAllSusspendedTouchs(); FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	KEYBOARD_TYPE(KEYBOARD_none,	 0);									   ServiceKeyCharBuff();  return 1;  }
-		else if(_WasStateRange(touchStart,touchStop))									 			{																																KEYBOARD_TYPE(KEYBOARD_setTxt, KEY_All_release);  												  return 1;  }
+			  if( IS_RANGE(state,touchStart,touchStop))									 			{	if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);								 KEYBOARD_TYPE(KEYBOARD_setTxt, keyStart+(state-touchStart));  _SaveState();	return 1;  }
+		else if(_WasStateRange(Touch_exit,Touch_exit) && _SET==LCDTOUCH_UserStatus(_GET)){	LCD_TOUCH_RestoreAllSusspendedTouchs(); ServiceKeyCharBuff(); 	FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	 KEYBOARD_TYPE(KEYBOARD_none,0);	 															return 1;  }
+		else if(_WasStateRange(touchStart,touchStop))									 			{																																						 KEYBOARD_TYPE(KEYBOARD_setTxt, KEY_All_release);  									return 1;  }
 		return 0;
 	}
 
@@ -1680,8 +1680,6 @@ void FILE_NAME(setTouch)(void)
 
 		/*	----- Touch parameter text and go to action ----- */
 		case Touch_SetTxt:
-			mini_snprintf(keyBuff,KEYBUFF_SIZE-1,"Vanessa Paradis, kt"ó"ra w m"ł"odo"ś"ci zyska"ł"a reputacj"ę" gwiazdy show, dzi"ś" prowadzi znacznie spokojniejsze "ż"ycie. Pomimo burzliwych początk"ó"w, jej kariera artystyczna rozwija"ł"a si"ę" nieprzerwanie. 22 grudnia Paradis obchodzi"ł"a 53. urodziny");
-			//mini_snprintf(keyBuff,KEYBUFF_SIZE-1,"012345");
 			FILE_NAME(keyboard)(KEYBOARD_setTxt,KEY_All_release,LCD_RoundRectangle,0,15,15,KeysAutoSize,10,10,state,Touch_Q,KeysDel);			/* Here call Keyboard only one at the start */
 			LCDTOUCH_ActiveOnly(0,0,0,0,0,0,0,0,0,0,Touch_Q,Touch_keyStyle);
 			break;
