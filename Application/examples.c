@@ -547,6 +547,7 @@ void LCDEXAMPLE_BezierCurves(u32 xMidd,u32 yMidd, u32 xRight,u32 yRight, u32 Bkp
 
 void LCDEXAMPLE_RotMovText(int FONT_ID1, int FONT_ID2, int FONT_VAR_Start, u32 COLOR_FillMainFrame, u32 COLOR_Frame, u32 COLOR_BkScreen)
 {
+	/* Call as:  LCDEXAMPLE_RotMovText(v.FONT_ID_Speed, v.FONT_ID_Descr, fontVar_28, v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen); */
 	char txt1[] = "Analizator z serii RSA6000 oferuje wy"ś"wietlanie w wielu oknach, doskona"ł"y poziom szumu "ś"redniego wy"ś"wietlanego (DANL), najwy"ż"sz"ą" klas"ę" szumu fazowego i szeroki zakres dynamiczny";
 	char txt2[] = "Stanowi cenne wsparcie zar"ó"wno dla laboratori"ó"w, jak i dla produkcji oraz test"ó"w terenowych";
 	char txt3[] = "W komplecie s"ą" dwie oryginalne sondy na 500MHz";
@@ -620,6 +621,7 @@ void LCDEXAMPLE_RotMovText(int FONT_ID1, int FONT_ID2, int FONT_VAR_Start, u32 C
 
 void LCDEXAMPLE_RotVarText(int FONT_ID1, int FONT_ID2, int FONT_VAR_Start, u32 COLOR_FillMainFrame, u32 COLOR_Frame, u32 COLOR_BkScreen)
 {
+	/* Call as:  LCDEXAMPLE_RotVarText(v.FONT_ID_Speed, v.FONT_ID_Descr, fontVar_28, v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen); */
 	char txt1[] = "Analizator z serii RSA6000";
 	char txt2[] = "Stanowi cenne wsparcie";
 	char txt3[] = "Doskona"ł"y poziom szumu "ś"redniego wy"ś"wietlanego (DANL), najwy"ż"sz"ą" klas"ę" szumu fazowego i szeroki zakres dynamiczny";
