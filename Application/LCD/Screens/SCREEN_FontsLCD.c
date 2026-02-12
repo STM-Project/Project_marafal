@@ -267,7 +267,8 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 
 #define USE_DBG_CLR	0
 
-#define TEXT_TO_SHOW		"jej rozwija"ł"a si"ę""
+#define TEXT_TO_SHOW		"Text to show"
+#define SIZE_TXT_SHOW	200
 
 #define ID_MIDDLE_TXT	LCD_XY_MIDDLE_MAX_NUMBER_USE-1
 #define POS_X_TXT		LCD_Xmiddle(ID_MIDDLE_TXT,GetPos,v.FONT_ID_Fonts,Test.txt,Test.spaceBetweenFonts,Test.constWidth)
@@ -534,7 +535,7 @@ typedef enum{
 }TIMER_FOR_THIS_SCREEN;
 
 static int temp;
-static char bufTemp[50];
+static char bufTemp[50], ShowTxtBuff[SIZE_TXT_SHOW]=TEXT_TO_SHOW;
 static int lenTxt_prev;
 static StructTxtPxlLen lenStr;
 static KEYBOARD_TYPES actualKeyboardType = KEYBOARD_none;
@@ -551,7 +552,7 @@ typedef struct{
 	uint8_t style;
 	uint32_t time;
 	int8_t type;
-	char txt[200];  //!!!!!!!!!!!!!!!!! ZMIANA TEXTU NA INNY DOWOLNY
+	char txt[SIZE_TXT_SHOW];
 	int16_t lenWin;
 	int16_t offsWin;
 	int16_t lenWin_prev;
@@ -579,7 +580,35 @@ static char keyBuff[KEYBUFF_SIZE]={0};
 static void KEYBOARD_SETTXT_ServiceTxtBuffer(char *buf, int size){
 	Dbg(1,"\r\n"); Dbg(1,buf); Dbg(1,"\r\n");
 }
-static void ResetIndexKeyBuff(void){  KEYBOARD_SETTXT_ServiceTxtBuffer(keyBuff,KEYBUFF_SIZE); memset(keyBuff,0,KEYBUFF_SIZE); }
+
+static int ChangeTxt(void){
+/*	return CopyCharsTab(Test.txt,Test.lenWin,Test.offsWin,Test.size); */
+
+	char *pChar;
+	int i, j, lenChars;
+
+	pChar= ShowTxtBuff;
+
+	lenChars=mini_strlen(pChar);
+	for(i=0;i < Test.lenWin;++i)
+	{
+		j=Test.offsWin + i;
+		if(j < lenChars)
+			Test.txt[i]=pChar[j];
+		else
+			break;
+	}
+	Test.txt[i]=0;
+
+	if(i == Test.lenWin)
+		return 0;
+	else
+		return 1;
+}
+
+static void ResetIndexKeyBuff		  (void){ KEYBOARD_SETTXT_ServiceTxtBuffer(keyBuff,KEYBUFF_SIZE); memset(keyBuff,0,KEYBUFF_SIZE); }
+static void CopyKeyBuff2ShowTxtBuff(void){ STRING_CopyBuff( ShowTxtBuff,keyBuff, SIZE_TXT_SHOW,strlen(keyBuff) ); }
+static void ServiceKeyCharBuff	  (void){ CopyKeyBuff2ShowTxtBuff(); ResetIndexKeyBuff(); ChangeTxt(); }
 /*
 static char* TXT_PosCursor(void){
 	return Test.posCursor>0 ? Int2Str(Test.posCursor-1,' ',3,Sign_none) : StrAll(1,"off");
@@ -810,31 +839,6 @@ static void DecCoeefRGB(void){
 	Data2Refresh(PARAM_SPEED);
 }
 
-static int ChangeTxt(void){ //wprowadzanie z klawiatury textu !!!!!!
-	//return CopyCharsTab(Test.txt,Test.lenWin,Test.offsWin,Test.size);
-
-	const char *pChar;
-	int i, j, lenChars;
-
-	pChar= TEXT_TO_SHOW;
-
-	lenChars=mini_strlen(pChar);
-	for(i=0;i < Test.lenWin;++i)
-	{
-		j=Test.offsWin + i;
-		if(j < lenChars)
-			Test.txt[i]=pChar[j];
-		else
-			break;
-	}
-	Test.txt[i]=0;
-
-	if(i == Test.lenWin)
-		return 0;
-	else
-		return 1;
-}
-
 static void FONTS_LCD_ResetParam(void)
 {
 	Test.xFontsField=0;
@@ -859,9 +863,7 @@ static void FONTS_LCD_ResetParam(void)
 	Test.size=v.FONT_SIZE_Fonts;
 	Test.style=v.FONT_STYLE_Fonts;
 
-	//strcpy(Test.txt,"Rafa"ł" Markielowski");
-
-	Test.lenWin=mini_strlen(TEXT_TO_SHOW);
+	Test.lenWin=mini_strlen(ShowTxtBuff);
 	Test.offsWin=0;
 
 	Test.lenWin_prev=Test.lenWin;
@@ -1350,27 +1352,6 @@ static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create
 		BlockTouchForTime(_OFF);
 	}
 	CycleRefreshFunc();
-
-
-	if(LCD_IsRefreshScreenTimeout(refresh_1,60)) LCD_StrMovHIndirect(fontVar_28,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_2,60)) LCD_StrMovHIndirect(fontVar_29,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_3,20)) LCD_StrMovHIndirect(fontVar_30,1);
-
-		if(LCD_IsRefreshScreenTimeout(refresh_4,60)) LCD_StrMovHIndirect(fontVar_31,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_5,60)) LCD_StrMovHIndirect(fontVar_32,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_6,20)) LCD_StrMovHIndirect(fontVar_33,1);
-
-		if(LCD_IsRefreshScreenTimeout(refresh_7,60)) LCD_StrMovVIndirect(fontVar_34,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_8,20)) LCD_StrMovVIndirect(fontVar_35,1);
-
-		if(LCD_IsRefreshScreenTimeout(refresh_9,60))  LCD_StrMovVIndirect(fontVar_36,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_10,20)) LCD_StrMovVIndirect(fontVar_37,1);
-
-		if(LCD_IsRefreshScreenTimeout(refresh_11,60)) LCD_StrMovVIndirect(fontVar_38,1);
-		if(LCD_IsRefreshScreenTimeout(refresh_12,20)) LCD_StrMovVIndirect(fontVar_39,1);
-
-
-
 }
 
 void FUNC_fontColorRGB(int k){ switch(k){
@@ -1518,7 +1499,7 @@ void FILE_NAME(setTouch)(void)
 	XY_Touch_Struct pos;
 
 	void _SaveState (void){ statePrev =state; }
-	void _RstState	 (void){ statePrev =0; 		}
+/*	void _RstState	 (void){ statePrev =0; 		} */
 	void _SaveState2(void){ statePrev2=state; }
 	void _RstState2 (void){ statePrev2=0; 		}
 
@@ -1579,9 +1560,9 @@ void FILE_NAME(setTouch)(void)
 				statePrev2=0;
 	}}}
 	int _KEYBOARD_setTxt__SERVICE(u16 state,int touchStart,int touchStop, int keyStart){
-			  if( IS_RANGE(state,touchStart,touchStop))									 			{		if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);	KEYBOARD_TYPE(KEYBOARD_setTxt, keyStart+(state-touchStart));  _SaveState();	 		 return 1;  }
-		else if(_WasStateRange(Touch_exit,Touch_exit) && _SET==LCDTOUCH_UserStatus(_GET)){		LCD_TOUCH_RestoreAllSusspendedTouchs(); FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	KEYBOARD_TYPE(KEYBOARD_none,	 0);									   ResetIndexKeyBuff();  return 1;  }
-		else if(_WasStateRange(touchStart,touchStop))									 			{																																KEYBOARD_TYPE(KEYBOARD_setTxt, KEY_All_release);  												 return 1;  }
+			  if( IS_RANGE(state,touchStart,touchStop))									 			{		if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);	KEYBOARD_TYPE(KEYBOARD_setTxt, keyStart+(state-touchStart));  _SaveState();	 		  return 1;  }
+		else if(_WasStateRange(Touch_exit,Touch_exit) && _SET==LCDTOUCH_UserStatus(_GET)){		LCD_TOUCH_RestoreAllSusspendedTouchs(); FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	KEYBOARD_TYPE(KEYBOARD_none,	 0);									   ServiceKeyCharBuff();  return 1;  }
+		else if(_WasStateRange(touchStart,touchStop))									 			{																																KEYBOARD_TYPE(KEYBOARD_setTxt, KEY_All_release);  												  return 1;  }
 		return 0;
 	}
 
@@ -2359,13 +2340,6 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 	EXPER_FUNC_afterDispBuffLcd();
 }
 
-
-
-
-
-
-
-
 static void EXPER_FUNC_beforeDispBuffLcd(void)
 {
 	#define ONLY_ONE_AT_START		0
@@ -2374,14 +2348,6 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		//StartMeasureTime_us();
-
-		LCDEXAMPLE_RotMovText(v.FONT_ID_Speed, v.FONT_ID_Descr, fontVar_28, v.COLOR_FillFrame, v.COLOR_Frame, v.COLOR_BkScreen);		//static void FILE_NAME(timer)(void)
-
-
-		PCF8575_Test();
-
-
-
 
 		//StopMeasureTime_us("Time GRAPH:");
 	}
@@ -2396,18 +2362,11 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	#undef ONLY_ONE_AT_START
 }
 
-
-
-
 static void EXPER_FUNC_afterDispBuffLcd(void)
 {
 
 
 }
-
-
-
-
 
 #undef POS_X_TXT
 #undef POS_Y_TXT
@@ -2447,18 +2406,6 @@ static void EXPER_FUNC_afterDispBuffLcd(void)
 //ROBIMY :  1. LISTVIEW  tabelko z lista   2. klawiature i koniec !!!
 
 	//ATTENTION IN FUTURE   tylko w jednej funkcji umieszczamy zmienne odswiezane reularnie i ta funkcja idzie do jakiegos watku !!!!!
-
-
-	//1
-//	  union {
-//	    const void * p;     /* Message specific data pointer */
-//	    int v;
-//	    GUI_COLOR Color;
-//	    void (* pFunc)(void);
-//	  } Data;
-//2 struktura dynamicznej allokacji pamieci ja kw GUI
-
-
 
 
 //w harfoult interrup ddacv mozliwosc odczyti linijki kodu poprzedniego !!!!
