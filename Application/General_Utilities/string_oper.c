@@ -333,6 +333,12 @@ char* DispLongNmb(uint32_t nmb, char* bufStr){
 	else return buf;
 }
 
+void STRING_CopyBuff(char *dest,char *src, int sizeDest,int sizeSrc){
+	int i, len=CONDITION(sizeDest > sizeSrc,sizeSrc,sizeDest-1);
+	for(i=0;i<len;++i) dest[i]=src[i];
+	dest[i]=0;
+}
+
 void StrBuffCopy(char *dest, char *src){
 	int i,len=mini_strlen(src);
 	for(i=0;i<len;++i) dest[i]=src[i];
