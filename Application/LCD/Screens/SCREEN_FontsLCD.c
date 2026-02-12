@@ -1784,13 +1784,7 @@ static void* MainFuncRefresh(void *p1,void *p2){
 	return NULL;
 }
 
-
-
-float len_Line=12;  u32 xMidd=250,yMidd=400,  xRight=315,yRight=31;  int distStep=10;
-void FILE_NAME(debugRcvStr)(void)
-{if(v.DEBUG_ON){
-
-
+void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 
 	if(DEBUG_RcvStr("abc"))
 		FILE_NAME(printInfo)();
@@ -1805,37 +1799,6 @@ void FILE_NAME(debugRcvStr)(void)
 	/* ----- END Debug Test For Touch Resolution ----- */
 
 
-	/* ----- Debug Test GRAPH ----- */
-/*	_DBG3_PARAM_NOWRAP("a","A","z","Z",&testGraph.par.scaleX,_float,_Float(0.1),_Float( 1.5),_Float( 20.0),_Float(1.0),"Test Graph scaleX: ",MainFuncRefresh,NULL)
-	_DBG3_PARAM_NOWRAP("s","S","x","X",&testGraph.par.scaleY,_float,_Float(1.0),_Float(10.0),_Float(100.0),_Float(1.0),"Test Graph scaleY: ",MainFuncRefresh,NULL)
-
-	_DBG_PARAM_NOWRAP("d",&testGraph.funcType,_uint8,_Incr,_Uint8(1),_Uint8(Func_lines6),"Test Graph funcType: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("c",&testGraph.funcType,_uint8,_Decr,_Uint8(1),_Uint8(Func_sin),	 "Test Graph funcType: ",MainFuncRefresh)
-
-	_DBG_PARAM_NOWRAP("f",&testGraph.AAoutCoeff,_float,_Incr,_Float(0.1),_Float(1.0),"Test Graph AA out: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("v",&testGraph.AAoutCoeff,_float,_Decr,_Float(0.1),_Float(0.0),"Test Graph AA out: ",MainFuncRefresh)
-
-	_DBG_PARAM_NOWRAP("g",&testGraph.AAinCoeff,_float,_Incr,_Float(0.1),_Float(1.0),"Test Graph AA in: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("b",&testGraph.AAinCoeff,_float,_Decr,_Float(0.1),_Float(0.0),"Test Graph AA in: ",MainFuncRefresh)
-
-	_DBG_PARAM_WRAP("y",&testGraph.corr45degAA,_int,_Wrap,_Int(1), _Int(0),_Int(1), "Test Graph AA 45deg: ",MainFuncRefresh)
-
-	_DBG_PARAM_WRAP("q",&testGraph.grad.bkType,_int,_Wrap,_Int(1), _Int(Grad_YmaxYmin),_Int(Grad_Ycolor), "Test Graph grad type: ",MainFuncRefresh)
-*/
-	/* ----- END Test GRAPH ------- */
-
-
-	_DBG_PARAM_NOWRAP("w",&xMidd, _uint32,_Incr,_Uint32(distStep),_Uint32(LCD_X-distStep),"xMidd: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("q",&xMidd, _uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "xMidd: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("r",&xRight,_uint32,_Incr,_Uint32(distStep),_Uint32(LCD_X-distStep),"xRight: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("e",&xRight,_uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "xRight: ",MainFuncRefresh)
-
-	_DBG_PARAM_NOWRAP("z",&yMidd, _uint32,_Incr,_Uint32(distStep),_Uint32(LCD_Y-distStep),"yMidd: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("a",&yMidd, _uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "yMidd: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("s",&yRight,_uint32,_Incr,_Uint32(distStep),_Uint32(LCD_Y-distStep),"yRight: ",MainFuncRefresh)
-	_DBG_PARAM_NOWRAP("x",&yRight,_uint32,_Decr,_Uint32(distStep),_Uint32(distStep), 	  "yRight: ",MainFuncRefresh)
-
-
 	else if(DEBUG_RcvStr("p"))
 	{
 		DbgVar(1,100,Clr_ Mag_"\r\nStart: %s -> CPU: %d \r\n"_X, GET_CODE_FUNCTION, osGetCPUUsage());
@@ -1847,16 +1810,16 @@ void FILE_NAME(debugRcvStr)(void)
 		SCREEN_Fonts_funcSet(COLOR_FramePress, BLACK);
 	}
 
-
 	else if(DEBUG_RcvStr("6"))
 	{
 		if(TOOGLE(RR))
 		{
 			FILE_NAME(keyboard)(KEYBOARD_fontRGB, KEY_All_release, LCD_RoundRectangle,0,  10,160, KeysAutoSize,12, 4, Touch_FontColor, Touch_fontRp, KeysDel);
 			FILE_NAME(keyboard)(KEYBOARD_bkRGB,   KEY_All_release, LCD_RoundRectangle,0, 600,160, KeysAutoSize,12, 4, Touch_BkColor, 	Touch_bkRp,	  KeysNotDel);
-
-//			FILE_NAME(keyboard)(KEYBOARD_sliderRGB, 	KEY_All_release, LCD_RoundRectangle,0, 50,160, 39,140, 16, Touch_FontColor2, Touch2_fontSliderR_left, KeysDel);
-//			FILE_NAME(keyboard)(KEYBOARD_sliderBkRGB, KEY_All_release, LCD_RoundRectangle,0, 550,160, 39,140, 16, Touch_BkColor2,   Touch2_bkSliderR_left, KeysNotDel);
+/*
+			FILE_NAME(keyboard)(KEYBOARD_sliderRGB, 	KEY_All_release, LCD_RoundRectangle,0, 50,160, 39,140,  16, Touch_FontColor2, Touch2_fontSliderR_left, KeysDel);
+			FILE_NAME(keyboard)(KEYBOARD_sliderBkRGB, KEY_All_release, LCD_RoundRectangle,0, 550,160, 39,140, 16, Touch_BkColor2,   Touch2_bkSliderR_left, 	 KeysNotDel);
+*/
 		}
 		else
 		{
@@ -1865,12 +1828,12 @@ void FILE_NAME(debugRcvStr)(void)
 		}
 	}
 
-	//- Zrobic szablon na TEST SHAPE -------!!!!
+
 	else if(DEBUG_RcvStr("7")){
 		*ppMain=(int*)FRAMES_GROUP_separat;
 		FILE_NAME(main)(LoadUserScreen,(char**)ppMain);
 	}
-	//- Zrobic szablon na TEST SHAPE -------!!!!
+
 
 
 	else if(DEBUG_RcvStr("1"))
