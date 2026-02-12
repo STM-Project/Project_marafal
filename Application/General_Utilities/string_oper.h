@@ -43,6 +43,7 @@ int STRING_GetTheLongestTxt(int nmb, char **txt);
 int STRING_CmpTxt(char* src, char* dst);
 char* DispLongNmb(uint32_t nmb, char* bufStr);
 
+void STRING_CopyBuff(char *dest,char *src, int sizeDest,int sizeSrc);
 void StrBuffCopy(char *dest, char *src);
 void StrBuffCopylimit(char *dest, char *src, int lenSrc);
 
