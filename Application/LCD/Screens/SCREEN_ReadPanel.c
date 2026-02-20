@@ -26,6 +26,7 @@
 #include "SCREEN_CalibrationLCD.h"
 #include "touch.h"
 #include "SCREEN_FontsLCD.h"
+#include "SCREEN_VisualParamLCD.h"
 
 #define FLOAT2STR(val)	Float2Str(val,' ',4,Sign_plusMinus,1)
 #define INT2STR_TIME(val) Int2Str(val,' ',6,Sign_none)
@@ -559,6 +560,10 @@ void SCREEN_ReadPanel(void)  // przeniesc do Task.c !!!!!!!!!!!!!!!!!!
 			SCREEN_Calibration_main(argNmb,argVal);
 			startScreen=1;
 			break;
+		case 6:
+			SCREEN_VisualParam_main(argNmb,argVal);
+			startScreen=1;
+			break;
 		}
 		SCREEN_number_prev = SCREEN_number;
 	}
@@ -620,6 +625,9 @@ void SCREEN_ReadPanel(void)  // przeniesc do Task.c !!!!!!!!!!!!!!!!!!
 
 		case 4:
 			DBG_SCREEN_Test_Circle();
+		case 6:
+			SCREEN_VisualParam_debugRcvStr();
+			SCREEN_VisualParam_setTouch();
 			break;
 		}
 	}
