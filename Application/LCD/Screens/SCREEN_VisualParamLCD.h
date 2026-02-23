@@ -1,44 +1,35 @@
+/*
+ * SCREEN_ReadPanel.h
+ *
+ *  Created on: 14.04.2021
+ *      Author: RafalMar
+ */
 
-#ifndef LCD_SCREENS_SCREEN_VISUALPARAMLCD_H_
-#define LCD_SCREENS_SCREEN_VISUALPARAMLCD_H_
+#ifndef LCD_SCREENS_SCREEN_READPANEL_H_
+#define LCD_SCREENS_SCREEN_READPANEL_H_
 
+#include "LCD_fonts_images.h"
+#include "LCD_BasicGraphics.h"
 
-#include "stm32f7xx_hal.h"
+#define ONEBIT(val)	     Int2Str(val,None,1,Sign_none)
+#define INT2STR(val)		  Int2Str(val,'0',3,Sign_none)
 
-typedef enum{
-	VISUALPARAM_FONT_SIZE_Title,
-	VISUALPARAM_FONT_SIZE_FontColor,
+extern int argNmb;
+extern char **argVal;
+extern int startScreen;
 
-	VISUALPARAM_FONT_STYLE_Title,
-	VISUALPARAM_FONT_STYLE_FontColor,
+void SCREEN_ReadPanel(void);
 
-	VISUALPARAM_FONT_COLOR_Title,
-	VISUALPARAM_FONT_COLOR_FontColor,
+void LCD_ArrowTxt(uint32_t posBuff,uint32_t bkpSizeX,uint32_t bkpSizeY, uint32_t x,uint32_t y, uint32_t width,uint32_t height, uint32_t frameColor, uint32_t fillColor, uint32_t bkpColor, DIRECTIONS direct, int fontId, char *txt, uint32_t txtColor);
 
-	VISUALPARAM_FONT_BKCOLOR_Title,
-	VISUALPARAM_FONT_BKCOLOR_FontColor,
+int SCREEN_ConfigTouchForStrVar(uint16_t ID_touch, uint16_t idx_touch, uint8_t param_touch, int idVar, int nrTouchIdx, StructTxtPxlLen lenStr);
+int SCREEN_ConfigTouchForStrVar_2(uint16_t ID_touch, uint16_t idx_touch, uint8_t param_touch, int idVar, int nrTouchIdx, StructFieldPos field);
+int SCREEN_SetTouchForNewEndPos(int idVar, int touchIdx, StructTxtPxlLen lenStr);
 
-	VISUALPARAM_COLOR_BkScreen,
-	VISUALPARAM_COLOR_MainFrame,
-	VISUALPARAM_COLOR_FillMainFrame,
-	VISUALPARAM_COLOR_Frame,
-	VISUALPARAM_COLOR_FillFrame,
-	VISUALPARAM_COLOR_FramePress,
-	VISUALPARAM_COLOR_FillFramePress,
-	VISUALPARAM_DEBUG_ON,
-	VISUALPARAM_BK_FONT_ROUND,
-	VISUALPARAM_LANG_SELECT,
+void Measure_Start();
+void Measure_Stop();
 
-}_SCREEN_VisualParam_enum;
+void SCREEN_ResetAllParameters (void);
+void SCREEN_SetNr					 (int nr);
 
-void SCREEN_VisualParam_main(int argNmb, char **argVal);
-
-int SCREEN_VisualParam_funcGet(int offs);
-void SCREEN_VisualParam_funcSet(int offs, int val);
-void SCREEN_VisualParam_setDefaultAllParam(int rst);
-void SCREEN_VisualParam_printInfo(void);
-
-void SCREEN_VisualParam_debugRcvStr(void);
-void SCREEN_VisualParam_setTouch(void);
-
-#endif /* LCD_SCREENS_SCREEN_VISUALPARAMLCD_H_ */
+#endif /* LCD_SCREENS_SCREEN_READPANEL_H_ */
