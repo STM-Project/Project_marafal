@@ -8,6 +8,7 @@
 #include "touch.h"
 #include <string.h>
 
+/*--------------- Main Macro Settings ------------------*/
 #define FILE_NAME(extend) SCREEN_VisualParam_##extend
 
 #define SCREEN_VISUALPARAM_LANG \
@@ -57,9 +58,7 @@
 	X(32, BK_FONT_ROUND,  			1) \
 	X(33, LANG_SELECT,  				Polish) \
 
-/*------------ End Main Settings -----------------*/
-
-/*------------ Main Screen MACROs -----------------*/
+/*------------ Main Functions of the MACROs -----------------*/
 #define SL(name)	(char*)FILE_NAME(Lang)[ v.LANG_SELECT==Polish ? 2*(name) : 2*(name)+1 ]
 
 typedef enum{
@@ -124,7 +123,7 @@ void FILE_NAME(printInfo)(void){
 		DbgVar(1,200,CoG2_"}%s;\r\n"_X,getName(FILE_NAME(struct)));
 	}
 }
-//ZROBIC szablon z macro by dla kazdego pliku szybko skopioowac !!!!!!!!!!!!!!!
+
 int FILE_NAME(funcGet)(int offs){
 	return *( (int*)((int*)(&v) + offs) );
 }
@@ -148,8 +147,8 @@ void FILE_NAME(debugRcvStr)(void);
 void FILE_NAME(setTouch)(void);
 
 void 	FILE_NAME(main)(int argNmb, char **argVal);
-/*------------ End Main Screen MACRO -----------------*/
 
+/*------------ Alternative Defines and Functions -----------------*/
 #define CHECK_TOUCH(state)		CHECK_bit(FILE_NAME(SelTouch)[state/32],(state-32*(state/32)-1))
 #define SET_TOUCH(state) 		SET_bit(FILE_NAME(SelTouch)[state/32],(state-32*(state/32)-1))
 #define CLR_TOUCH(state) 		RST_bit(FILE_NAME(SelTouch)[state/32],(state-32*(state/32)-1))
@@ -268,6 +267,11 @@ static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int 
 }
 
 /* ------------ FILE_NAME() functions ------------ */
+static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create new thread vTaskTimer */
+{
+
+}
+
 int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, INIT_KEYBOARD_PARAM)
 {
 	KEYBOARD_SetGeneral(v.FONT_ID_Press, v.FONT_ID_Descr, 	v.FONT_COLOR_Descr,
@@ -399,13 +403,16 @@ void FILE_NAME(setTouch)(void)
 		/*	----- Initiation new Keyboard ----- */
 
 		/*	----- Touch parameter text and go to action ----- */
+	case Touch_Param_1:
+		SCREEN_SetNr(0);
+		break;
 
 
 		default:		 /* ----- Service release specific Keys for Keyboard ----- */
 			break;
 	}
 
-/*	FILE_NAME(timer)();	*/
+	FILE_NAME(timer)();
 /*	LCDTOUCH_testFunc(); */
 
 }
@@ -424,13 +431,24 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 
 		DbgVar(v.DEBUG_ON,100, "" Cya_"\r\nStart: %s\r\n"_X, GET_CODE_FUNCTION);
 
-		LoadFonts(FONT_ID_Title, FONT_SIZE_Param_1);
+		LoadFonts(FONT_ID_Title, FONT_ID_Param_1);
+		DisplayFontsStructState();
+
+		LCDTOUCH_Set(LCD_X-FV(SetVal,0,LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,SL(LANG_nazwa_1),0,NoConstWidth)+5), \
+						 LCD_Y-FV(SetVal,1,LCD_GetFontHeight(v.FONT_ID_Descr)+5), \
+						 	 	 FV(GetVal,0,NoUse),\
+								 FV(GetVal,1,NoUse), ID_TOUCH_POINT,Touch_Param_1,press);
 	}
 
 
 
 	LCD_TxtShadowInit(fontVar_40, v.FONT_ID_Param_1, v.COLOR_BkScreen, BK_Rectangle);
 	LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Param_1, fontVar_40, 20,200, SL(LANG_nazwa_0), BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
+
+	LCD_StrDependOnColors(v.FONT_ID_Descr, LCD_X-FV(GetVal,0,NoUse), LCD_Y-FV(GetVal,1,NoUse), SL(LANG_nazwa_1), fullHight,0, v.COLOR_FillFrame, v.FONT_COLOR_Descr, 255, NoConstWidth);
+
+	//if(LoadWholeScreen  == argNmb) TxtTouch(TouchSetNew);
+	if(LoadNoDispScreen != argNmb) LCD_Show();
 
 }
 
