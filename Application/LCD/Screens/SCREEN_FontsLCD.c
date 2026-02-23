@@ -1710,9 +1710,10 @@ void FILE_NAME(setTouch)(void)
 			break;
 
 		case Touch_MainFramesType:
-			if(ppMain[0]==(int*)FRAMES_GROUP_separat)	*ppMain=(int*)FRAMES_GROUP_combined;
-			else													*ppMain=(int*)FRAMES_GROUP_separat;
-			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
+//			if(ppMain[0]==(int*)FRAMES_GROUP_separat)	*ppMain=(int*)FRAMES_GROUP_combined;
+//			else													*ppMain=(int*)FRAMES_GROUP_separat;
+//			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
+			SCREEN_SetNr(6);
 			break;
 
 
