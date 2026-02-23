@@ -34,11 +34,13 @@
 int argNmb = 0;
 char **argVal = NULL;
 
-int SCREEN_number=0, SCREEN_number_prev=-1;  //LOAD IMAGE !!!!!
+static int SCREEN_number=0, SCREEN_number_prev=-1;  //LOAD IMAGE !!!!!
 
 
 StructTxtPxlLen lenStr;
 int startScreen=0;
+
+void SCREEN_SetNr(int nr){ startScreen=0; SCREEN_number=nr; }
 
 void SCREEN_ResetAllParameters(void)
 {
