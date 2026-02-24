@@ -149,12 +149,6 @@ void FILE_NAME(setTouch)(void);
 void 	FILE_NAME(main)(int argNmb, char **argVal);
 
 /*------------ Alternative Defines and Functions -----------------*/
-#define CHECK_TOUCH(state)		CHECK_bit(FILE_NAME(SelTouch)[state/32],(state-32*(state/32)-1))
-#define SET_TOUCH(state) 		SET_bit(FILE_NAME(SelTouch)[state/32],(state-32*(state/32)-1))
-#define CLR_TOUCH(state) 		RST_bit(FILE_NAME(SelTouch)[state/32],(state-32*(state/32)-1))
-#define CLR_ALL_TOUCH 			for(int i=0;i<SEL_BITS_SIZE;++i) FILE_NAME(SelTouch)[i]=0
-#define GET_TOUCH 				FILE_NAME(SelTouch)[0]!=0 || FILE_NAME(SelTouch)[1]!=0 || FILE_NAME(SelTouch)[2]!=0 || FILE_NAME(SelTouch)[3]!=0 || FILE_NAME(SelTouch)[4]!=0		/* determine by 'SEL_BITS_SIZE' */
-
 #define NONE_TYPE_REQ	-1
 #define MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY		20
 /* #define TOUCH_MAINFONTS_WITHOUT_DESCR */
@@ -174,7 +168,7 @@ typedef enum{
 	Touch_Param_2,
 	AnyPress,
 	AnyPressWithWait,
-	Touch_Q,Touch_W,Touch_E,Touch_R,Touch_T,Touch_Y,Touch_U,Touch_I,Touch_O,Touch_P,Touch_A,Touch_S,Touch_D,Touch_F,Touch_G,Touch_H,Touch_J,Touch_K,TOouch_L,Touch_big,Touch_Z,Touch_X,Touch_C,Touch_V,Touch_B,Touch_N,Touch_M,Touch_back,Touch_alt,Touch_exit,Touch_space,Touch_comma,Touch_dot,Touch_enter,Touch_field,Touch_keyStyle
+	KEYBOARD_SETTXT_TOUCHS
 }TOUCH_POINTS;		/* MAX_OPEN_TOUCH_SIMULTANEOUSLY */
 
 typedef enum{
@@ -186,8 +180,7 @@ typedef enum{
 
 	KEY_Param_1,
 	KEY_Param_2,
-
-	KEY_Q,KEY_W,KEY_E,KEY_R,KEY_T,KEY_Y,KEY_U,KEY_I,KEY_O,KEY_P,KEY_A,KEY_S,KEY_D,KEY_F,KEY_G,KEY_H,KEY_J,KEY_K,KEY_L,KEY_big,KEY_Z,KEY_X,KEY_C,KEY_V,KEY_B,KEY_N,KEY_M,KEY_back,KEY_alt,KEY_exit,KEY_space,KEY_comma,KEY_dot,KEY_enter,KEY_field,KEY_style,
+	KEYBOARD_SETTXT_KEYS
 }SELECT_PRESS_BLOCK;
 
 typedef enum{
@@ -238,21 +231,9 @@ static void LoadFonts(int startFontID, int endFontID){
 		#undef A
 	}
 /*
-	v.FONT_ID_Title 	 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Title),	  	FILE_NAME(GetDefaultParam)(FONT_ID_Title));
-	v.FONT_ID_FontColor		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(FontColor),	FILE_NAME(GetDefaultParam)(FONT_ID_FontColor));
-	v.FONT_ID_BkColor 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(BkColor),  	FILE_NAME(GetDefaultParam)(FONT_ID_BkColor));
-	v.FONT_ID_FontType 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(FontType), 	FILE_NAME(GetDefaultParam)(FONT_ID_FontType));
-	v.FONT_ID_FontSize 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(FontSize), 	FILE_NAME(GetDefaultParam)(FONT_ID_FontSize));
-	v.FONT_ID_FontStyle  	= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(FontStyle),	FILE_NAME(GetDefaultParam)(FONT_ID_FontStyle));
-
-	v.FONT_ID_Coeff 			= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Coeff), 		 FILE_NAME(GetDefaultParam)(FONT_ID_Coeff));
-	v.FONT_ID_LenWin 			= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(LenWin), 		 FILE_NAME(GetDefaultParam)(FONT_ID_LenWin));
-	v.FONT_ID_OffsWin 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(OffsWin), 	 FILE_NAME(GetDefaultParam)(FONT_ID_OffsWin));
-	v.FONT_ID_LoadFontTime 	= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(LoadFontTime),FILE_NAME(GetDefaultParam)(FONT_ID_LoadFontTime));
-	v.FONT_ID_PosCursor 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(PosCursor), 	 FILE_NAME(GetDefaultParam)(FONT_ID_PosCursor));
-	v.FONT_ID_CPUusage 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(CPUusage), 	 FILE_NAME(GetDefaultParam)(FONT_ID_CPUusage));
-	v.FONT_ID_Speed 			= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Speed), 		 FILE_NAME(GetDefaultParam)(FONT_ID_Speed));
-	v.FONT_ID_Press 			= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Press), 		 FILE_NAME(GetDefaultParam)(FONT_ID_Press));
+	v.FONT_ID_Title 	 	= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Title),	FILE_NAME(GetDefaultParam)(FONT_ID_Title));
+	v.FONT_ID_Descr		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Descr),	FILE_NAME(GetDefaultParam)(FONT_ID_Descr));
+	v.FONT_ID_Press 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Press),  	FILE_NAME(GetDefaultParam)(FONT_ID_Press));
 */
 }
 
@@ -303,69 +284,35 @@ void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 
 void FILE_NAME(setTouch)(void)
 {
-	#define CASE_TOUCH_STATE(state,touchPoint, src,dst, txt,coeff, touchX, touchX2) \
+
+
+	#define CASE_TOUCH_STATE(screenTouchState,touchPoint, src,dst, txt,coeff, touchX, touchX2) \
 		case touchPoint:\
 		if(NotServiceTouchAboveWhenWasClearedThis(touchX) & NotServiceTouchAboveWhenWasClearedThis(touchX2)){\
-			if(0==CHECK_TOUCH(state)){\
+			if(0==CHECK_TOUCH(screenTouchState)){\
 				if(GET_TOUCH){ FILE_NAME(main)(LoadPartScreen,(char**)ppMain); CLR_ALL_TOUCH; }\
 				SELECT_CURRENT_FONT(src, dst, txt, coeff);\
-				SET_TOUCH(state);\
-				SetFunc();\
+				SET_TOUCH(screenTouchState);\
+				SetTouchFlag();\
 			}\
 			else{\
 				FILE_NAME(main)(LoadPartScreen,(char**)ppMain);\
 				KEYBOARD_TYPE(KEYBOARD_none,0);\
-				CLR_TOUCH(state);\
+				CLR_TOUCH(screenTouchState);\
 			}}
 
-	static uint16_t statePrev=0, statePrev2=0;
-	uint16_t state, function=0;
-	XY_Touch_Struct pos;
-
-	void _SaveState (void){ statePrev =state; }
-/*	void _RstState	 (void){ statePrev =0; 		} */
-	void _SaveState2(void){ statePrev2=state; }
-	void _RstState2 (void){ statePrev2=0; 		}
-
-	int _WasState(int point){
-		if(release==LCD_TOUCH_isPress() && point==statePrev){
-			statePrev = state;
-			return 1;
-		}
-		else return 0;
-	}
-	int _WasStateRange(int point1, int point2){
-		if(release==LCD_TOUCH_isPress() && IS_RANGE(statePrev,point1,point2)){
-			statePrev = state;
-			return 1;
-		}
-		else return 0;
-	}
-	int _WasStatePrev(int rangeMin,int rangeMax){
-		return (IS_RANGE(statePrev,rangeMin,rangeMax) && statePrev!=state);
-	}
-
-	void SetFunc(void){
-		function=1;
-	}
-	int IsFunc(void){
-		if(function){
-			function=0;
-			return 1;
-		}
-		return 0;
-	}
+	TouchScreenInit();
 
 	int NotServiceTouchAboveWhenWasClearedThis(TOUCH_POINTS touch){
 		return CONDITION(NoTouch==touch, 1, !CHECK_TOUCH(touch) && !_WasState(touch));
 	}
 	void _TouchService(TOUCH_POINTS touchStart,TOUCH_POINTS touchStop, KEYBOARD_TYPES keyboard, SELECT_PRESS_BLOCK releaseAll,SELECT_PRESS_BLOCK keyStart, TOUCH_FUNC *func){
-		if(IS_RANGE(state, touchStart, touchStop)){
-			int nr = state-touchStart;
+		if(IS_RANGE(screenTouchState, touchStart, touchStop)){
+			int nr = screenTouchState-touchStart;
 			if(releaseAll){  if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(keyboard,releaseAll);  }
 			if(func) func(nr);
 			if(KEY_Select_one==keyStart) nr=0;
-			KEYBOARD_TYPE_PARAM(keyboard,keyStart+nr,pos.x,pos.y,0,0,0); _SaveState();
+			KEYBOARD_TYPE_PARAM(keyboard,keyStart+nr,screenTouchPos.x,screenTouchPos.y,0,0,0); _SaveState();
 	}}
 	void _TouchEndService(TOUCH_POINTS touchStart,TOUCH_POINTS touchStop, KEYBOARD_TYPES keyboard, SELECT_PRESS_BLOCK releaseAll, TOUCH_FUNC *func){
 		if(_WasStateRange(touchStart, touchStop)){
@@ -378,27 +325,24 @@ void FILE_NAME(setTouch)(void)
 			case KEYBOARD_Param_2:	break;
 	}}
 	void _RestoreSusspendedTouchsByAnotherClickItem(TOUCH_POINTS prev,TOUCH_POINTS prevStart,TOUCH_POINTS prevStop, 	TOUCH_POINTS not1,TOUCH_POINTS not2,TOUCH_POINTS not3,TOUCH_POINTS not4,TOUCH_POINTS not5,TOUCH_POINTS not6,TOUCH_POINTS not7,TOUCH_POINTS not8,TOUCH_POINTS not9,TOUCH_POINTS not10, 		TOUCH_POINTS unblock1,TOUCH_POINTS unblock2,TOUCH_POINTS unblock3,TOUCH_POINTS unblock4,TOUCH_POINTS unblock5,TOUCH_POINTS unblock6,TOUCH_POINTS unblock7,TOUCH_POINTS unblock8,TOUCH_POINTS unblock9,TOUCH_POINTS unblock10){
-		if(state){
-			if((prev==statePrev2 || IS_RANGE(statePrev2,prevStart,prevStop)) && (prev!=state && !IS_RANGE(state,prevStart,prevStop)) && (not1!=state && not2!=state && not3!=state && not4!=state && not5!=state && not6!=state && not7!=state && not8!=state && not9!=state && not10!=state)){
+		if(screenTouchState){
+			if((prev==screenTouchStatePrev2 || IS_RANGE(screenTouchStatePrev2,prevStart,prevStop)) && (prev!=screenTouchState && !IS_RANGE(screenTouchState,prevStart,prevStop)) && (not1!=screenTouchState && not2!=screenTouchState && not3!=screenTouchState && not4!=screenTouchState && not5!=screenTouchState && not6!=screenTouchState && not7!=screenTouchState && not8!=screenTouchState && not9!=screenTouchState && not10!=screenTouchState)){
 				LCD_TOUCH_RestoreSusspendedTouchs2(unblock1,unblock2,unblock3,unblock4,unblock5,unblock6,unblock7,unblock8,unblock9,unblock10);
-				statePrev2=0;
+				screenTouchStatePrev2=0;
 	}}}
-	int _KEYBOARD_setTxt__SERVICE(u16 state,int touchStart,int touchStop, int keyStart){
-			  if( IS_RANGE(state,touchStart,touchStop))									 			{	if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);								 KEYBOARD_TYPE(KEYBOARD_setTxt, keyStart+(state-touchStart));  _SaveState();	return 1;  }
+	int _KEYBOARD_setTxt__SERVICE(u16 screenTouchState,int touchStart,int touchStop, int keyStart){
+			  if( IS_RANGE(screenTouchState,touchStart,touchStop))									 			{	if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);								 KEYBOARD_TYPE(KEYBOARD_setTxt, keyStart+(screenTouchState-touchStart));  _SaveState();	return 1;  }
 		else if(_WasStateRange(Touch_exit,Touch_exit) && _SET==LCDTOUCH_UserStatus(_GET)){	LCD_TOUCH_RestoreAllSusspendedTouchs(); ServiceKeyCharBuff(); 	FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	 KEYBOARD_TYPE(KEYBOARD_none,0);	 															return 1;  }
 		else if(_WasStateRange(touchStart,touchStop))									 			{																																						 KEYBOARD_TYPE(KEYBOARD_setTxt, KEY_All_release);  									return 1;  }
 		return 0;
 	}
 
-
-	state = LCD_TOUCH_GetTypeAndPosition(&pos);
-													/*if prevTouch is this... and actualTouch is not this...*/				/*and yet actualTouch not this...*/							/*then unblock touches this...*/
-	//_RestoreSusspendedTouchsByAnotherClickItem();		/* depended on _SaveState2() */
+	screenTouchState = LCD_TOUCH_GetTypeAndPosition(&screenTouchPos);
 
 	/*	----- Service press specific Keys for Keyboard ----- */
 
 
-	switch(state)
+	switch(screenTouchState)
 	{
 		/*	----- Initiation new Keyboard ----- */
 
