@@ -57,6 +57,10 @@ extern uint8_t touchDetect;
 extern XY_Touch_Struct  touchTemp[];
 extern XY_Touch_Struct  structXY_Zero;
 
+extern XY_Touch_Struct screenTouchPos;
+extern uint16_t 		  screenTouchState;
+extern uint16_t 		  screenTouchStatePrev, screenTouchStatePrev2;
+
 void		LCD_TOUCH_Service					(void);
 uint16_t LCD_TOUCH_GetTypeAndPosition	(XY_Touch_Struct *posXY);
 void 		LCD_TOUCH_DeleteAllSetTouch	(void);
@@ -109,5 +113,24 @@ int LCDTOUCH_IsScrollRelease(uint8_t IDroll, FUNC1_DEF(pFunc), VOID_FUNCTION *pf
 int LCDTOUCH_Set(uint16_t startX, uint16_t startY, uint16_t width, uint16_t height, uint16_t ID, uint16_t idx, uint8_t param);
 int LCDTOUCH_Update(uint16_t startX, uint16_t startY, uint16_t width, uint16_t height, uint16_t ID, uint16_t idx, uint8_t param);
 int LCDTOUCH_UserStatus(int nr);
+
+void SetTouchFlag		(void);
+int  IsSetTouchFlag	(void);
+void TouchScreenInit (void);
+void _SaveState (void);
+/*	void _RstState	 (void); */
+void _SaveState2(void);
+void _RstState2 (void);
+int _WasState(int point);
+int _WasStateRange(int point1, int point2);
+int _WasStatePrev(int rangeMin,int rangeMax);
+
+#define CHECK_TOUCH(screenTouchState)		CHECK_bit(FILE_NAME(SelTouch)[screenTouchState/32],(screenTouchState-32*(screenTouchState/32)-1))
+#define SET_TOUCH(screenTouchState) 		SET_bit(FILE_NAME(SelTouch)[screenTouchState/32],(screenTouchState-32*(screenTouchState/32)-1))
+#define CLR_TOUCH(screenTouchState) 		RST_bit(FILE_NAME(SelTouch)[screenTouchState/32],(screenTouchState-32*(screenTouchState/32)-1))
+#define CLR_ALL_TOUCH 			for(int i=0;i<SEL_BITS_SIZE;++i) FILE_NAME(SelTouch)[i]=0
+#define GET_TOUCH 				FILE_NAME(SelTouch)[0]!=0 || FILE_NAME(SelTouch)[1]!=0 || FILE_NAME(SelTouch)[2]!=0 || FILE_NAME(SelTouch)[3]!=0 || FILE_NAME(SelTouch)[4]!=0		/* determine by 'SEL_BITS_SIZE' */
+
+//void _RestoreSusspendedTouchsByAnotherClickItem___(int state,int statePrev2, int prev,int prevStart,int prevStop, 	int not1,int not2,int not3,int not4,int not5,int not6,int not7,int not8,int not9,int not10, 		int unblock1,int unblock2,int unblock3,int unblock4,int unblock5,int unblock6,int unblock7,int unblock8,int unblock9,int unblock10);
 
 #endif
