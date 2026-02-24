@@ -1052,3 +1052,67 @@ int LCDTOUCH_UserStatus(int nr){
 	else			 return userStatusTouch;
 }
 
+/* ------------- Touch Main Screen Service -----------*/
+static uint16_t touchFlag=0;
+XY_Touch_Struct screenTouchPos;
+uint16_t 		 screenTouchState;
+uint16_t 		 screenTouchStatePrev=0, screenTouchStatePrev2=0;  //to musi byc zerowane przy przejsciu do innych screen
+
+void SetTouchFlag(void){
+	touchFlag=1;
+}
+int IsSetTouchFlag(void){
+	if(touchFlag){
+		touchFlag=0;
+		return 1;
+	}
+	return 0;
+}
+
+void TouchScreenInit(void){		//UWAGA wyjscie z num,erycznej klwaitury cos blokuije !!!!!!!
+	touchFlag=0;
+}
+
+void _SaveState (void){ screenTouchStatePrev =screenTouchState; }		//zmienic na lepsze nazwy
+/*	void _RstState	 (void){ screenTouchStatePrev =0; 		} */
+void _SaveState2(void){ screenTouchStatePrev2=screenTouchState; }
+void _RstState2 (void){ screenTouchStatePrev2=0; 		}
+
+int _WasState(int point){
+	if(release==LCD_TOUCH_isPress() && point==screenTouchStatePrev){
+		screenTouchStatePrev = screenTouchState;
+		return 1;
+	}
+	else return 0;
+}
+
+int _WasStateRange(int point1, int point2){
+	if(release==LCD_TOUCH_isPress() && IS_RANGE(screenTouchStatePrev,point1,point2)){
+		screenTouchStatePrev = screenTouchState;
+		return 1;
+	}
+	else return 0;
+}
+int _WasStatePrev(int rangeMin,int rangeMax){
+	return (IS_RANGE(screenTouchStatePrev,rangeMin,rangeMax) && screenTouchStatePrev!=screenTouchState);
+}
+
+//#include "Keyboard.h"
+//
+//void _RestoreSusspendedTouchsByAnotherClickItem___(int state,int statePrev2, int prev,int prevStart,int prevStop, 	int not1,int not2,int not3,int not4,int not5,int not6,int not7,int not8,int not9,int not10, 		int unblock1,int unblock2,int unblock3,int unblock4,int unblock5,int unblock6,int unblock7,int unblock8,int unblock9,int unblock10){
+//	if(state){
+//		if((prev==statePrev2 || IS_RANGE(statePrev2,prevStart,prevStop)) && (prev!=state && !IS_RANGE(state,prevStart,prevStop)) && (not1!=state && not2!=state && not3!=state && not4!=state && not5!=state && not6!=state && not7!=state && not8!=state && not9!=state && not10!=state)){
+//			LCD_TOUCH_RestoreSusspendedTouchs2(unblock1,unblock2,unblock3,unblock4,unblock5,unblock6,unblock7,unblock8,unblock9,unblock10);
+//			statePrev2=0;
+//}}}
+
+//void _TouchService___(int state,int touchStart,int touchStop, int keyboard, int releaseAll,int keyStart, TOUCH_FUNC *func){
+//	if(IS_RANGE(state, touchStart, touchStop)){
+//		int nr = state-touchStart;
+//		if(releaseAll){  if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(keyboard,releaseAll);  }
+//		if(func) func(nr);
+//		if(2/*KEY_Select_one*/==keyStart) nr=0;
+//		KEYBOARD_TYPE_PARAM(keyboard,keyStart+nr,pos.x,pos.y,0,0,0); _SaveState();
+//}}
+/* ------------- End Main Screen Service -----------*/
+
