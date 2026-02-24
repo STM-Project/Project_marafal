@@ -2361,7 +2361,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			if(_IsSign(i,_AL,NULL,NULL) || _IsSign(i,_EN,NULL,NULL) || _IsSign(i,_LF,NULL,NULL) || _IsSign(i,_EX,NULL,NULL));
 			else{
 				LCD_TOUCH_DeleteSelectTouch(s[k].startTouchIdx+i);
-				s[k].nmbTouch--;
+				/* s[k].nmbTouch--; */		/* This is not needed, write of touch is not in order (next by next) because of signs: _AL,_EN,_LF,_EX */
 			}
 		}
 		for(int i=0; i<countKey; ++i){
@@ -2379,6 +2379,7 @@ void KEYBOARD__ServiceSetTxt(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int 
 			if(_IsSign(i,_AL,NULL,NULL) || _IsSign(i,_EN,NULL,NULL) || _IsSign(i,_LF,NULL,NULL) || _IsSign(i,_EX,NULL,NULL));
 			else{
 				LCD_TOUCH_DeleteSelectTouch(s[k].startTouchIdx+i);
+				/* s[k].nmbTouch--; */		/* This is not needed, write of touch is not in order (next by next) because of signs: _AL,_EN,_LF,_EX */
 				SetTouch(k,ID_TOUCH_GET_ANY_POINT_WITH_WAIT,s[k].startTouchIdx+i,TOUCH_GET_PER_X_PROBE,posKey[i]);
 			}
 			BKCOPY(s[k].widthKey,c.widthKey);

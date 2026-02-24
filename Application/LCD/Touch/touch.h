@@ -23,6 +23,12 @@ typedef enum{
 
 #define END_FREEROLL__NOSEL		-1
 
+#define CHECK_TOUCH(screenTouchState)		CHECK_bit(FILE_NAME(SelTouch)[screenTouchState/32],(screenTouchState-32*(screenTouchState/32)-1))
+#define SET_TOUCH(screenTouchState) 		SET_bit(FILE_NAME(SelTouch)[screenTouchState/32],(screenTouchState-32*(screenTouchState/32)-1))
+#define CLR_TOUCH(screenTouchState) 		RST_bit(FILE_NAME(SelTouch)[screenTouchState/32],(screenTouchState-32*(screenTouchState/32)-1))
+#define CLR_ALL_TOUCH 							for(int i=0;i<SEL_BITS_SIZE;++i) FILE_NAME(SelTouch)[i]=0
+#define GET_TOUCH 								FILE_NAME(SelTouch)[0]!=0 || FILE_NAME(SelTouch)[1]!=0 || FILE_NAME(SelTouch)[2]!=0 || FILE_NAME(SelTouch)[3]!=0 || FILE_NAME(SelTouch)[4]!=0		/* determine by 'SEL_BITS_SIZE' */
+
 enum TOUCH_TYPE{
   ID_TOUCH_POINT,
   ID_TOUCH_POINT_WITH_HOLD,				/* if press at least specific time */
@@ -124,12 +130,6 @@ void _RstState2 (void);
 int _WasState(int point);
 int _WasStateRange(int point1, int point2);
 int _WasStatePrev(int rangeMin,int rangeMax);
-
-#define CHECK_TOUCH(screenTouchState)		CHECK_bit(FILE_NAME(SelTouch)[screenTouchState/32],(screenTouchState-32*(screenTouchState/32)-1))
-#define SET_TOUCH(screenTouchState) 		SET_bit(FILE_NAME(SelTouch)[screenTouchState/32],(screenTouchState-32*(screenTouchState/32)-1))
-#define CLR_TOUCH(screenTouchState) 		RST_bit(FILE_NAME(SelTouch)[screenTouchState/32],(screenTouchState-32*(screenTouchState/32)-1))
-#define CLR_ALL_TOUCH 			for(int i=0;i<SEL_BITS_SIZE;++i) FILE_NAME(SelTouch)[i]=0
-#define GET_TOUCH 				FILE_NAME(SelTouch)[0]!=0 || FILE_NAME(SelTouch)[1]!=0 || FILE_NAME(SelTouch)[2]!=0 || FILE_NAME(SelTouch)[3]!=0 || FILE_NAME(SelTouch)[4]!=0		/* determine by 'SEL_BITS_SIZE' */
 
 //void _RestoreSusspendedTouchsByAnotherClickItem___(int state,int statePrev2, int prev,int prevStart,int prevStop, 	int not1,int not2,int not3,int not4,int not5,int not6,int not7,int not8,int not9,int not10, 		int unblock1,int unblock2,int unblock3,int unblock4,int unblock5,int unblock6,int unblock7,int unblock8,int unblock9,int unblock10);
 

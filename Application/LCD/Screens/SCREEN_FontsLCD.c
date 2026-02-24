@@ -602,7 +602,7 @@ static int ChangeTxt(void){
 
 static void ResetIndexKeyBuff		  (void){ KEYBOARD_SETTXT_ServiceTxtBuffer(keyBuff,KEYBUFF_SIZE); memset(keyBuff,0,KEYBUFF_SIZE); }
 static void CopyKeyBuff2ShowTxtBuff(void){ STRING_CopyBuff( ShowTxtBuff,keyBuff, SIZE_TXT_SHOW,strlen(keyBuff) ); }
-static void ServiceKeyCharBuff	  (void){ CopyKeyBuff2ShowTxtBuff(); ResetIndexKeyBuff(); ChangeTxt(); }
+static void ServiceKeyCharBuff	  (void){ CopyKeyBuff2ShowTxtBuff(); ResetIndexKeyBuff(); ChangeTxt(); }  //tu kopiuj zawartosc textu z Fonts do klawiatury !!!!
 /*
 static char* TXT_PosCursor(void){
 	return Test.posCursor>0 ? Int2Str(Test.posCursor-1,' ',3,Sign_none) : StrAll(1,"off");
@@ -1528,9 +1528,9 @@ void FILE_NAME(setTouch)(void)
 				screenTouchStatePrev2=0;
 	}}}
 	int _KEYBOARD_setTxt__SERVICE(u16 screenTouchState,int touchStart,int touchStop, int keyStart){
-			  if( IS_RANGE(screenTouchState,touchStart,touchStop))									 			{	if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);								 KEYBOARD_TYPE(KEYBOARD_setTxt, keyStart+(screenTouchState-touchStart));  _SaveState();	return 1;  }
-		else if(_WasStateRange(Touch_exit,Touch_exit) && _SET==LCDTOUCH_UserStatus(_GET)){	LCD_TOUCH_RestoreAllSusspendedTouchs(); ServiceKeyCharBuff(); 	FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	 KEYBOARD_TYPE(KEYBOARD_none,0);	 															return 1;  }
-		else if(_WasStateRange(touchStart,touchStop))									 			{																																						 KEYBOARD_TYPE(KEYBOARD_setTxt, KEY_All_release);  									return 1;  }
+			  if( IS_RANGE(screenTouchState,touchStart,touchStop))								{	if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);								 KEYBOARD_TYPE(KEYBOARD_setTxt, keyStart+(screenTouchState-touchStart));  _SaveState();	return 1;  }
+		else if(_WasStateRange(Touch_exit,Touch_exit) && _SET==LCDTOUCH_UserStatus(_GET)){	LCD_TOUCH_RestoreAllSusspendedTouchs(); ServiceKeyCharBuff(); 	FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	 KEYBOARD_TYPE(KEYBOARD_none,0);	 																			return 1;  }
+		else if(_WasStateRange(touchStart,touchStop))									 			{																																						 KEYBOARD_TYPE(KEYBOARD_setTxt, KEY_All_release);  													return 1;  }
 		return 0;
 	}
 
