@@ -31,16 +31,16 @@
 #define FLOAT2STR(val)	Float2Str(val,' ',4,Sign_plusMinus,1)
 #define INT2STR_TIME(val) Int2Str(val,' ',6,Sign_none)
 
+static int startScreen=0;
+
 int argNmb = 0;
 char **argVal = NULL;
 
 static int SCREEN_number=0, SCREEN_number_prev=-1;  //LOAD IMAGE !!!!!
-
-
 StructTxtPxlLen lenStr;
-int startScreen=0;
 
-void SCREEN_SetNr(int nr){ startScreen=0; SCREEN_number=nr; }
+void SCREEN_SetNr (int nr){ TOUCHSCREEN_Exit(); startScreen=0; SCREEN_number=nr; }
+int  SCREEN_GetNr (void)  { return startScreen; }
 
 void SCREEN_ResetAllParameters(void)
 {
