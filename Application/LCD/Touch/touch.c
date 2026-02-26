@@ -1053,28 +1053,21 @@ int LCDTOUCH_UserStatus(int nr){
 }
 
 /* ------------- Touch Main Screen Service -----------*/
+#define TOUCH_POINTS 		int
+#define KEYBOARD_TYPES 		int
+#define SELECT_PRESS_BLOCK int
 static uint16_t touchFlag=0;
+static uint16_t screenTouchStatePrev=0, screenTouchStatePrev2=0;
 XY_Touch_Struct screenTouchPos;
 uint16_t 		 screenTouchState;
-uint16_t 		 screenTouchStatePrev=0, screenTouchStatePrev2=0;  //to musi byc zerowane przy przejsciu do innych screen
 
-void SetTouchFlag(void){
-	touchFlag=1;
-}
-int IsSetTouchFlag(void){
-	if(touchFlag){
-		touchFlag=0;
-		return 1;
-	}
-	return 0;
-}
-
-void TouchScreenInit(void){		//UWAGA wyjscie z num,erycznej klwaitury cos blokuije !!!!!!!
-	touchFlag=0;
-}
+void SetTouchFlag		(void){ touchFlag=1; }
+void TouchScreenInit	(void){ touchFlag=0; }
+int  IsSetTouchFlag	(void){ if(touchFlag){ touchFlag=0; return 1; } 	return 0; }
+void TOUCHSCREEN_Exit(void){ screenTouchStatePrev=0; screenTouchStatePrev2=0; }
 
 void _SaveState (void){ screenTouchStatePrev =screenTouchState; }		//zmienic na lepsze nazwy
-/*	void _RstState	 (void){ screenTouchStatePrev =0; 		} */
+/*	void _RstState	 (void){ screenTouchStatePrev =0; } */
 void _SaveState2(void){ screenTouchStatePrev2=screenTouchState; }
 void _RstState2 (void){ screenTouchStatePrev2=0; 		}
 
@@ -1085,7 +1078,6 @@ int _WasState(int point){
 	}
 	else return 0;
 }
-
 int _WasStateRange(int point1, int point2){
 	if(release==LCD_TOUCH_isPress() && IS_RANGE(screenTouchStatePrev,point1,point2)){
 		screenTouchStatePrev = screenTouchState;
@@ -1096,23 +1088,15 @@ int _WasStateRange(int point1, int point2){
 int _WasStatePrev(int rangeMin,int rangeMax){
 	return (IS_RANGE(screenTouchStatePrev,rangeMin,rangeMax) && screenTouchStatePrev!=screenTouchState);
 }
+void _RestoreSusspendedTouchsByAnotherClickItem(TOUCH_POINTS prev,TOUCH_POINTS prevStart,TOUCH_POINTS prevStop, 	TOUCH_POINTS not1,TOUCH_POINTS not2,TOUCH_POINTS not3,TOUCH_POINTS not4,TOUCH_POINTS not5,TOUCH_POINTS not6,TOUCH_POINTS not7,TOUCH_POINTS not8,TOUCH_POINTS not9,TOUCH_POINTS not10, 		TOUCH_POINTS unblock1,TOUCH_POINTS unblock2,TOUCH_POINTS unblock3,TOUCH_POINTS unblock4,TOUCH_POINTS unblock5,TOUCH_POINTS unblock6,TOUCH_POINTS unblock7,TOUCH_POINTS unblock8,TOUCH_POINTS unblock9,TOUCH_POINTS unblock10){
+	if(screenTouchState){
+		if((prev==screenTouchStatePrev2 || IS_RANGE(screenTouchStatePrev2,prevStart,prevStop)) && (prev!=screenTouchState && !IS_RANGE(screenTouchState,prevStart,prevStop)) && (not1!=screenTouchState && not2!=screenTouchState && not3!=screenTouchState && not4!=screenTouchState && not5!=screenTouchState && not6!=screenTouchState && not7!=screenTouchState && not8!=screenTouchState && not9!=screenTouchState && not10!=screenTouchState)){
+			LCD_TOUCH_RestoreSusspendedTouchs2(unblock1,unblock2,unblock3,unblock4,unblock5,unblock6,unblock7,unblock8,unblock9,unblock10);
+			screenTouchStatePrev2=0;
+}}}
 
-//#include "Keyboard.h"
-//
-//void _RestoreSusspendedTouchsByAnotherClickItem___(int state,int statePrev2, int prev,int prevStart,int prevStop, 	int not1,int not2,int not3,int not4,int not5,int not6,int not7,int not8,int not9,int not10, 		int unblock1,int unblock2,int unblock3,int unblock4,int unblock5,int unblock6,int unblock7,int unblock8,int unblock9,int unblock10){
-//	if(state){
-//		if((prev==statePrev2 || IS_RANGE(statePrev2,prevStart,prevStop)) && (prev!=state && !IS_RANGE(state,prevStart,prevStop)) && (not1!=state && not2!=state && not3!=state && not4!=state && not5!=state && not6!=state && not7!=state && not8!=state && not9!=state && not10!=state)){
-//			LCD_TOUCH_RestoreSusspendedTouchs2(unblock1,unblock2,unblock3,unblock4,unblock5,unblock6,unblock7,unblock8,unblock9,unblock10);
-//			statePrev2=0;
-//}}}
-
-//void _TouchService___(int state,int touchStart,int touchStop, int keyboard, int releaseAll,int keyStart, TOUCH_FUNC *func){
-//	if(IS_RANGE(state, touchStart, touchStop)){
-//		int nr = state-touchStart;
-//		if(releaseAll){  if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(keyboard,releaseAll);  }
-//		if(func) func(nr);
-//		if(2/*KEY_Select_one*/==keyStart) nr=0;
-//		KEYBOARD_TYPE_PARAM(keyboard,keyStart+nr,pos.x,pos.y,0,0,0); _SaveState();
-//}}
+#undef TOUCH_POINTS
+#undef KEYBOARD_TYPES
+#undef SELECT_PRESS_BLOCK
 /* ------------- End Main Screen Service -----------*/
 
