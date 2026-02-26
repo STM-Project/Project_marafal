@@ -1474,65 +1474,17 @@ void FILE_NAME(setTouch)(void)
 		DESELECT_CURRENT_FONT(FontSize,	TXT_FONT_SIZE);\
 		DESELECT_CURRENT_FONT(FontStyle,	TXT_FONT_STYLE)
 */
-	#define CASE_TOUCH_STATE(screenTouchState,touchPoint, src,dst, txt,coeff, touchX, touchX2) \
-		case touchPoint:\
-		if(NotServiceTouchAboveWhenWasClearedThis(touchX) & NotServiceTouchAboveWhenWasClearedThis(touchX2)){\
-			if(0==CHECK_TOUCH(screenTouchState)){\
-				if(GET_TOUCH){ FILE_NAME(main)(LoadPartScreen,(char**)ppMain); CLR_ALL_TOUCH; }\
-				SELECT_CURRENT_FONT(src, dst, txt, coeff);\
-				SET_TOUCH(screenTouchState);\
-				SetTouchFlag();\
-			}\
-			else{\
-				FILE_NAME(main)(LoadPartScreen,(char**)ppMain);\
-				KEYBOARD_TYPE(KEYBOARD_none,0);\
-				CLR_TOUCH(screenTouchState);\
-			}}
 
+
+	TOUCH_FUNCTIONS_
 
 	TouchScreenInit();
 
-//	if(onlyOneTouchMain==0){
-//		onlyOneTouchMain=1;
-//		screenTouchStatePrev=0;
-//		screenTouchStatePrev2=0;
-//	}
-
-
-
-	int NotServiceTouchAboveWhenWasClearedThis(TOUCH_POINTS touch){
-		return CONDITION(NoTouch==touch, 1, !CHECK_TOUCH(touch) && !_WasState(touch));
-	}
-	void _TouchService(TOUCH_POINTS touchStart,TOUCH_POINTS touchStop, KEYBOARD_TYPES keyboard, SELECT_PRESS_BLOCK releaseAll,SELECT_PRESS_BLOCK keyStart, TOUCH_FUNC *func){
-		if(IS_RANGE(screenTouchState, touchStart, touchStop)){
-			int nr = screenTouchState-touchStart;
-			if(releaseAll){  if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(keyboard,releaseAll);  }
-			if(func) func(nr);
-			if(KEY_Select_one==keyStart) nr=0;
-			KEYBOARD_TYPE_PARAM(keyboard,keyStart+nr,screenTouchPos.x,screenTouchPos.y,0,0,0); _SaveState();
-	}}
-	void _TouchEndService(TOUCH_POINTS touchStart,TOUCH_POINTS touchStop, KEYBOARD_TYPES keyboard, SELECT_PRESS_BLOCK releaseAll, TOUCH_FUNC *func){
-		if(_WasStateRange(touchStart, touchStop)){
-			KEYBOARD_TYPE(keyboard, releaseAll);
-			if(func) func(-1);
-	}}
 	void CreateKeyboard(KEYBOARD_TYPES keboard){
 		switch((int)keboard){
 			case KEYBOARD_fontRGB:	break;
 			case KEYBOARD_fontSize2:	FILE_NAME(keyboard)(KEYBOARD_fontSize2, KEY_Select_one, LCD_Rectangle,0, 610,50, KeysAutoSize,10, 0, screenTouchState, Touch_FontSizeRoll,KeysDel);  break;
 	}}
-	void _RestoreSusspendedTouchsByAnotherClickItem(TOUCH_POINTS prev,TOUCH_POINTS prevStart,TOUCH_POINTS prevStop, 	TOUCH_POINTS not1,TOUCH_POINTS not2,TOUCH_POINTS not3,TOUCH_POINTS not4,TOUCH_POINTS not5,TOUCH_POINTS not6,TOUCH_POINTS not7,TOUCH_POINTS not8,TOUCH_POINTS not9,TOUCH_POINTS not10, 		TOUCH_POINTS unblock1,TOUCH_POINTS unblock2,TOUCH_POINTS unblock3,TOUCH_POINTS unblock4,TOUCH_POINTS unblock5,TOUCH_POINTS unblock6,TOUCH_POINTS unblock7,TOUCH_POINTS unblock8,TOUCH_POINTS unblock9,TOUCH_POINTS unblock10){
-		if(screenTouchState){
-			if((prev==screenTouchStatePrev2 || IS_RANGE(screenTouchStatePrev2,prevStart,prevStop)) && (prev!=screenTouchState && !IS_RANGE(screenTouchState,prevStart,prevStop)) && (not1!=screenTouchState && not2!=screenTouchState && not3!=screenTouchState && not4!=screenTouchState && not5!=screenTouchState && not6!=screenTouchState && not7!=screenTouchState && not8!=screenTouchState && not9!=screenTouchState && not10!=screenTouchState)){
-				LCD_TOUCH_RestoreSusspendedTouchs2(unblock1,unblock2,unblock3,unblock4,unblock5,unblock6,unblock7,unblock8,unblock9,unblock10);
-				screenTouchStatePrev2=0;
-	}}}
-	int _KEYBOARD_setTxt__SERVICE(u16 screenTouchState,int touchStart,int touchStop, int keyStart){
-			  if( IS_RANGE(screenTouchState,touchStart,touchStop))								{	if(_WasStatePrev(touchStart,touchStop)) KEYBOARD_TYPE(KEYBOARD_setTxt,KEY_All_release);								 KEYBOARD_TYPE(KEYBOARD_setTxt, keyStart+(screenTouchState-touchStart));  _SaveState();	return 1;  }
-		else if(_WasStateRange(Touch_exit,Touch_exit) && _SET==LCDTOUCH_UserStatus(_GET)){	LCD_TOUCH_RestoreAllSusspendedTouchs(); ServiceKeyCharBuff(); 	FILE_NAME(main)(LoadPartScreen,(char**)ppMain);	 KEYBOARD_TYPE(KEYBOARD_none,0);	 																			return 1;  }
-		else if(_WasStateRange(touchStart,touchStop))									 			{																																						 KEYBOARD_TYPE(KEYBOARD_setTxt, KEY_All_release);  													return 1;  }
-		return 0;
-	}
 
 
 	screenTouchState = LCD_TOUCH_GetTypeAndPosition(&screenTouchPos);
