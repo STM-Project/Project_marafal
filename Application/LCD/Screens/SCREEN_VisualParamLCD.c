@@ -186,6 +186,8 @@ typedef enum{
 typedef enum{
 	KEYBOARD_none,
 	KEYBOARD_setTxt,
+	Touch_NextScreen,
+	Touch_PrevScreen,
 	KEYBOARD_Param_1,
 	KEYBOARD_Param_2,
 }KEYBOARD_TYPES;	/* MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY */
@@ -306,9 +308,8 @@ void FILE_NAME(setTouch)(void)
 		/*	----- Initiation new Keyboard ----- */
 
 		/*	----- Touch parameter text and go to action ----- */
-	case Touch_Param_1:
-		SCREEN_SetNr(0);
-		break;
+	case Touch_NextScreen: SCREEN_SetNr(0); break;
+	case Touch_PrevScreen: SCREEN_SetNr(0); break;
 
 
 		default:		 /* ----- Service release specific Keys for Keyboard ----- */
@@ -337,10 +338,8 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 		LoadFonts(FONT_ID_Title, FONT_ID_Param_1);
 		DisplayFontsStructState();
 
-		LCDTOUCH_Set(LCD_X-FV(SetVal,0,LCD_GetWholeStrPxlWidth(v.FONT_ID_Descr,SL(LANG_nazwa_1),0,NoConstWidth)+5), \
-						 LCD_Y-FV(SetVal,1,LCD_GetFontHeight(v.FONT_ID_Descr)+5), \
-						 	 	 FV(GetVal,0,NoUse),\
-								 FV(GetVal,1,NoUse), ID_TOUCH_POINT,Touch_Param_1,press);
+		LCDTOUCH_Set( LCD_X-30, LCD_Y/2-30,  30,60,  ID_TOUCH_POINT,Touch_NextScreen,release);
+		LCDTOUCH_Set( 30, 		LCD_Y/2-30,  30,60,  ID_TOUCH_POINT,Touch_PrevScreen,release);
 	}
 
 
