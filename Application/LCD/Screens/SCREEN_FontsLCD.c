@@ -403,6 +403,8 @@ typedef enum{
 	Touch_Chart_1,
 	Touch_Chart_2,
 	Touch_Chart_3,
+	Touch_NextScreen,
+	Touch_PrevScreen,
 	Move_1,
 	Move_2,
 	Move_3,
@@ -1631,11 +1633,13 @@ void FILE_NAME(setTouch)(void)
 			break;
 
 		case Touch_MainFramesType:
-//			if(ppMain[0]==(int*)FRAMES_GROUP_separat)	*ppMain=(int*)FRAMES_GROUP_combined;
-//			else													*ppMain=(int*)FRAMES_GROUP_separat;
-//			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
-			SCREEN_SetNr(6);
+			if(ppMain[0]==(int*)FRAMES_GROUP_separat)	*ppMain=(int*)FRAMES_GROUP_combined;
+			else													*ppMain=(int*)FRAMES_GROUP_separat;
+			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
 			break;
+
+		case Touch_NextScreen: SCREEN_SetNr(6); break;
+		case Touch_PrevScreen: SCREEN_SetNr(6); break;
 
 
 		default:		 /* ----- Service release specific Keys for Keyboard ----- */
@@ -2184,6 +2188,9 @@ void FILE_NAME(main)(int argNmb, char **argVal)   //Dla Zmiana typu czcionki Tou
 						 LCD_Y-FV(SetVal,1,LCD_GetFontHeight(v.FONT_ID_Descr)+5), \
 						 	 	 FV(GetVal,0,NoUse),\
 								 FV(GetVal,1,NoUse), ID_TOUCH_POINT,Touch_MainFramesType,press);
+
+		LCDTOUCH_Set( LCD_X-30, LCD_Y/2-30,  30,60,  ID_TOUCH_POINT,Touch_NextScreen,release);
+		LCDTOUCH_Set( 30, 		LCD_Y/2-30,  30,60,  ID_TOUCH_POINT,Touch_PrevScreen,release);
 
 		LCD_Ymiddle(ID_MIDDLE_TXT,SetPos, SetPosAndWidth(Test.yFontsField,240) );
 		LCD_Xmiddle(ID_MIDDLE_TXT,SetPos, SetPosAndWidth(Test.xFontsField,LCD_GetXSize()),NULL,0,NoConstWidth);
