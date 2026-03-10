@@ -239,6 +239,24 @@ static void LoadFonts(int startFontID, int endFontID){
 */
 }
 
+static StructTxtPxlLen ELEMENT_Param_1(StructFieldPos *field, int xPos,int yPos, int argNmb)
+{
+	StructTxtPxlLen lenStr = {0};
+
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(Param_1), xPos, yPos, "Test", fullHight, 0,250, ConstWidth, \
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Above_left,  SL(LANG_nazwa_0), fullHight, 0,250, NoConstWidth,\
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 					Left_mid, 	  "7.",  fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Under_left,  SL(LANG_nazwa_1), fullHight, 0,250, NoConstWidth, \
+		LCD_STR_DESCR_PARAM_NUMBER(3) );
+
+	LCD_SetBkFontShape(v.FONT_VAR_Param_1,BK_LittleRound);
+
+	lenStr.inPixel = field->width;
+	lenStr.height 	= field->height;
+
+	return lenStr;
+}
+
 static void FRAMES_GROUP_combined(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY, int bold)
 {
 
@@ -246,7 +264,29 @@ static void FRAMES_GROUP_combined(int argNmb, int startOffsX,int startOffsY, int
 
 static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY, int boldFrame)		/* Parameters ..Offs.. is counted from STR (not from FRAME) */
 {
+		#define _FRAME_COLOR		v.COLOR_Frame
+		#define _FILL_COLOR		v.COLOR_FillFrame
+																										 /* LCD_BoldRoundRectangle */
+		#define _Rectan LCD_Shape(field.x-fontsFrameSpace, field.y-fontsFrameSpace, LCD_RoundRectangle, field.width+2*fontsFrameSpace, field.height+2*fontsFrameSpace, SetBold2Color(_FRAME_COLOR,bold), _FILL_COLOR, v.COLOR_FillMainFrame)
 
+		#define _Element(name,nrX,cmdX,Xoffs,nrY,cmdY,Yoffs)	\
+				lenStr=ELEMENT_##name(&field, LCD_posX(nrX,lenStr,cmdX,Xoffs), LCD_posY(nrY,lenStr,cmdY,Yoffs), argNmb); \
+				_Rectan; \
+				lenStr=ELEMENT_##name(&field, LCD_posX(nrX,lenStr,GetPos,0), 	LCD_posY(nrY,lenStr,GetPos,0), 	argNmb); \
+				LCD_posY(nrY,lenStr,IncPos,offsY);
+
+		StructFieldPos field={0};
+		uint8_t fontsFrameSpace = boldFrame >>8;
+		int bold = boldFrame&0x000000FF;
+
+		FILE_NAME(funcSet)(FONT_BKCOLOR_Descr, 	_FILL_COLOR);
+		FILE_NAME(funcSet)(FONT_BKCOLOR_Param_1, 	_FILL_COLOR);
+
+		_Element(Param_1,0,SetPos,startOffsX,0,SetPos,startOffsY) 	_Element(Param_1,0,IncPos,offsX,1,SetPos,startOffsY)
+		#undef _Element
+		#undef _Rectan
+		#undef _FRAME_COLOR
+		#undef _FILL_COLOR
 }
 
 /* ------------ FILE_NAME() functions ------------ */
@@ -341,6 +381,17 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 		LCDTOUCH_Set( LCD_X-30, LCD_Y/2-30,  30,60,  ID_TOUCH_POINT,Touch_NextScreen,release);
 		LCDTOUCH_Set( 30, 		LCD_Y/2-30,  30,60,  ID_TOUCH_POINT,Touch_PrevScreen,release);
 	}
+	/*FILE_NAME(printInfo)();*/
+
+	INIT(endSetFrame,195);
+	LCD_DrawMainFrame(LCD_RoundRectangle,NoIndDisp,0, 0,0, LCD_X,endSetFrame,SHAPE_PARAM(MainFrame,FillMainFrame,BkScreen));
+
+	if		 (*(argVal+0)==(char*)FRAMES_GROUP_combined)
+		FRAMES_GROUP_combined(argNmb,15,15,25,25,1);
+	else if(*(argVal+0)==(char*)FRAMES_GROUP_separat)
+		FRAMES_GROUP_separat(argNmb,15,15,25,25,FRAME_bold2Space(0,6));
+
+
 
 
 
