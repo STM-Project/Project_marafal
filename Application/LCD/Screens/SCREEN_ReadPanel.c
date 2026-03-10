@@ -42,6 +42,24 @@ StructTxtPxlLen lenStr;
 void SCREEN_SetNr (int nr){ TOUCHSCREEN_Exit(); startScreen=0; SCREEN_number=nr; }
 int  SCREEN_GetNr (void)  { return startScreen; }
 
+int FRAME_bold2Space(uint8_t bold, uint8_t space){	 return ((uint32_t)bold&0x000000FF)|(uint32_t)space<<8;  }
+
+void LCD_DrawMainFrame(figureShape shape, int directDisplay, uint8_t bold, uint16_t x,uint16_t y, uint16_t w,uint16_t h, int frameColor,int fillColor,int bkColor)
+{
+	figureShape pShape[5] = {LCD_Rectangle, LCD_BoldRectangle, LCD_RoundRectangle, LCD_BoldRoundRectangle, LCD_LittleRoundRectangle};
+
+	if(shape==pShape[1] || shape==pShape[3])
+		frameColor = SetBold2Color(frameColor,bold);
+
+	if(shape==pShape[2] || shape==pShape[3])
+		Set_AACoeff_RoundFrameRectangle(0.55, 0.73);
+
+	if(IndDisp==directDisplay)
+		LCD_ShapeIndirect(x,y,shape,w,h,frameColor,fillColor,bkColor);
+	else
+		LCD_Shape(x,y,shape,w,h,frameColor,fillColor,bkColor);
+}
+
 void SCREEN_ResetAllParameters(void)
 {
 	LCD_AllRefreshScreenClear();
