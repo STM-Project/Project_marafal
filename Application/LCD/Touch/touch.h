@@ -158,6 +158,9 @@ int LCDTOUCH_Set(uint16_t startX, uint16_t startY, uint16_t width, uint16_t heig
 int LCDTOUCH_Update(uint16_t startX, uint16_t startY, uint16_t width, uint16_t height, uint16_t ID, uint16_t idx, uint8_t param);
 int LCDTOUCH_UserStatus(int nr);
 
+int BlockTouchForTime(int action, int timerID);
+int CheckTouchForTime(uint16_t touchName, int timerID);
+
 void SetTouchFlag		(void);
 int  IsSetTouchFlag	(void);
 void TouchScreenInit (void);
