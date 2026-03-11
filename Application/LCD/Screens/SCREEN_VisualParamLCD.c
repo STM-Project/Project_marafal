@@ -18,45 +18,57 @@
 #define SCREEN_VISUALPARAM_SET_PARAMETERS \
 /* id   name							default value */ \
 	X(0, FONT_SIZE_Title, 	 		FONT_24_bold) \
-	X(1, FONT_SIZE_Descr, 	 		FONT_12) \
+	X(1, FONT_SIZE_Descr, 	 		FONT_8) \
 	X(2, FONT_SIZE_Press, 	 		FONT_14) \
 	X(3, FONT_SIZE_Param_1, 	 	FONT_14) \
+	X(4, FONT_SIZE_Param_2, 	 	FONT_14) \
+	X(5, FONT_SIZE_Param_3, 	 	FONT_14) \
 	\
-	X(4, FONT_STYLE_Title, 			Arial) \
-	X(5, FONT_STYLE_Descr, 	 		Arial) \
-	X(6, FONT_STYLE_Press, 	 		Arial) \
-	X(7, FONT_STYLE_Param_1, 		Arial) \
+	X(6, FONT_STYLE_Title, 			Arial) \
+	X(7, FONT_STYLE_Descr, 	 		Arial) \
+	X(8, FONT_STYLE_Press, 	 		Arial) \
+	X(9, FONT_STYLE_Param_1, 		Arial) \
+	X(10, FONT_STYLE_Param_2, 		Arial) \
+	X(11, FONT_STYLE_Param_3, 		Arial) \
 	\
-	X(8, FONT_COLOR_Title,  		WHITE) \
-	X(9, FONT_COLOR_Descr, 	 		WHITE) \
-	X(0, FONT_COLOR_Press, 	 		WHITE) \
-	X(11, FONT_COLOR_Param_1, 		WHITE) \
+	X(12, FONT_COLOR_Title,  		WHITE) \
+	X(13, FONT_COLOR_Descr, 	 	WHITE) \
+	X(14, FONT_COLOR_Press, 	 	WHITE) \
+	X(15, FONT_COLOR_Param_1, 		WHITE) \
+	X(16, FONT_COLOR_Param_2, 		WHITE) \
+	X(17, FONT_COLOR_Param_3, 		WHITE) \
 	\
-	X(12, FONT_BKCOLOR_Title,  	MYGRAY2) \
-	X(13, FONT_BKCOLOR_Descr, 	 	MYGRAY2) \
-	X(14, FONT_BKCOLOR_Press, 	 	MYGRAY2) \
-	X(15, FONT_BKCOLOR_Param_1, 	MYGRAY2) \
+	X(18, FONT_BKCOLOR_Title,  	MYGRAY2) \
+	X(19, FONT_BKCOLOR_Descr, 	 	MYGRAY2) \
+	X(20, FONT_BKCOLOR_Press, 	 	MYGRAY2) \
+	X(21, FONT_BKCOLOR_Param_1, 	MYGRAY2) \
+	X(22, FONT_BKCOLOR_Param_2, 	MYGRAY2) \
+	X(23, FONT_BKCOLOR_Param_3, 	MYGRAY2) \
 	\
-	X(16, FONT_ID_Title,				fontID_1) \
-	X(17, FONT_ID_Descr,				fontID_2) \
-	X(18, FONT_ID_Press,				fontID_3) \
-	X(19, FONT_ID_Param_1,			fontID_4) \
+	X(24, FONT_ID_Title,				fontID_1) \
+	X(25, FONT_ID_Descr,				fontID_2) \
+	X(26, FONT_ID_Press,				fontID_3) \
+	X(27, FONT_ID_Param_1,			fontID_4) \
+	X(28, FONT_ID_Param_2,			fontID_5) \
+	X(29, FONT_ID_Param_3,			fontID_6) \
 	\
-	X(20, FONT_VAR_Title,			fontVar_1) \
-	X(21, FONT_VAR_Descr,			fontVar_2) \
-	X(22, FONT_VAR_Press,			fontVar_3) \
-	X(23, FONT_VAR_Param_1,			fontVar_4) \
+	X(30, FONT_VAR_Title,			fontVar_1) \
+	X(31, FONT_VAR_Descr,			fontVar_2) \
+	X(32, FONT_VAR_Press,			fontVar_3) \
+	X(33, FONT_VAR_Param_1,			fontVar_4) \
+	X(34, FONT_VAR_Param_2,			fontVar_5) \
+	X(35, FONT_VAR_Param_3,			fontVar_6) \
 	\
-	X(24, COLOR_BkScreen,  			COLOR_GRAY(0x38)) \
-	X(25, COLOR_MainFrame,  		COLOR_GRAY(0xD0)) \
-	X(26, COLOR_FillMainFrame, 	COLOR_GRAY(0x31)) \
-	X(27, COLOR_Frame,  				COLOR_GRAY(0xD0)) \
-	X(28, COLOR_FillFrame, 			COLOR_GRAY(0x3B)) \
-	X(29, COLOR_FramePress, 		COLOR_GRAY(0xBA)) \
-	X(30, COLOR_FillFramePress,	COLOR_GRAY(0x60)) \
-	X(31, DEBUG_ON,  					1) \
-	X(32, BK_FONT_ROUND,  			1) \
-	X(33, LANG_SELECT,  				Polish) \
+	X(36, COLOR_BkScreen,  			COLOR_GRAY(0x38)) \
+	X(37, COLOR_MainFrame,  		COLOR_GRAY(0xD0)) \
+	X(38, COLOR_FillMainFrame, 	COLOR_GRAY(0x31)) \
+	X(39, COLOR_Frame,  				COLOR_GRAY(0xD0)) \
+	X(40, COLOR_FillFrame, 			COLOR_GRAY(0x3B)) \
+	X(41, COLOR_FramePress, 		COLOR_GRAY(0xBA)) \
+	X(42, COLOR_FillFramePress,	COLOR_GRAY(0x60)) \
+	X(43, DEBUG_ON,  					1) \
+	X(44, BK_FONT_ROUND,  			1) \
+	X(45, LANG_SELECT,  				Polish) \
 
 /*------------ Main Functions of the MACROs -----------------*/
 #define SL(name)	(char*)FILE_NAME(Lang)[ v.LANG_SELECT==Polish ? 2*(name) : 2*(name)+1 ]
@@ -166,6 +178,12 @@ typedef enum{
 	NoTouch = NO_TOUCH,
 	Touch_Param_1,
 	Touch_Param_2,
+	Touch_Param_22,
+	Touch_Param_2MoveRight,
+	Touch_Param_2MoveLeft,
+	Touch_Param_3,
+	Touch_NextScreen,
+	Touch_PrevScreen,
 	AnyPress,
 	AnyPressWithWait,
 	KEYBOARD_SETTXT_TOUCHS
@@ -177,20 +195,27 @@ typedef enum{
 	KEY_Select_one,
 	KEY_Timer,
 	KEY_Timer2,
-
 	KEY_Param_1,
 	KEY_Param_2,
+	KEY_Param_3,
 	KEYBOARD_SETTXT_KEYS
 }SELECT_PRESS_BLOCK;
 
 typedef enum{
 	KEYBOARD_none,
 	KEYBOARD_setTxt,
-	Touch_NextScreen,
-	Touch_PrevScreen,
 	KEYBOARD_Param_1,
 	KEYBOARD_Param_2,
+	KEYBOARD_Param_3,
 }KEYBOARD_TYPES;	/* MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY */
+
+typedef enum{
+	TIMER_Cpu,
+	TIMER_InfoWrite,
+	TIMER_Release,
+	TIMER_BlockTouch,
+	TIMER_Scroll,
+}TIMER_FOR_THIS_SCREEN;
 
 typedef struct{
 	;
@@ -243,10 +268,10 @@ static StructTxtPxlLen ELEMENT_Param_1(StructFieldPos *field, int xPos,int yPos,
 {
 	StructTxtPxlLen lenStr = {0};
 
-	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(Param_1), xPos, yPos, "Test", fullHight, 0,250, ConstWidth, \
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Above_left,  SL(LANG_nazwa_0), fullHight, 0,250, NoConstWidth,\
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4, 					Left_mid, 	  "7.",  fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, v.FONT_COLOR_Descr, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Under_left,  SL(LANG_nazwa_1), fullHight, 0,250, NoConstWidth, \
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(Param_1), xPos, yPos, "1.Rafa"ł" "Ó""ś""ź""Ź". Markielowski", fullHight, 0,250, ConstWidth, \
+		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Above_left,  SL(LANG_nazwa_0), fullHight, 0,250, NoConstWidth,\
+		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4, 				Left_mid, 	 "7.",  				 fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Under_left,  SL(LANG_nazwa_1), fullHight, 0,250, NoConstWidth, \
 		LCD_STR_DESCR_PARAM_NUMBER(3) );
 
 	LCD_SetBkFontShape(v.FONT_VAR_Param_1,BK_LittleRound);
@@ -257,9 +282,99 @@ static StructTxtPxlLen ELEMENT_Param_1(StructFieldPos *field, int xPos,int yPos,
 	return lenStr;
 }
 
+static StructTxtPxlLen ELEMENT_Param_2(StructFieldPos *field, int xPos,int yPos, int argNmb)
+{
+	StructTxtPxlLen lenStr = {0};
+	StructFieldPos fieldTouch = {0};
+
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(Param_2), xPos, yPos, "2.Rafa"ł" "Ó""ś""ź""Ź".", fullHight, 0,250, ConstWidth, \
+		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Above_left,  SL(LANG_nazwa_0), fullHight, 0,250, NoConstWidth,\
+		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4, 				Left_mid, 	 "7.",  				 fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Under_left,  SL(LANG_nazwa_1), fullHight, 0,250, NoConstWidth, \
+		LCD_STR_DESCR_PARAM_NUMBER(3) );
+
+	LCD_SetBkFontShape(v.FONT_VAR_Param_2,BK_LittleRound);
+
+	fieldTouch 			= *field;
+	fieldTouch.width 	= fieldTouch.width/3;
+	fieldTouch.x 		= fieldTouch.x + fieldTouch.width;
+
+	if(LoadWholeScreen==argNmb){	SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_RELEASE_WITH_HOLD, Touch_Param_2,  	 		LCD_TOUCH_SetTimeParam_ms(600), v.FONT_VAR_Param_2,0, *field);
+											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_POINT_WITH_HOLD, 		    Touch_Param_22, 	 		LCD_TOUCH_SetTimeParam_ms(700), v.FONT_VAR_Param_2,1, *field);
+											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_MOVE_RIGHT, 		    	 Touch_Param_2MoveRight, press, 								  v.FONT_VAR_Param_2,2, fieldTouch);
+											SCREEN_ConfigTouchForStrVar_2(ID_TOUCH_MOVE_LEFT, 		    	 	 Touch_Param_2MoveLeft,  press, 								  v.FONT_VAR_Param_2,3, fieldTouch);
+	}
+
+	lenStr.inPixel = field->width;
+	lenStr.height 	= field->height;
+	return lenStr;
+}
+
+static StructTxtPxlLen ELEMENT_Param_3(StructFieldPos *field, int xPos,int yPos, int argNmb)
+{
+	StructTxtPxlLen lenStr = {0};
+
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(Param_3), xPos, yPos, "3.Rafa"ł" "Ó""ś""ź""Ź".3", fullHight, 0,250, ConstWidth, \
+		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Above_left,  SL(LANG_nazwa_0), fullHight, 0,250, NoConstWidth,\
+		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4, 				Left_mid, 	 "7.",  				 fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Under_left,  SL(LANG_nazwa_1), fullHight, 0,250, NoConstWidth, \
+		LCD_STR_DESCR_PARAM_NUMBER(3) );
+
+	LCD_SetBkFontShape(v.FONT_VAR_Param_3,BK_LittleRound);
+
+	lenStr.inPixel = field->width;
+	lenStr.height 	= field->height;
+
+	return lenStr;
+}
+
 static void FRAMES_GROUP_combined(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY, int bold)
 {
+	#define _LINES_COLOR		COLOR_GRAY(0x77)
+	#define _FILL_COLOR		v.COLOR_FillMainFrame
 
+	#define	_Element(name,cmdX,offsX,cmdY,offsY)		lenStr=ELEMENT_##name(&field, LCD_Xpos(lenStr,cmdX,offsX), LCD_Ypos(lenStr,cmdY,offsY), argNmb);
+	#define	_LineH(width,cmdX,offsX,cmdY,offsY)		 LCD_LineH(LCD_X,LCD_Xpos(lenStr,cmdX,offsX)-2, LCD_Ypos(lenStr,cmdY,offsY), width+4, _LINES_COLOR, bold );
+	#define	_LineV(width,cmdX,offsX,cmdY,offsY)		 LCD_LineV(LCD_X,LCD_Xpos(lenStr,cmdX,offsX), LCD_Ypos(lenStr,cmdY,offsY)-2, width+4, _LINES_COLOR, bold );
+
+	StructFieldPos field={0}, field1={0};
+	uint16_t tab[4]={0};
+	int X_start=0;
+
+	FILE_NAME(funcSet)(FONT_BKCOLOR_Descr, 	_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_Param_1, 	_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_Param_2, 	_FILL_COLOR);
+	FILE_NAME(funcSet)(FONT_BKCOLOR_Param_3, 	_FILL_COLOR);
+
+	_Element(Param_1,SetPos,X_start=startOffsX,SetPos,startOffsY)		/* _LineV(field.height,GetPos,-startOffsX/2-1,GetPos,0) */	field1=field;
+	_Element(Param_2,GetPos,0,IncPos,offsY)									/* _LineV(field.height,GetPos,-startOffsX/2-1,GetPos,0) */
+	tab[0]=field1.width;
+	tab[1]=field.width;
+	MAXVAL(tab,2,0,tab[3])
+	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
+
+	_Element(Param_3,SetPos,X_start+=tab[3]+offsX,SetPos,startOffsY)		_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)	field1=field;
+	_Element(Param_1,GetPos,0,IncPos,offsY)										_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)
+	tab[0]=field1.width;
+	tab[1]=field.width;
+	MAXVAL(tab,2,0,tab[3])
+	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
+
+	_Element(Param_2,SetPos,X_start+=tab[3]+offsX,SetPos,startOffsY)	_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)	field1=field;
+	_Element(Param_3,GetPos,0,IncPos,offsY)									_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)
+	tab[0]=field1.width;
+	tab[1]=field.width;
+	MAXVAL(tab,2,0,tab[3])
+	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
+
+
+
+
+	#undef _Element
+	#undef _LineH
+	#undef _LineV
+	#undef _FILL_COLOR
+	#undef _LINES_COLOR
 }
 
 static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int offsX,int offsY, int boldFrame)		/* Parameters ..Offs.. is counted from STR (not from FRAME) */
@@ -281,8 +396,17 @@ static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int 
 
 		FILE_NAME(funcSet)(FONT_BKCOLOR_Descr, 	_FILL_COLOR);
 		FILE_NAME(funcSet)(FONT_BKCOLOR_Param_1, 	_FILL_COLOR);
+		FILE_NAME(funcSet)(FONT_BKCOLOR_Param_2, 	_FILL_COLOR);
+		FILE_NAME(funcSet)(FONT_BKCOLOR_Param_3, 	_FILL_COLOR);
 
-		_Element(Param_1,0,SetPos,startOffsX,0,SetPos,startOffsY) 	_Element(Param_1,0,IncPos,offsX,1,SetPos,startOffsY)
+
+//			_Element(Param_1,0,SetPos,startOffsX,0,SetPos,startOffsY) 	_Element(Param_2,0,IncPos,offsX,1,SetPos,startOffsY)
+//			_Element(Param_3,0,SetPos,startOffsX,0,GetPos,0)
+
+
+		_Element(Param_1,0,SetPos,startOffsX,0,SetPos,startOffsY)
+		_Element(Param_2,0,SetPos,startOffsX,0,GetPos,0) 				_Element(Param_3,0,IncPos,offsX,1,SetPos,startOffsY)
+
 		#undef _Element
 		#undef _Rectan
 		#undef _FRAME_COLOR
@@ -292,7 +416,9 @@ static void FRAMES_GROUP_separat(int argNmb, int startOffsX,int startOffsY, int 
 /* ------------ FILE_NAME() functions ------------ */
 static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create new thread vTaskTimer */
 {
-
+	if(vTimerService(TIMER_BlockTouch, check_stop_time, 500)){
+		BlockTouchForTime(_OFF,TIMER_BlockTouch);
+	}
 }
 
 int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, INIT_KEYBOARD_PARAM)
@@ -346,6 +472,10 @@ void FILE_NAME(setTouch)(void)
 	switch(screenTouchState)
 	{
 		/*	----- Initiation new Keyboard ----- */
+		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2, Param_2,Press, "2.Rafa"ł" "Ó""ś""ź""Ź".",252,CheckTouchForTime(Touch_Param_2MoveRight,TIMER_BlockTouch),CheckTouchForTime(Touch_Param_2MoveLeft,TIMER_BlockTouch));		/* 'FontColor','Press' are suffix`s for elements of 'SCREEN_FONTS_SET_PARAMETERS' MACRO  */
+			if(IsSetTouchFlag())
+				DisplayTouchPosXY(screenTouchState,screenTouchPos,"Touch_Param_2");
+		break;
 
 		/*	----- Touch parameter text and go to action ----- */
 	case Touch_NextScreen: SCREEN_SetNr(0); break;
@@ -375,16 +505,18 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 
 		DbgVar(v.DEBUG_ON,100, "" Cya_"\r\nStart: %s\r\n"_X, GET_CODE_FUNCTION);
 
-		LoadFonts(FONT_ID_Title, FONT_ID_Param_1);
+		LoadFonts(FONT_ID_Title, FONT_ID_Param_3);
 		DisplayFontsStructState();
 
 		LCDTOUCH_Set( LCD_X-30, LCD_Y/2-30,  30,60,  ID_TOUCH_POINT,Touch_NextScreen,release);
-		LCDTOUCH_Set( 30, 		LCD_Y/2-30,  30,60,  ID_TOUCH_POINT,Touch_PrevScreen,release);
+		LCDTOUCH_Set( 0, 			LCD_Y/2-30,  30,60,  ID_TOUCH_POINT,Touch_PrevScreen,release);
 	}
 	/*FILE_NAME(printInfo)();*/
 
-	INIT(endSetFrame,195);
+	INIT(endSetFrame,400);
 	LCD_DrawMainFrame(LCD_RoundRectangle,NoIndDisp,0, 0,0, LCD_X,endSetFrame,SHAPE_PARAM(MainFrame,FillMainFrame,BkScreen));
+
+	*ppMain=(int*)FRAMES_GROUP_combined; //tymczasowo !
 
 	if		 (*(argVal+0)==(char*)FRAMES_GROUP_combined)
 		FRAMES_GROUP_combined(argNmb,15,15,25,25,1);
@@ -396,7 +528,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 
 
 	LCD_TxtShadowInit(fontVar_40, v.FONT_ID_Param_1, v.COLOR_BkScreen, BK_Rectangle);
-	LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Param_1, fontVar_40, 20,200, SL(LANG_nazwa_0), BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
+	LCD_Txt(Display, NULL, 0,0, LCD_X,LCD_Y, v.FONT_ID_Param_1, fontVar_40, 20,420, SL(LANG_nazwa_0), BLACK, 0/*v.COLOR_BkScreen*/, fullHight,0,250, NoConstWidth, TXTSHADECOLOR_DEEP_DIR(0x777777,4,RightDown) /*TXTSHADE_NONE*/);
 
 	LCD_StrDependOnColors(v.FONT_ID_Descr, LCD_X-FV(GetVal,0,NoUse), LCD_Y-FV(GetVal,1,NoUse), SL(LANG_nazwa_1), fullHight,0, v.COLOR_FillFrame, v.FONT_COLOR_Descr, 255, NoConstWidth);
 
