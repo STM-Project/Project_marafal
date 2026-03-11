@@ -1061,6 +1061,19 @@ static uint16_t screenTouchStatePrev=0, screenTouchStatePrev2=0;
 XY_Touch_Struct screenTouchPos;
 uint16_t 		 screenTouchState;
 
+int BlockTouchForTime(int action, int timerID){
+	static int _blokTouchForTime= 0;
+	switch(action){
+		case _ON:  { _blokTouchForTime= 1;	vTimerService(timerID,restart_time,noUse); break; }
+		case _OFF: { _blokTouchForTime= 0; break; }
+		case _GET: { break; }
+	}
+	return _blokTouchForTime;
+}
+int CheckTouchForTime(uint16_t touchName, int timerID){
+	return CONDITION(BlockTouchForTime(_GET,timerID),touchName,0/*NO_TOUCH*/);
+}
+
 void SetTouchFlag		(void){ touchFlag=1; }
 void TouchScreenInit	(void){ touchFlag=0; }
 int  IsSetTouchFlag	(void){ if(touchFlag){ touchFlag=0; return 1; } 	return 0; }
