@@ -33,14 +33,14 @@
 	\
 	X(12, FONT_COLOR_Title,  		WHITE) \
 	X(13, FONT_COLOR_Descr, 	 	WHITE) \
-	X(14, FONT_COLOR_Press, 	 	WHITE) \
+	X(14, FONT_COLOR_Press, 	 	DARKRED) \
 	X(15, FONT_COLOR_Param_1, 		WHITE) \
 	X(16, FONT_COLOR_Param_2, 		WHITE) \
 	X(17, FONT_COLOR_Param_3, 		WHITE) \
 	\
 	X(18, FONT_BKCOLOR_Title,  	MYGRAY2) \
 	X(19, FONT_BKCOLOR_Descr, 	 	MYGRAY2) \
-	X(20, FONT_BKCOLOR_Press, 	 	MYGRAY2) \
+	X(20, FONT_BKCOLOR_Press, 	 	WHITE) \
 	X(21, FONT_BKCOLOR_Param_1, 	MYGRAY2) \
 	X(22, FONT_BKCOLOR_Param_2, 	MYGRAY2) \
 	X(23, FONT_BKCOLOR_Param_3, 	MYGRAY2) \
@@ -287,7 +287,7 @@ static StructTxtPxlLen ELEMENT_Param_2(StructFieldPos *field, int xPos,int yPos,
 	StructTxtPxlLen lenStr = {0};
 	StructFieldPos fieldTouch = {0};
 
-	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(Param_2), xPos, yPos, "2.Rafa"ł" "Ó""ś""ź""Ź".", fullHight, 0,250, ConstWidth, \
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(Param_2), xPos, yPos, "2.Rafa"ł"", fullHight, 0,250, ConstWidth, \
 		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Above_left,  SL(LANG_nazwa_0), fullHight, 0,250, NoConstWidth,\
 		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4, 				Left_mid, 	 "7.",  				 fullHight, 0,250, NoConstWidth, \
 		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Under_left,  SL(LANG_nazwa_1), fullHight, 0,250, NoConstWidth, \
@@ -354,18 +354,18 @@ static void FRAMES_GROUP_combined(int argNmb, int startOffsX,int startOffsY, int
 	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
 
 	_Element(Param_3,SetPos,X_start+=tab[3]+offsX,SetPos,startOffsY)		_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)	field1=field;
-	_Element(Param_1,GetPos,0,IncPos,offsY)										_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)
-	tab[0]=field1.width;
-	tab[1]=field.width;
-	MAXVAL(tab,2,0,tab[3])
-	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
-
-	_Element(Param_2,SetPos,X_start+=tab[3]+offsX,SetPos,startOffsY)	_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)	field1=field;
-	_Element(Param_3,GetPos,0,IncPos,offsY)									_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)
-	tab[0]=field1.width;
-	tab[1]=field.width;
-	MAXVAL(tab,2,0,tab[3])
-	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
+//	_Element(Param_1,GetPos,0,IncPos,offsY)										_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)
+//	tab[0]=field1.width;
+//	tab[1]=field.width;
+//	MAXVAL(tab,2,0,tab[3])
+//	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
+//
+//	_Element(Param_2,SetPos,X_start+=tab[3]+offsX,SetPos,startOffsY)	_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)	field1=field;
+//	_Element(Param_3,GetPos,0,IncPos,offsY)									_LineV(field.height,GetPos,-offsX/2-1,GetPos,0)
+//	tab[0]=field1.width;
+//	tab[1]=field.width;
+//	MAXVAL(tab,2,0,tab[3])
+//	_LineH(tab[3],GetPos,0,GetPos,-offsY/2-1)
 
 
 
@@ -472,10 +472,31 @@ void FILE_NAME(setTouch)(void)
 	switch(screenTouchState)
 	{
 		/*	----- Initiation new Keyboard ----- */
-		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2, Param_2,Press, "2.Rafa"ł" "Ó""ś""ź""Ź".",252,CheckTouchForTime(Touch_Param_2MoveRight,TIMER_BlockTouch),CheckTouchForTime(Touch_Param_2MoveLeft,TIMER_BlockTouch));		/* 'FontColor','Press' are suffix`s for elements of 'SCREEN_FONTS_SET_PARAMETERS' MACRO  */
+		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2, Param_2,Press, " Touch_Param_2 ",252,CheckTouchForTime(Touch_Param_2MoveRight,TIMER_BlockTouch),CheckTouchForTime(Touch_Param_2MoveLeft,TIMER_BlockTouch));		/* 'FontColor','Press' are suffix`s for elements of 'SCREEN_FONTS_SET_PARAMETERS' MACRO  */
 			if(IsSetTouchFlag())
 				DisplayTouchPosXY(screenTouchState,screenTouchPos,"Touch_Param_2");
 		break;
+
+		CASE_TOUCH_STATE(screenTouchState,Touch_Param_22, Param_2,Press, " Touch_Param_22 ",252,NoTouch,NoTouch);
+			if(IsSetTouchFlag())
+				DisplayTouchPosXY(screenTouchState,screenTouchPos,"Touch_Param_22");
+			break;
+
+		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2MoveRight, Param_2,Press, " Touch_Param_2MoveRight ",252,NoTouch,NoTouch);
+			if(IsSetTouchFlag()){
+				DisplayTouchPosXY(screenTouchState,screenTouchPos,"Touch_Param_2MoveRight");
+			}
+			else _SaveState();
+			BlockTouchForTime(_ON,TIMER_BlockTouch);
+			break;
+
+		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2MoveLeft, Param_2,Press, " Touch_Param_2MoveLeft ",252,NoTouch,NoTouch);
+			if(IsSetTouchFlag()){
+				DisplayTouchPosXY(screenTouchState,screenTouchPos,"Touch_Param_2MoveLeft");
+			}
+			else _SaveState();
+			BlockTouchForTime(_ON,TIMER_BlockTouch);
+			break;
 
 		/*	----- Touch parameter text and go to action ----- */
 	case Touch_NextScreen: SCREEN_SetNr(0); break;
