@@ -2204,6 +2204,8 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	{
 		//StartMeasureTime_us();
 
+		PCF8575_Test();
+
 		//StopMeasureTime_us("Time GRAPH:");
 	}
 

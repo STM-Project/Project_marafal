@@ -247,10 +247,18 @@ void PCF8575_Test(void)
 	{
 		asm("nop");
 	}
+	else
+	{
+		asm("nop");
+	}
 
-	pBuffer[0]=0x01;
-	pBuffer[1]=0x01;
+	pBuffer[0]=0xA5;
+	pBuffer[1]=0x5A;
 	if (HAL_OK == HAL_I2C_Master_Transmit(&hi2c4, 0x40, pBuffer, 2, 10))
+	{
+		asm("nop");
+	}
+	else
 	{
 		asm("nop");
 	}
@@ -259,6 +267,10 @@ void PCF8575_Test(void)
 	pBuffer[0]=0;
 	pBuffer[1]=0;
 	if (HAL_OK == HAL_I2C_Master_Receive(&hi2c4, 0x40, pBuffer, 2, 10))
+	{
+		asm("nop");
+	}
+	else
 	{
 		asm("nop");
 	}
