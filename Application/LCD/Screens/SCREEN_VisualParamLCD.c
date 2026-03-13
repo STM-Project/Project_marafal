@@ -168,8 +168,8 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 
 #define KEYBUFF_SIZE		500
 #define ROLL_1		0
-#define NMBR_RADIO_PARAM	30
-#define NMBR_RADIO_NAME		30
+#define MAX_RADIO_CHANNEL	24
+#define SIZE_RADIO_NAME		30
 
 typedef enum{
 	NoTouch = NO_TOUCH,
@@ -216,15 +216,15 @@ typedef enum{
 }TIMER_FOR_THIS_SCREEN;
 
 typedef struct{
-	char radioName[NMBR_RADIO_NAME];
+	char radioName[SIZE_RADIO_NAME];
 	u16 freqStep;
 	u16 freqDiv;
 	int16_t freqOffs;
 } RADIOPARAM;
 
 typedef struct{
-	char *pName[NMBR_RADIO_PARAM];
-	RADIOPARAM Radio[NMBR_RADIO_PARAM];
+	char *pName[MAX_RADIO_CHANNEL];
+	RADIOPARAM Radio[MAX_RADIO_CHANNEL];
 } STRUCT_VISUALPARAM;
 static STRUCT_VISUALPARAM Test;
 
@@ -272,39 +272,32 @@ static void LoadFonts(int startFontID, int endFontID){
 
 static void VisualParam_LCD_Reset(void)
 {
-	strcpy(Test.Radio[0].radioName,"1. Kana"ł"");
-	strcpy(Test.Radio[1].radioName,"2. Kana"ł"");
-	strcpy(Test.Radio[2].radioName,"3. Kana"ł"");
-	strcpy(Test.Radio[3].radioName,"4. Kana"ł"");
-	strcpy(Test.Radio[4].radioName,"5. Kana"ł"");
-	strcpy(Test.Radio[5].radioName,"6. Kana"ł"");
-	strcpy(Test.Radio[6].radioName,"7. Kana"ł"");
-	strcpy(Test.Radio[7].radioName,"8. Kana"ł"");
-	strcpy(Test.Radio[8].radioName,"9. Kana"ł"");
-	strcpy(Test.Radio[9].radioName,"10. Kana"ł"");
-	strcpy(Test.Radio[10].radioName,"11. Kana"ł"");
-	strcpy(Test.Radio[11].radioName,"12. Kana"ł"");
-	strcpy(Test.Radio[12].radioName,"13. Kana"ł"");
-	strcpy(Test.Radio[13].radioName,"14. Kana"ł"");
-	strcpy(Test.Radio[14].radioName,"15. Kana"ł"");
-	strcpy(Test.Radio[15].radioName,"16. Kana"ł"");
-	strcpy(Test.Radio[16].radioName,"17. Kana"ł"");
-	strcpy(Test.Radio[17].radioName,"18. Kana"ł"");
-	strcpy(Test.Radio[18].radioName,"19. Kana"ł"");
-	strcpy(Test.Radio[19].radioName,"20. Kana"ł"");
-	strcpy(Test.Radio[20].radioName,"21. Kana"ł"");
-	strcpy(Test.Radio[21].radioName,"22. Kana"ł"");
-	strcpy(Test.Radio[22].radioName,"23. Kana"ł"");
-	strcpy(Test.Radio[23].radioName,"24. Kana"ł"");
-	strcpy(Test.Radio[24].radioName,"25. Kana"ł"");
-	strcpy(Test.Radio[25].radioName,"26. Kana"ł"");
-	strcpy(Test.Radio[26].radioName,"27. Kana"ł"");
-	strcpy(Test.Radio[27].radioName,"28. Kana"ł"");
-	strcpy(Test.Radio[28].radioName,"29. Kana"ł"");
-	strcpy(Test.Radio[29].radioName,"30. Kana"ł"");
+	Test.Radio[0].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[0].radioName,"1. Polskie Radio");
+	Test.Radio[1].freqDiv=(0x01<<8)|0x80;		strcpy(Test.Radio[1].radioName,"2. RMF Classic");
+	Test.Radio[2].freqDiv=(0x03<<8)|0x05;		strcpy(Test.Radio[2].radioName,"3. Jedynka");
+	Test.Radio[3].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[3].radioName,"4. Eska 2");
+	Test.Radio[4].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[4].radioName,"5. Tr"ó"jka");
+	Test.Radio[5].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[5].radioName,"6. RMF FM");
+	Test.Radio[6].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[6].radioName,"7. Radio Zet");
+	Test.Radio[7].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[7].radioName,"8. RMF MAXXX");
+	Test.Radio[8].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[8].radioName,"9. Radio Plus");
+	Test.Radio[9].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[9].radioName,"10. Radio Maryja");
+	Test.Radio[10].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[10].radioName,"11. Z"ł"ote przeboje");
+	Test.Radio[11].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[11].radioName,"12. Radio Pogoda");
+	Test.Radio[12].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[12].radioName,"13. Radio Katowice");
+	Test.Radio[13].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[13].radioName,"14. TOK FM");
+	Test.Radio[14].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[14].radioName,"15. Eska");
+	Test.Radio[15].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[15].radioName,"16. Chillizet");
+	Test.Radio[16].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[16].radioName,"17. Eska Rock");
+	Test.Radio[17].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[17].radioName,"18. VOX FM");
+	Test.Radio[18].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[18].radioName,"19. AntyRadio");
+	Test.Radio[19].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[19].radioName,"20. Dw"ó"jka");
+	Test.Radio[20].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[20].radioName,"21. Polskie Radio 24");
+	Test.Radio[21].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[21].radioName,"22. Rock Radio");
+	Test.Radio[22].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[22].radioName,"23. Radio Wnet");
+	Test.Radio[23].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[23].radioName,"24. Radio Famka");
 
-	LOOP_FOR(i,NMBR_RADIO_PARAM){	Test.pName[i]=Test.Radio[i].radioName; }
-
+	LOOP_FOR(i,MAX_RADIO_CHANNEL){	Test.pName[i]=Test.Radio[i].radioName;		Test.Radio[0].freqStep=0x48|0xFD;  }
 }
 
 static StructTxtPxlLen ELEMENT_Param_1(StructFieldPos *field, int xPos,int yPos, int argNmb)
@@ -330,7 +323,7 @@ static StructTxtPxlLen ELEMENT_Param_2(StructFieldPos *field, int xPos,int yPos,
 	StructTxtPxlLen lenStr = {0};
 	StructFieldPos fieldTouch = {0};
 
-	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(Param_2), xPos, yPos, "2.Rafa"ł"", fullHight, 0,250, ConstWidth, \
+	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(Param_2), xPos, yPos, "2.Rafa"ł"", fullHight, 0,250, NoConstWidth, \
 		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Above_left,  SL(LANG_nazwa_0), fullHight, 0,250, NoConstWidth,\
 		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4, 				Left_mid, 	 "7.",  				 fullHight, 0,250, NoConstWidth, \
 		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Under_left,  SL(LANG_nazwa_1), fullHight, 0,250, NoConstWidth, \
@@ -464,8 +457,11 @@ static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create
 	}
 }
 
-static int RADIO_SET_StepFreq (u16 data){  PCF8575_Init();  return PCF8575_Write(0,data);  }
-static int RADIO_GET_StepFreq (void)	 {	 PCF8575_Init();  return PCF8575_Read (0);		 }
+static int RADIO_SetFreq(int nr){ 	PCF8575_Init();
+	INIT(temp1,PCF8575_Write(0,Test.Radio[nr].freqStep));
+	INIT(temp2,PCF8575_Write(1,Test.Radio[nr].freqDiv));
+	if(EQUAL2_OR(-1,temp1,temp2)) return 0; else return 1;
+}
 
 static int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, INIT_KEYBOARD_PARAM)
 {
@@ -483,7 +479,7 @@ static int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockP
 			break;
 
 		case KEYBOARD_Param_2:
-			KEYBOARD_KeyAllParamSet3(1,NMBR_RADIO_PARAM, COLOR_GRAY(0xDD), DARKRED, Test.pName);
+			KEYBOARD_KeyAllParamSet3(1,MAX_RADIO_CHANNEL, COLOR_GRAY(0xDD), DARKRED, Test.pName);
 			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1,"AAAAA d",v.FONT_COLOR_Descr, 8, 3);
 			break;
 
@@ -523,23 +519,23 @@ void FILE_NAME(setTouch)(void)
 	switch(screenTouchState)
 	{
 		/*	----- Initiation new Keyboard ----- */
-		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2, Param_2,Press, " Touch_Param_2 ",252,CheckTouchForTime(Touch_Param_2MoveRight,TIMER_BlockTouch),CheckTouchForTime(Touch_Param_2MoveLeft,TIMER_BlockTouch));		/* 'Param_2','Press' are suffix`s for elements of 'SCREEN_FONTS_SET_PARAMETERS' MACRO  */
+		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2, Param_2,Press, " Touch_Param_2 ",unUsed,CheckTouchForTime(Touch_Param_2MoveRight,TIMER_BlockTouch),CheckTouchForTime(Touch_Param_2MoveLeft,TIMER_BlockTouch));		/* 'Param_2','Press' are suffix`s for elements of 'SCREEN_FONTS_SET_PARAMETERS' MACRO  */
 			if(IsSetTouchFlag())
 				DisplayTouchPosXY(screenTouchState,screenTouchPos,"Touch_Param_2");
 		break;
 
-		CASE_TOUCH_STATE(screenTouchState,Touch_Param_22, Param_2,Press, " Touch_Param_22 ",252,NoTouch,NoTouch);
+		CASE_TOUCH_STATE(screenTouchState,Touch_Param_22, Param_2,Press, " Touch_Param_22 ",unUsed,NoTouch,NoTouch);
 			if(IsSetTouchFlag())
 				DisplayTouchPosXY(screenTouchState,screenTouchPos,"Touch_Param_22");
 			break;
 
-		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2MoveRight, Param_2,Press, " Touch_Param_2MoveRight ",252,NoTouch,NoTouch);
+		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2MoveRight, Param_2,Press, StrAll(3," ",Test.Radio[3].radioName," "), unUsed,NoTouch,NoTouch);
 			if(IsSetTouchFlag()) CreateKeyboard(KEYBOARD_Param_2);
 			else 						_SaveState();
 			BlockTouchForTime(_ON,TIMER_BlockTouch);
 			break;
 
-		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2MoveLeft, Param_2,Press, " Touch_Param_2MoveLeft ",252,NoTouch,NoTouch);
+		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2MoveLeft, Param_2,Press, " Touch_Param_2MoveLeft ",unUsed,NoTouch,NoTouch);
 			if(IsSetTouchFlag()){
 				DisplayTouchPosXY(screenTouchState,screenTouchPos,"Touch_Param_2MoveLeft");
 			}
@@ -565,8 +561,9 @@ void FILE_NAME(setTouch)(void)
 				int temp;
 				if(END_FREEROLL__NOSEL != (temp = LCDTOUCH_IsScrollRelease(ROLL_1, FUNC1_SET( FILE_NAME(keyboard),KEYBOARD_Param_2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), NULL/*BlockingFunc*/, TIMER_Scroll))){
 					DbgVar(1,100,"\r\nRoll: %d",temp);
-					RADIO_SET_StepFreq(temp);
-					SELECT_CURRENT_FONT(Param_2,Press, StrAll(3," ",Int2Str(temp,Space,3,Sign_none)," ") ,252);
+					if(!IS_RANGE(temp, 0, MAX_RADIO_CHANNEL-1)) temp=0;
+					RADIO_SetFreq(temp);
+					SELECT_CURRENT_FONT(Param_2,Press, StrAll(3," ",Test.Radio[temp].radioName," "), unUsed);
 				}
 			}
 
