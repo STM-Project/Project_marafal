@@ -239,41 +239,19 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 }
 
 /* USER CODE BEGIN 1 */
-void PCF8575_Test(void)
-{
-	uint8_t pBuffer[2]={0};
 
-	if (HAL_OK == HAL_I2C_Master_Receive(&hi2c4, 0x40, pBuffer, 2, 10))
-	{
-		asm("nop");
-	}
-	else
-	{
-		asm("nop");
-	}
-
-	pBuffer[0]=0xA5;
-	pBuffer[1]=0x5A;
-	if (HAL_OK == HAL_I2C_Master_Transmit(&hi2c4, 0x40, pBuffer, 2, 10))
-	{
-		asm("nop");
-	}
-	else
-	{
-		asm("nop");
-	}
-
-
-	pBuffer[0]=0;
-	pBuffer[1]=0;
-	if (HAL_OK == HAL_I2C_Master_Receive(&hi2c4, 0x40, pBuffer, 2, 10))
-	{
-		asm("nop");
-	}
-	else
-	{
-		asm("nop");
-	}
-
+void PCF8575_Init(void){
+	MX_I2C4_Init();
 }
+int PCF8575_Read(uint16_t devAddr){
+	uint8_t pBuffer[2]={0};
+	if (HAL_OK == HAL_I2C_Master_Receive(&hi2c4,0x40|devAddr,pBuffer,2,10))	return (pBuffer[1]<<8 | pBuffer[0]);
+	else																							return -1;
+}
+int PCF8575_Write(uint16_t devAddr, uint16_t data){
+	uint8_t pBuffer[2]={data,data>>8};
+	if (HAL_OK == HAL_I2C_Master_Transmit(&hi2c4,0x40|devAddr,(uint8_t*)data,2,10)) return 1;
+	else																						 			  return -1;
+}
+
 /* USER CODE END 1 */
