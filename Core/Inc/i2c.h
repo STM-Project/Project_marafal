@@ -44,7 +44,10 @@ void MX_I2C1_Init(void);
 void MX_I2C4_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-void PCF8575_Test(void);
+void PCF8575_Init	 (void);
+int  PCF8575_Read	 (uint16_t devAddr);
+int  PCF8575_Write (uint16_t devAddr, uint16_t data);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
