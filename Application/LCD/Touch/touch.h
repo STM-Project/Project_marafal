@@ -29,6 +29,13 @@ typedef enum{
 #define CLR_ALL_TOUCH 							for(int i=0;i<SEL_BITS_SIZE;++i) FILE_NAME(SelTouch)[i]=0
 #define GET_TOUCH 								FILE_NAME(SelTouch)[0]!=0 || FILE_NAME(SelTouch)[1]!=0 || FILE_NAME(SelTouch)[2]!=0 || FILE_NAME(SelTouch)[3]!=0 || FILE_NAME(SelTouch)[4]!=0		/* determine by 'SEL_BITS_SIZE' */
 
+#define SELECT_CURRENT_FONT(src,dst,txt,coeff) \
+	LCD_SetStrVar_fontID		(v.FONT_VAR_##src, v.FONT_ID_##dst);\
+	LCD_SetStrVar_fontColor	(v.FONT_VAR_##src, v.FONT_COLOR_##dst);\
+	LCD_SetStrVar_bkColor  	(v.FONT_VAR_##src, v.FONT_BKCOLOR_##dst);\
+	LCD_SetStrVar_coeff		(v.FONT_VAR_##src, coeff);\
+	LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_##src, txt)
+
 #define CASE_TOUCH_STATE(screenTouchState,touchPoint, src,dst, txt,coeff, touchX, touchX2) \
 	case touchPoint:\
 	if(NotServiceTouchAboveWhenWasClearedThis(touchX) & NotServiceTouchAboveWhenWasClearedThis(touchX2)){\
