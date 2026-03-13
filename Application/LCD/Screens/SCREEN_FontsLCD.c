@@ -2201,9 +2201,10 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	static int only_one = 0;
 	if(only_one==0)
 	{
-		//StartMeasureTime_us();
+		StartMeasureTime_us();
 
-		//StopMeasureTime_us("Time GRAPH:");
+
+		StopMeasureTime_us("");
 	}
 
 	if(1)	/* This display ever time */
