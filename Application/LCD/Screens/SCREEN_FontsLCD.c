@@ -295,13 +295,6 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 #define MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY		20
 /* #define TOUCH_MAINFONTS_WITHOUT_DESCR */
 
-#define SELECT_CURRENT_FONT(src,dst,txt,coeff) \
-	LCD_SetStrVar_fontID		(v.FONT_VAR_##src, v.FONT_ID_##dst);\
-	LCD_SetStrVar_fontColor	(v.FONT_VAR_##src, v.FONT_COLOR_##dst);\
-	LCD_SetStrVar_bkColor  	(v.FONT_VAR_##src, v.FONT_BKCOLOR_##dst);\
-	LCD_SetStrVar_coeff		(v.FONT_VAR_##src, coeff);\
-	LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_##src, txt)
-
 #define ROLL_1		0
 #define KEYBUFF_SIZE		500
 
@@ -1212,7 +1205,7 @@ static void IncDec_SpaceBetweenFont(int incDec){
 /* ------------ FILE_NAME() functions ------------ */
 static int RR=0;
 
-int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, INIT_KEYBOARD_PARAM)
+static int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, INIT_KEYBOARD_PARAM)
 {
 	KEYBOARD_SetGeneral(v.FONT_ID_Press, v.FONT_ID_Descr, 	v.FONT_COLOR_Descr,
 								  	  	  	  	  	 v.COLOR_MainFrame,  v.COLOR_FillMainFrame,
@@ -1455,13 +1448,14 @@ void FILE_NAME(setTouch)(void)
 	void CreateKeyboard(KEYBOARD_TYPES keboard){
 		switch((int)keboard){
 			case KEYBOARD_fontRGB:	break;
-			case KEYBOARD_fontSize2:	FILE_NAME(keyboard)(KEYBOARD_fontSize2, KEY_Select_one, LCD_Rectangle,0, 610,50, KeysAutoSize,10, 0, screenTouchState, Touch_FontSizeRoll,KeysDel);  break;
+			case KEYBOARD_fontSize2:	FILE_NAME(keyboard)(KEYBOARD_fontSize2, KEY_Select_one, LCD_Rectangle,0, 615,100, KeysAutoSize,10, 0, screenTouchState, Touch_FontSizeRoll,KeysDel);  break;
 	}}
 
 
 	screenTouchState = LCD_TOUCH_GetTypeAndPosition(&screenTouchPos);
 													/*if prevTouch is this... and actualTouch is not this...*/				/*and yet actualTouch not this...*/							/*then unblock touches this...*/
-	_RestoreSusspendedTouchsByAnotherClickItem(Touch_FontSize2,Touch_size_plus,Touch_size_italic,	Touch_FontStyle,Touch_FontType,Touch_FontSize,_ZEROS7,	Touch_FontLenOffsWin,Touch_FontCoeff,_ZEROS8);		/* depended on _SaveState2() */
+	_RestoreSusspendedTouchsByAnotherClickItem(Touch_FontSize2,	  Touch_size_plus,	Touch_size_italic,	Touch_FontStyle,Touch_FontType,Touch_FontSize,_ZEROS7,	Touch_FontLenOffsWin,Touch_FontCoeff,										  _ZEROS8);		/* depended on _SaveState2() */
+	_RestoreSusspendedTouchsByAnotherClickItem(Touch_FontSizeMove,Touch_FontSizeRoll,Touch_FontSizeRoll,	Touch_FontSize,										 _ZEROS9,	Touch_FontLenOffsWin,Touch_FontCoeff,Touch_FontStyle,Touch_FontType,_ZEROS6);		/* depended on _SaveState2() */
 
 	/*	----- Service press specific Keys for Keyboard ----- */
 	_TouchService(Touch_fontRp, Touch_fontBm, KEYBOARD_fontRGB, KEY_All_release, KEY_Red_plus, FUNC_fontColorRGB);
@@ -1561,14 +1555,16 @@ void FILE_NAME(setTouch)(void)
 		CASE_TOUCH_STATE(screenTouchState,Touch_FontSize2, FontSize,Press, TXT_FONT_SIZE,252,NoTouch,NoTouch);
 			if(IsSetTouchFlag()){	FILE_NAME(keyboard)(KEYBOARD_fontSize, KEY_Select_one, LCD_RoundRectangle,0, 614,200, KeysAutoSize,10/*80,40*/, 10, screenTouchState, Touch_size_plus,KeysDel);
 								LCD_TOUCH_SusspendTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,_ZEROS8); _SaveState2(); }
-			else{ LCD_TOUCH_RestoreSusspendedTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,_ZEROS8); _RstState2(); }
+			else{ LCD_TOUCH_RestoreSusspendedTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,_ZEROS8); _RstState2();  }
 			break;
 
 		CASE_TOUCH_STATE(screenTouchState,Touch_FontSizeMove, FontSize,Press, TXT_FONT_SIZE,252,NoTouch,NoTouch);
-			if(IsSetTouchFlag()) CreateKeyboard(KEYBOARD_fontSize2);
-			else 			_SaveState();
+			if(IsSetTouchFlag()){ 	CreateKeyboard(KEYBOARD_fontSize2);
+								LCD_TOUCH_SusspendTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,Touch_FontStyle,Touch_FontType,_ZEROS6); _SaveState2(); }
+			else{ LCD_TOUCH_RestoreSusspendedTouchs2(Touch_FontLenOffsWin,Touch_FontCoeff,Touch_FontStyle,Touch_FontType,_ZEROS6); _RstState2();  _SaveState(); }
 			BlockTouchForTime(_ON,TIMER_BlockTouch);
 			break;
+
 
 		/*	----- Touch parameter text and go to action ----- */
 		case Touch_SetTxt:
@@ -1709,12 +1705,15 @@ void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 	{
 		if(TOOGLE(RR))
 		{
-			FILE_NAME(keyboard)(KEYBOARD_fontRGB, KEY_All_release, LCD_RoundRectangle,0,  10,160, KeysAutoSize,12, 4, Touch_FontColor, Touch_fontRp, KeysDel);
-			FILE_NAME(keyboard)(KEYBOARD_bkRGB,   KEY_All_release, LCD_RoundRectangle,0, 600,160, KeysAutoSize,12, 4, Touch_BkColor, 	Touch_bkRp,	  KeysNotDel);
+//			FILE_NAME(keyboard)(KEYBOARD_fontRGB, KEY_All_release, LCD_RoundRectangle,0,  10,160, KeysAutoSize,12, 4, Touch_FontColor, Touch_fontRp, KeysDel);
+//			FILE_NAME(keyboard)(KEYBOARD_bkRGB,   KEY_All_release, LCD_RoundRectangle,0, 600,160, KeysAutoSize,12, 4, Touch_BkColor, 	Touch_bkRp,	  KeysNotDel);
 /*
 			FILE_NAME(keyboard)(KEYBOARD_sliderRGB, 	KEY_All_release, LCD_RoundRectangle,0, 50,160, 39,140,  16, Touch_FontColor2, Touch2_fontSliderR_left, KeysDel);
 			FILE_NAME(keyboard)(KEYBOARD_sliderBkRGB, KEY_All_release, LCD_RoundRectangle,0, 550,160, 39,140, 16, Touch_BkColor2,   Touch2_bkSliderR_left, 	 KeysNotDel);
 */
+
+			FILE_NAME(keyboard)(KEYBOARD_fontSize2, KEY_Select_one,  LCD_Rectangle,		 0, 615,100, KeysAutoSize,10, 0, Touch_FontSizeMove, Touch_FontSizeRoll,KeysDel);
+			FILE_NAME(keyboard)(KEYBOARD_bkRGB,   	 KEY_All_release, LCD_RoundRectangle,0, 300,200, KeysAutoSize,12, 4, Touch_BkColor, 	  Touch_bkRp,	  		KeysNotDel);
 		}
 		else
 		{
@@ -2203,8 +2202,6 @@ static void EXPER_FUNC_beforeDispBuffLcd(void)
 	if(only_one==0)
 	{
 		//StartMeasureTime_us();
-
-		PCF8575_Test();
 
 		//StopMeasureTime_us("Time GRAPH:");
 	}
