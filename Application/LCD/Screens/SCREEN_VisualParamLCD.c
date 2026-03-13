@@ -173,6 +173,7 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 	LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_##src, txt)
 
 #define KEYBUFF_SIZE		500
+#define ROLL_1		0
 
 typedef enum{
 	NoTouch = NO_TOUCH,
@@ -182,6 +183,7 @@ typedef enum{
 	Touch_Param_2MoveRight,
 	Touch_Param_2MoveLeft,
 	Touch_Param_3,
+	Touch_FieldRoll,
 	Touch_NextScreen,
 	Touch_PrevScreen,
 	AnyPress,
@@ -421,7 +423,7 @@ static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create
 	}
 }
 
-int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, INIT_KEYBOARD_PARAM)
+static int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, INIT_KEYBOARD_PARAM)
 {
 	KEYBOARD_SetGeneral(v.FONT_ID_Press, v.FONT_ID_Descr, 	v.FONT_COLOR_Descr,
 								  	  	  	  	  	 v.COLOR_MainFrame,  v.COLOR_FillMainFrame,
@@ -434,6 +436,11 @@ int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, I
 	switch((int)type)
 	{
 		case KEYBOARD_Param_1:
+			break;
+
+		case KEYBOARD_Param_2:
+			KEYBOARD_KeyAllParamSet3(1,LCD_GetFontSizeMaxNmb(), COLOR_GRAY(0xDD), DARKRED, (char**)LCD_GetFontSizePtr());
+			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1, "nie ma textu", v.FONT_COLOR_Descr, 8, 3);
 			break;
 
 		case KEYBOARD_setTxt:
@@ -460,7 +467,7 @@ void FILE_NAME(setTouch)(void)
 	void CreateKeyboard(KEYBOARD_TYPES keboard){
 		switch((int)keboard){
 			case KEYBOARD_Param_1:	break;
-			case KEYBOARD_Param_2:	break;
+			case KEYBOARD_Param_2:	FILE_NAME(keyboard)(KEYBOARD_Param_2, KEY_Select_one, LCD_Rectangle,0, 610,50, KeysAutoSize,10, 0, screenTouchState, Touch_FieldRoll,KeysDel);  break;
 	}}
 
 
@@ -472,7 +479,7 @@ void FILE_NAME(setTouch)(void)
 	switch(screenTouchState)
 	{
 		/*	----- Initiation new Keyboard ----- */
-		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2, Param_2,Press, " Touch_Param_2 ",252,CheckTouchForTime(Touch_Param_2MoveRight,TIMER_BlockTouch),CheckTouchForTime(Touch_Param_2MoveLeft,TIMER_BlockTouch));		/* 'FontColor','Press' are suffix`s for elements of 'SCREEN_FONTS_SET_PARAMETERS' MACRO  */
+		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2, Param_2,Press, " Touch_Param_2 ",252,CheckTouchForTime(Touch_Param_2MoveRight,TIMER_BlockTouch),CheckTouchForTime(Touch_Param_2MoveLeft,TIMER_BlockTouch));		/* 'Param_2','Press' are suffix`s for elements of 'SCREEN_FONTS_SET_PARAMETERS' MACRO  */
 			if(IsSetTouchFlag())
 				DisplayTouchPosXY(screenTouchState,screenTouchPos,"Touch_Param_2");
 		break;
@@ -483,10 +490,8 @@ void FILE_NAME(setTouch)(void)
 			break;
 
 		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2MoveRight, Param_2,Press, " Touch_Param_2MoveRight ",252,NoTouch,NoTouch);
-			if(IsSetTouchFlag()){
-				DisplayTouchPosXY(screenTouchState,screenTouchPos,"Touch_Param_2MoveRight");
-			}
-			else _SaveState();
+			if(IsSetTouchFlag()) CreateKeyboard(KEYBOARD_Param_2);
+			else 						_SaveState();
 			BlockTouchForTime(_ON,TIMER_BlockTouch);
 			break;
 
@@ -502,8 +507,23 @@ void FILE_NAME(setTouch)(void)
 	case Touch_NextScreen: SCREEN_SetNr(0); break;
 	case Touch_PrevScreen: SCREEN_SetNr(0); break;
 
+	case Touch_FieldRoll:
+		if(LCDTOUCH_IsScrollPress(ROLL_1, screenTouchState, &screenTouchPos, TIMER_Scroll))
+			KEYBOARD_TYPE( KEYBOARD_Param_2, KEY_Select_one);
+		_SaveState();
+		break;
+
 
 		default:		 /* ----- Service release specific Keys for Keyboard ----- */
+
+			if(_KEYBOARD_setTxt__SERVICE(screenTouchState,Touch_Q,Touch_keyStyle,KEY_Q)) break;
+
+			if(_WasState(Touch_FieldRoll)){
+				int temp;
+				if(END_FREEROLL__NOSEL != (temp = LCDTOUCH_IsScrollRelease(ROLL_1, FUNC1_SET( FILE_NAME(keyboard),KEYBOARD_Param_2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), NULL/*BlockingFunc*/, TIMER_Scroll)))
+					DbgVar(1,100,"\r\nRoll: %d",temp);
+			}
+
 			break;
 	}
 
