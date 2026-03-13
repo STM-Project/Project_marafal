@@ -7,6 +7,7 @@
 #include "_debug.h"
 #include "touch.h"
 #include <string.h>
+#include "i2c.h"
 
 /*--------------- Main Macro Settings ------------------*/
 #define FILE_NAME(extend) SCREEN_VisualParam_##extend
@@ -165,15 +166,10 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 #define MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY		20
 /* #define TOUCH_MAINFONTS_WITHOUT_DESCR */
 
-#define SELECT_CURRENT_FONT(src,dst,txt,coeff) \
-	LCD_SetStrVar_fontID		(v.FONT_VAR_##src, v.FONT_ID_##dst);\
-	LCD_SetStrVar_fontColor	(v.FONT_VAR_##src, v.FONT_COLOR_##dst);\
-	LCD_SetStrVar_bkColor  	(v.FONT_VAR_##src, v.FONT_BKCOLOR_##dst);\
-	LCD_SetStrVar_coeff		(v.FONT_VAR_##src, coeff);\
-	LCD_StrDependOnColorsVarIndirect(v.FONT_VAR_##src, txt)
-
 #define KEYBUFF_SIZE		500
 #define ROLL_1		0
+#define NMBR_RADIO_PARAM	30
+#define NMBR_RADIO_NAME		30
 
 typedef enum{
 	NoTouch = NO_TOUCH,
@@ -220,7 +216,15 @@ typedef enum{
 }TIMER_FOR_THIS_SCREEN;
 
 typedef struct{
-	;
+	char radioName[NMBR_RADIO_NAME];
+	u16 freqStep;
+	u16 freqDiv;
+	int16_t freqOffs;
+} RADIOPARAM;
+
+typedef struct{
+	char *pName[NMBR_RADIO_PARAM];
+	RADIOPARAM Radio[NMBR_RADIO_PARAM];
 } STRUCT_VISUALPARAM;
 static STRUCT_VISUALPARAM Test;
 
@@ -264,6 +268,43 @@ static void LoadFonts(int startFontID, int endFontID){
 	v.FONT_ID_Descr		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Descr),	FILE_NAME(GetDefaultParam)(FONT_ID_Descr));
 	v.FONT_ID_Press 		= LCD_LoadFont_DependOnColors( LOAD_FONT_PARAM(Press),  	FILE_NAME(GetDefaultParam)(FONT_ID_Press));
 */
+}
+
+static void VisualParam_LCD_Reset(void)
+{
+	strcpy(Test.Radio[0].radioName,"1. Kana"ł"");
+	strcpy(Test.Radio[1].radioName,"2. Kana"ł"");
+	strcpy(Test.Radio[2].radioName,"3. Kana"ł"");
+	strcpy(Test.Radio[3].radioName,"4. Kana"ł"");
+	strcpy(Test.Radio[4].radioName,"5. Kana"ł"");
+	strcpy(Test.Radio[5].radioName,"6. Kana"ł"");
+	strcpy(Test.Radio[6].radioName,"7. Kana"ł"");
+	strcpy(Test.Radio[7].radioName,"8. Kana"ł"");
+	strcpy(Test.Radio[8].radioName,"9. Kana"ł"");
+	strcpy(Test.Radio[9].radioName,"10. Kana"ł"");
+	strcpy(Test.Radio[10].radioName,"11. Kana"ł"");
+	strcpy(Test.Radio[11].radioName,"12. Kana"ł"");
+	strcpy(Test.Radio[12].radioName,"13. Kana"ł"");
+	strcpy(Test.Radio[13].radioName,"14. Kana"ł"");
+	strcpy(Test.Radio[14].radioName,"15. Kana"ł"");
+	strcpy(Test.Radio[15].radioName,"16. Kana"ł"");
+	strcpy(Test.Radio[16].radioName,"17. Kana"ł"");
+	strcpy(Test.Radio[17].radioName,"18. Kana"ł"");
+	strcpy(Test.Radio[18].radioName,"19. Kana"ł"");
+	strcpy(Test.Radio[19].radioName,"20. Kana"ł"");
+	strcpy(Test.Radio[20].radioName,"21. Kana"ł"");
+	strcpy(Test.Radio[21].radioName,"22. Kana"ł"");
+	strcpy(Test.Radio[22].radioName,"23. Kana"ł"");
+	strcpy(Test.Radio[23].radioName,"24. Kana"ł"");
+	strcpy(Test.Radio[24].radioName,"25. Kana"ł"");
+	strcpy(Test.Radio[25].radioName,"26. Kana"ł"");
+	strcpy(Test.Radio[26].radioName,"27. Kana"ł"");
+	strcpy(Test.Radio[27].radioName,"28. Kana"ł"");
+	strcpy(Test.Radio[28].radioName,"29. Kana"ł"");
+	strcpy(Test.Radio[29].radioName,"30. Kana"ł"");
+
+	LOOP_FOR(i,NMBR_RADIO_PARAM){	Test.pName[i]=Test.Radio[i].radioName; }
+
 }
 
 static StructTxtPxlLen ELEMENT_Param_1(StructFieldPos *field, int xPos,int yPos, int argNmb)
@@ -423,6 +464,9 @@ static void FILE_NAME(timer)(void)  /* alternative RTOS Timer Callback or create
 	}
 }
 
+static int RADIO_SET_StepFreq (u16 data){  PCF8575_Init();  return PCF8575_Write(0,data);  }
+static int RADIO_GET_StepFreq (void)	 {	 PCF8575_Init();  return PCF8575_Read (0);		 }
+
 static int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockPress, INIT_KEYBOARD_PARAM)
 {
 	KEYBOARD_SetGeneral(v.FONT_ID_Press, v.FONT_ID_Descr, 	v.FONT_COLOR_Descr,
@@ -439,8 +483,8 @@ static int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockP
 			break;
 
 		case KEYBOARD_Param_2:
-			KEYBOARD_KeyAllParamSet3(1,LCD_GetFontSizeMaxNmb(), COLOR_GRAY(0xDD), DARKRED, (char**)LCD_GetFontSizePtr());
-			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1, "nie ma textu", v.FONT_COLOR_Descr, 8, 3);
+			KEYBOARD_KeyAllParamSet3(1,NMBR_RADIO_PARAM, COLOR_GRAY(0xDD), DARKRED, Test.pName);
+			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1,"AAAAA d",v.FONT_COLOR_Descr, 8, 3);
 			break;
 
 		case KEYBOARD_setTxt:
@@ -467,7 +511,7 @@ void FILE_NAME(setTouch)(void)
 	void CreateKeyboard(KEYBOARD_TYPES keboard){
 		switch((int)keboard){
 			case KEYBOARD_Param_1:	break;
-			case KEYBOARD_Param_2:	FILE_NAME(keyboard)(KEYBOARD_Param_2, KEY_Select_one, LCD_Rectangle,0, 610,50, KeysAutoSize,10, 0, screenTouchState, Touch_FieldRoll,KeysDel);  break;
+			case KEYBOARD_Param_2:  FILE_NAME(keyboard)(KEYBOARD_Param_2, KEY_Select_one, LCD_Rectangle,0, 610,50, KeysAutoSize,10, 0, screenTouchState, Touch_FieldRoll,KeysDel);  break;
 	}}
 
 
@@ -508,8 +552,7 @@ void FILE_NAME(setTouch)(void)
 	case Touch_PrevScreen: SCREEN_SetNr(0); break;
 
 	case Touch_FieldRoll:
-		if(LCDTOUCH_IsScrollPress(ROLL_1, screenTouchState, &screenTouchPos, TIMER_Scroll))
-			KEYBOARD_TYPE( KEYBOARD_Param_2, KEY_Select_one);
+		if(LCDTOUCH_IsScrollPress(ROLL_1, screenTouchState, &screenTouchPos, TIMER_Scroll)){	KEYBOARD_TYPE( KEYBOARD_Param_2, KEY_Select_one); 	 }
 		_SaveState();
 		break;
 
@@ -520,8 +563,11 @@ void FILE_NAME(setTouch)(void)
 
 			if(_WasState(Touch_FieldRoll)){
 				int temp;
-				if(END_FREEROLL__NOSEL != (temp = LCDTOUCH_IsScrollRelease(ROLL_1, FUNC1_SET( FILE_NAME(keyboard),KEYBOARD_Param_2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), NULL/*BlockingFunc*/, TIMER_Scroll)))
+				if(END_FREEROLL__NOSEL != (temp = LCDTOUCH_IsScrollRelease(ROLL_1, FUNC1_SET( FILE_NAME(keyboard),KEYBOARD_Param_2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), NULL/*BlockingFunc*/, TIMER_Scroll))){
 					DbgVar(1,100,"\r\nRoll: %d",temp);
+					RADIO_SET_StepFreq(temp);
+					SELECT_CURRENT_FONT(Param_2,Press, StrAll(3," ",Int2Str(temp,Space,3,Sign_none)," ") ,252);
+				}
 			}
 
 			break;
@@ -543,6 +589,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 	{
 		SCREEN_ResetAllParameters();
 		LCD_TOUCH_DeleteAllSetTouch();
+		VisualParam_LCD_Reset();
 
 		DbgVar(v.DEBUG_ON,100, "" Cya_"\r\nStart: %s\r\n"_X, GET_CODE_FUNCTION);
 
