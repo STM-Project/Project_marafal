@@ -245,13 +245,13 @@ void PCF8575_Init(void){
 }
 int PCF8575_Read(uint16_t devAddr){
 	uint8_t pBuffer[2]={0};
-	if (HAL_OK == HAL_I2C_Master_Receive(&hi2c4,0x40|devAddr,pBuffer,2,10))	return (pBuffer[1]<<8 | pBuffer[0]);
-	else																							return -1;
+	if (HAL_OK == HAL_I2C_Master_Receive(&hi2c4,0x40|(devAddr<<1),pBuffer,2,10))	return (pBuffer[1]<<8 | pBuffer[0]);
+	else																									return -1;
 }
 int PCF8575_Write(uint16_t devAddr, uint16_t data){
 	uint8_t pBuffer[2]={data,data>>8};
-	if (HAL_OK == HAL_I2C_Master_Transmit(&hi2c4,0x40|devAddr,(uint8_t*)data,2,10)) return 1;
-	else																						 			  return -1;
+	if (HAL_OK == HAL_I2C_Master_Transmit(&hi2c4,0x40|(devAddr<<1),pBuffer,2,10)) return 1;
+	else																						 			return -1;
 }
 
 /* USER CODE END 1 */

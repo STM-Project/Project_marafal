@@ -270,12 +270,18 @@ static void LoadFonts(int startFontID, int endFontID){
 */
 }
 
+#define DIV_ACT	2
+#define STEP_FREQ	12000000
+#define DIV_FREQ	75000000
+#define INTER_F1	10700000
+
 static void VisualParam_LCD_Reset(void)
 {
-	Test.Radio[0].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[0].radioName,"1. Polskie Radio");
-	Test.Radio[1].freqDiv=(0x01<<8)|0x80;		strcpy(Test.Radio[1].radioName,"2. RMF Classic");
-	Test.Radio[2].freqDiv=(0x03<<8)|0x05;		strcpy(Test.Radio[2].radioName,"3. Jedynka");
-	Test.Radio[3].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[3].radioName,"4. Eska 2");
+	Test.Radio[0].freqDiv=(0x0C<<8)|0x6D;		strcpy(Test.Radio[0].radioName,"1. Polskie Radio");
+	Test.Radio[1].freqDiv=(0x01<<8)|0x94;		strcpy(Test.Radio[1].radioName,"2. RMF Classic");
+	Test.Radio[2].freqDiv=(0x02<<8)|0xE7;		strcpy(Test.Radio[2].radioName,"3. Jedynka");
+	Test.Radio[3].freqDiv=(0x02<<8)|0x57;		strcpy(Test.Radio[3].radioName,"4. Eska 2");
+
 	Test.Radio[4].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[4].radioName,"5. Tr"ó"jka");
 	Test.Radio[5].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[5].radioName,"6. RMF FM");
 	Test.Radio[6].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[6].radioName,"7. Radio Zet");
@@ -297,7 +303,14 @@ static void VisualParam_LCD_Reset(void)
 	Test.Radio[22].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[22].radioName,"23. Radio Wnet");
 	Test.Radio[23].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[23].radioName,"24. Radio Famka");
 
-	LOOP_FOR(i,MAX_RADIO_CHANNEL){	Test.pName[i]=Test.Radio[i].radioName;		Test.Radio[0].freqStep=0x48|0xFD;  }
+	LOOP_FOR(i,MAX_RADIO_CHANNEL){	Test.pName[i]=Test.Radio[i].radioName;		Test.Radio[i].freqStep=(0x12<<8)|0xBF;  }  //przelicz to na fajny define !!!!! i te u gory tez !!!!
+
+
+	//F = 75MHz  +  [  2*(freqDiv+1) / (freqStep+1)  ]*12MHz		+	  10.7MHz
+
+	double aaa = INTER_F1 + DIV_FREQ + DIV_ACT*STEP_FREQ*((Test.Radio[0].freqDiv+1)/(Test.Radio[0].freqStep+1));
+
+
 }
 
 static StructTxtPxlLen ELEMENT_Param_1(StructFieldPos *field, int xPos,int yPos, int argNmb)
