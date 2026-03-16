@@ -14,8 +14,9 @@
 #define FILE_NAME(extend) SCREEN_VisualParam_##extend
 
 #define SCREEN_VISUALPARAM_LANG \
-	X(LANG_nazwa_0, "LANG_nazwa_0", "LANG_name_0") \
-	X(LANG_nazwa_1, "LANG_nazwa_1", "LANG_name_1") \
+	X(LANG_nazwa_0, 			"LANG_nazwa_0", "LANG_name_0") \
+	X(LANG_nazwa_1, 			"LANG_nazwa_1", "LANG_name_1") \
+	X(LANG_TunningFreq, 		"Dostrajanie", "Tuning") \
 
 #define SCREEN_VISUALPARAM_SET_PARAMETERS \
 /* id   name							default value */ \
@@ -176,7 +177,7 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 #define STEP_FREQ	12000000
 #define DIV_FREQ	75000000
 #define INTER_F1	10700000
-#define TXT_RADIO_STATION		StrAll(5," ",Test.Radio[3].radioName," - ",dbl2stri(tempBuff,Test.Radio[3].freq,2),"MHz ")
+#define TXT_RADIO_STATION		StrAll(5," ",Test.Radio[Test.selRadio].radioName," - ",dbl2stri(tempBuff,Test.Radio[Test.selRadio].freq,2),"MHz ")
 
 typedef enum{
 	NoTouch = NO_TOUCH,
@@ -186,6 +187,8 @@ typedef enum{
 	Touch_Param_2MoveRight,
 	Touch_Param_2MoveLeft,
 	Touch_Param_3,
+	Touch_TunningFreq_plus,
+	Touch_TunningFreq_minus,
 	Touch_FieldRoll,
 	Touch_NextScreen,
 	Touch_PrevScreen,
@@ -203,6 +206,8 @@ typedef enum{
 	KEY_Param_1,
 	KEY_Param_2,
 	KEY_Param_3,
+	KEY_TunningFreq_plus,
+	KEY_TunningFreq_minus,
 	KEYBOARD_SETTXT_KEYS
 }SELECT_PRESS_BLOCK;
 
@@ -212,6 +217,7 @@ typedef enum{
 	KEYBOARD_Param_1,
 	KEYBOARD_Param_2,
 	KEYBOARD_Param_3,
+	KEYBOARD_TunningFreq,
 }KEYBOARD_TYPES;	/* MAX_NUMBER_OPENED_KEYBOARD_SIMULTANEOUSLY */
 
 typedef enum{
@@ -227,11 +233,12 @@ typedef struct{
 	double freq;
 	u16 freqStep;
 	u16 freqDiv;
-	int16_t freqOffs;
+	double freqOffs;
 } RADIOPARAM;
 
 typedef struct{
 	char *pName[MAX_RADIO_CHANNEL];
+	u8 selRadio;
 	RADIOPARAM Radio[MAX_RADIO_CHANNEL];
 } STRUCT_VISUALPARAM;
 static STRUCT_VISUALPARAM Test;
@@ -279,6 +286,11 @@ static void LoadFonts(int startFontID, int endFontID){
 */
 }
 
+static void RADIO_CalcFreqDiv(int nr){
+	Test.Radio[nr].freqDiv = (Test.Radio[nr].freqStep+1) * (((Test.Radio[nr].freq+Test.Radio[nr].freqOffs)-INTER_F1-DIV_FREQ)/(DIV_ACT*STEP_FREQ)) - 1;
+/*	Test.Radio[i].freq 	  = INTER_F1 + DIV_FREQ + DIV_ACT*STEP_FREQ*((Test.Radio[i].freqDiv+1)/(Test.Radio[i].freqStep+1)); */
+}
+
 static void VisualParam_LCD_Reset(void)
 {
 	Test.Radio[0].freq= 101.6;		strcpy(Test.Radio[0].radioName,"1. Radio Krak"ó"w");
@@ -308,9 +320,10 @@ static void VisualParam_LCD_Reset(void)
 
 	LOOP_FOR(i,MAX_RADIO_CHANNEL){	Test.pName[i]			  = Test.Radio[i].radioName;
 												Test.Radio[i].freqStep = (0x12<<8)|0xBF;
-												Test.Radio[i].freqDiv  = (Test.Radio[i].freqStep+1) * ((Test.Radio[i].freq-INTER_F1-DIV_FREQ)/(DIV_ACT*STEP_FREQ)) - 1;
-											/*	Test.Radio[i].freq 	  = INTER_F1 + DIV_FREQ + DIV_ACT*STEP_FREQ*((Test.Radio[i].freqDiv+1)/(Test.Radio[i].freqStep+1)); */
+												Test.Radio[i].freqOffs = 0.0;
+												RADIO_CalcFreqDiv(i);
 	}
+	Test.selRadio=12;
 }
 
 static StructTxtPxlLen ELEMENT_Param_1(StructFieldPos *field, int xPos,int yPos, int argNmb)
@@ -500,6 +513,12 @@ static int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockP
 			KEYBOARD__ServiceSetTxt(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Q, KEY_big, KEY_back, KEY_alt, KEY_enter,KEY_field,KEY_style,KEY_exit, v.FONT_COLOR_Descr, keyBuff,KEYBUFF_SIZE);
 			break;
 
+		case KEYBOARD_TunningFreq:
+			KEYBOARD_KeyAllParamSet(2,1, "+", "-", WHITE,WHITE, LIGHTCYAN,LIGHTCYAN);
+			KEYBOARD_SetGeneral(N,N,N, N,N, N,BrightIncr(v.COLOR_FillFrame,0xE), N,N,N);
+			KEYBOARD_Buttons(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_TunningFreq_plus, SL(LANG_TunningFreq));
+			break;
+
 		default:
 			break;
 	}
@@ -509,6 +528,21 @@ static int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockP
 void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 
 }}
+
+static void RADIO_DispFreq(void){
+	RADIO_CalcFreqDiv(Test.selRadio);
+	if(RADIO_SetFreq(Test.selRadio)){
+		SELECT_CURRENT_FONT( Param_2,Press, TXT_RADIO_STATION, unUsed ); //!!!!!!!!!!!!!!!!
+	}
+	SELECT_CURRENT_FONT( Param_2,Press, TXT_RADIO_STATION, unUsed );
+}
+
+static void FUNC_TunningFreq(int k){ switch(k){
+  case -1: return;
+  case  0: INCR( Test.Radio[Test.selRadio].freqOffs, 0.01, 0.50 ); break;
+  case  1: DECR( Test.Radio[Test.selRadio].freqOffs, 0.01, 0.01 ); break; }
+	RADIO_DispFreq();
+}
 
 void FILE_NAME(setTouch)(void)
 {
@@ -520,13 +554,15 @@ void FILE_NAME(setTouch)(void)
 	void CreateKeyboard(KEYBOARD_TYPES keboard){
 		switch((int)keboard){
 			case KEYBOARD_Param_1:	break;
-			case KEYBOARD_Param_2:  FILE_NAME(keyboard)(KEYBOARD_Param_2, KEY_Select_one, LCD_Rectangle,0, 610,50, KeysAutoSize,10, 0, screenTouchState, Touch_FieldRoll,KeysDel);  break;
+			case KEYBOARD_Param_2:  FILE_NAME(keyboard)(KEYBOARD_Param_2,		KEY_Select_one, LCD_Rectangle,	  0,410, 50, KeysAutoSize,10,0, screenTouchState,Touch_FieldRoll, 	 	KeysDel);
+											FILE_NAME(keyboard)(KEYBOARD_TunningFreq, KEY_All_release,LCD_RoundRectangle,0,300,205, KeysAutoSize,10,10,screenTouchState,Touch_TunningFreq_plus,KeysNotDel); 	break;
 	}}
 
 
 	screenTouchState = LCD_TOUCH_GetTypeAndPosition(&screenTouchPos);
 
 	/*	----- Service press specific Keys for Keyboard ----- */
+	_TouchService(Touch_TunningFreq_plus, Touch_TunningFreq_minus,	KEYBOARD_TunningFreq, KEY_All_release, KEY_TunningFreq_plus, FUNC_TunningFreq);
 
 
 	switch(screenTouchState)
@@ -570,13 +606,16 @@ void FILE_NAME(setTouch)(void)
 
 			if(_KEYBOARD_setTxt__SERVICE(screenTouchState,Touch_Q,Touch_keyStyle,KEY_Q)) break;
 
+			_TouchEndService(Touch_TunningFreq_plus, Touch_TunningFreq_minus, KEYBOARD_TunningFreq, 	KEY_All_release, FUNC_TunningFreq);
+
 			if(_WasState(Touch_FieldRoll)){
 				int temp;
 				if(END_FREEROLL__NOSEL != (temp = LCDTOUCH_IsScrollRelease(ROLL_1, FUNC1_SET( FILE_NAME(keyboard),KEYBOARD_Param_2,KEY_Select_one,0,0,0,0,0,0,0,0,0,0), NULL/*BlockingFunc*/, TIMER_Scroll))){
 					DbgVar(1,100,"\r\nRoll: %d",temp);
-					if(!IS_RANGE(temp, 0, MAX_RADIO_CHANNEL-1)) temp=0;
-					RADIO_SetFreq(temp);
-					SELECT_CURRENT_FONT(Param_2,Press, TXT_RADIO_STATION, unUsed);
+					if(IS_RANGE(temp, 0, MAX_RADIO_CHANNEL-1)){
+						Test.selRadio=temp;
+						RADIO_DispFreq();
+					}
 				}
 			}
 
