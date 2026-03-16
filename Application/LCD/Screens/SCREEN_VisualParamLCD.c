@@ -29,7 +29,7 @@
 	\
 	X(6, FONT_STYLE_Title, 			Arial) \
 	X(7, FONT_STYLE_Descr, 	 		Arial) \
-	X(8, FONT_STYLE_Press, 	 		Arial) \
+	X(8, FONT_STYLE_Press, 	 		Comic_Saens_MS) \
 	X(9, FONT_STYLE_Param_1, 		Arial) \
 	X(10, FONT_STYLE_Param_2, 		Arial) \
 	X(11, FONT_STYLE_Param_3, 		Arial) \
@@ -177,7 +177,7 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 #define STEP_FREQ	12000000
 #define DIV_FREQ	75000000
 #define INTER_F1	10700000
-#define TXT_RADIO_STATION		StrAll(5," ",Test.Radio[Test.selRadio].radioName," - ",dbl2stri(tempBuff,Test.Radio[Test.selRadio].freq,2),"MHz ")
+#define TXT_RADIO_STATION		StrAll(5," ",dbl2stri(tempBuff,Test.Radio[Test.selRadio].freq,2)," MHz  -  ",Test.Radio[Test.selRadio].radioName," ")
 
 typedef enum{
 	NoTouch = NO_TOUCH,
@@ -293,30 +293,30 @@ static void RADIO_CalcFreqDiv(int nr){
 
 static void VisualParam_LCD_Reset(void)
 {
-	Test.Radio[0].freq= 101.6;		strcpy(Test.Radio[0].radioName,"1. Radio Krak"ó"w");
-	Test.Radio[1].freq=  87.8;		strcpy(Test.Radio[1].radioName,"2. RMF Classic");
-	Test.Radio[2].freq=  89.4;		strcpy(Test.Radio[2].radioName,"3. Jedynka");
-	Test.Radio[3].freq=  88.8;		strcpy(Test.Radio[3].radioName,"4. Eska 2");
-	Test.Radio[4].freq=  99.4;		strcpy(Test.Radio[4].radioName,"5. Tr"ó"jka");
-	Test.Radio[5].freq=  96.0;		strcpy(Test.Radio[5].radioName,"6. RMF FM");
-	Test.Radio[6].freq= 104.1;		strcpy(Test.Radio[6].radioName,"7. Radio Zet");
-	Test.Radio[7].freq=  96.7;		strcpy(Test.Radio[7].radioName,"8. RMF MAXXX");
-	Test.Radio[8].freq= 106.1;		strcpy(Test.Radio[8].radioName,"9. Radio Plus");
-	Test.Radio[9].freq=  90.6;		strcpy(Test.Radio[9].radioName,"10. Radio Maryja");
-	Test.Radio[10].freq= 92.5;		strcpy(Test.Radio[10].radioName,"11. Z"ł"ote przeboje");
-	Test.Radio[11].freq= 102.4;	strcpy(Test.Radio[11].radioName,"12. Radio Pogoda");
-	Test.Radio[12].freq= 103.0;	strcpy(Test.Radio[12].radioName,"13. Radio Katowice");
-	Test.Radio[13].freq= 102.9;	strcpy(Test.Radio[13].radioName,"14. TOK FM");
-	Test.Radio[14].freq=  97.7;	strcpy(Test.Radio[14].radioName,"15. Eska");
-	Test.Radio[15].freq=  93.7;	strcpy(Test.Radio[15].radioName,"16. Chillizet");
-	Test.Radio[16].freq= 104.9;	strcpy(Test.Radio[16].radioName,"17. Eska Rock");
-	Test.Radio[17].freq= 107.0;	strcpy(Test.Radio[17].radioName,"18. VOX FM");
-	Test.Radio[18].freq= 101.0;	strcpy(Test.Radio[18].radioName,"19. AntyRadio");
-	Test.Radio[19].freq= 102.0;	strcpy(Test.Radio[19].radioName,"20. Dw"ó"jka");
-	Test.Radio[20].freq=  97.2;	strcpy(Test.Radio[20].radioName,"21. Polskie Radio 24");
-	Test.Radio[21].freq= 103.8;	strcpy(Test.Radio[21].radioName,"22. Rock Radio");
-	Test.Radio[22].freq=  95.2;	strcpy(Test.Radio[22].radioName,"23. Radio Wnet");
-	Test.Radio[23].freq= 100.5;	strcpy(Test.Radio[23].radioName,"24. Radio Famka");
+	Test.Radio[0].freq= 101.6;		strcpy(Test.Radio[0].radioName,"Radio Krak"ó"w");
+	Test.Radio[1].freq=  87.8;		strcpy(Test.Radio[1].radioName,"RMF Classic");
+	Test.Radio[2].freq=  89.4;		strcpy(Test.Radio[2].radioName,"Jedynka");
+	Test.Radio[3].freq=  88.8;		strcpy(Test.Radio[3].radioName,"Eska 2");
+	Test.Radio[4].freq=  99.4;		strcpy(Test.Radio[4].radioName,"Tr"ó"jka");
+	Test.Radio[5].freq=  96.0;		strcpy(Test.Radio[5].radioName,"RMF FM");
+	Test.Radio[6].freq= 104.1;		strcpy(Test.Radio[6].radioName,"Radio Zet");
+	Test.Radio[7].freq=  96.7;		strcpy(Test.Radio[7].radioName,"RMF MAXXX");
+	Test.Radio[8].freq= 106.1;		strcpy(Test.Radio[8].radioName,"Radio Plus");
+	Test.Radio[9].freq=  90.6;		strcpy(Test.Radio[9].radioName,"Radio Maryja");
+	Test.Radio[10].freq= 92.5;		strcpy(Test.Radio[10].radioName,"Z"ł"ote przeboje");
+	Test.Radio[11].freq= 102.4;	strcpy(Test.Radio[11].radioName,"Radio Pogoda");
+	Test.Radio[12].freq= 103.0;	strcpy(Test.Radio[12].radioName,"Radio Katowice");
+	Test.Radio[13].freq= 102.9;	strcpy(Test.Radio[13].radioName,"TOK FM");
+	Test.Radio[14].freq=  97.7;	strcpy(Test.Radio[14].radioName,"Eska");
+	Test.Radio[15].freq=  93.7;	strcpy(Test.Radio[15].radioName,"Chillizet");
+	Test.Radio[16].freq= 104.9;	strcpy(Test.Radio[16].radioName,"Eska Rock");
+	Test.Radio[17].freq= 107.0;	strcpy(Test.Radio[17].radioName,"VOX FM");
+	Test.Radio[18].freq= 101.0;	strcpy(Test.Radio[18].radioName,"AntyRadio");
+	Test.Radio[19].freq= 102.0;	strcpy(Test.Radio[19].radioName,"Dw"ó"jka");
+	Test.Radio[20].freq=  97.2;	strcpy(Test.Radio[20].radioName,"Polskie Radio 24");
+	Test.Radio[21].freq= 103.8;	strcpy(Test.Radio[21].radioName,"Rock Radio");
+	Test.Radio[22].freq=  95.2;	strcpy(Test.Radio[22].radioName,"Radio Wnet");
+	Test.Radio[23].freq= 100.5;	strcpy(Test.Radio[23].radioName,"Radio Famka");
 
 	LOOP_FOR(i,MAX_RADIO_CHANNEL){	Test.pName[i]			  = Test.Radio[i].radioName;
 												Test.Radio[i].freqStep = (0x12<<8)|0xBF;
@@ -531,9 +531,7 @@ void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 
 static void RADIO_DispFreq(void){
 	RADIO_CalcFreqDiv(Test.selRadio);
-	if(RADIO_SetFreq(Test.selRadio)){
-		SELECT_CURRENT_FONT( Param_2,Press, TXT_RADIO_STATION, unUsed ); //!!!!!!!!!!!!!!!!
-	}
+	if(RADIO_SetFreq(Test.selRadio));
 	SELECT_CURRENT_FONT( Param_2,Press, TXT_RADIO_STATION, unUsed );
 }
 
