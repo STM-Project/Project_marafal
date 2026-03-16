@@ -13,7 +13,7 @@
 const double round_nums[8] =
 { 0.5, 0.05, 0.005, 0.0005, 0.00005,0.000005,0.0000005,0.00000005};
 
-void dbl2stri(char *buffer, double value, unsigned int dec_digits)
+char* dbl2stri(char *buffer, double value, unsigned int dec_digits)
 {
 	int idx;
 	int64_t dbl_int, dbl_frac;
@@ -109,6 +109,7 @@ void dbl2stri(char *buffer, double value, unsigned int dec_digits)
 
 	}
 	*output = 0;
+	return output;
 }
 
 void float2stri(char *buffer, float value, unsigned int dec_digits)
