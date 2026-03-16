@@ -109,7 +109,7 @@ char* dbl2stri(char *buffer, double value, unsigned int dec_digits)
 
 	}
 	*output = 0;
-	return output;
+	return buffer;
 }
 
 void float2stri(char *buffer, float value, unsigned int dec_digits)
