@@ -8,6 +8,7 @@
 #include "touch.h"
 #include <string.h>
 #include "i2c.h"
+#include "double_float.h"
 
 /*--------------- Main Macro Settings ------------------*/
 #define FILE_NAME(extend) SCREEN_VisualParam_##extend
@@ -168,8 +169,14 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 
 #define KEYBUFF_SIZE		500
 #define ROLL_1		0
+
 #define MAX_RADIO_CHANNEL	24
 #define SIZE_RADIO_NAME		30
+#define DIV_ACT	2
+#define STEP_FREQ	12000000
+#define DIV_FREQ	75000000
+#define INTER_F1	10700000
+#define TXT_RADIO_STATION		StrAll(5," ",Test.Radio[3].radioName," - ",dbl2stri(tempBuff,Test.Radio[3].freq,2),"MHz ")
 
 typedef enum{
 	NoTouch = NO_TOUCH,
@@ -217,6 +224,7 @@ typedef enum{
 
 typedef struct{
 	char radioName[SIZE_RADIO_NAME];
+	double freq;
 	u16 freqStep;
 	u16 freqDiv;
 	int16_t freqOffs;
@@ -230,6 +238,7 @@ static STRUCT_VISUALPARAM Test;
 
 static StructTxtPxlLen lenStr;
 static KEYBOARD_TYPES actualKeyboardType = KEYBOARD_none;
+static char tempBuff[25];
 
 static void EXPER_FUNC_beforeDispBuffLcd(void);
 static void EXPER_FUNC_afterDispBuffLcd(void);
@@ -270,47 +279,38 @@ static void LoadFonts(int startFontID, int endFontID){
 */
 }
 
-#define DIV_ACT	2
-#define STEP_FREQ	12000000
-#define DIV_FREQ	75000000
-#define INTER_F1	10700000
-
 static void VisualParam_LCD_Reset(void)
 {
-	Test.Radio[0].freqDiv=(0x0C<<8)|0x6D;		strcpy(Test.Radio[0].radioName,"1. Polskie Radio");
-	Test.Radio[1].freqDiv=(0x01<<8)|0x94;		strcpy(Test.Radio[1].radioName,"2. RMF Classic");
-	Test.Radio[2].freqDiv=(0x02<<8)|0xE7;		strcpy(Test.Radio[2].radioName,"3. Jedynka");
-	Test.Radio[3].freqDiv=(0x02<<8)|0x57;		strcpy(Test.Radio[3].radioName,"4. Eska 2");
+	Test.Radio[0].freq= 101.6;		strcpy(Test.Radio[0].radioName,"1. Radio Krak"ó"w");
+	Test.Radio[1].freq=  87.8;		strcpy(Test.Radio[1].radioName,"2. RMF Classic");
+	Test.Radio[2].freq=  89.4;		strcpy(Test.Radio[2].radioName,"3. Jedynka");
+	Test.Radio[3].freq=  88.8;		strcpy(Test.Radio[3].radioName,"4. Eska 2");
+	Test.Radio[4].freq=  99.4;		strcpy(Test.Radio[4].radioName,"5. Tr"ó"jka");
+	Test.Radio[5].freq=  96.0;		strcpy(Test.Radio[5].radioName,"6. RMF FM");
+	Test.Radio[6].freq= 104.1;		strcpy(Test.Radio[6].radioName,"7. Radio Zet");
+	Test.Radio[7].freq=  96.7;		strcpy(Test.Radio[7].radioName,"8. RMF MAXXX");
+	Test.Radio[8].freq= 106.1;		strcpy(Test.Radio[8].radioName,"9. Radio Plus");
+	Test.Radio[9].freq=  90.6;		strcpy(Test.Radio[9].radioName,"10. Radio Maryja");
+	Test.Radio[10].freq= 92.5;		strcpy(Test.Radio[10].radioName,"11. Z"ł"ote przeboje");
+	Test.Radio[11].freq= 102.4;	strcpy(Test.Radio[11].radioName,"12. Radio Pogoda");
+	Test.Radio[12].freq= 103.0;	strcpy(Test.Radio[12].radioName,"13. Radio Katowice");
+	Test.Radio[13].freq= 102.9;	strcpy(Test.Radio[13].radioName,"14. TOK FM");
+	Test.Radio[14].freq=  97.7;	strcpy(Test.Radio[14].radioName,"15. Eska");
+	Test.Radio[15].freq=  93.7;	strcpy(Test.Radio[15].radioName,"16. Chillizet");
+	Test.Radio[16].freq= 104.9;	strcpy(Test.Radio[16].radioName,"17. Eska Rock");
+	Test.Radio[17].freq= 107.0;	strcpy(Test.Radio[17].radioName,"18. VOX FM");
+	Test.Radio[18].freq= 101.0;	strcpy(Test.Radio[18].radioName,"19. AntyRadio");
+	Test.Radio[19].freq= 102.0;	strcpy(Test.Radio[19].radioName,"20. Dw"ó"jka");
+	Test.Radio[20].freq=  97.2;	strcpy(Test.Radio[20].radioName,"21. Polskie Radio 24");
+	Test.Radio[21].freq= 103.8;	strcpy(Test.Radio[21].radioName,"22. Rock Radio");
+	Test.Radio[22].freq=  95.2;	strcpy(Test.Radio[22].radioName,"23. Radio Wnet");
+	Test.Radio[23].freq= 100.5;	strcpy(Test.Radio[23].radioName,"24. Radio Famka");
 
-	Test.Radio[4].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[4].radioName,"5. Tr"ó"jka");
-	Test.Radio[5].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[5].radioName,"6. RMF FM");
-	Test.Radio[6].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[6].radioName,"7. Radio Zet");
-	Test.Radio[7].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[7].radioName,"8. RMF MAXXX");
-	Test.Radio[8].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[8].radioName,"9. Radio Plus");
-	Test.Radio[9].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[9].radioName,"10. Radio Maryja");
-	Test.Radio[10].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[10].radioName,"11. Z"ł"ote przeboje");
-	Test.Radio[11].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[11].radioName,"12. Radio Pogoda");
-	Test.Radio[12].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[12].radioName,"13. Radio Katowice");
-	Test.Radio[13].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[13].radioName,"14. TOK FM");
-	Test.Radio[14].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[14].radioName,"15. Eska");
-	Test.Radio[15].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[15].radioName,"16. Chillizet");
-	Test.Radio[16].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[16].radioName,"17. Eska Rock");
-	Test.Radio[17].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[17].radioName,"18. VOX FM");
-	Test.Radio[18].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[18].radioName,"19. AntyRadio");
-	Test.Radio[19].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[19].radioName,"20. Dw"ó"jka");
-	Test.Radio[20].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[20].radioName,"21. Polskie Radio 24");
-	Test.Radio[21].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[21].radioName,"22. Rock Radio");
-	Test.Radio[22].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[22].radioName,"23. Radio Wnet");
-	Test.Radio[23].freqDiv=(0x98<<8)|0x1A;		strcpy(Test.Radio[23].radioName,"24. Radio Famka");
-
-	LOOP_FOR(i,MAX_RADIO_CHANNEL){	Test.pName[i]=Test.Radio[i].radioName;		Test.Radio[i].freqStep=(0x12<<8)|0xBF;  }  //przelicz to na fajny define !!!!! i te u gory tez !!!!
-
-
-	//F = 75MHz  +  [  2*(freqDiv+1) / (freqStep+1)  ]*12MHz		+	  10.7MHz
-
-	double aaa = INTER_F1 + DIV_FREQ + DIV_ACT*STEP_FREQ*((Test.Radio[0].freqDiv+1)/(Test.Radio[0].freqStep+1));
-
-
+	LOOP_FOR(i,MAX_RADIO_CHANNEL){	Test.pName[i]			  = Test.Radio[i].radioName;
+												Test.Radio[i].freqStep = (0x12<<8)|0xBF;
+												Test.Radio[i].freqDiv  = (Test.Radio[i].freqStep+1) * ((Test.Radio[i].freq-INTER_F1-DIV_FREQ)/(DIV_ACT*STEP_FREQ)) - 1;
+											/*	Test.Radio[i].freq 	  = INTER_F1 + DIV_FREQ + DIV_ACT*STEP_FREQ*((Test.Radio[i].freqDiv+1)/(Test.Radio[i].freqStep+1)); */
+	}
 }
 
 static StructTxtPxlLen ELEMENT_Param_1(StructFieldPos *field, int xPos,int yPos, int argNmb)
@@ -493,7 +493,7 @@ static int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockP
 
 		case KEYBOARD_Param_2:
 			KEYBOARD_KeyAllParamSet3(1,MAX_RADIO_CHANNEL, COLOR_GRAY(0xDD), DARKRED, Test.pName);
-			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1,"AAAAA d",v.FONT_COLOR_Descr, 8, 3);
+			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1,NULL,v.FONT_COLOR_Descr, 8, 3);
 			break;
 
 		case KEYBOARD_setTxt:
@@ -542,7 +542,7 @@ void FILE_NAME(setTouch)(void)
 				DisplayTouchPosXY(screenTouchState,screenTouchPos,"Touch_Param_22");
 			break;
 
-		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2MoveRight, Param_2,Press, StrAll(3," ",Test.Radio[3].radioName," "), unUsed,NoTouch,NoTouch);
+		CASE_TOUCH_STATE(screenTouchState,Touch_Param_2MoveRight, Param_2,Press, TXT_RADIO_STATION, unUsed,NoTouch,NoTouch);
 			if(IsSetTouchFlag()) CreateKeyboard(KEYBOARD_Param_2);
 			else 						_SaveState();
 			BlockTouchForTime(_ON,TIMER_BlockTouch);
@@ -576,7 +576,7 @@ void FILE_NAME(setTouch)(void)
 					DbgVar(1,100,"\r\nRoll: %d",temp);
 					if(!IS_RANGE(temp, 0, MAX_RADIO_CHANNEL-1)) temp=0;
 					RADIO_SetFreq(temp);
-					SELECT_CURRENT_FONT(Param_2,Press, StrAll(3," ",Test.Radio[temp].radioName," "), unUsed);
+					SELECT_CURRENT_FONT(Param_2,Press, TXT_RADIO_STATION, unUsed);
 				}
 			}
 
