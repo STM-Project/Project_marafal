@@ -29,7 +29,7 @@
 	\
 	X(6, FONT_STYLE_Title, 			Arial) \
 	X(7, FONT_STYLE_Descr, 	 		Arial) \
-	X(8, FONT_STYLE_Press, 	 		Comic_Saens_MS) \
+	X(8, FONT_STYLE_Press, 	 		Arial) \
 	X(9, FONT_STYLE_Param_1, 		Arial) \
 	X(10, FONT_STYLE_Param_2, 		Arial) \
 	X(11, FONT_STYLE_Param_3, 		Arial) \
@@ -174,10 +174,10 @@ void 	FILE_NAME(main)(int argNmb, char **argVal);
 #define MAX_RADIO_CHANNEL	24
 #define SIZE_RADIO_NAME		30
 #define DIV_ACT	2
-#define STEP_FREQ	12000000
-#define DIV_FREQ	75000000
-#define INTER_F1	10700000
-#define TXT_RADIO_STATION		StrAll(5," ",dbl2stri(tempBuff,Test.Radio[Test.selRadio].freq,2)," MHz  -  ",Test.Radio[Test.selRadio].radioName," ")
+#define STEP_FREQ	12.000000
+#define DIV_FREQ	75.000000
+#define INTER_F1	10.700000
+#define TXT_RADIO_STATION		StrAll(5," ",dbl2stri(tempBuff,Test.Radio[Test.selRadio].freq+Test.Radio[Test.selRadio].freqOffs,2)," MHz  -  ",Test.Radio[Test.selRadio].radioName," ")
 
 typedef enum{
 	NoTouch = NO_TOUCH,
@@ -287,7 +287,7 @@ static void LoadFonts(int startFontID, int endFontID){
 }
 
 static void RADIO_CalcFreqDiv(int nr){
-	Test.Radio[nr].freqDiv = (Test.Radio[nr].freqStep+1) * (((Test.Radio[nr].freq+Test.Radio[nr].freqOffs)-INTER_F1-DIV_FREQ)/(DIV_ACT*STEP_FREQ)) - 1;
+	Test.Radio[nr].freqDiv = ((double)Test.Radio[nr].freqStep+1) * (((Test.Radio[nr].freq+Test.Radio[nr].freqOffs)-INTER_F1-DIV_FREQ)/(DIV_ACT*STEP_FREQ)) - 1;
 /*	Test.Radio[i].freq 	  = INTER_F1 + DIV_FREQ + DIV_ACT*STEP_FREQ*((Test.Radio[i].freqDiv+1)/(Test.Radio[i].freqStep+1)); */
 }
 
@@ -538,7 +538,7 @@ static void RADIO_DispFreq(void){
 static void FUNC_TunningFreq(int k){ switch(k){
   case -1: return;
   case  0: INCR( Test.Radio[Test.selRadio].freqOffs, 0.01, 0.50 ); break;
-  case  1: DECR( Test.Radio[Test.selRadio].freqOffs, 0.01, 0.01 ); break; }
+  case  1: DECR( Test.Radio[Test.selRadio].freqOffs, 0.01,-0.50 ); break; }
 	RADIO_DispFreq();
 }
 
