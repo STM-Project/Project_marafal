@@ -4071,12 +4071,22 @@ void Set_AACoeff_Draw(int pixelsInOneSide, uint32_t colorFrom, uint32_t colorTo,
 	}
 }
 
+void LCD_LineH2(uint32_t posBuff,uint32_t BkpSizeX, uint16_t x, uint16_t y, uint16_t width,  uint32_t color, uint16_t bold){
+	_StartDrawLine(posBuff,BkpSizeX, x, y);	_DrawRight(width, color);
+	for(int i=0; i<bold; ++i){
+		_NextDrawLine(BkpSizeX,width);	_DrawRight(width, color);
+}}
 void LCD_LineH(uint32_t BkpSizeX, uint16_t x, uint16_t y, uint16_t width,  uint32_t color, uint16_t bold){
 	_StartDrawLine(0,BkpSizeX, x, y);	_DrawRight(width, color);
 	for(int i=0; i<bold; ++i){
 		_NextDrawLine(BkpSizeX,width);	_DrawRight(width, color);
 	}
 }
+void LCD_LineV2(uint32_t posBuff,uint32_t BkpSizeX, uint16_t x, uint16_t y, uint16_t width,  uint32_t color, uint16_t bold){
+	_StartDrawLine(posBuff,BkpSizeX, x, y);	_CopyDrawPos();	_DrawDown(width, color, BkpSizeX);
+	for(int i=0; i<bold; ++i){
+		_SetCopyDrawPos();	_IncDrawPos(1); _CopyDrawPos();  _DrawDown(width, color, BkpSizeX);
+}}
 void LCD_LineV(uint32_t BkpSizeX, uint16_t x, uint16_t y, uint16_t width,  uint32_t color, uint16_t bold){
 	_StartDrawLine(0,BkpSizeX, x, y);	_CopyDrawPos();	_DrawDown(width, color, BkpSizeX);
 	for(int i=0; i<bold; ++i){
