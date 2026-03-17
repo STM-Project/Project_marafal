@@ -350,9 +350,9 @@ static StructTxtPxlLen ELEMENT_Param_2(StructFieldPos *field, int xPos,int yPos,
 	StructFieldPos fieldTouch = {0};
 
 	*field = LCD_StrDependOnColorsDescrVar_array_xyCorrect(0,STR_FONT_PARAM2(Param_2), xPos, yPos, "2.Rafa"ł"", fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Above_left,  SL(LANG_nazwa_0), fullHight, 0,250, NoConstWidth,\
-		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4, 				Left_mid, 	 "7.",  				 fullHight, 0,250, NoConstWidth, \
-		v.FONT_ID_Descr, GRAY, v.FONT_BKCOLOR_Descr, 4|(xPos<<16),	Under_left,  SL(LANG_nazwa_1), fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, RGB2INT(186,130,50), v.FONT_BKCOLOR_Descr, 	4|(xPos<<16),	Above_left,  SL(LANG_nazwa_0), fullHight, 0,250, NoConstWidth,\
+		v.FONT_ID_Descr, GRAY, 					  v.FONT_BKCOLOR_Descr, 	4, 				Left_mid, 	 "7.",  				 fullHight, 0,250, NoConstWidth, \
+		v.FONT_ID_Descr, RGB2INT(251,29,27),  v.FONT_BKCOLOR_Descr, 	4|(xPos<<16),	Under_left,  SL(LANG_nazwa_1), fullHight, 0,250, NoConstWidth, \
 		LCD_STR_DESCR_PARAM_NUMBER(3) );
 
 	LCD_SetBkFontShape(v.FONT_VAR_Param_2,BK_LittleRound);
@@ -506,7 +506,7 @@ static int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockP
 
 		case KEYBOARD_Param_2:
 			KEYBOARD_KeyAllParamSet3(1,MAX_RADIO_CHANNEL, COLOR_GRAY(0xDD), DARKRED, Test.pName);
-			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1,NULL,v.FONT_COLOR_Descr, 8, 3);
+			KEYBOARD_ServiceSizeRoll(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_Select_one, ROLL_1,NULL,v.FONT_COLOR_Descr, 8, Test.selRadio);
 			break;
 
 		case KEYBOARD_setTxt:
