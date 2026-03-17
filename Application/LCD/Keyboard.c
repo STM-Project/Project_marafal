@@ -885,9 +885,11 @@ static void SetTouch_Scroll(int nr, uint16_t startTouchIdx, XY_Touch_Struct* pos
 		s[nr].nmbTouch++;
 	}
 }
-static void ScrollSel_SetNoneBk(int nr, figureShape shape){
+static void ScrollSel_SetNoneBk(int nr, figureShape shape, int visiblWin){
 	if(shape!=0)
 		LCD_ShapeWindow( LCD_RoundRectangle,0,widthAll,heightAll, 0,0, widthAll,heightAll, SetBold2Color(frameMainColor,s[nr].bold), fillMainColor,bkColor );
+	LCD_Line(0, 1,30, 1,40, WHITE,widthAll, 1.0, 1.0 ,bkColor,bkColor);
+
 }
 static void ScrollSel_SetBk(int nr, figureShape shape, XY_Touch_Struct posHead, char* txtDescr, uint32_t colorDescr,uint16_t spaceFrame2Roll,int win){
 	if(shape!=0){
@@ -1367,7 +1369,7 @@ void KEYBOARD_ServiceSizeRoll(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int
 		#ifdef _FRAME2ROLL
 			ScrollSel_SetBk(k,shape,posHead,txtDescr,colorDescr,spaceFrame2Roll,win);
 		#else
-		 	ScrollSel_SetNoneBk(k,shape);
+		 	ScrollSel_SetNoneBk(k,shape,win);
 		#endif
 		 ScrollSel_Calculate(k,shape,nrRoll,&selFrame,&roll,win);
 		 ScrollSel_Draw(k,posKey,selFrame,roll,win);
