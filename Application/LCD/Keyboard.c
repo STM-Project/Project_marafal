@@ -918,8 +918,14 @@ static void ScrollSel_Draw(int nr, XY_Touch_Struct* posKeys, uint16_t selFrame, 
 			KeyStrleft(nr,posKeys[i],txtKey[i],colorTxtKey[i]);								/*	_KeyStr(posKey[i],txtKey[i],colorTxtKey[i]); */
 		}
 	}
-	LCD_LineV2(0 + roll * widthAll,widthAll, 10,50, 50,  WHITE,0);
-	LCD_Display(0 + roll * widthAll, s[nr].x, s[nr].y, widthAll, win);
+
+	float totalHeight = (float)dimKeys[1]*(float)s[nr].heightKey;
+	float visibHeight = (float)win;
+	u16 slidLen	= (u16)((visibHeight/totalHeight)*visibHeight);
+	u16 slidYpos = (u16)(((visibHeight-slidLen)/totalHeight)*(float)roll);
+
+	LCD_LineV2(0+roll*widthAll, widthAll, 0,slidYpos, slidLen, BLACK,0);
+	LCD_Display(0+roll*widthAll, s[nr].x, s[nr].y, widthAll, win);
 }
 static int ScrollSel_SetVisiblWin(int nr, int frameNmbVis){
 	return frameNmbVis * s[nr].heightKey - (frameNmbVis-1);
