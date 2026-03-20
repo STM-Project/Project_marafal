@@ -908,7 +908,18 @@ static void ScrollSel_Calculate(int nr, figureShape shape, int nrScroll, uint16_
 	if(shape==0)
 		LCD_TOUCH_ScrollSel_SetCalculate(nrScroll, roll, sel, s[nr].y, heightAll, s[nr].heightKey, visiblWin);
 }
-static void ScrollSel_Draw(int nr, XY_Touch_Struct* posKeys, uint16_t selFrame, uint16_t roll, int win){
+static void ScrollSel_ShowSlider(int nr, u16 roll, int frameNmbVis,u32 color){
+	float totalHeight = (float)dimKeys[1]*(float)s[nr].heightKey;
+	float visibHeight = (float)(frameNmbVis*s[nr].heightKey);
+	float divVCoeff	= visibHeight/totalHeight;
+	u16 slidLen	 = (u16)(divVCoeff*visibHeight);
+	u16 slidYpos = (u16)(divVCoeff*(float)roll);
+/*	LCD_LineV2(0+roll*widthAll, widthAll, 0,slidYpos, slidLen, color,0);
+	LCD_LineV2(0+roll*widthAll, widthAll, 1,slidYpos, slidLen, color,0); */
+	LCD_LineV2(0+roll*widthAll, widthAll, s[nr].widthKey-2,slidYpos, slidLen, color,0);
+	LCD_LineV2(0+roll*widthAll, widthAll, s[nr].widthKey-1,slidYpos, slidLen, color,0);
+}
+static void ScrollSel_Draw(int nr, XY_Touch_Struct* posKeys, uint16_t selFrame, uint16_t roll, int frameNmbVis,int win){
 	int fillColor_copy = fillColor;
 	for(int i=0; i<dimKeys[1]; ++i){
 		if(i == selFrame)
@@ -916,15 +927,8 @@ static void ScrollSel_Draw(int nr, XY_Touch_Struct* posKeys, uint16_t selFrame, 
 		else{
 			fillColor = (i%2) ? BrightDecr(fillColor_copy,0x10) : fillColor_copy;
 			KeyStrleft(nr,posKeys[i],txtKey[i],colorTxtKey[i]);								/*	_KeyStr(posKey[i],txtKey[i],colorTxtKey[i]); */
-		}
-	}
-
-	float totalHeight = (float)dimKeys[1]*(float)s[nr].heightKey;
-	float visibHeight = (float)win;
-	u16 slidLen	= (u16)((visibHeight/totalHeight)*visibHeight);
-	u16 slidYpos = (u16)(((visibHeight-slidLen)/totalHeight)*(float)roll);
-
-	LCD_LineV2(0+roll*widthAll, widthAll, 0,slidYpos, slidLen, BLACK,0);
+	}}
+	ScrollSel_ShowSlider(nr,roll,frameNmbVis,0x101010);
 	LCD_Display(0+roll*widthAll, s[nr].x, s[nr].y, widthAll, win);
 }
 static int ScrollSel_SetVisiblWin(int nr, int frameNmbVis){
@@ -1377,7 +1381,7 @@ void KEYBOARD_ServiceSizeRoll(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int
 		 	ScrollSel_SetNoneBk(k,shape,win);
 		#endif
 		 ScrollSel_Calculate(k,shape,nrRoll,&selFrame,&roll,win);
-		 ScrollSel_Draw(k,posKey,selFrame,roll,win);
+		 ScrollSel_Draw(k,posKey,selFrame,roll,frameNmbVis,win);
 	}
 	SetTouch_Scroll(k,startTouchIdx,posKey,win);
 	#undef _FRAME2ROLL
