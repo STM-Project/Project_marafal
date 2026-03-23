@@ -159,10 +159,6 @@ static void StrLeft(int nr, const char *txt, XY_Touch_Struct pos, uint32_t color
 	LCD_Ymiddle(MIDDLE_NR,SetPos,SetPosAndWidth(pos.y,s[nr].heightKey));
 	LCD_StrDependOnColorsWindow(0,widthAll,heightAll,fontID, pos.x+LCD_GetFontHeight(fontID)/2, GET_Y, (char*)txt, fullHight, 0, fillColor, color,FONT_COEFF, NoConstWidth);
 }
-static void StrLeftAlt(int nr, const char *txt, XY_Touch_Struct pos, uint32_t color){
-	LCD_Ymiddle(MIDDLE_NR,SetPos,SetPosAndWidth(pos.y,s[nr].heightKey));
-	LCD_StrDependOnColorsWindow(0,widthAll,heightAll,fontID, pos.x+LCD_GetFontHeight(fontID)/2, GET_Y, (char*)txt, fullHight, 0, 0, color,FONT_COEFF, NoConstWidth);
-}
 static void StrDescr_Xmidd_Yoffs(XY_Touch_Struct pos,int offsY, const char *txt, uint32_t color){  //to usunac a nizej jest lepsze i zawiera sie w tym
 	LCD_Xmiddle(MIDDLE_NR+1,SetPos,SetPosAndWidth(0,widthAll),NULL,0,NoConstWidth);
 	LCD_StrDependOnColorsWindow(0,widthAll,heightAll,fontID_descr,		LCD_Xmiddle(MIDDLE_NR+1,GetPos,fontID_descr,(char*)txt,0,NoConstWidth),	pos.y+offsY, 	(char*)txt, fullHight, 0, bkColor, color,FONT_COEFF, NoConstWidth);
@@ -194,10 +190,6 @@ static void StrPressLeft(int nr,const char *txt, XY_Touch_Struct pos, uint32_t c
 	LCD_Ymiddle(MIDDLE_NR,SetPos,SetPosAndWidth(pos.y,s[nr].heightKey));
 	LCD_StrDependOnColorsWindow(0,widthAll,heightAll,fontID, pos.x+10,GET_Y,(char*)txt, fullHight, 0, fillPressColor, color,FONT_COEFF, NoConstWidth);
 }
-static void StrPressLeftAlt(int nr,const char *txt, XY_Touch_Struct pos, uint32_t color){
-	LCD_Ymiddle(MIDDLE_NR,SetPos,SetPosAndWidth(pos.y,s[nr].heightKey));
-	LCD_StrDependOnColorsWindow(0,widthAll,heightAll,fontID, pos.x+10,GET_Y,(char*)txt, fullHight, 0, 0, color,FONT_COEFF, NoConstWidth);
-}
 static void StrDisp(int nr,const char *txt, uint32_t color){
 	LCD_StrDependOnColorsWindowIndirect(0, s[nr].x, s[nr].y, widthAll,heightAll,fontID, GET_X((char*)txt),GET_Y,(char*)txt, fullHight, 0, fillColor, color,FONT_COEFF, NoConstWidth);
 }
@@ -216,9 +208,6 @@ static void _TxtPos(int nr,XY_Touch_Struct pos, int nrWH){
 
 static void Key(int nr,XY_Touch_Struct pos){
 	LCD_ShapeWindow( s[nr].shape, 0, widthAll,heightAll, pos.x,pos.y, s[nr].widthKey, s[nr].heightKey, SetBold2Color(frameColor,s[nr].bold),fillColor,bkColor);
-}
-static void KeyAlt(int nr,XY_Touch_Struct pos,int shadowCoeff,DIRECTIONS dir){
-	LCD_Rectangle2(0, widthAll,heightAll, pos.x,pos.y, s[nr].widthKey, s[nr].heightKey, frameColor,frameColor, BrightIncr(fillColor,shadowCoeff),BrightDecr(fillColor,shadowCoeff), bkColor, 0.0, dir);
 }
 static void _Key(int nr,XY_Touch_Struct pos,int nrWH){
 	LCD_ShapeWindow( s[nr].shape, 0, widthAll,heightAll, pos.x,pos.y, s[nr].wKey[nrWH], s[nr].hKey[nrWH], SetBold2Color(frameColor,s[nr].bold),fillColor,bkColor);
@@ -248,10 +237,6 @@ static void KeyStrleft(int nr,XY_Touch_Struct pos,const char *txt, uint32_t colo
 	Key(nr,pos);
 	StrLeft(nr,txt,pos,color);
 }
-static void KeyStrleftAlt(int nr,XY_Touch_Struct pos,const char *txt, uint32_t color,int shadowCoeff,DIRECTIONS dir){
-	KeyAlt(nr,pos,shadowCoeff,dir);
-	StrLeftAlt(nr,txt,pos,color);
-}
 
 static void StrWinKeyMidd(int nr, const char *txt, uint32_t color, int idFont, int constWidth){
 	LCD_Xmiddle(MIDDLE_NR,SetPos,SetPosAndWidth(0,s[nr].widthKey),NULL,0,constWidth);
@@ -278,9 +263,6 @@ static void _KeyStrDisp(int nr,XY_Touch_Struct pos,const char *txt, uint32_t col
 static void KeyPress(int nr, XY_Touch_Struct pos){
 	LCD_ShapeWindow( s[nr].shape, 0, widthAll,heightAll, pos.x,pos.y, s[nr].widthKey,s[nr].heightKey, SetBold2Color(framePressColor,s[nr].bold),fillPressColor,bkColor);
 }
-static void KeyPressAlt(int nr, XY_Touch_Struct pos,int shadowCoeff,DIRECTIONS dir){
-	LCD_Rectangle2(0, widthAll,heightAll, pos.x,pos.y, s[nr].widthKey,s[nr].heightKey, framePressColor,framePressColor, BrightIncr(fillPressColor,shadowCoeff),BrightDecr(fillPressColor,shadowCoeff), bkColor, 0.0, dir);
-}
 static void _KeyPress(int nr, XY_Touch_Struct pos, int nrWH){
 	LCD_ShapeWindow( s[nr].shape, 0, widthAll,heightAll, pos.x,pos.y, s[nr].wKey[nrWH],s[nr].hKey[nrWH], SetBold2Color(framePressColor,s[nr].bold),fillPressColor,bkColor);
 }
@@ -299,10 +281,6 @@ static void _KeyStrPress(int nr, XY_Touch_Struct pos, const char *txt, uint32_t 
 static void KeyStrPressLeft(int nr, XY_Touch_Struct pos, const char *txt, uint32_t colorTxt){
 	KeyPress(nr,pos);
 	StrPressLeft(nr,txt,pos,colorTxt);
-}
-static void KeyStrPressLeftAlt(int nr, XY_Touch_Struct pos, const char *txt, uint32_t colorTxt,int shadowCoeff,DIRECTIONS dir){
-	KeyPressAlt(nr,pos,shadowCoeff,dir);
-	StrPressLeftAlt(nr,txt,pos,colorTxt);
 }
 
 static void KeyStrPressDisp(int nr, XY_Touch_Struct pos, const char *txt, uint32_t colorTxt){
@@ -938,11 +916,10 @@ static void ScrollSel_ShowSlider(int nr, u16 roll, int frameNmbVis,u32 color){
 	u16 slidYpos = (u16)(divVCoeff*(float)roll);
 /*	LCD_LineV2(0+roll*widthAll, widthAll, 0,slidYpos, slidLen, color,0);
 	LCD_LineV2(0+roll*widthAll, widthAll, 1,slidYpos, slidLen, color,0); */
-/*	LCD_LineV2(0+roll*widthAll, widthAll, s[nr].widthKey-2,slidYpos, slidLen, color,0); */
+	LCD_LineV2(0+roll*widthAll, widthAll, s[nr].widthKey-2,slidYpos, slidLen, color,0);
 	LCD_LineV2(0+roll*widthAll, widthAll, s[nr].widthKey-1,slidYpos, slidLen, color,0);
 }
 static void ScrollSel_Draw(int nr, XY_Touch_Struct* posKeys, uint16_t selFrame, uint16_t roll, int frameNmbVis,int win){
-	u32 slideColor=0x020202;
 	int fillColor_copy = fillColor;
 	for(int i=0; i<dimKeys[1]; ++i){
 		if(i == selFrame)
@@ -951,19 +928,7 @@ static void ScrollSel_Draw(int nr, XY_Touch_Struct* posKeys, uint16_t selFrame, 
 			fillColor = (i%2) ? BrightDecr(fillColor_copy,0x10) : fillColor_copy;
 			KeyStrleft(nr,posKeys[i],txtKey[i],colorTxtKey[i]);								/*	_KeyStr(posKey[i],txtKey[i],colorTxtKey[i]); */
 	}}
-	ScrollSel_ShowSlider(nr,roll,frameNmbVis,slideColor);
-	LCD_Display(0+roll*widthAll, s[nr].x, s[nr].y, widthAll, win);
-}
-static void ScrollSel_DrawAlt(int nr, XY_Touch_Struct* posKeys, uint16_t selFrame, uint16_t roll, int frameNmbVis,int win,int shadowCoeff,DIRECTIONS dir,int shadowCoeff2,DIRECTIONS dir2,int shadowCoeffSel,DIRECTIONS dirSel){
-	u32 slideColor=0x020202;
-	for(int i=0; i<dimKeys[1]; ++i){
-		if(i == selFrame)
-			KeyStrPressLeftAlt(nr,posKeys[i],txtKey[i],(uint32_t)colorTxtPressKey[i],shadowCoeffSel,dirSel);	/* _KeyStrPress(posKey[i],txtKey[i],colorTxtPressKey); */
-		else{
-			if(i%2) KeyStrleftAlt(nr,posKeys[i],txtKey[i],colorTxtKey[i],shadowCoeff2,dir2);
-			else	  KeyStrleftAlt(nr,posKeys[i],txtKey[i],colorTxtKey[i],shadowCoeff,dir);							/*	_KeyStr(posKey[i],txtKey[i],colorTxtKey[i]); */
-	}}
-	ScrollSel_ShowSlider(nr,roll,frameNmbVis,slideColor);
+	ScrollSel_ShowSlider(nr,roll,frameNmbVis,0x101010);
 	LCD_Display(0+roll*widthAll, s[nr].x, s[nr].y, widthAll, win);
 }
 static int ScrollSel_SetVisiblWin(int nr, int frameNmbVis){
@@ -1417,7 +1382,6 @@ void KEYBOARD_ServiceSizeRoll(int k, int selBlockPress, INIT_KEYBOARD_PARAM, int
 		#endif
 		 ScrollSel_Calculate(k,shape,nrRoll,&selFrame,&roll,win);
 		 ScrollSel_Draw(k,posKey,selFrame,roll,frameNmbVis,win);
-	/*	 ScrollSel_DrawAlt(k,posKey,selFrame,roll,frameNmbVis,win,0x05,Down,0x70,Down,0x10,Midd_Y); */
 	}
 	SetTouch_Scroll(k,startTouchIdx,posKey,win);
 	#undef _FRAME2ROLL
