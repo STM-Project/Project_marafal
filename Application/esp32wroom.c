@@ -33,7 +33,7 @@
 #define SMTP_ANSWER_DELAY_MS		10000
 #define CONNECTION_TIMEOUT_MS		30000
 #define TCP_SERVER_TIMEOUT_S		10
-#define SNTP_SERVER_TIMEOUT_MS		15000
+#define SNTP_SERVER_TIMEOUT_MS		5000
 #define DNS_SERVER_TIMEOUT_MS		15000
 
 #define DBG		1
@@ -112,9 +112,9 @@ void DefaultSettingsWIFI(void)
 	for (i=0; i<WIFI_STA_MAX; ++i)
 	{
 		VAR_SetVal64(Const_wifiSTA_mac, i, 0x1122334455);
-		VAR_SetTabVal(Const_wifiSTA_ip, i, LWIP_MAKEU32(192,168,2,199));
+		VAR_SetTabVal(Const_wifiSTA_ip, i, LWIP_MAKEU32(192,168,1,35));
 		VAR_SetTabVal(Const_wifiSTA_mask, i, LWIP_MAKEU32(255,255,255,0));
-		VAR_SetTabVal(Const_wifiSTA_gate, i, LWIP_MAKEU32(192,168,2,1));
+		VAR_SetTabVal(Const_wifiSTA_gate, i, LWIP_MAKEU32(192,168,1,1));
 		VAR_SetTabVal(Const_wifiSTA_port, i, 80);
 		VAR_SetTabVal(Const_wifiSTA_dhcp, i, 0);
 		VAR_SetStr(Const_wifiSTA_name, i, "T-Mobile_Swiatlowod_8638");
@@ -1114,8 +1114,8 @@ void vtaskWifi(void *argument)
 						case WIFI_MODE_STA:
 						case WIFI_MODE_AP_STA:
 							vQueryAndReplaceEmailAddrName2AddrIP();
-							if(0==vQueryAndLoadTimeFromSNTP())
-								vLoadTime(VAR_GetTabVal(Const_sntp_time,NO_TAB));
+//							if(0==vQueryAndLoadTimeFromSNTP())
+//								vLoadTime(VAR_GetTabVal(Const_sntp_time,NO_TAB));
 							break;
 						default:
 							vLoadTime(VAR_GetTabVal(Const_sntp_time,NO_TAB));

@@ -189,85 +189,77 @@ DATA_TO_SEND* GetPageWWW(char *getHttpRequest)
 //	if (STARTUP_WaitForBits(0x0010))  //!!!!!!!!!!!!!! ACCESS_TO_SDCARD !!!!!!!!!!!!!
 //	{
 //		 STARTUP_ClaerBits(0x0010);
-	if(TakeMutex2(Semphr_sdram, Semphr_cardSD, 1000))
+	if(TakeMutex(Semphr_cardSD, 1000))  //!!!!!!!!! dla Semphr_sdram zawiesza sie lubi !!!!!!!!!!!!!!
 	{
 
 		temp->pData=dataBufferHTTP;
 
 		if(strstr(getHttpRequest,"GET / ")||strstr(getHttpRequest,"GET /main")){
 
-//			SDCardFileOpen(0,"aaa.htm",FA_READ);
-//			temp->len = SDCardFileRead(0, pIn, HTTP_BUFFER_SIZE);   // SDCard_ReadFile("aaa.htm", pIn, HTTP_BUFFER_SIZE);  //website/log.htm      //MAX SIZ   ff. FIL INFO!!!!!
-//			SDCardFileClose(0);
-			temp->len=mini_snprintf(temp->pData,200,"<html><body>1234</body></html>");
-			//temp->len = ASP_Callback(pIn, temp->len, temp->pData);
-		}
-		else
-		{
-				temp->len=mini_snprintf(temp->pData,1500,"1111");
-				Dbg(1," X ");
+			SDCardFileOpen(0,"aaa.htm",FA_READ);
+			temp->len = SDCardFileRead(0, pIn, HTTP_BUFFER_SIZE);   // SDCard_ReadFile("aaa.htm", pIn, HTTP_BUFFER_SIZE);  //website/log.htm      //MAX SIZ   ff. FIL INFO!!!!!
+			SDCardFileClose(0);
+			temp->len = ASP_Callback(pIn, temp->len, temp->pData);
 		}
 
-//		else if(strstr(getHttpRequest,"GET /favicon")){
-//			SDCardFileOpen(0,"website/favicon.png",FA_READ);
-//			temp->len=SDCardFileRead(0, temp->pData, HTTP_BUFFER_SIZE);//SDCard_ReadFile("website/favicon.png", temp->pData, HTTP_BUFFER_SIZE);
-//			SDCardFileClose(0);
-//		}
-//
-//		else if(strstr(getHttpRequest,"GET /logo.png"))
-//		{
-//			if(strstr(getHttpRequest,"If-None-Match: \"533225b1-12341\""))
-//			{
-//				Dbg(1,"\r\nXX1111");
-//				temp->len = mini_snprintf(temp->pData, 110, "HTTP/1.0 304 Not Modified\r\nCache-Control: max-age=31536000\r\n\r\n");
-//			}
-//			else
-//			{
-//				temp->len = mini_snprintf(temp->pData, 110, "HTTP/1.0 200 OK\r\nEtag: \"533225b1-12341\"\r\nCache-Control: max-age=31536000\r\n\r\n");
-//				SDCardFileOpen(0,"website/logo.png",FA_READ);
-//				temp->len += SDCardFileRead(0, temp->pData+temp->len, HTTP_BUFFER_SIZE);//SDCard_ReadFile("website/logo.png", temp->pData+temp->len, HTTP_BUFFER_SIZE);
-//				SDCardFileClose(0);
-//			}
-//		}
-//
-//		else if(strstr(getHttpRequest,"GET /flags.png"))
-//		{
-//			if(strstr(getHttpRequest,"If-None-Match: \"533225b1-12341\""))
-//			{
-//				Dbg(1,"\r\nXX2222");
-//				temp->len = mini_snprintf(temp->pData, 110, "HTTP/1.0 304 Not Modified\r\nCache-Control: max-age=31536000\r\n\r\n");
-//			}
-//			else
-//			{
-//				temp->len = mini_snprintf(temp->pData, 110, "HTTP/1.0 200 OK\r\nEtag: \"533225b1-12341\"\r\nCache-Control: max-age=31536000\r\n\r\n");
-//				SDCardFileOpen(0,"website/flags.png",FA_READ);
-//				temp->len += SDCardFileRead(0, temp->pData+temp->len, HTTP_BUFFER_SIZE);//SDCard_ReadFile("website/flags.png", temp->pData+temp->len, HTTP_BUFFER_SIZE);
-//				SDCardFileClose(0);
-//			}
-//		}
-//
-//		else if(strstr(getHttpRequest,"GET /TME.txt"))
-//			temp->len=mini_snprintf(temp->pData,1500,"19:22:05 &nbsp;19/06/13--0000000000000 111111111111111111  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0       7.9       7.7   + 244    1+ 389    1+ 356    1+ 356    1+ 718    1+ 820    1+ 483    1+ 447    1   ---   0   ---   0+ 460    1   ---   0   ---   0   ---   0 V     V              0.001   KWh            0.001  0          0.001  0          0.001  0          0.001  0          0.001   KWh            0.001  0          0.001  0          0.001  0          0.001  0          0.001   KWh            0.001  0          0.001  0          0.001  0          0.001  0          0.001   KWh            0.001  0          0.001  0          0.001  0          0.001  0 ");
-//
-//		else if(strstr(getHttpRequest,CGI_GET_STRING))
-//		{
-//			CGI_Callback(getHttpRequest);
-//			temp->len = mini_snprintf(temp->pData, 200, "HTTP/1.0 200 OK\r\nElektronika RM\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n");
-//			temp->len += mini_snprintf(temp->pData+temp->len, 500, "<html><head><link rel=\"shortcut icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAABGdBTUEAALGPC/xhBQAAACRJREFUOE9jZGj4z0AaAGogCZGmGuQckowf1UBkcI0GKxEBBQA55GigBl4jdAAAAABJRU5ErkJggg==\"><meta http-equiv=\"refresh\" content=\"0;url=../\"></head><body bgcolor=\"000000\"></body></html>");
-//		}
-//
-//		else if(strstr(getHttpRequest,"GET /LOGIN "))
-//			temp->len=mini_snprintf(temp->pData,20,"LOGIN");
+		else if(strstr(getHttpRequest,"GET /favicon")){
+			SDCardFileOpen(0,"website/favicon.png",FA_READ);
+			temp->len=SDCardFileRead(0, temp->pData, HTTP_BUFFER_SIZE);//SDCard_ReadFile("website/favicon.png", temp->pData, HTTP_BUFFER_SIZE);
+			SDCardFileClose(0);
+		}
+
+		else if(strstr(getHttpRequest,"GET /logo.png"))
+		{
+			if(strstr(getHttpRequest,"If-None-Match: \"533225b1-12341\""))
+			{
+				Dbg(1,"\r\nXX1111");
+				temp->len = mini_snprintf(temp->pData, 110, "HTTP/1.0 304 Not Modified\r\nCache-Control: max-age=31536000\r\n\r\n");
+			}
+			else
+			{
+				temp->len = mini_snprintf(temp->pData, 110, "HTTP/1.0 200 OK\r\nEtag: \"533225b1-12341\"\r\nCache-Control: max-age=31536000\r\n\r\n");
+				SDCardFileOpen(0,"website/logo.png",FA_READ);
+				temp->len += SDCardFileRead(0, temp->pData+temp->len, HTTP_BUFFER_SIZE);//SDCard_ReadFile("website/logo.png", temp->pData+temp->len, HTTP_BUFFER_SIZE);
+				SDCardFileClose(0);
+			}
+		}
+
+		else if(strstr(getHttpRequest,"GET /flags.png"))
+		{
+			if(strstr(getHttpRequest,"If-None-Match: \"533225b1-12341\""))
+			{
+				Dbg(1,"\r\nXX2222");
+				temp->len = mini_snprintf(temp->pData, 110, "HTTP/1.0 304 Not Modified\r\nCache-Control: max-age=31536000\r\n\r\n");
+			}
+			else
+			{
+				temp->len = mini_snprintf(temp->pData, 110, "HTTP/1.0 200 OK\r\nEtag: \"533225b1-12341\"\r\nCache-Control: max-age=31536000\r\n\r\n");
+				SDCardFileOpen(0,"website/flags.png",FA_READ);
+				temp->len += SDCardFileRead(0, temp->pData+temp->len, HTTP_BUFFER_SIZE);//SDCard_ReadFile("website/flags.png", temp->pData+temp->len, HTTP_BUFFER_SIZE);
+				SDCardFileClose(0);
+			}
+		}
+
+		else if(strstr(getHttpRequest,"GET /TME.txt"))
+			temp->len=mini_snprintf(temp->pData,1500,"19:22:05 &nbsp;19/06/13--0000000000000 111111111111111111  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0       7.9       7.7   + 244    1+ 389    1+ 356    1+ 356    1+ 718    1+ 820    1+ 483    1+ 447    1   ---   0   ---   0+ 460    1   ---   0   ---   0   ---   0 V     V              0.001   KWh            0.001  0          0.001  0          0.001  0          0.001  0          0.001   KWh            0.001  0          0.001  0          0.001  0          0.001  0          0.001   KWh            0.001  0          0.001  0          0.001  0          0.001  0          0.001   KWh            0.001  0          0.001  0          0.001  0          0.001  0 ");
+
+		else if(strstr(getHttpRequest,CGI_GET_STRING))
+		{
+			CGI_Callback(getHttpRequest);
+			temp->len = mini_snprintf(temp->pData, 200, "HTTP/1.0 200 OK\r\nElektronika RM\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n");
+			temp->len += mini_snprintf(temp->pData+temp->len, 500, "<html><head><link rel=\"shortcut icon\" href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAABGdBTUEAALGPC/xhBQAAACRJREFUOE9jZGj4z0AaAGogCZGmGuQckowf1UBkcI0GKxEBBQA55GigBl4jdAAAAABJRU5ErkJggg==\"><meta http-equiv=\"refresh\" content=\"0;url=../\"></head><body bgcolor=\"000000\"></body></html>");
+		}
+
+		else if(strstr(getHttpRequest,"GET /LOGIN "))
+			temp->len=mini_snprintf(temp->pData,20,"LOGIN");
 
 		GiveMutex(Semphr_cardSD);
-		GiveMutex(Semphr_sdram);
 		//	STARTUP_SetBits(0x0010);
 
 	}
 	else
 	{
 		temp->len=0;
-		Dbg(1," 00000000 ");
 	}
 
 
