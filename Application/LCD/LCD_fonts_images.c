@@ -168,10 +168,10 @@ static int idxChangeColorBuff=0;
 static int fontsTabPos_temp[MAX_CHARS][POSITION_AND_WIDTH];
 static StructTxtPxlLen StructTxtPxlLen_ZeroValue={0,0,0};
 
-SDRAM static char fontsImagesMemoryBuffer[MAX_FONTS_AND_IMAGES_MEMORY_SIZE];
+SDRAM static char fontsImagesMemoryBuffer[MAX_FONTS_AND_IMAGES_MEMORY_SIZE] __attribute__((aligned (32)));
 
 static int movableFontsBuffer_pos;
-SDRAM static uint32_t movableFontsBuffer[LCD_MOVABLE_FONTS_BUFF_SIZE];
+SDRAM static uint32_t movableFontsBuffer[LCD_MOVABLE_FONTS_BUFF_SIZE] __attribute__((aligned (32)));
 
 typedef struct{
 	uint32_t size;
