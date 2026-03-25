@@ -13,7 +13,7 @@
 #define ESP_UART_TYPE		USART6
 #define ESP_UART_HANDLE		huart6
 #define ESP_UART_DMA_RX		hdma_usart6_rx
-#define ESP_UART_BUADRATE	2000000
+#define ESP_UART_BUADRATE	3000000
 
 #define ESP_EMAIL_CHANNEL	4
 
@@ -84,5 +84,8 @@ void WIFI_UartErrorService(void);
 int GetEmailStatus(void);
 void vRestartWifiServer(void);
 void vTestATcommand(void);
+
+void ESP_Send(char *txtAT);
+void ESP_Recv(void);
 
 #endif /* WIFI_ESP32WROOM_H_ */
