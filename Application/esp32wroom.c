@@ -731,8 +731,8 @@ static int vQueryAndLoadTimeFromSNTP(void)
 		SendToEsp("AT+SYSTIMESTAMP?\r\n");
 		while (1)
 		{
-			if (RecvFromEsp("\r\nOK"))
-			{
+//			if (RecvFromEsp("\r\nOK"))
+//			{
 				if ((ptr=RecvFromEsp("+SYSTIMESTAMP:")))
 				{
 					getTime=(time_t)atoi(ptr+14);
@@ -759,9 +759,9 @@ static int vQueryAndLoadTimeFromSNTP(void)
 				}
 				else
 					return 0;
-			}
-			else if (RecvFromEsp("ERROR"))
-				return 0;
+//			}
+//			else if (RecvFromEsp("ERROR"))
+//				return 0;
 
 			itx++;
 			if (itx>SNTP_SERVER_TIMEOUT_MS)
@@ -1120,8 +1120,8 @@ void vtaskWifi(void *argument)
 						case WIFI_MODE_STA:
 						case WIFI_MODE_AP_STA:
 							vQueryAndReplaceEmailAddrName2AddrIP();
-//							if(0==vQueryAndLoadTimeFromSNTP())
-//								vLoadTime(VAR_GetTabVal(Const_sntp_time,NO_TAB));
+							if(0==vQueryAndLoadTimeFromSNTP())
+								vLoadTime(VAR_GetTabVal(Const_sntp_time,NO_TAB));
 							break;
 						default:
 							vLoadTime(VAR_GetTabVal(Const_sntp_time,NO_TAB));
