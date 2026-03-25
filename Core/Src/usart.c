@@ -22,7 +22,8 @@
 
 /* USER CODE BEGIN 0 */
 #include "mini_printf.h"
-#include "debug.h"
+#include "_debug.h"
+#include "esp32wroom.h"
 
 /* USER CODE END 0 */
 
@@ -299,14 +300,22 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void UART_ClearFlags(UART_HandleTypeDef *huart){
+	__HAL_UART_CLEAR_FEFLAG(huart);
+	__HAL_UART_CLEAR_PEFLAG(huart);
+	__HAL_UART_CLEAR_OREFLAG(huart);
+	__HAL_UART_FLUSH_DRREGISTER(huart);
+}
+
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance==UART7)
 	{
-		__HAL_UART_CLEAR_FEFLAG(huart);
-		__HAL_UART_CLEAR_PEFLAG(huart);
-		__HAL_UART_CLEAR_OREFLAG(huart);
-		__HAL_UART_FLUSH_DRREGISTER(huart);
+		//UART_ClearFlags(&huart7);
+	}
+	else if(huart->Instance==USART6)
+	{
+		//UART_ClearFlags(&ESP_UART_HANDLE);
 	}
 }
 
@@ -316,13 +325,21 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	{
 		DEBUG_RxFullBuffService();
 	}
+	else if(huart->Instance==USART6)
+	{
+		WIFI_RxCallbackService();
+	}
 }
 
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)  //W PRZERWANIACH TYLKO FLAGI !!!!!!
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance==UART7)
 	{
 
+	}
+	else if(huart->Instance==USART6)
+	{
+		WIFI_UartErrorService();
 	}
 }
 
@@ -331,6 +348,7 @@ void DEBUG_Send(char *txt){
 }
 void DEBUG_ReceiveStart(uint8_t* buffer, uint16_t len)
 {
+	SCB_CleanDCache_by_Addr((uint32_t *)buffer, len);
 	SCB_InvalidateDCache_by_Addr((uint32_t *)buffer, len);
 	__HAL_UART_FLUSH_DRREGISTER(&huart7);
 	HAL_UART_Receive_DMA(&huart7, buffer, len-1);
