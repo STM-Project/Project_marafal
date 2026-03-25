@@ -199,7 +199,8 @@ DATA_TO_SEND* GetPageWWW(char *getHttpRequest)
 
 		if(strstr(getHttpRequest,"GET / ")||strstr(getHttpRequest,"GET /main")){
 
-			if(TakeMutex2(Semphr_sdram, Semphr_cardSD, 1000))
+			//if(TakeMutex2(Semphr_sdram, Semphr_cardSD, 1000))
+			if(TakeMutex(Semphr_cardSD, 1000))
 			{
 				SDCardFileOpen(0,"aaa.htm",FA_READ);
 				temp->len = SDCardFileRead(0, GETVAL_ptr(0), HTTP_BUFFER_SIZE);   // SDCard_ReadFile("aaa.htm", pIn, HTTP_BUFFER_SIZE);  //website/log.htm      //MAX SIZ   ff. FIL INFO!!!!!

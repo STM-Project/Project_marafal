@@ -246,6 +246,7 @@ typedef enum{
 typedef struct{
 	char *pData;
 	uint32_t len;
+	u8 state;
 }DATA_TO_SEND;
 
 typedef struct{ void *min,*max,*div,*mid,*sum,*itr,*avr; }struct_MATH;
