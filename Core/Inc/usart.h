@@ -44,6 +44,7 @@ void MX_UART7_Init(void);
 void MX_USART6_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+void UART_ClearFlags(UART_HandleTypeDef *huart);
 void DEBUG_Send(char *txt);
 void DEBUG_ReceiveStart(uint8_t* buffer, uint16_t len);
 void DEBUG_ReceiveStop(void);
