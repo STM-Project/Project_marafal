@@ -11,8 +11,8 @@
 #include "stm32f7xx_hal.h"
 #include "common.h"
 
-#define HTTP_BUFFER_SIZE 		300000
-#define HTTP_BUFFER_SIZE_PRE 		300000
+#define HTTP_BUFFER_SIZE 		262144
+#define HTTP_BUFFER_SIZE_PRE 		262144
 
 DATA_TO_SEND* GetPageWWW(char *getHttpRequest);
 void ResetTestTab(void);
