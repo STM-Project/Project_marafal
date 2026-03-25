@@ -24,8 +24,10 @@
 #include "float.h"
 #include "def.h"
 #include "sntp_dns.h"
+#include "timer.h"
+#include "usart.h"
 
-#define ESP_RECV_BUFF_SIZE		10000
+#define ESP_RECV_BUFF_SIZE		10240
 #define PACKET_SEND_LEN 		2048
 
 #define HTTP_ANSWER_DELAY_MS		200
@@ -89,8 +91,8 @@ extern DMA_HandleTypeDef ESP_UART_DMA_RX;
 static xTaskHandle vtaskWifiHandle;
 static int resetDMA=0;
 
-static char RecvBuffer[ESP_RECV_BUFF_SIZE];
-static char sendBuff[PACKET_SEND_LEN];
+static char RecvBuffer[ESP_RECV_BUFF_SIZE] __attribute__((aligned (32)));
+static char sendBuff[PACKET_SEND_LEN] __attribute__((aligned (32)));
 
 extern Email_Send_Param EmailSendParam;
 
@@ -112,15 +114,15 @@ void DefaultSettingsWIFI(void)
 	for (i=0; i<WIFI_STA_MAX; ++i)
 	{
 		VAR_SetVal64(Const_wifiSTA_mac, i, 0x1122334455);
-		VAR_SetTabVal(Const_wifiSTA_ip, i, LWIP_MAKEU32(192,168,1,35));
+		VAR_SetTabVal(Const_wifiSTA_ip, i, LWIP_MAKEU32(192,168,2,199));
 		VAR_SetTabVal(Const_wifiSTA_mask, i, LWIP_MAKEU32(255,255,255,0));
-		VAR_SetTabVal(Const_wifiSTA_gate, i, LWIP_MAKEU32(192,168,1,1));
+		VAR_SetTabVal(Const_wifiSTA_gate, i, LWIP_MAKEU32(192,168,2,1));
 		VAR_SetTabVal(Const_wifiSTA_port, i, 80);
 		VAR_SetTabVal(Const_wifiSTA_dhcp, i, 0);
-		VAR_SetStr(Const_wifiSTA_name, i, "T-Mobile_Swiatlowod_8638");
-		VAR_SetStr(Const_wifiSTA_pass, i, "03109069984530029251");
-//		VAR_SetStr(Const_wifiSTA_name, i, "MetronicAKP");
-//		VAR_SetStr(Const_wifiSTA_pass, i, "1qaZ@MetronicZ3");
+//		VAR_SetStr(Const_wifiSTA_name, i, "T-Mobile_Swiatlowod_8638");
+//		VAR_SetStr(Const_wifiSTA_pass, i, "03109069984530029251");
+		VAR_SetStr(Const_wifiSTA_name, i, "MetronicAKP");
+		VAR_SetStr(Const_wifiSTA_pass, i, "1qaZ@MetronicZ3");
 	}
 	VAR_SetTabVal(Const_wifiGeneral_nrAP,NO_TAB,0);
 	VAR_SetTabVal(Const_wifiGeneral_nrSTA,NO_TAB,0);
@@ -163,31 +165,30 @@ static void ChangeUartBuadRate(int baudRate)
 
 static void StartDMA(void)
 {
-	memset(RecvBuffer, 0, ESP_RECV_BUFF_SIZE);
+	memset(RecvBuffer, 0, ESP_RECV_BUFF_SIZE); //Za kazym razem nie za duzy bufor  i czasu dizo !!!!!
+	SCB_CleanDCache_by_Addr((uint32_t *)RecvBuffer, ESP_RECV_BUFF_SIZE);
+	SCB_InvalidateDCache_by_Addr((uint32_t *)RecvBuffer, ESP_RECV_BUFF_SIZE);
+	UART_ClearFlags(&ESP_UART_HANDLE);
 	HAL_UART_Receive_DMA(&ESP_UART_HANDLE, (uint8_t*) RecvBuffer, ESP_RECV_BUFF_SIZE);
 }
 
 static void RestartDMA(void)
 {
 	HAL_UART_DMAStop(&ESP_UART_HANDLE);
-	memset(RecvBuffer, 0, ESP_RECV_BUFF_SIZE);
-	HAL_UART_Receive_DMA(&ESP_UART_HANDLE, (uint8_t*) RecvBuffer, ESP_RECV_BUFF_SIZE);
+	StartDMA();
 }
 
 static int SendToEsp(char *txt)
 {
 	RestartDMA();
 	int result= HAL_UART_Transmit(&ESP_UART_HANDLE, (uint8_t*) txt, mini_strlen(txt), 1000);
-	__HAL_UART_CLEAR_FEFLAG(&ESP_UART_HANDLE);
-	__HAL_UART_CLEAR_PEFLAG(&ESP_UART_HANDLE);
-	__HAL_UART_CLEAR_OREFLAG(&ESP_UART_HANDLE);
-	__HAL_UART_FLUSH_DRREGISTER(&ESP_UART_HANDLE);
 	return result;
 }
 
 static int SendToEsp_DMA(char *pData, int lenData)
 {
 	RestartDMA();
+	SCB_CleanDCache_by_Addr((uint32_t*)pData, lenData);
 	return HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, (uint8_t*) pData, lenData);
 }
 
@@ -217,6 +218,9 @@ void vTestATcommand(void)  //+DST do czasu    //AT+SYSTEMP?
 		vTaskDelay(1);
 	Dbg(DBG, RecvBuffer);
 }
+
+void ESP_Send(char *txtAT){ SendToEsp(txtAT);  }
+void ESP_Recv(void)		  { Dbg(1,RecvBuffer); }
 
 void vDNSdomain(void)
 {
@@ -270,7 +274,7 @@ static int GetDMACountByte(void)
 
 static int vSendDataPacket(char *pData, int packetLen, int channel)
 {
-	char tempBuff[30];
+	char tempBuff[32] __attribute__((aligned (32)));
 	int itx, commandLen;
 
 	Dbg(DBG, ".");
@@ -360,6 +364,8 @@ static int vSendDataHTTP(char *getHttpRequest, int channel)
 	int result;
 	DATA_TO_SEND *temp=GetPageWWW(getHttpRequest);
 	result=vSendData(temp->pData, temp->len, channel);
+	if(temp->state)
+		GiveMutex(Semphr_sdram);
 	vPortFree(temp);
 	return result;
 }
@@ -1181,6 +1187,7 @@ void WIFI_RxCallbackService(void)
 }
 
 //------------- ATTENTIONS ------------------------------
+/* AKTUALIZUJ firmware ESP przez strone ESp Home bo przez esp download tool nie dziala */
 /*
 AT version:2.1.0.0(883f7f2 - Jul 24 2020 11:50:07)
 SDK version:v4.0.1-193-ge7ac221
