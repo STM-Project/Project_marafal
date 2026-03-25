@@ -20,6 +20,9 @@
 #include "examples.h"
 #include "string.h"
 
+#include "esp32wroom.h"
+#include "_smtp.h"
+
 
 /*----------------- Main Settings ------------------*/
 #define FILE_NAME(extend) SCREEN_Fonts_##extend
@@ -1722,19 +1725,63 @@ void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 		}
 	}
 
-
 	else if(DEBUG_RcvStr("7")){
 		*ppMain=(int*)FRAMES_GROUP_separat;
 		FILE_NAME(main)(LoadUserScreen,(char**)ppMain);
 	}
-
-
 
 	else if(DEBUG_RcvStr("1"))
 	{
 		Dbg(1,"test");
 		FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
 	}
+
+
+
+	else if(DEBUG_RcvStr("8"))
+	{
+		Dbg(1,"8 ");
+		ESP_Send("AT+SYSTIMESTAMP?\r\n");
+	}
+	else if(DEBUG_RcvStr("9"))
+	{
+		Dbg(1,"9 ");
+		ESP_Recv();
+	}
+	else if(DEBUG_RcvStr("0"))
+	{
+		Dbg(1,"0 ");
+		RestartWifiTask();
+	}
+	else if(DEBUG_RcvStr("q"))
+	{
+		Dbg(1,"q ");
+		vRestartWifiServer();
+	}
+	else if(DEBUG_RcvStr("w"))
+	{
+		Dbg(1,"w ");
+		vTestATcommand();
+	}
+	else if(DEBUG_RcvStr("f"))
+	{
+		Dbg(1,"f");
+		vRestoreESP();
+	}
+
+
+
+	else if(DEBUG_RcvStr(","))
+	{
+		Dbg(1,", ");
+		SendEmail(1, 1<<5|1<<1, EMAIL_TEST);
+	}
+	else if(DEBUG_RcvStr("."))
+	{
+		Dbg(1,". ");
+		SendEmail(0, 1<<5|1<<1, EMAIL_TEST);
+	}
+
 
 }}
 
