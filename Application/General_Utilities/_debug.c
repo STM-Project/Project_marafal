@@ -13,7 +13,7 @@
 #include "mini_printf.h"
 #include "FreeRTOS.h"
 
-#define RECV_BUFF_SIZE	100
+#define RECV_BUFF_SIZE	128
 #define DEBUG_DEBUG		1
 
 static char ALIGN_32BYTES(dbgRecvBuffer[RECV_BUFF_SIZE]);
