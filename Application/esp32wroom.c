@@ -364,8 +364,8 @@ static int vSendDataHTTP(char *getHttpRequest, int channel)
 	int result;
 	DATA_TO_SEND *temp=GetPageWWW(getHttpRequest);
 	result=vSendData(temp->pData, temp->len, channel);
-//	if(temp->state)
-//		GiveMutex(Semphr_sdram);
+	if(temp->state)
+		GiveMutex(Semphr_sdram);
 	vPortFree(temp);
 	return result;
 }
