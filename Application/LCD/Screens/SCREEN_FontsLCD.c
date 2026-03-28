@@ -1706,7 +1706,7 @@ void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 
 	else if(DEBUG_RcvStr("6"))
 	{
-		if(TOOGLE(RR))
+		if(TOOGLE(RR)) ///DAJ JAKO WYBOR BITOWY \11111111111111 dla toogle !!!!!!!!!!!!!!!!!!!!!!!!
 		{
 //			FILE_NAME(keyboard)(KEYBOARD_fontRGB, KEY_All_release, LCD_RoundRectangle,0,  10,160, KeysAutoSize,12, 4, Touch_FontColor, Touch_fontRp, KeysDel);
 //			FILE_NAME(keyboard)(KEYBOARD_bkRGB,   KEY_All_release, LCD_RoundRectangle,0, 600,160, KeysAutoSize,12, 4, Touch_BkColor, 	Touch_bkRp,	  KeysNotDel);
