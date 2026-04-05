@@ -1723,6 +1723,8 @@ void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
 			KEYBOARD_TYPE(KEYBOARD_none,0);
 		}
+
+		Plik_bin_Divide(GETVAL_ptr(0));
 	}
 
 	else if(DEBUG_RcvStr("7")){
