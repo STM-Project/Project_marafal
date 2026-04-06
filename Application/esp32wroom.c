@@ -588,6 +588,10 @@ static void EmailSendStart(void)
 						buftemp,
 						IP2Str(VAR_GetTabVal(Const_emailSend_IP, EmailSendParam.whichSender)),
 						VAR_GetTabVal(Const_emailSend_port, EmailSendParam.whichSender));
+//				len=mini_snprintf(sendBuff, sizeof(sendBuff), "AT+CIPSTART=%d,\"%s\",\"213.180.147.145\",%d\r\n",
+//						ESP_EMAIL_CHANNEL,
+//						buftemp,
+//						VAR_GetTabVal(Const_emailSend_port, EmailSendParam.whichSender));
 				SendToEsp_DMA(sendBuff, len);
 				Dbg(DBG,"\r\n"); Dbg(DBG,sendBuff);
 			}
@@ -698,7 +702,7 @@ static void vQueryAndReplaceEmailAddrName2AddrIP(void)
 				{
 					if ((ptr=RecvFromEsp("+CIPDOMAIN:")))
 					{
-						VAR_SetTabVal(Const_emailSend_IP,i,IPStr2Int(ptr+11));
+						VAR_SetTabVal(Const_emailSend_IP,i,IPStr2Int(ptr+12)); //POPRAWIC to '12' !!!!!! dac jako przeszukuje do znaki ":"   +CIPDOMAIN:"213.180.147.145"
 						DbgMulti(DBG,"\r\n",ptr,"  ");
 						vTaskDelay(50);
 						break;

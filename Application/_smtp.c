@@ -276,12 +276,12 @@ void DefaultSettingsEmail(void)
 		switch (i)
 		{
 		case 0:
-			VAR_SetTabVal(Const_emailSend_IP, i, LWIP_MAKEU32(173, 194, 222, 109));
-			VAR_SetStr(Const_emailSend_server, i, "smtp.gmail.com");
+			VAR_SetTabVal(Const_emailSend_IP, i, LWIP_MAKEU32(173, 194, 222, 109)); //to nadpisujke z CIPDOMAIN !!!
+			VAR_SetStr(Const_emailSend_server, i, "smtp.poczta.onet.pl");
 			VAR_SetTabVal(Const_emailSend_port, i, 465);
 			VAR_SetStr(Const_emailSend_name, i, "ElektronikaRM");
-			VAR_SetStr(Const_emailSend_login, i, "mariusz.szczygielek@gmail.com");
-			VAR_SetStr(Const_emailSend_password, i, "Szczygielek6666");
+			VAR_SetStr(Const_emailSend_login, i, "marafal@op.pl");
+			VAR_SetStr(Const_emailSend_password, i, "Krasnoludki1979");
 			VAR_SetTabVal(Const_emailSend_useSSL, i, 1);
 			break;
 		case 1:
@@ -294,21 +294,21 @@ void DefaultSettingsEmail(void)
 //			SetTabVal(Const_emailSend_useSSL, i, 0);
 
 			VAR_SetTabVal(Const_emailSend_IP, i, LWIP_MAKEU32(173, 194, 222, 109));
-			VAR_SetStr(Const_emailSend_server, i, "smtp.gmail.com");
+			VAR_SetStr(Const_emailSend_server, i, "smtp.poczta.onet.pl");
 			VAR_SetTabVal(Const_emailSend_port, i, 465);
 			VAR_SetStr(Const_emailSend_name, i, "ElektronikaRM");
-			VAR_SetStr(Const_emailSend_login, i, "mariusz.szczygielek@gmail.com");
-			VAR_SetStr(Const_emailSend_password, i, "Szczygielek6666");
+			VAR_SetStr(Const_emailSend_login, i, "marafal@op.pl");
+			VAR_SetStr(Const_emailSend_password, i, "Krasnoludki1979");
 			VAR_SetTabVal(Const_emailSend_useSSL, i, 1);
 
 			break;
 		case 2:
 			VAR_SetTabVal(Const_emailSend_IP, i, LWIP_MAKEU32(173, 194, 222, 109));
-			VAR_SetStr(Const_emailSend_server, i, "smtp.gmail.com");
+			VAR_SetStr(Const_emailSend_server, i, "smtp.poczta.onet.pl");
 			VAR_SetTabVal(Const_emailSend_port, i, 465);
 			VAR_SetStr(Const_emailSend_name, i, "ElektronikaRM");
-			VAR_SetStr(Const_emailSend_login, i, "mariusz.szczygielek@gmail.com");
-			VAR_SetStr(Const_emailSend_password, i, "Szczygielek6666");
+			VAR_SetStr(Const_emailSend_login, i, "marafal@op.pl");
+			VAR_SetStr(Const_emailSend_password, i, "Krasnoludki1979");
 			VAR_SetTabVal(Const_emailSend_useSSL, i, 1);
 			break;
 		}
