@@ -13,6 +13,27 @@
 
 static FIL myFile[MAX_OPEN_FILE];
 
+static char ASCII_to_hex (char val)
+{
+    if(val=='1') return 0x01;
+    else if(val=='2') return 0x02;
+	else if(val=='3') return 0x03;
+	else if(val=='4') return 0x04;
+	else if(val=='5') return 0x05;
+	else if(val=='6') return 0x06;
+	else if(val=='7') return 0x07;
+	else if(val=='8') return 0x08;
+	else if(val=='9') return 0x09;
+	else if(val=='0') return 0x00;
+	else if((val=='A')||(val=='a')) return 0x0A;
+	else if((val=='B')||(val=='b')) return 0x0B;
+	else if((val=='C')||(val=='c')) return 0x0C;
+	else if((val=='D')||(val=='d')) return 0x0D;
+	else if((val=='E')||(val=='e')) return 0x0E;
+	else if((val=='F')||(val=='f')) return 0x0F;
+	return 0;
+}
+
 void SDCard_Init(void)
 {
 	FRESULT result=f_mount(&SDFatFS, (TCHAR const*) SDPath, 1);
@@ -115,44 +136,19 @@ int SDCard_FileReadClose(uint8_t id, char *fileName, char *pReadBuff, int maxSiz
    return len;
 }
 
-
-
-
-char ASCII_to_hex (char kkk)
+int BOOT_ReadCodeToNewBinFile(char *Buff)
 {
-    if(kkk=='1') return 0x01;
-    else if(kkk=='2') return 0x02;
-	else if(kkk=='3') return 0x03;
-	else if(kkk=='4') return 0x04;
-	else if(kkk=='5') return 0x05;
-	else if(kkk=='6') return 0x06;
-	else if(kkk=='7') return 0x07;
-	else if(kkk=='8') return 0x08;
-	else if(kkk=='9') return 0x09;
-	else if(kkk=='0') return 0x00;
-	else if((kkk=='A')||(kkk=='a')) return 0x0A;
-	else if((kkk=='B')||(kkk=='b')) return 0x0B;
-	else if((kkk=='C')||(kkk=='c')) return 0x0C;
-	else if((kkk=='D')||(kkk=='d')) return 0x0D;
-	else if((kkk=='E')||(kkk=='e')) return 0x0E;
-	else if((kkk=='F')||(kkk=='f')) return 0x0F;
-	return 0;
-}
-
-int Plik_bin_Divide(char *Buff)
-{
-	uint32_t len;
-	int result;
-
-
+	int result,i,j;
    char KOD[10];
 
 	result=SDCardFileOpen(MAX_OPEN_FILE-1,"kod.txt",FA_READ);
 	if(FR_OK!=result)
 		return result*(-1);
+
 	result=SDCardFileRead(MAX_OPEN_FILE-1, Buff, 16);
 	if(0>result)
 		return result;
+
 	SDCardFileClose(MAX_OPEN_FILE-1);
 
    KOD[0] = (0xf0&(ASCII_to_hex(Buff[0])<<4)) | (0x0f&(ASCII_to_hex(Buff[1])));
@@ -164,8 +160,8 @@ int Plik_bin_Divide(char *Buff)
    KOD[6] = (0xf0&(ASCII_to_hex(Buff[12])<<4)) | (0x0f&(ASCII_to_hex(Buff[13])));
    KOD[7] = (0xf0&(ASCII_to_hex(Buff[14])<<4)) | (0x0f&(ASCII_to_hex(Buff[15])));
 
-/*
-   KOD[0]=0x23;   //1507197966666600
+/* For COde below we have nrIdent= 1507197966666600 */
+/* KOD[0]=0x23;
    KOD[1]=0xAB;
    KOD[2]=0x09;
    KOD[3]=0x14;
@@ -174,8 +170,6 @@ int Plik_bin_Divide(char *Buff)
    KOD[6]=0xF5;
    KOD[7]=0xCD;
 */
-     int i,j;
-
 
 	result=SDCardFileOpen(MAX_OPEN_FILE-1,"plik.bin",FA_READ);
 	if(FR_OK!=result)
@@ -185,16 +179,13 @@ int Plik_bin_Divide(char *Buff)
 	if(FR_OK!=result)
 		return result*(-1);
 
-
 	 i=0;
-	 wedwefrf:
+	 GOTO_ContinueFileDivide:
 	 HAL_Delay(10);
-
 
 	result=SDCardFileRead(MAX_OPEN_FILE-1, &Buff[10000], 2048);
 	if(0>result)
 		return result;
-
 
 	 for(j=0;j<2048;j++) Buff[j]=Buff[10000+j];
 
@@ -202,8 +193,6 @@ int Plik_bin_Divide(char *Buff)
 	 {
 		 if(i==0){
 		     i=1;
-
-			 //for(j=0;j<8;j++) Buff[12000+j]=KOD[j];
 
 			 Buff[11000]=KOD[0];
 			 Buff[11011]=KOD[1];
@@ -213,7 +202,6 @@ int Plik_bin_Divide(char *Buff)
 			 Buff[11238]=KOD[5];
 			 Buff[11199]=KOD[6];
 			 Buff[11691]=KOD[7];
-
 
 			result=SDCardFileWrite(MAX_OPEN_FILE-2, &Buff[10000], 2048);
 			if(0>result)
@@ -229,14 +217,13 @@ int Plik_bin_Divide(char *Buff)
 				if(0>result)
 					return result;
 		 }
-	     goto wedwefrf;
+	     goto GOTO_ContinueFileDivide;
 	 }
 	 else
 	 {
 			result=SDCardFileWrite(MAX_OPEN_FILE-2, Buff, result);
 			if(0>result)
 				return result;
-
 	 }
 
 	 SDCardFileClose(MAX_OPEN_FILE-1);
