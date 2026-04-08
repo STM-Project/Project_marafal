@@ -20,4 +20,6 @@ int SDCardOpenFileSize(uint8_t id);
 int SDCardFileInfo(char *name, uint32_t *fileSize);
 int SDCard_FileReadClose(uint8_t id, char *fileName, char *pReadBuff, int maxSize);
 
+int BOOT_ReadCodeToNewBinFile(char *Buff);
+
 #endif /* GENERAL_UTILITIES_SD_CARD_H_ */
