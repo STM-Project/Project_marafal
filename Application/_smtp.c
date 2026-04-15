@@ -294,21 +294,21 @@ void DefaultSettingsEmail(void)
 //			SetTabVal(Const_emailSend_useSSL, i, 0);
 
 			VAR_SetTabVal(Const_emailSend_IP, i, LWIP_MAKEU32(173, 194, 222, 109));
-			VAR_SetStr(Const_emailSend_server, i, "smtp.poczta.onet.pl");
+			VAR_SetStr(Const_emailSend_server, i, "smtp.interia.pl");
 			VAR_SetTabVal(Const_emailSend_port, i, 465);
 			VAR_SetStr(Const_emailSend_name, i, "ElektronikaRM");
-			VAR_SetStr(Const_emailSend_login, i, "marafal@op.pl");
-			VAR_SetStr(Const_emailSend_password, i, "Krasnoludki1979");
+			VAR_SetStr(Const_emailSend_login, i, "marafal@interia.pl");
+			VAR_SetStr(Const_emailSend_password, i, "niunia6666");
 			VAR_SetTabVal(Const_emailSend_useSSL, i, 1);
 
 			break;
 		case 2:
 			VAR_SetTabVal(Const_emailSend_IP, i, LWIP_MAKEU32(173, 194, 222, 109));
-			VAR_SetStr(Const_emailSend_server, i, "smtp.poczta.onet.pl");
+			VAR_SetStr(Const_emailSend_server, i, "smtp.gmail.com");
 			VAR_SetTabVal(Const_emailSend_port, i, 465);
 			VAR_SetStr(Const_emailSend_name, i, "ElektronikaRM");
-			VAR_SetStr(Const_emailSend_login, i, "marafal@op.pl");
-			VAR_SetStr(Const_emailSend_password, i, "Krasnoludki1979");
+			VAR_SetStr(Const_emailSend_login, i, "marafal6666@gmail.com");
+			VAR_SetStr(Const_emailSend_password, i, "markielowski666");
 			VAR_SetTabVal(Const_emailSend_useSSL, i, 1);
 			break;
 		}
@@ -324,6 +324,6 @@ void DefaultSettingsEmail(void)
 	}
 
 	VAR_SetStr(Const_emailRecv_email, 1, "marafal@interia.pl");
-	VAR_SetStr(Const_emailRecv_email, 5, "rafal.markielowski@gmail.com");
+	VAR_SetStr(Const_emailRecv_email, 5, "marafal6666@gmail.com");   //"rafal.markielowski@gmail.com"
 
 }
