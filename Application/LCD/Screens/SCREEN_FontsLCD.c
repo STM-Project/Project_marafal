@@ -1783,6 +1783,11 @@ void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 		Dbg(1,". ");
 		SendEmail(0, 1<<5|1<<1, EMAIL_TEST);
 	}
+	else if(DEBUG_RcvStr("."))
+	{
+		Dbg(1,"/");
+		SendEmail(2, 1<<5|1<<1, EMAIL_TEST);
+	}
 
 
 }}
