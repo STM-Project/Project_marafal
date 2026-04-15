@@ -273,26 +273,18 @@ void DefaultSettingsEmail(void)
 	int i;
 	for (i=0; i<MAX_EMAIL_SENDERS; ++i)
 	{
-		switch (i)
+		switch (i)  // poczta.interia i gmail nie dziala dla prostych urzadzen trzeba wykupic w google !!!!
 		{
 		case 0:
 			VAR_SetTabVal(Const_emailSend_IP, i, LWIP_MAKEU32(173, 194, 222, 109)); //to nadpisujke z CIPDOMAIN !!!
 			VAR_SetStr(Const_emailSend_server, i, "smtp.poczta.onet.pl");
 			VAR_SetTabVal(Const_emailSend_port, i, 465);
 			VAR_SetStr(Const_emailSend_name, i, "ElektronikaRM");
-			VAR_SetStr(Const_emailSend_login, i, "marafal@op.pl");
-			VAR_SetStr(Const_emailSend_password, i, "Krasnoludki1979");
+			VAR_SetStr(Const_emailSend_login, i, "marafal@op.pl");    //metronic@onet.eu
+			VAR_SetStr(Const_emailSend_password, i, "Krasnoludki1979");  //Metro1234
 			VAR_SetTabVal(Const_emailSend_useSSL, i, 1);
 			break;
 		case 1:
-//			//SetTabVal(Const_emailSend_IP, i, LWIP_MAKEU32(213, 180, 147, 145));
-//			SetStr(Const_emailSend_server, i, "smtp.poczta.onet.pl");
-//			SetTabVal(Const_emailSend_port, i, 587);
-//			SetStr(Const_emailSend_name, i, "ElektronikaRM");
-//			SetStr(Const_emailSend_login, i, "metronic@onet.eu");
-//			SetStr(Const_emailSend_password, i, "Metro1234");
-//			SetTabVal(Const_emailSend_useSSL, i, 0);
-
 			VAR_SetTabVal(Const_emailSend_IP, i, LWIP_MAKEU32(173, 194, 222, 109));
 			VAR_SetStr(Const_emailSend_server, i, "smtp.interia.pl");
 			VAR_SetTabVal(Const_emailSend_port, i, 465);
@@ -300,15 +292,14 @@ void DefaultSettingsEmail(void)
 			VAR_SetStr(Const_emailSend_login, i, "marafal@interia.pl");
 			VAR_SetStr(Const_emailSend_password, i, "niunia6666");
 			VAR_SetTabVal(Const_emailSend_useSSL, i, 1);
-
 			break;
 		case 2:
 			VAR_SetTabVal(Const_emailSend_IP, i, LWIP_MAKEU32(173, 194, 222, 109));
 			VAR_SetStr(Const_emailSend_server, i, "smtp.gmail.com");
 			VAR_SetTabVal(Const_emailSend_port, i, 465);
-			VAR_SetStr(Const_emailSend_name, i, "ElektronikaRM");
+			VAR_SetStr(Const_emailSend_name, i, "marafal6666");
 			VAR_SetStr(Const_emailSend_login, i, "marafal6666@gmail.com");
-			VAR_SetStr(Const_emailSend_password, i, "markielowski666");
+			VAR_SetStr(Const_emailSend_password, i, "Markielowski1979");
 			VAR_SetTabVal(Const_emailSend_useSSL, i, 1);
 			break;
 		}
