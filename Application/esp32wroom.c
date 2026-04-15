@@ -45,6 +45,8 @@
 
 #define RecvFromEsp(txt)   strstr(RecvBuffer,txt)
 
+int ESP_EMAIL_CHANNEL__ = 4;    //TYMCZASOWO !!!!!
+
 typedef enum
 {
 	INIT_CONNECTION, HTTP_CONNECTION, SMTP_CONNECTION
@@ -374,7 +376,7 @@ static int vSendDataSMTP(int id)
 {
 	int result;
 	DATA_TO_SEND *temp=GetDataEmail(id);
-	if ((result=vSendData(temp->pData, temp->len, ESP_EMAIL_CHANNEL)))
+	if ((result=vSendData(temp->pData, temp->len, ESP_EMAIL_CHANNEL__)))
 	{
 		SetEmailState(SMTP_FAIL);
 		SetEmailCode(result);
@@ -386,7 +388,7 @@ static int vSendDataSMTP(int id)
 static int vSendCommandSMTP(char *pCommand, int commandLen)
 {
 	int result;
-	if ((result=vSendDataPacket(pCommand, commandLen, ESP_EMAIL_CHANNEL)))
+	if ((result=vSendDataPacket(pCommand, commandLen, ESP_EMAIL_CHANNEL__)))
 	{
 		SetEmailState(SMTP_FAIL);
 		SetEmailCode(100+result);
@@ -469,7 +471,7 @@ static int vGetEmailRecvCode(int *channel)
 		}
 		itx++;
 
-	} while (*channel!=ESP_EMAIL_CHANNEL);
+	} while (*channel!=ESP_EMAIL_CHANNEL__);
 
 	while (GetDMACountByte()<size)
 		vTaskDelay(1);
@@ -584,12 +586,12 @@ static void EmailSendStart(void)
 					strcpy(buftemp, "TCP");
 
 				len=mini_snprintf(sendBuff, sizeof(sendBuff), "AT+CIPSTART=%d,\"%s\",\"%s\",%d\r\n",
-						ESP_EMAIL_CHANNEL,
+						ESP_EMAIL_CHANNEL__,
 						buftemp,
 						IP2Str(VAR_GetTabVal(Const_emailSend_IP, EmailSendParam.whichSender)),
 						VAR_GetTabVal(Const_emailSend_port, EmailSendParam.whichSender));
 //				len=mini_snprintf(sendBuff, sizeof(sendBuff), "AT+CIPSTART=%d,\"%s\",\"213.180.147.145\",%d\r\n",
-//						ESP_EMAIL_CHANNEL,
+//						ESP_EMAIL_CHANNEL__,
 //						buftemp,
 //						VAR_GetTabVal(Const_emailSend_port, EmailSendParam.whichSender));
 				SendToEsp_DMA(sendBuff, len);
@@ -926,10 +928,11 @@ void vtaskWifi(void *argument)
 				GOTO_Email_Quit:
 				if ((RecvFromEsp("closing connection")==0)||(RecvFromEsp(",CLOSED")==0))
 				{
-					if (vSendDataPacket("quit\r\n", 6, ESP_EMAIL_CHANNEL));
+					if (vSendDataPacket("quit\r\n", 6, ESP_EMAIL_CHANNEL__));
 					switch (vGetEmailRecvCode(&channel))
 					{
 					case 221:
+						Dbg(1,"  ____221_____  ");
 						break;
 					default:
 						vTaskDelay(200);
@@ -1212,4 +1215,41 @@ AT+CWJAP?  wyswietla parametry sieci do ktorej jest podlaczony
 AT+CWSAP?  wyswietla parametry swojej sieci AP
 AT+CWLIF: Obtain IP Address of the Station That Connects to an ESP SoftAP
 
+*/
+
+
+
+
+
+
+
+
+
+//----------------------------- Mechanizmy RTOS-owe-----------------------------
+/*
+ 1).......................
+if (xReceiverTaskHandle != NULL) {
+    xTaskNotifyGive(xReceiverTaskHandle);										// WYSYŁANIE: Zwiększ wartość powiadomienia odbiorcy o 1
+    printf("Nadawca: Wysłałem powiadomienie!\n");
+}
+
+ulNotificationValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);			// ODBIERANIE: Czekaj (blokuj wątek) aż przyjdzie powiadomienie			pdTRUE oznacza, że po odczycie licznik powiadomień zostanie wyzerowany
+
+if (ulNotificationValue > 0) {
+	printf("Odbiorca: Otrzymałem powiadomienie! Wysyłam e-mail...\n");
+	// Tutaj wstaw kod do wysyłki e-maila przez komendy AT
+}
+
+2).......................
+
+eSetValueWithOverwrite: 			Najczęstszy wybór. Odbiorca zawsze dostanie najnowszą wartość, stara (jeśli nie została odebrana) jest kasowana. Idealne do stanów i pomiarów.
+eSetValueWithoutOverwrite:			 Zapisze wartość tylko wtedy, gdy poprzednia została już odebrana. Jeśli nie – funkcja zwróci błąd (pdFAIL).
+eSetBits: 								Traktuje powiadomienie jako flagi (bit po bicie). Pozwala ustawić konkretne bity bez zmieniania pozostałych (jak w Event Groups).
+
+   sensorData = 25; // Przykładowa wartość (np. temperatura)
+   xTaskNotify(xReceiverTaskHandle, sensorData, eSetValueWithOverwrite);    	 // WYSYŁANIE:
+
+   if (xTaskNotifyWait(0, 0, &receivedValue, portMAX_DELAY) == pdPASS) {		// ODBIERANIE:		xTaskNotifyWait(bitmask_na_wejsciu, bitmask_na_wyjsciu, &zmienna, czas)		bitmask: 0x00: Nie czyść nic , 0xFFFFFFFF (Wszystkie bity): Czyści całą wartość powiadomienia po wyjściu.
+       printf("Odebrano wartość: %d\n", receivedValue);
+   }
 */
