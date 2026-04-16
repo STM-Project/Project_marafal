@@ -581,7 +581,7 @@ static void EMAIL_SSL_SendData(mbedtls_ssl_context *ssl, Email_Send_Param *par, 
 	SMTP_SSL_Reciev(ssl,"250");
 }
 
-static void vtaskSMTPS(void *pvParameters)
+static void vtaskSMTPS(void *pvParameters) // daj param jako message !!!! tez
 {
 	mbedtls_ssl_context ssl;
 	mbedtls_entropy_context entropy;
@@ -684,6 +684,12 @@ static void vtaskSMTPS(void *pvParameters)
 void https_server_netconn_init(void)
 {
 	vTaskHandleServer = sys_thread_new("HTTPS", SSL_Server, NULL, 1024, -2);
+}
+
+void CreateTestEMAILTask(Email_Send_Param *parameters)
+{
+	xTaskCreate(vtaskSMTPS, "SMTPS", 2048, (void*) parameters, (unsigned portBASE_TYPE ) 2, NULL);
+
 }
 
 
