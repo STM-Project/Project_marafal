@@ -596,13 +596,14 @@ static void vtaskSMTPS(void *pvParameters) // daj param jako message !!!! tez
 	Email_Send_Param _param = {0};
 	s_smtp_sender 	  _send[MAX_EMAIL_SENDERS] 	= {0};
 	s_smtp_recipient _recv[MAX_EMAIL_RECIPIENTS] = {0};
-	Email_Send_Param* _pParam = (Email_Send_Param*)pvParameters;
+	//Email_Send_Param* _pParam = (Email_Send_Param*)pvParameters;
 
-	_param.id 				 = _pParam->id;
-	_param.start 			 = _pParam->start;
-	_param.whichSender 	 = _pParam->whichSender;
-	_param.recepientsMask = _pParam->recepientsMask;
-
+//	_param.id 				 = _pParam->id;
+//	_param.start 			 = _pParam->start;
+//	_param.whichSender 	 = _pParam->whichSender;
+//	_param.recepientsMask = _pParam->recepientsMask;
+//
+	_param 			= EmailSendParam;
 	selNad 			= _param.whichSender;
 	IP_server.addr = _send[selNad].IP;
 
@@ -686,9 +687,9 @@ void https_server_netconn_init(void)
 	vTaskHandleServer = sys_thread_new("HTTPS", SSL_Server, NULL, 1024, -2);
 }
 
-void CreateTestEMAILTask(Email_Send_Param *parameters)
+void CreateTestEMAILTask(void/*Email_Send_Param *parameters*/)
 {
-	xTaskCreate(vtaskSMTPS, "SMTPS", 2048, (void*) parameters, (unsigned portBASE_TYPE ) 2, NULL);
+	xTaskCreate(vtaskSMTPS, "SMTPS", 2048, NULL/*(void*) parameters*/, (unsigned portBASE_TYPE ) 2, NULL);
 
 }
 

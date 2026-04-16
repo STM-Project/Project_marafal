@@ -46,7 +46,8 @@
 void MX_MBEDTLS_Init(void);
 
 /* USER CODE BEGIN 2 */
-void https_server_netconn_init(void);
+void https_server_netconn_init (void);
+void CreateTestEMAILTask		 (void);
 /* USER CODE END 2 */
 
 #ifdef __cplusplus
