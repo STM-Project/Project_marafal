@@ -9,11 +9,17 @@
 #define VARIABLES_H_
 
 #include "stm32f7xx_hal.h"
+#include "esp32wroom.h"
+#include "sntp_dns.h"
+#include "_smtp.h"
 
+#define SIZE_TXT   	160
+#define NO_TAB			0
 
-#define   SIZE_TXT         160
-
-#define   NO_TAB	0
+#define _Size__s_Wifi     			1
+#define MAX_EMAIL_SENDERS			3
+#define MAX_EMAIL_RECIPIENTS		8
+#define SMTP_BUFFER_SIZE 			300000
 
 enum{
 	Var_slider0,
@@ -74,8 +80,33 @@ enum{
 	Const_Checkbox_test_5
 };
 
+//-------------- Zmienne NIEzapisywalne -------------------------
+typedef struct
+{
+   int value[50000];
+   int GsmStrenght;
+}  s_wartosci;
 
+//-------------- Zmienne zapisywalne -------------------------
+typedef struct  __attribute__ ((packed))
+{
 
+	 s_net_wifi		s_Wifi[_Size__s_Wifi];
+	 s_smtp_sender	emailSend[MAX_EMAIL_SENDERS];
+	 s_smtp_recipient	emailRecv[MAX_EMAIL_RECIPIENTS];
+	 s_dns dns;
+	 s_sntp sntp;
+	 s_wifi_AP		wifiAP[WIFI_AP_MAX];
+	 s_wifi_STA		wifiSTA[WIFI_STA_MAX];
+	 s_wifi_select wifiGeneral;
+	 int selectAP;
+	 int selectSTA;
+	 int checkboxVal[10]; //do usuniecia!!!
+
+}Zmienne_zapisywalne;
+
+Zmienne_zapisywalne* VAR_GetMainPtr(void);
+Zmienne_zapisywalne  VAR_GetMain	  (void);
 void VAR_SetVal(int nameVar, int val);
 void VAR_IncrVal(int nameVar, int incrSize);
 void VAR_DecrVal(int nameVar, int decrSize);
