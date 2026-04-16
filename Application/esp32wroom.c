@@ -1250,4 +1250,43 @@ eSetBits: 								Traktuje powiadomienie jako flagi (bit po bicie). Pozwala usta
    if (xTaskNotifyWait(0, 0, &receivedValue, portMAX_DELAY) == pdPASS) {		// ODBIERANIE:		xTaskNotifyWait(bitmask_na_wejsciu, bitmask_na_wyjsciu, &zmienna, czas)		bitmask: 0x00: Nie czyść nic , 0xFFFFFFFF (Wszystkie bity): Czyści całą wartość powiadomienia po wyjściu.
        printf("Odebrano wartość: %d\n", receivedValue);
    }
+
+
+ void ARCHIVE_SendEvent(char* eventDesc)
+{
+	char* eventMessage = pvPortMalloc(100 * sizeof(char));
+	if (NULL != eventMessage)
+	{
+		strncpy(eventMessage,eventDesc,100);
+		if(errQUEUE_FULL == xQueueSend(xMessageQueue, &eventMessage, 200))
+			vPortFree(eventMessage);
+	}
+}
+
+void ARCHIVE_SendServiceEvent(int ID)
+{
+	int* eventMessage = pvPortMalloc(sizeof(int));
+	if (NULL != eventMessage)
+	{
+		*eventMessage = ID;
+		if(NULL == xAuthorizedEventQueue)
+			xAuthorizedEventQueue = xQueueCreate(20, sizeof(int));
+		if(errQUEUE_FULL == xQueueSend(xAuthorizedEventQueue, &eventMessage, sizeof(int)))
+			vPortFree(eventMessage);
+	}
+}
+
+char archBufferEvent[150]={0};
+int queueSize = uxQueueMessagesWaiting(xMessageQueue);  //ile jest w kolejsce elemetow do odczytu
+  	for (int i = 0; i < queueSize; i++)
+	{
+		if (xQueueReceive(xMessageQueue, &(eventArchMessage), portMAX_DELAY))
+		{
+		   strcat(archBufferEvent,eventArchMessage);
+
+		   vPortFree(eventArchMessage);  // to WAZNE !!!
+			memset(archBufferEvent, 0, sizeof(archBufferEvent));
+		}
+	}
+
 */
