@@ -94,8 +94,6 @@ static int resetDMA=0;
 static char RecvBuffer[ESP_RECV_BUFF_SIZE] __attribute__((aligned (32)));
 static char sendBuff[PACKET_SEND_LEN] __attribute__((aligned (32)));
 
-extern Email_Send_Param EmailSendParam;
-
 void DefaultSettingsWIFI(void)
 {
 	int i;
