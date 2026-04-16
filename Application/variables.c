@@ -5,53 +5,18 @@
  *      Author: Elektronika RM
  */
 
-#include <_smtp.h>
 #include "stm32f7xx_hal.h"
 #include <string.h>
 #include "variables.h"
 #include "common.h"
 #include "mini_printf.h"
 #include "string_oper.h"
-#include "sntp_dns.h"
-#include "esp32wroom.h"
 
-//-------------- Zmienne NIEzapisywalne -------------------------
-
-#define   _Size__s_Wifi     1
-
-
-
-typedef struct
-{
-   int value[50000];
-   int GsmStrenght;
-
-
-}  s_wartosci;
 SDRAM static s_wartosci Var;
-
-
-//-------------- Zmienne zapisywalne -------------------------
-
-typedef struct  __attribute__ ((packed))
-{
-
-	 s_net_wifi		s_Wifi[_Size__s_Wifi];
-	 s_smtp_sender	emailSend[MAX_EMAIL_SENDERS];
-	 s_smtp_recipient	emailRecv[MAX_EMAIL_RECIPIENTS];
-	 s_dns dns;
-	 s_sntp sntp;
-	 s_wifi_AP		wifiAP[WIFI_AP_MAX];
-	 s_wifi_STA		wifiSTA[WIFI_STA_MAX];
-	 s_wifi_select wifiGeneral;
-	 int selectAP;
-	 int selectSTA;
-	 int checkboxVal[10]; //do usuniecia!!!
-
-}Zmienne_zapisywalne;
-
 static Zmienne_zapisywalne  Const;
 
+Zmienne_zapisywalne* VAR_GetMainPtr(void){ return &Const; }
+Zmienne_zapisywalne  VAR_GetMain	  (void){ return Const; }
 
 void VAR_SetVal(int nameVar, int val)
 {
