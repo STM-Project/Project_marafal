@@ -12,10 +12,6 @@
 //#include "sdram.h"
 #include "common.h"
 
-#define MAX_EMAIL_SENDERS	3
-#define MAX_EMAIL_RECIPIENTS	8
-#define SMTP_BUFFER_SIZE 		300000
-
 typedef enum
 {
 	SMTP_START=1,
@@ -59,6 +55,8 @@ typedef struct __attribute__ ((packed))
 {
 	char email[96];
 }s_smtp_recipient;
+
+extern Email_Send_Param EmailSendParam;
 
 DATA_TO_SEND* GetDataEmail(int id);
 void DefaultSettingsEmail(void);
