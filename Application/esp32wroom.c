@@ -30,7 +30,7 @@
 #define ESP_RECV_BUFF_SIZE		10240
 #define PACKET_SEND_LEN 		2048
 
-#define HTTP_ANSWER_DELAY_MS		200
+#define HTTP_ANSWER_DELAY_MS		500
 #define SMTP_CONNECTION_DELAY_MS		15000
 #define SMTP_ANSWER_DELAY_MS		10000
 #define CONNECTION_TIMEOUT_MS		30000
@@ -336,23 +336,31 @@ static int vSendData(char *pData, int len, int channel)
 
 	while (partial<=len-PACKET_SEND_LEN)
 	{
-		for (i=0; i<PACKET_SEND_LEN; i++)
-			sendBuff[i]=*(pData+i+partial);
+		if(TakeMutex(Semphr_sdram, 1000))
+		{
+			for (i=0; i<PACKET_SEND_LEN; i++)
+				sendBuff[i]=*(pData+i+partial);
+			GiveMutex(Semphr_sdram);
 
-		result=vSendDataPacket(sendBuff, PACKET_SEND_LEN, channel);
-		if (result>0)
-			return result;
-		partial+=PACKET_SEND_LEN;
-
+			result=vSendDataPacket(sendBuff, PACKET_SEND_LEN, channel);
+			if (result>0)
+				return result;
+			partial+=PACKET_SEND_LEN;
+		}
 	}
 	if (len-partial>0)
 	{
-		for (i=0; i<len-partial; i++)
-			sendBuff[i]=*(pData+i+partial);
+		if(TakeMutex(Semphr_sdram, 1000))
+		{
+			for (i=0; i<len-partial; i++)
+				sendBuff[i]=*(pData+i+partial);
+			GiveMutex(Semphr_sdram);
 
-		result=vSendDataPacket(sendBuff, len-partial, channel);
-		if (result>0)
-			return result;
+			result=vSendDataPacket(sendBuff, len-partial, channel);
+			if (result>0)
+				return result;
+		}
+
 	}
 	return 0;
 }
@@ -362,8 +370,6 @@ static int vSendDataHTTP(char *getHttpRequest, int channel)
 	int result;
 	DATA_TO_SEND *temp=GetPageWWW(getHttpRequest);
 	result=vSendData(temp->pData, temp->len, channel);
-	if(temp->state)
-		GiveMutex(Semphr_sdram);
 	vPortFree(temp);
 	return result;
 }

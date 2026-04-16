@@ -208,6 +208,7 @@ DATA_TO_SEND* GetPageWWW(char *getHttpRequest)
 				temp->len = ASP_Callback(GETVAL_ptr(0), temp->len, temp->pData);
 				temp->state=1;
 				GiveMutex(Semphr_cardSD);
+				GiveMutex(Semphr_sdram);
 			}
 
 		}
@@ -256,6 +257,7 @@ DATA_TO_SEND* GetPageWWW(char *getHttpRequest)
 			{
 				temp->len=mini_snprintf(temp->pData,1500,"19:22:05 &nbsp;19/06/13--0000000000000 111111111111111111  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0  --.-0 --a0       7.9       7.7   + 244    1+ 389    1+ 356    1+ 356    1+ 718    1+ 820    1+ 483    1+ 447    1   ---   0   ---   0+ 460    1   ---   0   ---   0   ---   0 V     V              0.001   KWh            0.001  0          0.001  0          0.001  0          0.001  0          0.001   KWh            0.001  0          0.001  0          0.001  0          0.001  0          0.001   KWh            0.001  0          0.001  0          0.001  0          0.001  0          0.001   KWh            0.001  0          0.001  0          0.001  0          0.001  0 ");
 				temp->state=1;
+				GiveMutex(Semphr_sdram);
 			}
 		}
 		else{
