@@ -604,6 +604,8 @@ static void EMAIL_SSL_SendData(mbedtls_ssl_context *ssl, Email_Send_Param *par, 
 
 static void vtaskSMTPS(void *mes)
 {
+	//mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
+
 	mbedtls_ssl_context ssl;
 	mbedtls_entropy_context entropy;
 	mbedtls_ctr_drbg_context ctr_drbg;
