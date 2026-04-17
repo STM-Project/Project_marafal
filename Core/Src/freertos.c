@@ -41,7 +41,9 @@
 #include "crc.h"
 #include "rng.h"
 #include "esp32wroom.h"
-#include <_debug.h>
+#include "_debug.h"
+#include "_smtp.h"
+#include "sntp_dns.h"
 
 /* USER CODE END Includes */
 
@@ -194,6 +196,10 @@ void StartDefaultTask(void const * argument)
 	 */
 
 	InitAllMutex();
+
+	DefaultSettingsEmail();
+	DefaultSettingsDNS();
+	DefaultSettingsSNTP();
 
 	MX_CRC_Init();
 	MX_RNG_Init();
