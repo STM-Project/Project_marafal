@@ -29,6 +29,7 @@
 
 /* USER CODE BEGIN 0 */
 #include "api.h"
+#include "dns.h"
 
 #include "string.h"
 #include "ff.h"
@@ -58,11 +59,10 @@ uint8_t GATEWAY_ADDRESS[4];
 /* ---------------- HTTP ---------------- */
 #define WEBSERVER_THREAD_PRIO    ( tskIDLE_PRIORITY + 0 )
 
-
 extern void Dbg(int on, char *txt);
 extern char* GETVAL_ptr();
 
-void http_server_serve(struct netconn *conn)
+static void http_server_serve(struct netconn *conn)
 {
   struct netbuf *inbuf;
   err_t recv_err;
@@ -171,8 +171,21 @@ static void http_server_netconn_thread(void *arg)
   }
 }
 
+static void DNS_Init(void)
+{
+	ip_addr_t primary;
+	ip_addr_t secondary;
+
+	IP4_ADDR(&primary, 8,8,8,8);
+	IP4_ADDR(&secondary,8,8,4,4);
+
+	dns_setserver(0,&primary);
+	dns_setserver(1,&secondary);
+}
+
 void http_server_netconn_init(void)
 {
+	DNS_Init();
 	sys_thread_new("HTTP", http_server_netconn_thread, NULL, 1200, -2);
 }
 
