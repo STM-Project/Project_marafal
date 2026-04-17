@@ -1773,23 +1773,38 @@ void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 
 
 
-	else if(DEBUG_RcvStr(","))   //interia
-	{
-		Dbg(1,", ");
-		SendEmail(1, 1<<5|1<<1, EMAIL_TEST);
-	}
+// to dla wifi:
+//	else if(DEBUG_RcvStr(","))   //interia
+//	{
+//		Dbg(1,", ");
+//		SendEmail(1, 1<<5|1<<1, EMAIL_TEST);
+//	}
+//	else if(DEBUG_RcvStr("."))
+//	{
+//		Dbg(1,". ");
+//		SendEmail(0, 1<<5|1<<1, EMAIL_TEST);
+//
+//		CreateTestEMAILTask("Info_11 ");
+//	}
+//	else if(DEBUG_RcvStr("/"))   //gmail
+//	{
+//		Dbg(1,"/");
+//		SendEmail(0, 1<<5|1<<1, EMAIL_TEST);
+//	}
+
+
+
 	else if(DEBUG_RcvStr("."))
 	{
 		Dbg(1,". ");
 		SendEmail(0, 1<<5|1<<1, EMAIL_TEST);
+		CreateTestEMAILTask();
 	}
 	else if(DEBUG_RcvStr("/"))   //gmail
 	{
 		Dbg(1,"/");
-		SendEmail(2, 1<<5|1<<1, EMAIL_TEST);
-
-		DefaultSettingsEmail();
-		CreateTestEMAILTask();
+		SendEmail(0, 1<<5|1<<1, EMAIL_MEASURE);
+		CreateTestEMAILTask();		//MOZNA wywolac zaraz nastep[na ta sama funkcje CreateTestEMAILTask() bo wszystkie zmienne do obslugi zadania sa kopiowane na stosie (mofga byc kilka watkow SMTP rownoczescnie)
 	}
 
 
