@@ -539,7 +539,19 @@ char sendBuffer[SMTP_MAIL_BUFFER];  //daj jako malloc !!!!
 
 static void EMAIL_HeadTestReport(Email_Send_Param *par, s_smtp_sender *send, s_smtp_recipient client[], char *sendBuffer)
 {
-	int n = mini_snprintf(sendBuffer,SMTP_MAIL_BUFFER,"From: %s\r\nSubject: TEST\r\n",send->login);
+	int n = mini_snprintf(sendBuffer,SMTP_MAIL_BUFFER,"From: %s\r\n",send->login);
+
+	switch(par->id)
+	{
+		case EMAIL_TEST:
+			n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "Subject: TEST\r\n");
+			break;
+
+		case EMAIL_MEASURE:
+			n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "Subject: MEASURE\r\n");
+			break;
+	}
+
 	n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "To: ");
 
 	for(int i=0;i<MAX_EMAIL_RECIPIENTS;++i)
@@ -556,32 +568,41 @@ static void EMAIL_HeadTestReport(Email_Send_Param *par, s_smtp_sender *send, s_s
 	n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "\r\n\r\n");
 }
 
-static void EMAIL_Content(Email_Send_Param *par, char *sendBuffer)
+static void EMAIL_Content(Email_Send_Param *par, char *sendBuffer, char* txt)
 {
-	if(par->id);  // jaki temat
+	int n=0;
 
-	int n = mini_snprintf(sendBuffer, SMTP_MAIL_BUFFER, "<html><style>table{width: 20%%;} td{ border-bottom:1px solid #ddd; padding:7px; font-family:Arial; text-align:center; white-space:nowrap;}</style>");
-	n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "<table><tr><td>MODEL</td><td>MODEL</td></tr>");
-	n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "<tr><td>Firmware</td><td>%s</td></tr>");
-	n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "<tr><td>AA</td><td>11</td></tr>");
-	n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "<tr><td>BB</td><td>22</td></tr>");
-	n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "<tr><td>CC</td><td>33</td></tr>");
-	n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "</table></html>\r\n");
-	n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "\r\n.\r\n");
+	switch(par->id)
+	{
+		case EMAIL_TEST:
+			n = mini_snprintf(sendBuffer, SMTP_MAIL_BUFFER, "<html><style>table{width: 20%%;} td{ border-bottom:1px solid #ddd; padding:7px; font-family:Arial; text-align:center; white-space:nowrap;}</style>");
+			n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "<table><tr><td>MODEL</td><td>MODEL</td></tr>");
+			n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "<tr><td>Firmware</td><td>%s</td></tr>");
+			n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "<tr><td>AA</td><td>11</td></tr>");
+			n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "<tr><td>BB</td><td>22</td></tr>");
+			n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "<tr><td>CC</td><td>33</td></tr>");
+			n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "</table></html>\r\n");
+			n += mini_snprintf(sendBuffer + n, SMTP_MAIL_BUFFER - n, "\r\n.\r\n");
+			break;
+
+		case EMAIL_MEASURE:
+			n = mini_snprintf(sendBuffer, SMTP_MAIL_BUFFER, "%s",txt);
+			break;
+	}
 }
 
-static void EMAIL_SSL_SendData(mbedtls_ssl_context *ssl, Email_Send_Param *par, s_smtp_sender *send, s_smtp_recipient client[])
+static void EMAIL_SSL_SendData(mbedtls_ssl_context *ssl, Email_Send_Param *par, s_smtp_sender *send, s_smtp_recipient client[], char* txt)
 {
 	EMAIL_HeadTestReport(par,send,client,sendBuffer);
 	SMTP_SSL_Send(ssl,sendBuffer);
 
-	EMAIL_Content(par,sendBuffer);
+	EMAIL_Content(par,sendBuffer,txt);
 	SMTP_SSL_Send(ssl,sendBuffer);
 
 	SMTP_SSL_Reciev(ssl,"250");
 }
 
-static void vtaskSMTPS(void *pvParameters) // daj param jako message !!!! tez
+static void vtaskSMTPS(void *mes)
 {
 	mbedtls_ssl_context ssl;
 	mbedtls_entropy_context entropy;
@@ -590,25 +611,24 @@ static void vtaskSMTPS(void *pvParameters) // daj param jako message !!!! tez
 	mbedtls_ssl_config conf;
 	mbedtls_x509_crt cacert;
 
-	int selNad = 0;
+	int selNad = 0,  len = 0;
 	uint8_t connectionError = 0;
 	ip_addr_t IP_server = {0};
 	Email_Send_Param _param = {0};
 	s_smtp_sender 	  _send[MAX_EMAIL_SENDERS] 	= {0};
 	s_smtp_recipient _recv[MAX_EMAIL_RECIPIENTS] = {0};
-	//Email_Send_Param* _pParam = (Email_Send_Param*)pvParameters;
 
-//	_param.id 				 = _pParam->id;
-//	_param.start 			 = _pParam->start;
-//	_param.whichSender 	 = _pParam->whichSender;
-//	_param.recepientsMask = _pParam->recepientsMask;
-//
+	if(NULL != mes) len = mini_strlen(mes);
+	if(len > 1024) len = 1024;
+	char message[len+1];
+	if(len > 0){  strncpy(message,mes,len);  message[len]=0; }
+
 	_param 			= EmailSendParam;
-	selNad 			= _param.whichSender;
-	IP_server.addr = _send[selNad].IP;
-
 	LOOP_FOR(i,MAX_EMAIL_SENDERS)	  {  _send[i] = VAR_GetMain().emailSend[i];  }
 	LOOP_FOR(i,MAX_EMAIL_RECIPIENTS){  _recv[i] = VAR_GetMain().emailRecv[i];  }
+
+	selNad 			= _param.whichSender;
+	IP_server.addr = _send[selNad].IP;
 
 	void _Close_SMTP_SSL(void){
 		SMTP_SSL_Disconnect(&ssl, &entropy, &ctr_drbg, &conf, &cacert, &server_fd);
@@ -666,7 +686,7 @@ static void vtaskSMTPS(void *pvParameters) // daj param jako message !!!! tez
 				vTaskDelete(NULL);
 			}
 
-			EMAIL_SSL_SendData(&ssl, &_param, &_send[selNad], _recv);
+			EMAIL_SSL_SendData(&ssl, &_param, &_send[selNad], _recv, message);
 
 			SMTP_SSL_QUIT(&ssl);
 
@@ -687,9 +707,9 @@ void https_server_netconn_init(void)
 	vTaskHandleServer = sys_thread_new("HTTPS", SSL_Server, NULL, 1024, -2);
 }
 
-void CreateTestEMAILTask(void/*Email_Send_Param *parameters*/)
+void CreateTestEMAILTask(char* mes)
 {
-	xTaskCreate(vtaskSMTPS, "SMTPS", 2048, NULL/*(void*) parameters*/, (unsigned portBASE_TYPE ) 2, NULL);
+	xTaskCreate(vtaskSMTPS, "SMTPS", 2048, (void*) mes, (unsigned portBASE_TYPE ) 2, NULL);
 
 }
 
