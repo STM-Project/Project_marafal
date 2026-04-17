@@ -799,9 +799,6 @@ void vtaskWifi(void *argument)
 	connectionType=INIT_CONNECTION;
 	EmailSendParam.start=0;
 	DefaultSettingsWIFI();
-	DefaultSettingsEmail();
-	DefaultSettingsDNS();
-	DefaultSettingsSNTP();
 	ResetTestTab(); //Do USUNIECIA !!!
 
 	Dbg(DBG,"\r\nStart vtaskWifi\r\n");   //StartUp aktivity dla tego watki jezeli nie ma odp na AT to innty watek restartuje ten watek
