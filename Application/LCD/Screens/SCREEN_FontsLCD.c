@@ -1793,7 +1793,7 @@ void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 //	}
 
 
-
+/* !! Wywolywania zadania z zadania generuje hardfault !! */
 	else if(DEBUG_RcvStr("."))
 	{
 		Dbg(1,". ");
@@ -1804,7 +1804,7 @@ void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 	{
 		Dbg(1,"/");
 		SendEmail(0, 1<<5|1<<1, EMAIL_MEASURE);
-		CreateTestEMAILTask("1232143234");		//MOZNA wywolac zaraz nastep[na ta sama funkcje CreateTestEMAILTask() bo wszystkie zmienne do obslugi zadania sa kopiowane na stosie (mofga byc kilka watkow SMTP rownoczescnie)
+		//CreateTestEMAILTask("1232143234");		//MOZNA wywolac zaraz nastep[na ta sama funkcje CreateTestEMAILTask() bo wszystkie zmienne do obslugi zadania sa kopiowane na stosie (mofga byc kilka watkow SMTP rownoczescnie)
 	}
 
 
