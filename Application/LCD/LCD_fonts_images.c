@@ -1813,18 +1813,18 @@ char *LCD_FontType2Str(char *buffTemp, int id, int idAlt)
 
 void DisplayFontsStructState(void){
 	char bufTemp[65],bufTemp2[210];
-	DbgVar(1,250,CoGr_"\r\nBuff address: 0x%x     Buff size: %s     busy bytes: %s\r\n"_X, fontsImagesMemoryBuffer, DispLongNmb(MAX_FONTS_AND_IMAGES_MEMORY_SIZE,GETVAL_ptr(0)), DispLongNmb(CounterBusyBytesForFontsImages,GETVAL_ptr(20)));
+	DbgVar(1,250,CoGr_"\r\nBuff address: 0x%x     Buff size: %s     busy bytes: %s\r\n"_X_, fontsImagesMemoryBuffer, DispLongNmb(MAX_FONTS_AND_IMAGES_MEMORY_SIZE,GETVAL_ptr(0)), DispLongNmb(CounterBusyBytesForFontsImages,GETVAL_ptr(20)));
 	for(int i=0; i < MAX_OPEN_FONTS_SIMULTANEOUSLY; i++){
 		if(Font[i].fontSizeToIndex){
 			LCD_FontType2Str(bufTemp+40,i,0);
 			switch(bufTemp[40]){
-				case '1': mini_snprintf(bufTemp2,210,CoR_"%c"_X Gre_"%c"_X CoB_"%c"_X "%c" CoR_"%c"_X Gre_"%c"_X CoB_"%c"_X,bufTemp[41],bufTemp[42],bufTemp[43],  bufTemp[44],  bufTemp[45],bufTemp[46],bufTemp[47]); break;
-				case '2': mini_snprintf(bufTemp2,210,CoG_"%s"_X, bufTemp+41); break;		/* This case never happened, because this is not new load_font just option case 1 */
-				case '3': mini_snprintf(bufTemp2,210,CoR_"%c"_X CoG_"%c"_X CoB_"%c"_X "%s",bufTemp[41],bufTemp[42],bufTemp[43],  &bufTemp[44]); break;
-				case '4': mini_snprintf(bufTemp2,210,BkW_ CoBl_"%s"_X, bufTemp+41); break;
+				case '1': mini_snprintf(bufTemp2,210,CoR_"%c"_X_ Gre_"%c"_X_ CoB_"%c"_X_ "%c" CoR_"%c"_X_ Gre_"%c"_X_ CoB_"%c"_X_,bufTemp[41],bufTemp[42],bufTemp[43],  bufTemp[44],  bufTemp[45],bufTemp[46],bufTemp[47]); break;
+				case '2': mini_snprintf(bufTemp2,210,CoG_"%s"_X_, bufTemp+41); break;		/* This case never happened, because this is not new load_font just option case 1 */
+				case '3': mini_snprintf(bufTemp2,210,CoR_"%c"_X_ CoG_"%c"_X_ CoB_"%c"_X_ "%s",bufTemp[41],bufTemp[42],bufTemp[43],  &bufTemp[44]); break;
+				case '4': mini_snprintf(bufTemp2,210,BkW_ CoBl_"%s"_X_, bufTemp+41); break;
 				default:  bufTemp2[0]=0; break;
 			}
-			DbgVar2(1,350,CoGr_"%*d"_X "%*s %*s %s %s"CoGr_"FontAddr:"_X" 0x%06x   "CoGr_"fontSdramLenght:"_X" %s\r\n",-2,i, -16,LCD_FontStyle2Str(bufTemp,Font[i].fontStyleToIndex), -17,LCD_FontSize2Str(bufTemp+20,Font[i].fontSizeToIndex-1), bufTemp2, CONDITION('4'==bufTemp[40],_1SPACE,TABU_2SPACE), Font[i].pointerToMemoryFont-fontsImagesMemoryBuffer, DispLongNmb(Font[i].fontSdramLenght,NULL));
+			DbgVar2(1,350,CoGr_"%*d"_X_ "%*s %*s %s %s"CoGr_"FontAddr:"_X_" 0x%06x   "CoGr_"fontSdramLenght:"_X_" %s\r\n",-2,i, -16,LCD_FontStyle2Str(bufTemp,Font[i].fontStyleToIndex), -17,LCD_FontSize2Str(bufTemp+20,Font[i].fontSizeToIndex-1), bufTemp2, CONDITION('4'==bufTemp[40],_1SPACE,TABU_2SPACE), Font[i].pointerToMemoryFont-fontsImagesMemoryBuffer, DispLongNmb(Font[i].fontSdramLenght,NULL));
 		}
 	}
 }

@@ -130,12 +130,12 @@ static int FILE_NAME(GetDefaultParam)(int param){
 
 void FILE_NAME(printInfo)(void){
 	if(v.DEBUG_ON){
-		Dbg(1,Clr_ CoG2_"\r\ntypedef struct{\r\n"_X);
-		DbgVar2(1,200,CoGr_"%*s %*s %*s %s\r\n"_X, -8,"id", -18,"name", -15,"default value", "value");
-		#define X(a,b,c) DbgVar2(1,200,CoGr_"%*d"_X	"%*s" 	CoGr_"= "_X	 	"%*s" 	"(%s0x%x)\r\n",-4,a,		-23,getName(b),	-15,getName(c), 	CHECK_bit( FILE_NAME(SelBits)[a/32], (a-32*(a/32)) )?CoR_"change to: "_X:"", v.b);
+		Dbg(1,Clr_ CoG2_"\r\ntypedef struct{\r\n"_X_);
+		DbgVar2(1,200,CoGr_"%*s %*s %*s %s\r\n"_X_, -8,"id", -18,"name", -15,"default value", "value");
+		#define X(a,b,c) DbgVar2(1,200,CoGr_"%*d"_X_	"%*s" 	CoGr_"= "_X_	 	"%*s" 	"(%s0x%x)\r\n",-4,a,		-23,getName(b),	-15,getName(c), 	CHECK_bit( FILE_NAME(SelBits)[a/32], (a-32*(a/32)) )?CoR_"change to: "_X_:"", v.b);
 		SCREEN_VISUALPARAM_SET_PARAMETERS
 		#undef X
-		DbgVar(1,200,CoG2_"}%s;\r\n"_X,getName(FILE_NAME(struct)));
+		DbgVar(1,200,CoG2_"}%s;\r\n"_X_,getName(FILE_NAME(struct)));
 	}
 }
 
@@ -638,7 +638,7 @@ void FILE_NAME(main)(int argNmb, char **argVal)
 		LCD_TOUCH_DeleteAllSetTouch();
 		VisualParam_LCD_Reset();
 
-		DbgVar(v.DEBUG_ON,100, "" Cya_"\r\nStart: %s\r\n"_X, GET_CODE_FUNCTION);
+		DbgVar(v.DEBUG_ON,100, "" Cya_"\r\nStart: %s\r\n"_X_, GET_CODE_FUNCTION);
 
 		LoadFonts(FONT_ID_Title, FONT_ID_Param_3);
 		DisplayFontsStructState();

@@ -78,7 +78,10 @@ unsigned char memory_buf[4*HTTPS_MAX_WRITE_BUFF];
 static char buffRecv[110];
 
 static sys_thread_t  vTaskHandleServer;
+static sys_thread_t  vTaskHandleSMTPS;
 /* USER CODE END 2 */
+
+static int do_wymaz=0;
 
 /* MBEDTLS init function */
 void MX_MBEDTLS_Init(void)
@@ -197,7 +200,7 @@ static void SSL_Server(void *arg)
 	{
 		RESET_Connection:
 		mbedtls_net_free(&client_fd);
-		mbedtls_ssl_session_reset(&ssl);
+		mbedtls_ssl_session_reset(&ssl);  do_wymaz=1;
 
 		ret = mbedtls_net_accept(&listen_fd, &client_fd, NULL, 0, NULL);		/* wait for connection */
 		if (ret != 0)
@@ -291,6 +294,7 @@ static void SSL_Server(void *arg)
 
 
 	exit:
+	Dbg(1,"___HTTPS CLOSED___");
 	HTTPS_close();
 	/* goto START__SSL_Server; */
 
@@ -612,12 +616,17 @@ static void vtaskSMTPS(void *mes)
 //	mbedtls_ssl_config conf;
 //	mbedtls_x509_crt cacert;
 
+	while(1){
+
+		if(do_wymaz==1) break;
+	}
+
 	int selNad = 0,  len = 0;
 	uint8_t connectionError = 0;
 	ip_addr_t IP_server = {0};
 	Email_Send_Param _param = {0};
-
-
+//
+//
 	if(NULL != mes) len = mini_strlen(mes);
 	if(len > 1024) len = 1024;
 	char message[len+1];
@@ -626,83 +635,100 @@ static void vtaskSMTPS(void *mes)
 	_param 			= EmailSendParam;
 	LOOP_FOR(i,MAX_EMAIL_SENDERS)	  {  _send[i] = VAR_GetMain().emailSend[i];  }
 	LOOP_FOR(i,MAX_EMAIL_RECIPIENTS){  _recv[i] = VAR_GetMain().emailRecv[i];  }
+//
+//	selNad 			= _param.whichSender;
+//	IP_server.addr = _send[selNad].IP;
+//
+//	void _Close_SMTP_SSL(void){
+//		SMTP_SSL_Disconnect(&ssl, &entropy, &ctr_drbg, &conf, &cert, &server_fd);
+//	}
 
-	selNad 			= _param.whichSender;
-	IP_server.addr = _send[selNad].IP;
+	//vTaskDelay(1000);
+	//netconn_gethostbyname(_send[selNad].server, &IP_server);
 
-	void _Close_SMTP_SSL(void){
-		SMTP_SSL_Disconnect(&ssl, &entropy, &ctr_drbg, &conf, &cert, &server_fd);
-	}
-
-	netconn_gethostbyname(_send[selNad].server, &IP_server);
-
-	_send[selNad].IP = IP_server.addr;
-
-	if(IP_server.addr == 0)
-	{
-		Dbg(1,"Connection error");
-		vTaskDelete(NULL);
-	}
+//	_send[selNad].IP = IP_server.addr;
+//
+//	if(IP_server.addr == 0)
+//	{
+//		Dbg(1,"Connection error");
+//		vTaskDelete(NULL);
+//	}
 
 	while(1)
 	{
-		if(SMTP_SSL_Connect(&ssl, _send[selNad], &entropy, &ctr_drbg, &conf, &cert, &server_fd))
-		{
-			SMTP_SSL_Disconnect(&ssl, &entropy, &ctr_drbg, &conf, &cert, &server_fd);
-			if(++connectionError >= 5)
-			{
-				Dbg(1,"Connection error");
-				vTaskDelete(NULL);
-			}
-			vTaskDelay(500);
-		}
-		else
-		{
-			if(SMTP_SSL_EHLO(&ssl,_send[selNad].name))
-			{
-				Dbg(1,"Authorization error"); _Close_SMTP_SSL();
-				vTaskDelete(NULL);
-			}
+//		if(SMTP_SSL_Connect(&ssl, _send[selNad], &entropy, &ctr_drbg, &conf, &cert, &server_fd))
+//		{
+//			SMTP_SSL_Disconnect(&ssl, &entropy, &ctr_drbg, &conf, &cert, &server_fd);
+//			if(++connectionError >= 5)
+//			{
+//				Dbg(1,"Connection error");
+//				vTaskDelete(NULL);
+//			}
+//			vTaskDelay(500);
+//		}
+//		else
+//		{
+//			if(SMTP_SSL_EHLO(&ssl,_send[selNad].name))
+//			{
+//				Dbg(1,"Authorization error"); _Close_SMTP_SSL();
+//				vTaskDelete(NULL);
+//			}
+//
+//			if(SMTP_SSL_AuthLogin(&ssl,&_send[selNad]))
+//			{
+//				Dbg(1,"Authorization error"); _Close_SMTP_SSL();
+//				vTaskDelete(NULL);
+//			}
+//
+//			if(SMTP_SSL_MailFrom(&ssl,_send[selNad].login))
+//			{
+//				Dbg(1,"Authorization error"); _Close_SMTP_SSL();
+//				vTaskDelete(NULL);
+//			}
+//
+//			if(SMTP_SSL_RecipientTo(&ssl,_recv))
+//			{
+//				Dbg(1,"Wrong recipient address"); _Close_SMTP_SSL();
+//				vTaskDelete(NULL);
+//			}
+//
+//			if(SMTP_SSL_DATA(&ssl))
+//			{
+//				Dbg(1,"Connection error"); _Close_SMTP_SSL();
+//				vTaskDelete(NULL);
+//			}
+//
+//			EMAIL_SSL_SendData(&ssl, &_param, &_send[selNad], _recv, message);
+//
+//			SMTP_SSL_QUIT(&ssl);
+//
+//			mbedtls_ssl_close_notify(&ssl);
+//
+//			Dbg(1,"Successfully"); _Close_SMTP_SSL();
+//			vTaskDelete(NULL);
+//		}
 
-			if(SMTP_SSL_AuthLogin(&ssl,&_send[selNad]))
-			{
-				Dbg(1,"Authorization error"); _Close_SMTP_SSL();
-				vTaskDelete(NULL);
-			}
-
-			if(SMTP_SSL_MailFrom(&ssl,_send[selNad].login))
-			{
-				Dbg(1,"Authorization error"); _Close_SMTP_SSL();
-				vTaskDelete(NULL);
-			}
-
-			if(SMTP_SSL_RecipientTo(&ssl,_recv))
-			{
-				Dbg(1,"Wrong recipient address"); _Close_SMTP_SSL();
-				vTaskDelete(NULL);
-			}
-
-			if(SMTP_SSL_DATA(&ssl))
-			{
-				Dbg(1,"Connection error"); _Close_SMTP_SSL();
-				vTaskDelete(NULL);
-			}
-
-			EMAIL_SSL_SendData(&ssl, &_param, &_send[selNad], _recv, message);
-
-			SMTP_SSL_QUIT(&ssl);
-
-			mbedtls_ssl_close_notify(&ssl);
-
-			Dbg(1,"Successfully"); _Close_SMTP_SSL();
-			vTaskDelete(NULL);
-		}
+		vTaskDelay(50);
 	}
 
 }
 
 
 	/*----------------- THREADs -------------- */
+
+
+//void vtaskSMTPS__(void *pvParameters)
+//{
+//
+//
+//
+//
+//	while(1)
+//	{
+//
+//		vTaskDelay(20);
+//	}
+//}
 
 void https_server_netconn_init(void)
 {
@@ -711,7 +737,9 @@ void https_server_netconn_init(void)
 
 void CreateTestEMAILTask(char* mes)
 {
-	xTaskCreate(vtaskSMTPS, "SMTPS", 2048, (void*) mes, (unsigned portBASE_TYPE ) 2, NULL);
+	xTaskCreate(vtaskSMTPS, "SMTPS", 1024, (void*) mes, (unsigned portBASE_TYPE ) 2, NULL);
+
+	//vTaskHandleSMTPS = sys_thread_new("SMTPS", vtaskSMTPS, (void*) mes, 1024, -2);
 
 }
 

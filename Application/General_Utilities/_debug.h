@@ -47,7 +47,7 @@ typedef enum{
 
 #define Bol_	"\x1b[1m"
 #define Ita_	"\x1b[4m"
-#define _X		"\x1b[0m"
+#define _X_		"\x1b[0m"
 
 /* ---- User Colors Definitions -----*/
 #define Co1_	"\x1b[38;2;255;255;255m"

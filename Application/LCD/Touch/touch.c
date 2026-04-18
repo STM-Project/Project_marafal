@@ -167,7 +167,7 @@ void DisplayCoeffCalibration(void){
 
 void DisplayTouchPosXY(int touchIdx, XY_Touch_Struct pos, char *txt){
 	if(GetTouchToTemp(touchIdx))
-		DbgVar(1,100,"\r\nPos (%d--"Cya_"%d"_X"--%d)  (%d--"Cya_"%d"_X"--%d) %s",touchTemp[0].x, pos.x, touchTemp[1].x,	touchTemp[0].y, pos.y, touchTemp[1].y, txt);
+		DbgVar(1,100,"\r\nPos (%d--"Cya_"%d"_X_"--%d)  (%d--"Cya_"%d"_X_"--%d) %s",touchTemp[0].x, pos.x, touchTemp[1].x,	touchTemp[0].y, pos.y, touchTemp[1].y, txt);
 }
 void DisplayAnyTouchPosXY(void){
 	if(press == ServiceTouch.press)
@@ -528,7 +528,7 @@ uint8_t LCD_TOUCH_testFunc(GET_SET action){
 		CALCULATE_MinMaxAvr(_SET1,1,_Uint32(VALPERC(LCD_Y,120)), _uint32);
 		CALCULATE_MinMaxAvr(_SET2,1,_Uint32(0), 						_uint32);
 		testTouchResolutionFlag=1;
-		Dbg(1,"\r\n"CoR_"START touch test "_X);
+		Dbg(1,"\r\n"CoR_"START touch test "_X_);
 		break;
 	case _CALC:
 		XY_Touch_Struct posTest = LCD_TOUCH_GetPos();
@@ -577,8 +577,8 @@ uint8_t LCD_TOUCH_testFunc(GET_SET action){
 		char By6[20];  DispLongNmb(I(y.itr),By6);
 		char By7[4];	DispLongNmb(I(y.avr),By7);
 */
-		DbgVar2(1,300,"\r\n"CoGr_"PosX min:"_X"%*s "CoGr_"max:"_X"%*s "CoGr_"div:"_X"%*s "CoGr_"mid:"_X"%*s "CoGr_"sum:"_X"%*s "CoGr_"itr:"_X"%*s "CoGr_"avr:"_X"%*s",L[0],t1[0],L[1],t1[1],L[2],t1[2],L[3],t1[3],L[4],t1[4],L[5],t1[5],L[6],t1[6]);
-		DbgVar2(1,300,"\r\n"CoGr_"PosY min:"_X"%*s "CoGr_"max:"_X"%*s "CoGr_"div:"_X"%*s "CoGr_"mid:"_X"%*s "CoGr_"sum:"_X"%*s "CoGr_"itr:"_X"%*s "CoGr_"avr:"_X"%*s",L[0],t2[0],L[1],t2[1],L[2],t2[2],L[3],t2[3],L[4],t2[4],L[5],t2[5],L[6],t2[6]);
+		DbgVar2(1,300,"\r\n"CoGr_"PosX min:"_X_"%*s "CoGr_"max:"_X_"%*s "CoGr_"div:"_X_"%*s "CoGr_"mid:"_X_"%*s "CoGr_"sum:"_X_"%*s "CoGr_"itr:"_X_"%*s "CoGr_"avr:"_X_"%*s",L[0],t1[0],L[1],t1[1],L[2],t1[2],L[3],t1[3],L[4],t1[4],L[5],t1[5],L[6],t1[6]);
+		DbgVar2(1,300,"\r\n"CoGr_"PosY min:"_X_"%*s "CoGr_"max:"_X_"%*s "CoGr_"div:"_X_"%*s "CoGr_"mid:"_X_"%*s "CoGr_"sum:"_X_"%*s "CoGr_"itr:"_X_"%*s "CoGr_"avr:"_X_"%*s",L[0],t2[0],L[1],t2[1],L[2],t2[2],L[3],t2[3],L[4],t2[4],L[5],t2[5],L[6],t2[6]);
 		break;
 	}
 	return testTouchResolutionFlag;
