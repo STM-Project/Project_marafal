@@ -515,7 +515,7 @@ static int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockP
 
 		case KEYBOARD_TunningFreq:
 			KEYBOARD_KeyAllParamSet(2,1, "+", "-", WHITE,WHITE, LIGHTCYAN,LIGHTCYAN);
-			KEYBOARD_SetGeneral(N,N,N, N,N, N,BrightIncr(v.COLOR_FillFrame,0xE), N,N,N);
+			KEYBOARD_SetGeneral(Ni,Ni,Ni, Ni,Ni, Ni,BrightIncr(v.COLOR_FillFrame,0xE), Ni,Ni,Ni);
 			KEYBOARD_Buttons(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_TunningFreq_plus, SL(LANG_TunningFreq));
 			break;
 

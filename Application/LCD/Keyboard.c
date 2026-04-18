@@ -1069,19 +1069,19 @@ void KEYBOARD_KeyAllParamSet3(uint16_t sizeX,uint16_t sizeY, COLORS_DEFINITION c
 }
 
 void KEYBOARD_SetGeneral(int vFontID,int vFontID_descr,int vColorDescr,int vFrameMainColor,int vFillMainColor,int vFrameColor,int vFillColor,int vFramePressColor,int vFillPressColor,int vBkColor){
-	if(vFontID 			  !=N) fontID 			  = vFontID;
-	if(vFontID_descr 	  !=N) fontID_descr 	  = vFontID_descr;
-	if(vColorDescr 	  !=N) colorDescr 	  = vColorDescr;
+	if(vFontID 			  !=Ni) fontID 			  = vFontID;
+	if(vFontID_descr 	  !=Ni) fontID_descr 	  = vFontID_descr;
+	if(vColorDescr 	  !=Ni) colorDescr 	  = vColorDescr;
 
-	if(vFrameMainColor  !=N) frameMainColor  = vFrameMainColor;
-	if(vFillMainColor   !=N) fillMainColor   = vFillMainColor;
+	if(vFrameMainColor  !=Ni) frameMainColor  = vFrameMainColor;
+	if(vFillMainColor   !=Ni) fillMainColor   = vFillMainColor;
 
-	if(vFrameColor 	  !=N) frameColor 	  = vFrameColor;
-	if(vFillColor 		  !=N) fillColor 		  = vFillColor;
+	if(vFrameColor 	  !=Ni) frameColor 	  = vFrameColor;
+	if(vFillColor 		  !=Ni) fillColor 		  = vFillColor;
 
-	if(vFramePressColor !=N) framePressColor = vFramePressColor;
-	if(vFillPressColor  !=N) fillPressColor  = vFillPressColor;
-	if(vBkColor 		  !=N) bkColor 		  = vBkColor;
+	if(vFramePressColor !=Ni) framePressColor = vFramePressColor;
+	if(vFillPressColor  !=Ni) fillPressColor  = vFillPressColor;
+	if(vBkColor 		  !=Ni) bkColor 		  = vBkColor;
 }
 
 int KEYBOARD_StartUp(int type, figureShape shape, uint8_t bold, uint16_t x, uint16_t y, uint16_t widthKey, uint16_t heightKey, uint8_t interSpace, uint16_t forTouchIdx, uint16_t startTouchIdx, uint8_t eraseOther){
