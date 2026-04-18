@@ -45,6 +45,7 @@
 #include "string_oper.h"
 #include "mini_printf.h"
 #include "lwip/api.h"
+#include "platform.h"
 /* USER CODE END 1 */
 
 /* Global variables ---------------------------------------------------------*/
@@ -74,14 +75,12 @@ static const uint8_t *pers = (uint8_t*) "ssl_server";
  mbedtls_ssl_cache_context cache;
 #endif
 
-unsigned char memory_buf[4*HTTPS_MAX_WRITE_BUFF];
+ __attribute__((aligned(8))) unsigned char memory_buf[4*HTTPS_MAX_WRITE_BUFF];
 static char buffRecv[110];
 
 static sys_thread_t  vTaskHandleServer;
 static sys_thread_t  vTaskHandleSMTPS;
 /* USER CODE END 2 */
-
-static int do_wymaz=0;
 
 /* MBEDTLS init function */
 void MX_MBEDTLS_Init(void)
@@ -122,6 +121,7 @@ static int HTTPS_recv(mbedtls_ssl_context *ssl, char *data, size_t len){
    return 0;	/* return(ret)  -  'ret' in this line code is bytes read, not use yet */
 }
 
+
 static void HTTPS_close(void){
 	mbedtls_net_free(&client_fd);
 	mbedtls_net_free(&listen_fd);
@@ -143,7 +143,13 @@ static void SSL_Server(void *arg)
 	/* START__SSL_Server: */
 	#ifdef MBEDTLS_MEMORY_BUFFER_ALLOC_C
 		mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
+
+//		mbedtls_platform_set_calloc_free(mbedtls_memory_buffer_alloc_calloc,
+//		                                 mbedtls_memory_buffer_alloc_free);
 	#endif
+
+		MX_MBEDTLS_Init();
+
 	mbedtls_net_init(&listen_fd);
 	mbedtls_net_init(&client_fd);
 
@@ -200,7 +206,7 @@ static void SSL_Server(void *arg)
 	{
 		RESET_Connection:
 		mbedtls_net_free(&client_fd);
-		mbedtls_ssl_session_reset(&ssl);  do_wymaz=1;
+		mbedtls_ssl_session_reset(&ssl);
 
 		ret = mbedtls_net_accept(&listen_fd, &client_fd, NULL, 0, NULL);		/* wait for connection */
 		if (ret != 0)
@@ -463,6 +469,9 @@ static int SMTP_SSL_Connect(mbedtls_ssl_context *ssl, s_smtp_sender server, mbed
 	uint32_t flags2=0;
 	const uint8_t *pers = (uint8_t *)("ssl_client");
 
+	MX_MBEDTLS_Init();
+	mbedtls_x509_crt_free(&cert);
+
 	// 0. Initialize the RNG and the session data
 //	mbedtls_ssl_init(ssl);
 //	mbedtls_ssl_config_init(conf);
@@ -481,12 +490,14 @@ static int SMTP_SSL_Connect(mbedtls_ssl_context *ssl, s_smtp_sender server, mbed
 		return 1;
 
 	/* 2. Start the connection */
-	if(0==server.IP)
-		return 1;
-	if(0==server.port)
-		return 1;
-	mini_snprintf(IP_buff,sizeof(IP_buff), "%d.%d.%d.%d", server.IP&0xFF, (server.IP>>8)&0xFF, (server.IP>>16)&0xFF, (server.IP>>24)&0xFF);
-	mini_snprintf(Port_buff,sizeof(Port_buff), "%d", server.port);
+//	if(0==server.IP)
+//		return 1;
+//	if(0==server.port)
+//		return 1;
+	//mini_snprintf(IP_buff,sizeof(IP_buff), "%d.%d.%d.%d", server.IP&0xFF, (server.IP>>8)&0xFF, (server.IP>>16)&0xFF, (server.IP>>24)&0xFF);
+	mini_snprintf(IP_buff,sizeof(IP_buff), "213.180.147.145");
+	//mini_snprintf(Port_buff,sizeof(Port_buff), "%d", server.port);
+	mini_snprintf(Port_buff,sizeof(Port_buff), "465");
 
 	if((ret = mbedtls_net_connect(server_fd,IP_buff,Port_buff,MBEDTLS_NET_PROTO_TCP)) != 0)
 		return 1;
@@ -604,7 +615,6 @@ static void EMAIL_SSL_SendData(mbedtls_ssl_context *ssl, Email_Send_Param *par, 
 	SMTP_SSL_Reciev(ssl,"250");
 }
 s_smtp_sender 	  _send[MAX_EMAIL_SENDERS] 	= {0};
-s_smtp_recipient _recv[MAX_EMAIL_RECIPIENTS] = {0};
 static void vtaskSMTPS(void *mes)
 {
 	//mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
@@ -616,43 +626,116 @@ static void vtaskSMTPS(void *mes)
 //	mbedtls_ssl_config conf;
 //	mbedtls_x509_crt cacert;
 
-	while(1){
-
-		if(do_wymaz==1) break;
-	}
+	mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
 
 	int selNad = 0,  len = 0;
 	uint8_t connectionError = 0;
 	ip_addr_t IP_server = {0};
 	Email_Send_Param _param = {0};
-//
-//
+
+
+//	s_smtp_recipient _recv[MAX_EMAIL_RECIPIENTS] = {0};
+
 	if(NULL != mes) len = mini_strlen(mes);
 	if(len > 1024) len = 1024;
 	char message[len+1];
 	if(len > 0){  strncpy(message,mes,len);  message[len]=0; }
 
 	_param 			= EmailSendParam;
-	LOOP_FOR(i,MAX_EMAIL_SENDERS)	  {  _send[i] = VAR_GetMain().emailSend[i];  }
-	LOOP_FOR(i,MAX_EMAIL_RECIPIENTS){  _recv[i] = VAR_GetMain().emailRecv[i];  }
-//
-//	selNad 			= _param.whichSender;
-//	IP_server.addr = _send[selNad].IP;
-//
+//	LOOP_FOR(i,MAX_EMAIL_SENDERS)	  {  _send[i] = VAR_GetMain().emailSend[i];  }
+//	LOOP_FOR(i,MAX_EMAIL_RECIPIENTS){  _recv[i] = VAR_GetMain().emailRecv[i];  }
+
+	selNad 			= _param.whichSender;
+	IP_server.addr = _send[selNad].IP;
+
 //	void _Close_SMTP_SSL(void){
 //		SMTP_SSL_Disconnect(&ssl, &entropy, &ctr_drbg, &conf, &cert, &server_fd);
 //	}
 
-	//vTaskDelay(1000);
-	//netconn_gethostbyname(_send[selNad].server, &IP_server);
+	netconn_gethostbyname(VAR_GetMain().emailSend[selNad].server, &IP_server);
 
-//	_send[selNad].IP = IP_server.addr;
-//
-//	if(IP_server.addr == 0)
-//	{
-//		Dbg(1,"Connection error");
-//		vTaskDelete(NULL);
-//	}
+	_send[selNad].IP = IP_server.addr;
+
+	if(IP_server.addr == 0)
+	{
+		Dbg(1,"Connection error");
+		vTaskDelete(NULL);
+	}
+
+
+
+	  mbedtls_ssl_init(&ssl);
+	  mbedtls_ssl_config_init(&conf);
+	  mbedtls_x509_crt_init(&cert);
+	  mbedtls_ctr_drbg_init(&ctr_drbg);
+	  mbedtls_entropy_init( &entropy );
+
+	  mbedtls_net_init(&server_fd);
+
+
+
+
+		int ret=0;
+	//	char IP_buff[17]={0};
+	//	char Port_buff[4]={0};
+	//	uint8_t vrfy_buf[512]={0};
+		uint32_t flags2=0;
+		const uint8_t *pers = (uint8_t *)("ssl_client");
+
+
+		// 0. Initialize the RNG and the session data
+	//	mbedtls_ssl_init(ssl);
+	//	mbedtls_ssl_config_init(conf);
+	//	mbedtls_x509_crt_init(cacert);
+	//	mbedtls_ctr_drbg_init(ctr_drbg);
+	//	mbedtls_entropy_init(entropy);
+
+		len = strlen((char *)pers);
+		if((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) pers, len)) != 0)
+			goto KONIEC___;
+
+		/* 1. Initialize certificates */
+
+//		ret = mbedtls_x509_crt_parse(&cert, (const unsigned char *) mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
+//		if(ret < 0)
+//			goto KONIEC___;
+
+
+
+		mini_snprintf(IP_buff,sizeof(IP_buff), "213.180.147.145");
+			//mini_snprintf(Port_buff,sizeof(Port_buff), "%d", server.port);
+			mini_snprintf(Port_buff,sizeof(Port_buff), "465");
+
+			if((ret = mbedtls_net_connect(&server_fd,IP_buff,Port_buff,MBEDTLS_NET_PROTO_TCP)) != 0)
+				goto KONIEC___;
+
+			/* 3. Setup stuff */
+			if((ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
+				goto KONIEC___;
+
+			mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
+			mbedtls_ssl_conf_ca_chain(&conf, &cert, NULL);
+			mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
+
+			if((ret = mbedtls_ssl_setup(&ssl,&conf)) != 0)
+				goto KONIEC___;
+
+			if((ret = mbedtls_ssl_set_hostname(&ssl,"TLS Server")) != 0)
+				goto KONIEC___;
+
+			mbedtls_ssl_set_bio(&ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL);
+
+			/* 4. Handshake */
+			while((ret = mbedtls_ssl_handshake(&ssl)) != 0)
+			{
+				if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
+					goto KONIEC___;
+			}
+
+
+
+	KONIEC___:
+	asm("nop");
 
 	while(1)
 	{
@@ -737,7 +820,7 @@ void https_server_netconn_init(void)
 
 void CreateTestEMAILTask(char* mes)
 {
-	xTaskCreate(vtaskSMTPS, "SMTPS", 1024, (void*) mes, (unsigned portBASE_TYPE ) 2, NULL);
+	xTaskCreate(vtaskSMTPS, "SMTPS", 4096, (void*) mes, (unsigned portBASE_TYPE ) 2, NULL);
 
 	//vTaskHandleSMTPS = sys_thread_new("SMTPS", vtaskSMTPS, (void*) mes, 1024, -2);
 
