@@ -1257,7 +1257,7 @@ static int FILE_NAME(keyboard)(KEYBOARD_TYPES type, SELECT_PRESS_BLOCK selBlockP
 
 		case KEYBOARD_fontCoeff:
 			KEYBOARD_KeyAllParamSet(2,1, "+", "-", WHITE,WHITE, LIGHTCYAN,LIGHTCYAN);
-			KEYBOARD_SetGeneral(N,N,N, N,N, N,BrightIncr(v.COLOR_FillFrame,0xE), N,N,N);
+			KEYBOARD_SetGeneral(Ni,Ni,Ni, Ni,Ni, Ni,BrightIncr(v.COLOR_FillFrame,0xE), Ni,Ni,Ni);
 			KEYBOARD_Buttons(type-1, selBlockPress, ARG_KEYBOARD_PARAM, KEY_All_release, KEY_Coeff_plus, SL(LANG_CoeffKeyName));
 			break;
 
@@ -1672,7 +1672,7 @@ void FILE_NAME(setTouch)(void)
 /*	LCDTOUCH_testFunc(); */
 
 }
-
+#include "mbedtls.h"
 static void* MainFuncRefresh(void *p1,void *p2){
 	FILE_NAME(main)(LoadUserScreen,(char**)ppMain);
 	return NULL;
@@ -1804,7 +1804,7 @@ void FILE_NAME(debugRcvStr)(void){	 if(v.DEBUG_ON){
 	{
 		Dbg(1,"/");
 		SendEmail(0, 1<<5|1<<1, EMAIL_MEASURE);
-		//CreateTestEMAILTask("1232143234");		//MOZNA wywolac zaraz nastep[na ta sama funkcje CreateTestEMAILTask() bo wszystkie zmienne do obslugi zadania sa kopiowane na stosie (mofga byc kilka watkow SMTP rownoczescnie)
+		CreateTestEMAILTask("1232143234");		//MOZNA wywolac zaraz nastep[na ta sama funkcje CreateTestEMAILTask() bo wszystkie zmienne do obslugi zadania sa kopiowane na stosie (mofga byc kilka watkow SMTP rownoczescnie)
 	}
 
 
