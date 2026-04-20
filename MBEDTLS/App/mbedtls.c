@@ -138,6 +138,11 @@ static void HTTPS_close(void){
 	mbedtls_entropy_free(&entropy);
 }
 
+static const int my_non_rsa_ciphers[] = {
+    MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+    0 // Koniec listy
+};
+
 static void SSL_Server(void *arg)
 {
 	int ret,len;
@@ -184,6 +189,15 @@ static void SSL_Server(void *arg)
 	ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
 	if (ret != 0)
 		goto exit;
+
+
+
+
+
+	mbedtls_ssl_conf_ciphersuites(&conf, my_non_rsa_ciphers/*mbedtls_ssl_list_ciphersuites()*/);
+
+
+
 
 	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 
