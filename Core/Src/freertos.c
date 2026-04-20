@@ -229,7 +229,7 @@ void StartDefaultTask(void const * argument)
 	#if HTTP_THREAD_ON
 	 http_server_netconn_init();
 	 https_server_netconn_init();
-	 //CreateTestEMAILTask("1232143234");
+	 CreateTestEMAILTask("1232143234");
 	#endif
 
 	osThreadTerminate(NULL);
