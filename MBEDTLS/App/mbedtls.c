@@ -75,7 +75,7 @@ static const uint8_t *pers = (uint8_t*) "ssl_server";
  mbedtls_ssl_cache_context cache;
 #endif
 
- __attribute__ ((section(".sdram"))) unsigned char memory_buf[8*HTTPS_MAX_WRITE_BUFF];
+unsigned char memory_buf[8*HTTPS_MAX_WRITE_BUFF];
 //__attribute__ ((section(".sdram")))  __attribute__((aligned(8)))unsigned char memory_buf2[4*HTTPS_MAX_WRITE_BUFF];
 
 static char buffRecv[110];
