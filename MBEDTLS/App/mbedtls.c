@@ -656,13 +656,17 @@ static void vtaskSMTPS(void *mes)
 		vTaskDelete(NULL);
 	}
 
+	mbedtls_ssl_context ssl;
+	mbedtls_ssl_config conf;
+	mbedtls_x509_crt cert;
+	mbedtls_ctr_drbg_context ctr_drbg;
+	mbedtls_entropy_context entropy;
 
-
-//	  mbedtls_ssl_init(&ssl);
-//	  mbedtls_ssl_config_init(&conf);
-//	  mbedtls_x509_crt_init(&cert);
-//	  mbedtls_ctr_drbg_init(&ctr_drbg);
-//	  mbedtls_entropy_init( &entropy );
+	  mbedtls_ssl_init(&ssl);
+	  mbedtls_ssl_config_init(&conf);
+	  mbedtls_x509_crt_init(&cert);
+	  mbedtls_ctr_drbg_init(&ctr_drbg);
+	  mbedtls_entropy_init( &entropy );
 
 	  mbedtls_net_init(&server_fd);
 
