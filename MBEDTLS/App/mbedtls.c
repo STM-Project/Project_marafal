@@ -75,7 +75,9 @@ static const uint8_t *pers = (uint8_t*) "ssl_server";
  mbedtls_ssl_cache_context cache;
 #endif
 
- __attribute__((aligned(8))) unsigned char memory_buf[4*HTTPS_MAX_WRITE_BUFF];
+ __attribute__ ((section(".sdram"))) unsigned char memory_buf[8*HTTPS_MAX_WRITE_BUFF];
+//__attribute__ ((section(".sdram")))  __attribute__((aligned(8)))unsigned char memory_buf2[4*HTTPS_MAX_WRITE_BUFF];
+
 static char buffRecv[110];
 
 static sys_thread_t  vTaskHandleServer;
@@ -617,16 +619,8 @@ static void EMAIL_SSL_SendData(mbedtls_ssl_context *ssl, Email_Send_Param *par, 
 s_smtp_sender 	  _send[MAX_EMAIL_SENDERS] 	= {0};
 static void vtaskSMTPS(void *mes)
 {
-	//mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
 
-//	mbedtls_ssl_context ssl;
-//	mbedtls_entropy_context entropy;
-//	mbedtls_ctr_drbg_context ctr_drbg;
-//	mbedtls_net_context server_fd;
-//	mbedtls_ssl_config conf;
-//	mbedtls_x509_crt cacert;
-
-	mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
+	//mbedtls_memory_buffer_alloc_init(memory_buf2, sizeof(memory_buf2));
 
 	int selNad = 0,  len = 0;
 	uint8_t connectionError = 0;
@@ -636,10 +630,10 @@ static void vtaskSMTPS(void *mes)
 
 //	s_smtp_recipient _recv[MAX_EMAIL_RECIPIENTS] = {0};
 
-	if(NULL != mes) len = mini_strlen(mes);
-	if(len > 1024) len = 1024;
-	char message[len+1];
-	if(len > 0){  strncpy(message,mes,len);  message[len]=0; }
+//	if(NULL != mes) len = mini_strlen(mes);
+//	if(len > 1024) len = 1024;
+//	char message[len+1];
+//	if(len > 0){  strncpy(message,mes,len);  message[len]=0; }
 
 	_param 			= EmailSendParam;
 //	LOOP_FOR(i,MAX_EMAIL_SENDERS)	  {  _send[i] = VAR_GetMain().emailSend[i];  }
@@ -664,11 +658,11 @@ static void vtaskSMTPS(void *mes)
 
 
 
-	  mbedtls_ssl_init(&ssl);
-	  mbedtls_ssl_config_init(&conf);
-	  mbedtls_x509_crt_init(&cert);
-	  mbedtls_ctr_drbg_init(&ctr_drbg);
-	  mbedtls_entropy_init( &entropy );
+//	  mbedtls_ssl_init(&ssl);
+//	  mbedtls_ssl_config_init(&conf);
+//	  mbedtls_x509_crt_init(&cert);
+//	  mbedtls_ctr_drbg_init(&ctr_drbg);
+//	  mbedtls_entropy_init( &entropy );
 
 	  mbedtls_net_init(&server_fd);
 
@@ -684,11 +678,6 @@ static void vtaskSMTPS(void *mes)
 
 
 		// 0. Initialize the RNG and the session data
-	//	mbedtls_ssl_init(ssl);
-	//	mbedtls_ssl_config_init(conf);
-	//	mbedtls_x509_crt_init(cacert);
-	//	mbedtls_ctr_drbg_init(ctr_drbg);
-	//	mbedtls_entropy_init(entropy);
 
 		len = strlen((char *)pers);
 		if((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) pers, len)) != 0)
@@ -720,16 +709,33 @@ static void vtaskSMTPS(void *mes)
 			if((ret = mbedtls_ssl_setup(&ssl,&conf)) != 0)
 				goto KONIEC___;
 
-			if((ret = mbedtls_ssl_set_hostname(&ssl,"TLS Server")) != 0)
+			if((ret = mbedtls_ssl_set_hostname(&ssl,"ssl_client")) != 0)
 				goto KONIEC___;
 
 			mbedtls_ssl_set_bio(&ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL);
+
+
+
 
 			/* 4. Handshake */
 			while((ret = mbedtls_ssl_handshake(&ssl)) != 0)
 			{
 				if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
 					goto KONIEC___;
+			}
+
+			/* 5. Verify the server certificate */
+			if((flags2 = mbedtls_ssl_get_verify_result(&ssl)) != 0)
+			{
+				mbedtls_x509_crt_verify_info((char *)vrfy_buf, sizeof(vrfy_buf), "  ! ", flags2);
+			}
+			else
+				goto KONIEC___;
+
+			if(SMTP_SSL_EHLO(&ssl,"STM-Project"))
+			{
+				Dbg(1,"Authorization error"); SMTP_SSL_Disconnect(&ssl, &entropy, &ctr_drbg, &conf, &cert, &server_fd);//_Close_SMTP_SSL();
+				vTaskDelete(NULL);
 			}
 
 
@@ -818,11 +824,18 @@ void https_server_netconn_init(void)
 	vTaskHandleServer = sys_thread_new("HTTPS", SSL_Server, NULL, 1024, -2);
 }
 
+
+__attribute__((section(".sdram"))) static StackType_t  vtaskSMTPS_Stack[8192]; // 8192 słów = 32KB
+__attribute__((section(".sdram"))) static StaticTask_t vtaskSMTPS_Buffer;
+
 void CreateTestEMAILTask(char* mes)
 {
-	xTaskCreate(vtaskSMTPS, "SMTPS", 4096, (void*) mes, (unsigned portBASE_TYPE ) 2, NULL);
+	//xTaskCreate(vtaskSMTPS, "SMTPS", 4096, (void*) mes, (unsigned portBASE_TYPE ) 2, NULL);
 
 	//vTaskHandleSMTPS = sys_thread_new("SMTPS", vtaskSMTPS, (void*) mes, 1024, -2);
+
+
+	xTaskCreateStatic(vtaskSMTPS, "SMTPS", 8192, (void*) mes, (unsigned portBASE_TYPE ) 2, vtaskSMTPS_Stack, &vtaskSMTPS_Buffer);
 
 }
 
