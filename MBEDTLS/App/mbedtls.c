@@ -140,6 +140,8 @@ static void HTTPS_close(void){
 
 static const int my_non_rsa_ciphers[] = {
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+    MBEDTLS_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+    MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
     0 // Koniec listy
 };
 
@@ -193,8 +195,8 @@ static void SSL_Server(void *arg)
 
 
 
-
-	mbedtls_ssl_conf_ciphersuites(&conf, my_non_rsa_ciphers/*mbedtls_ssl_list_ciphersuites()*/);
+	mbedtls_ssl_conf_ciphersuites(&conf, mbedtls_ssl_list_ciphersuites());
+	//mbedtls_ssl_conf_ciphersuites(&conf, my_non_rsa_ciphers/*mbedtls_ssl_list_ciphersuites()*/);
 
 
 
