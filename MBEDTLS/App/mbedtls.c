@@ -46,6 +46,8 @@
 #include "mini_printf.h"
 #include "lwip/api.h"
 #include "platform.h"
+#include "_smtp.h"
+#include "variables.h"
 /* USER CODE END 1 */
 
 /* Global variables ---------------------------------------------------------*/
@@ -58,6 +60,7 @@ mbedtls_entropy_context entropy;
 /* USER CODE BEGIN 2 */
 #define HTTPS_DEBUG	1
 #define HTTPS_MAX_WRITE_BUFF	16384
+#define SMTP_MAIL_BUFFER	2048
 
 #if HTTPS_MAX_WRITE_BUFF > MBEDTLS_SSL_MAX_CONTENT_LEN
 #error "Write buffer size NOT large as MBEDTLS_SSL_MAX_CONTENT_LEN"
@@ -67,9 +70,8 @@ extern void Dbg(int on, char *txt);
 extern char* GETVAL_ptr();
 
 static mbedtls_net_context listen_fd, client_fd;
-static mbedtls_x509_crt srvcert;		/* Create own certificate -> https://base64.guru/converter/decode/hex  (hex-ascii or ascii-hex) */
 static mbedtls_pk_context pkey;
-static const uint8_t *pers = (uint8_t*) "ssl_server";
+static char sendBuffer[SMTP_MAIL_BUFFER];  	//daj jako malloc !!!!
 
 #if defined(MBEDTLS_SSL_CACHE_C)
  mbedtls_ssl_cache_context cache;
@@ -79,9 +81,9 @@ unsigned char memory_buf[8*HTTPS_MAX_WRITE_BUFF];
 //__attribute__ ((section(".sdram")))  __attribute__((aligned(8)))unsigned char memory_buf2[4*HTTPS_MAX_WRITE_BUFF];
 
 static char buffRecv[110];
+uint8_t vrfy_buf[512]={0};
 
 static sys_thread_t  vTaskHandleServer;
-static sys_thread_t  vTaskHandleSMTPS;
 /* USER CODE END 2 */
 
 /* MBEDTLS init function */
@@ -91,7 +93,7 @@ void MX_MBEDTLS_Init(void)
   */
   mbedtls_ssl_init(&ssl);
   mbedtls_ssl_config_init(&conf);
-  mbedtls_x509_crt_init(&cert);
+  mbedtls_x509_crt_init(&cert);					/* Create own certificate -> https://base64.guru/converter/decode/hex  (hex-ascii or ascii-hex) */
   mbedtls_ctr_drbg_init(&ctr_drbg);
   mbedtls_entropy_init( &entropy );
   /* USER CODE BEGIN 3 */
@@ -102,7 +104,7 @@ void MX_MBEDTLS_Init(void)
 
 /* USER CODE BEGIN 4 */
 
- 	 /*-------------------- HTTPS ---------------- */
+/*-------------------- HTTPS ---------------- */
 
 static int HTTPS_send(mbedtls_ssl_context *ssl, char *data, size_t len){
 	int ret=0;
@@ -123,7 +125,6 @@ static int HTTPS_recv(mbedtls_ssl_context *ssl, char *data, size_t len){
    return 0;	/* return(ret)  -  'ret' in this line code is bytes read, not use yet */
 }
 
-
 static void HTTPS_close(void){
 	mbedtls_net_free(&client_fd);
 	mbedtls_net_free(&listen_fd);
@@ -141,21 +142,17 @@ static void HTTPS_close(void){
 static const int my_non_rsa_ciphers[] = {
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 	 MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256,
-//    MBEDTLS_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-//    MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-    0 // Koniec listy
+    0
 };
 
 static void SSL_Server(void *arg)
 {
 	int ret,len;
+	const uint8_t *pers = (uint8_t*) "ssl_server";
 
 	/* START__SSL_Server: */
 	#ifdef MBEDTLS_MEMORY_BUFFER_ALLOC_C
 		mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
-
-//		mbedtls_platform_set_calloc_free(mbedtls_memory_buffer_alloc_calloc,
-//		                                 mbedtls_memory_buffer_alloc_free);
 	#endif
 
 		MX_MBEDTLS_Init();
@@ -169,20 +166,19 @@ static void SSL_Server(void *arg)
 
 	mbedtls_pk_init(&pkey);
 
-	//ret = mbedtls_x509_crt_parse(&cert, (const unsigned char *) mbedtls_test_srv_crt, mbedtls_test_srv_crt_len);
+/*	ret = mbedtls_x509_crt_parse(&cert, (const unsigned char *) mbedtls_test_srv_crt, mbedtls_test_srv_crt_len); */
 	ret = mbedtls_x509_crt_parse(&cert, (const unsigned char *) mbedtls_test_srv_crt_ec, mbedtls_test_srv_crt_ec_len);
 	if (ret != 0)
 		goto exit;
 
-//	ret = mbedtls_x509_crt_parse(&cert, (const unsigned char *) mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
-//	if (ret != 0)
-//		goto exit;
+/*	ret = mbedtls_x509_crt_parse(&cert, (const unsigned char *) mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
+	if (ret != 0)
+		goto exit; */
 
-	//ret = mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key, mbedtls_test_srv_key_len, NULL, 0);
+/* ret = mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key, mbedtls_test_srv_key_len, NULL, 0); */
 	ret = mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key_ec, mbedtls_test_srv_key_ec_len, NULL, 0);
 	if (ret != 0)
 		goto exit;
-
 
 	if ((ret = mbedtls_net_bind(&listen_fd, NULL, "443", MBEDTLS_NET_PROTO_TCP)) != 0)
 		goto exit;
@@ -195,17 +191,10 @@ static void SSL_Server(void *arg)
 	if (ret != 0)
 		goto exit;
 
-
-
-
-	//mbedtls_ssl_conf_ciphersuites(&conf, mbedtls_ssl_list_ciphersuites());
-	mbedtls_ssl_conf_ciphersuites(&conf, my_non_rsa_ciphers/*mbedtls_ssl_list_ciphersuites()*/);
-
-
-
+/* mbedtls_ssl_conf_ciphersuites(&conf, mbedtls_ssl_list_ciphersuites()); */
+	mbedtls_ssl_conf_ciphersuites(&conf, my_non_rsa_ciphers);
 
 	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
-
 
 	#if defined(MBEDTLS_SSL_CACHE_C)
 		mbedtls_ssl_conf_session_cache(&conf, &cache, mbedtls_ssl_cache_get, mbedtls_ssl_cache_set);
@@ -307,26 +296,20 @@ static void SSL_Server(void *arg)
 			Dbg(HTTPS_DEBUG,"i");
 		}
 
-	  
-
-
 		while ((ret = mbedtls_ssl_close_notify(&ssl)) < 0)
 		{
 			if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
 				goto RESET_Connection;
 		}
 
-
 	}while(1);
-
 
 	exit:
 	Dbg(1,"___HTTPS CLOSED___");
 	HTTPS_close();
+
 	/* goto START__SSL_Server; */
-
 	osThreadTerminate(vTaskHandleServer);
-
 }
 
 	/*----------------- SMTPS -------------- */
@@ -355,7 +338,7 @@ static int SMTP_SSL_Reciev(mbedtls_ssl_context *ssl, char *req)
 	memset(recvBuffer, 0, 1024);
 	ret2 = mbedtls_ssl_read(ssl,recvBuffer,200);
 
-	Dbg(1,recvBuffer);
+	Dbg(1,(char*)recvBuffer);
 
 	if(ret2 < 0)
 		return 1;
@@ -387,8 +370,6 @@ static int SMTP_SSL_EHLO(mbedtls_ssl_context *ssl, char *serverName)
 	return 0;
 }
 
-#include "_smtp.h"
-#include "variables.h"
 static int SMTP_SSL_AuthLogin(mbedtls_ssl_context *ssl, s_smtp_sender *client)
 {
 	char sendBuffer[96] = {0};
@@ -442,18 +423,21 @@ static int SMTP_SSL_RecipientTo(mbedtls_ssl_context *ssl, s_smtp_recipient clien
 
 	for (int i = 0; i<MAX_EMAIL_RECIPIENTS; ++i)
 	{
-		if(client[i].email[0]!=' ' && client[i].email[1]!='\0')
+		if ((EmailSendParam.recepientsMask>>i)&0x01)
 		{
-			memset(sendBuffer, 0, 96);
-			strncpy(sendBuffer,"RCPT TO:<",12);
-			strncat(sendBuffer,&client[i].email[0],64);
-			strncat(sendBuffer,">\r\n",5);
-			SMTP_SSL_Send(ssl,sendBuffer);
+			if(client[i].email[0]!=' ' && client[i].email[1]!='\0')
+			{
+				memset(sendBuffer, 0, 96);
+				strncpy(sendBuffer,"RCPT TO:<",12);
+				strncat(sendBuffer,&client[i].email[0],64);
+				strncat(sendBuffer,">\r\n",5);
+				SMTP_SSL_Send(ssl,sendBuffer);
 
-			if(SMTP_SSL_Reciev(ssl,"250"))
-				return 1;
-			else
-				nuberOfRecipients++;
+				if(SMTP_SSL_Reciev(ssl,"250"))
+					return 1;
+				else
+					nuberOfRecipients++;
+			}
 		}
 	}
 	if(0==nuberOfRecipients)
@@ -479,16 +463,13 @@ static int SMTP_SSL_QUIT(mbedtls_ssl_context *ssl)
 
 	return 0;
 }
-char IP_buff[17]={0};
-char Port_buff[4]={0};
-uint8_t vrfy_buf[512]={0};
+
 static int SMTP_SSL_Connect(mbedtls_ssl_context *ssl, s_smtp_sender server, mbedtls_entropy_context *entropy,
 		mbedtls_ctr_drbg_context *ctr_drbg, mbedtls_ssl_config *conf, mbedtls_x509_crt *cacert, mbedtls_net_context *server_fd)
 {
 	int len=0, ret=0;
-//	char IP_buff[17]={0};
-//	char Port_buff[4]={0};
-//	uint8_t vrfy_buf[512]={0};
+	char IP_buff[17]={0};
+	char Port_buff[4]={0};
 	uint32_t flags2=0;
 	const uint8_t *pers = (uint8_t *)("ssl_client");
 
@@ -498,20 +479,16 @@ static int SMTP_SSL_Connect(mbedtls_ssl_context *ssl, s_smtp_sender server, mbed
 		return 1;
 
 	/* 1. Initialize certificates */
-
-//	ret = mbedtls_x509_crt_parse(cacert, (const unsigned char *) mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
-//	if(ret < 0)
-//		return 1;
-
+/*	ret = mbedtls_x509_crt_parse(cacert, (const unsigned char *) mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
+	if(ret < 0)
+		return 1;
+*/
 	/* 2. Start the connection */
-	if(0==server.IP)
-		return 1;
-	if(0==server.port)
-		return 1;
+	if(0==server.IP) 	 return 1;
+	if(0==server.port) return 1;
+
 	mini_snprintf(IP_buff,sizeof(IP_buff), "%d.%d.%d.%d", server.IP&0xFF, (server.IP>>8)&0xFF, (server.IP>>16)&0xFF, (server.IP>>24)&0xFF);
-	//mini_snprintf(IP_buff,sizeof(IP_buff), "213.180.147.145");
 	mini_snprintf(Port_buff,sizeof(Port_buff), "%d", server.port);
-	//mini_snprintf(Port_buff,sizeof(Port_buff), "465");
 
 	if((ret = mbedtls_net_connect(server_fd,IP_buff,Port_buff,MBEDTLS_NET_PROTO_TCP)) != 0)
 		return 1;
@@ -519,13 +496,10 @@ static int SMTP_SSL_Connect(mbedtls_ssl_context *ssl, s_smtp_sender server, mbed
 	/* 3. Setup stuff */
 	if((ret = mbedtls_ssl_config_defaults(conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
 		return 1;
-
-
-	//mbedtls_ssl_conf_ciphersuites(&conf, mbedtls_ssl_list_ciphersuites());
-	//mbedtls_ssl_conf_ciphersuites(&conf, my_non_rsa_ciphers/*mbedtls_ssl_list_ciphersuites()*/);
-
-
-
+/*
+	mbedtls_ssl_conf_ciphersuites(&conf, mbedtls_ssl_list_ciphersuites());
+	mbedtls_ssl_conf_ciphersuites(&conf, my_non_rsa_ciphers);
+*/
 	mbedtls_ssl_conf_authmode(conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
 	mbedtls_ssl_conf_ca_chain(conf, cacert, NULL);
 	mbedtls_ssl_conf_rng(conf, mbedtls_ctr_drbg_random, ctr_drbg);
@@ -533,7 +507,7 @@ static int SMTP_SSL_Connect(mbedtls_ssl_context *ssl, s_smtp_sender server, mbed
 	if((ret = mbedtls_ssl_setup(ssl,conf)) != 0)
 		return 1;
 
-	if((ret = mbedtls_ssl_set_hostname(ssl,server.name)) != 0)
+	if((ret = mbedtls_ssl_set_hostname(ssl,server.login/*server.name*/)) != 0)
 		return 1;
 
 	mbedtls_ssl_set_bio(ssl, server_fd, mbedtls_net_send, mbedtls_net_recv, NULL);
@@ -566,9 +540,6 @@ static void SMTP_SSL_Disconnect(mbedtls_ssl_context *ssl, mbedtls_entropy_contex
 	mbedtls_ctr_drbg_free	(ctr_drbg);
 	mbedtls_entropy_free		(entropy);
 }
-
-#define SMTP_MAIL_BUFFER	512
-char sendBuffer[SMTP_MAIL_BUFFER];  //daj jako malloc !!!!
 
 static void EMAIL_HeadTestReport(Email_Send_Param *par, s_smtp_sender *send, s_smtp_recipient client[], char *sendBuffer)
 {
@@ -624,11 +595,20 @@ static void EMAIL_Content(Email_Send_Param *par, char *sendBuffer, char* txt)
 	}
 }
 
+static void EMAIL_ContentTest(Email_Send_Param *par, char *sendBuffer, char* txt)
+{
+	LOOP_FOR(i,SMTP_MAIL_BUFFER-40){ sendBuffer[i]='A'; sendBuffer[i+1]=0;}
+}
+
 static void EMAIL_SSL_SendData(mbedtls_ssl_context *ssl, Email_Send_Param *par, s_smtp_sender *send, s_smtp_recipient client[], char* txt)
 {
 	EMAIL_HeadTestReport(par,send,client,sendBuffer);
 	SMTP_SSL_Send(ssl,sendBuffer);
 
+	LOOP_FOR(i,300){
+		EMAIL_ContentTest(par,sendBuffer,txt);
+		SMTP_SSL_Send(ssl,sendBuffer);
+	}
 	EMAIL_Content(par,sendBuffer,txt);
 	SMTP_SSL_Send(ssl,sendBuffer);
 
@@ -729,18 +709,12 @@ void https_server_netconn_init(void)
 }
 
 
-__attribute__((section(".sdram"))) static StackType_t  vtaskSMTPS_Stack[8192]; // 8192 słów = 32KB
+__attribute__((section(".sdram"))) static StackType_t  vtaskSMTPS_Stack[8192]; /* 8192 words = 32KB */
 __attribute__((section(".sdram"))) static StaticTask_t vtaskSMTPS_Buffer;
 
 void CreateTestEMAILTask(char* mes)
 {
-	//xTaskCreate(vtaskSMTPS, "SMTPS", 4096, (void*) mes, (unsigned portBASE_TYPE ) 2, NULL);
-
-	//vTaskHandleSMTPS = sys_thread_new("SMTPS", vtaskSMTPS, (void*) mes, 1024, -2);
-
-
-	xTaskCreateStatic(vtaskSMTPS, "SMTPS", 8192, (void*) mes, (unsigned portBASE_TYPE ) 2, vtaskSMTPS_Stack, &vtaskSMTPS_Buffer);
-
+	xTaskCreateStatic(vtaskSMTPS, "SMTPS", 8192, (void*) mes, (unsigned portBASE_TYPE ) 4, vtaskSMTPS_Stack, &vtaskSMTPS_Buffer);
 }
 
 
