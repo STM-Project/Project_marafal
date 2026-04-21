@@ -105,6 +105,8 @@ typedef struct  __attribute__ ((packed))
 
 }Zmienne_zapisywalne;
 
+extern Zmienne_zapisywalne  Const;
+
 Zmienne_zapisywalne* VAR_GetMainPtr(void);
 Zmienne_zapisywalne  VAR_GetMain	  (void);
 void VAR_SetVal(int nameVar, int val);
