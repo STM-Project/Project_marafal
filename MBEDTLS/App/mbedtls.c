@@ -66,7 +66,7 @@ mbedtls_entropy_context entropy;
 extern void Dbg(int on, char *txt);
 extern char* GETVAL_ptr();
 
-static mbedtls_net_context listen_fd, client_fd, server_fd;
+static mbedtls_net_context listen_fd, client_fd;
 static mbedtls_x509_crt srvcert;		/* Create own certificate -> https://base64.guru/converter/decode/hex  (hex-ascii or ascii-hex) */
 static mbedtls_pk_context pkey;
 static const uint8_t *pers = (uint8_t*) "ssl_server";
@@ -140,8 +140,9 @@ static void HTTPS_close(void){
 
 static const int my_non_rsa_ciphers[] = {
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-    MBEDTLS_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-    MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+	 MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256,
+//    MBEDTLS_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+//    MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
     0 // Koniec listy
 };
 
@@ -354,6 +355,8 @@ static int SMTP_SSL_Reciev(mbedtls_ssl_context *ssl, char *req)
 	memset(recvBuffer, 0, 1024);
 	ret2 = mbedtls_ssl_read(ssl,recvBuffer,200);
 
+	Dbg(1,recvBuffer);
+
 	if(ret2 < 0)
 		return 1;
 
@@ -496,9 +499,9 @@ static int SMTP_SSL_Connect(mbedtls_ssl_context *ssl, s_smtp_sender server, mbed
 
 	/* 1. Initialize certificates */
 
-	ret = mbedtls_x509_crt_parse(cacert, (const unsigned char *) mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
-	if(ret < 0)
-		return 1;
+//	ret = mbedtls_x509_crt_parse(cacert, (const unsigned char *) mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
+//	if(ret < 0)
+//		return 1;
 
 	/* 2. Start the connection */
 	if(0==server.IP)
@@ -517,6 +520,12 @@ static int SMTP_SSL_Connect(mbedtls_ssl_context *ssl, s_smtp_sender server, mbed
 	if((ret = mbedtls_ssl_config_defaults(conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
 		return 1;
 
+
+	//mbedtls_ssl_conf_ciphersuites(&conf, mbedtls_ssl_list_ciphersuites());
+	//mbedtls_ssl_conf_ciphersuites(&conf, my_non_rsa_ciphers/*mbedtls_ssl_list_ciphersuites()*/);
+
+
+
 	mbedtls_ssl_conf_authmode(conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
 	mbedtls_ssl_conf_ca_chain(conf, cacert, NULL);
 	mbedtls_ssl_conf_rng(conf, mbedtls_ctr_drbg_random, ctr_drbg);
@@ -524,7 +533,7 @@ static int SMTP_SSL_Connect(mbedtls_ssl_context *ssl, s_smtp_sender server, mbed
 	if((ret = mbedtls_ssl_setup(ssl,conf)) != 0)
 		return 1;
 
-	if((ret = mbedtls_ssl_set_hostname(ssl,"TLS Server")) != 0)
+	if((ret = mbedtls_ssl_set_hostname(ssl,server.name)) != 0)
 		return 1;
 
 	mbedtls_ssl_set_bio(ssl, server_fd, mbedtls_net_send, mbedtls_net_recv, NULL);
@@ -550,12 +559,12 @@ static int SMTP_SSL_Connect(mbedtls_ssl_context *ssl, s_smtp_sender server, mbed
 static void SMTP_SSL_Disconnect(mbedtls_ssl_context *ssl, mbedtls_entropy_context *entropy, mbedtls_ctr_drbg_context *ctr_drbg,
 		mbedtls_ssl_config *conf, mbedtls_x509_crt *cacert, mbedtls_net_context *server_fd)
 {
-	mbedtls_net_free		(server_fd);
+	mbedtls_net_free			(server_fd);
 	mbedtls_x509_crt_free	(cacert);
-	mbedtls_ssl_free		(ssl);
+	mbedtls_ssl_free			(ssl);
 	mbedtls_ssl_config_free	(conf);
 	mbedtls_ctr_drbg_free	(ctr_drbg);
-	mbedtls_entropy_free	(entropy);
+	mbedtls_entropy_free		(entropy);
 }
 
 #define SMTP_MAIL_BUFFER	512
@@ -610,7 +619,7 @@ static void EMAIL_Content(Email_Send_Param *par, char *sendBuffer, char* txt)
 			break;
 
 		case EMAIL_MEASURE:
-			n = mini_snprintf(sendBuffer, SMTP_MAIL_BUFFER, "%s",txt);
+			n = mini_snprintf(sendBuffer, SMTP_MAIL_BUFFER, "%s\r\n.\r\n",txt);
 			break;
 	}
 }
@@ -625,34 +634,17 @@ static void EMAIL_SSL_SendData(mbedtls_ssl_context *ssl, Email_Send_Param *par, 
 
 	SMTP_SSL_Reciev(ssl,"250");
 }
-//s_smtp_sender 	  _send[MAX_EMAIL_SENDERS] 	= {0};
-static void vtaskSMTPS(void *mes)
+
+static void vtaskSMTPS(void *mes)  //W wysylaniu emaili korzystam ze zmiennych globalnych nie robie kopi !!!! - w trakcie wysylania nie wolno zapisywac nowych danych do parametrow email
 {
-
-	//mbedtls_memory_buffer_alloc_init(memory_buf2, sizeof(memory_buf2));
-
-	int selNad = 0,  len = 0;
 	uint8_t connectionError = 0;
 	ip_addr_t IP_server = {0};
-	Email_Send_Param _param = {0};
+	Email_Send_Param _param = EmailSendParam;
+	int selNad = _param.whichSender;
 
-
-//	s_smtp_recipient _recv[MAX_EMAIL_RECIPIENTS] = {0};
-
-//	if(NULL != mes) len = mini_strlen(mes);
-//	if(len > 1024) len = 1024;
-//	char message[len+1];
-//	if(len > 0){  strncpy(message,mes,len);  message[len]=0; }
-
-	_param 			= EmailSendParam;
-//	LOOP_FOR(i,MAX_EMAIL_SENDERS)	  {  _send[i] = VAR_GetMain().emailSend[i];  }
-//	LOOP_FOR(i,MAX_EMAIL_RECIPIENTS){  _recv[i] = VAR_GetMain().emailRecv[i];  }
-
-	selNad 			= _param.whichSender;
-
-	netconn_gethostbyname(VAR_GetMain().emailSend[selNad].server, &IP_server);
-
-	VAR_GetMain().emailSend[selNad].IP = IP_server.addr;  //ZAPIS do globalnej tylko przez semafor !!!!!!!
+	netconn_gethostbyname(Const.emailSend[selNad].server, &IP_server);
+	Const.emailSend[selNad].IP = IP_server.addr;
+	//VAR_SetTabVal(Const_emailSend_IP, 0, IP_server.addr);
 
 	if(IP_server.addr == 0)
 	{
@@ -665,36 +657,20 @@ static void vtaskSMTPS(void *mes)
 	mbedtls_x509_crt cert;
 	mbedtls_ctr_drbg_context ctr_drbg;
 	mbedtls_entropy_context entropy;
+	mbedtls_net_context server_fd;
 
-	  mbedtls_ssl_init(&ssl);
-	  mbedtls_ssl_config_init(&conf);
-	  mbedtls_x509_crt_init(&cert);
-	  mbedtls_ctr_drbg_init(&ctr_drbg);
-	  mbedtls_entropy_init( &entropy );
+	mbedtls_ssl_init(&ssl);
+	mbedtls_ssl_config_init(&conf);
+	mbedtls_x509_crt_init(&cert);
+	mbedtls_ctr_drbg_init(&ctr_drbg);
+	mbedtls_entropy_init( &entropy );
+	mbedtls_net_init(&server_fd);
 
-	  mbedtls_net_init(&server_fd);
-
-
-
-		void _Close_SMTP_SSL(void){
-			SMTP_SSL_Disconnect(&ssl, &entropy, &ctr_drbg, &conf, &cert, &server_fd);
-		}
-
-
-		int ret=0;
-	//	char IP_buff[17]={0};
-	//	char Port_buff[4]={0};
-	//	uint8_t vrfy_buf[512]={0};
-		uint32_t flags2=0;
-		const uint8_t *pers = (uint8_t *)("ssl_client");
-
-
-	KONIEC___:
-	asm("nop");
+	void _Close_SMTP_SSL(void){  SMTP_SSL_Disconnect(&ssl,&entropy,&ctr_drbg,&conf,&cert,&server_fd);  }
 
 	while(1)
 	{
-		if(SMTP_SSL_Connect(&ssl, VAR_GetMain().emailSend[selNad], &entropy, &ctr_drbg, &conf, &cert, &server_fd))
+		if(SMTP_SSL_Connect(&ssl, Const.emailSend[selNad], &entropy, &ctr_drbg, &conf, &cert, &server_fd))
 		{
 			SMTP_SSL_Disconnect(&ssl, &entropy, &ctr_drbg, &conf, &cert, &server_fd);
 			if(++connectionError >= 5)
@@ -706,40 +682,33 @@ static void vtaskSMTPS(void *mes)
 		}
 		else
 		{
-			if(SMTP_SSL_EHLO(&ssl,VAR_GetMain().emailSend[selNad].name))
-			{
+			if(SMTP_SSL_EHLO(&ssl,Const.emailSend[selNad].name)){
 				Dbg(1,"Authorization error"); _Close_SMTP_SSL();
 				vTaskDelete(NULL);
 			}
 
-			if(SMTP_SSL_AuthLogin(&ssl,&VAR_GetMain().emailSend[selNad]))
-			{
+			if(SMTP_SSL_AuthLogin(&ssl,&Const.emailSend[selNad])){
 				Dbg(1,"Authorization error"); _Close_SMTP_SSL();
 				vTaskDelete(NULL);
 			}
 
-			if(SMTP_SSL_MailFrom(&ssl,VAR_GetMain().emailSend[selNad].login))
-			{
+			if(SMTP_SSL_MailFrom(&ssl,Const.emailSend[selNad].login)){
 				Dbg(1,"Authorization error"); _Close_SMTP_SSL();
 				vTaskDelete(NULL);
 			}
 
-			if(SMTP_SSL_RecipientTo(&ssl,VAR_GetMain().emailRecv))
-			{
+			if(SMTP_SSL_RecipientTo(&ssl,Const.emailRecv)){
 				Dbg(1,"Wrong recipient address"); _Close_SMTP_SSL();
 				vTaskDelete(NULL);
 			}
 
-			if(SMTP_SSL_DATA(&ssl))
-			{
+			if(SMTP_SSL_DATA(&ssl)){
 				Dbg(1,"Connection error"); _Close_SMTP_SSL();
 				vTaskDelete(NULL);
 			}
 
-			EMAIL_SSL_SendData(&ssl, &_param, &VAR_GetMain().emailSend[selNad], VAR_GetMain().emailRecv, mes);
-
+			EMAIL_SSL_SendData(&ssl, &_param, &Const.emailSend[selNad], Const.emailRecv, mes);
 			SMTP_SSL_QUIT(&ssl);
-
 			mbedtls_ssl_close_notify(&ssl);
 
 			Dbg(1,"Successfully"); _Close_SMTP_SSL();
@@ -752,21 +721,7 @@ static void vtaskSMTPS(void *mes)
 }
 
 
-	/*----------------- THREADs -------------- */
-
-
-//void vtaskSMTPS__(void *pvParameters)
-//{
-//
-//
-//
-//
-//	while(1)
-//	{
-//
-//		vTaskDelay(20);
-//	}
-//}
+/*----------------- THREADs -------------- */
 
 void https_server_netconn_init(void)
 {
