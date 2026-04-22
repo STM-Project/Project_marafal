@@ -10,10 +10,10 @@
 
 #include "stm32f7xx_hal.h"
 #include "freeRTOS.h"
+#include "cmsis_os.h"
 
-// extern osSemaphoreId        LcdUpdateSemaphoreId;
-// extern osSemaphoreId              osDma2dSemph;
-// extern osMutexId                  osDeviceMutex;
+extern osSemaphoreId              osDma2dSemph;
+extern osMutexId                  osDeviceMutex;
 
 typedef enum{
 	Semphr_sdram,

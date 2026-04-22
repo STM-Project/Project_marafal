@@ -20,13 +20,13 @@ uint32_t LCD_GetYSize(void){
   return hltdc.LayerCfg[ActiveLayer].ImageHeight;
 }
 
-// static void _DMA2D_ExecOperation(void)
-// {
-// 	if (osSemaphoreWait(osDma2dSemph, osWaitForever) == osErrorOS)
-// 	{
-// 		Error_Handler();
-// 	}
-// }
+ static void _DMA2D_ExecOperation(void)
+ {
+ 	if (osSemaphoreWait(osDma2dSemph, osWaitForever) == osErrorOS)
+ 	{
+ 		Error_Handler();
+ 	}
+ }
 /*
 static uint32_t LCD_GetAddress(uint32_t Xpos, uint32_t Ypos){
   return hltdc.LayerCfg[ActiveLayer].FBStartAdress;
@@ -62,9 +62,11 @@ static int LCD_SetOutputOffset(uint32_t width)
 
 void LCD_DisplayBuff(uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t height, uint32_t *pbmp)
 {
-	if(TakeMutex(Semphr_sdram,1000))
+	osMutexWait(osDeviceMutex, osWaitForever);
+
+	if(TakeMutex(Semphr_sdram,osWaitForever))
 	{
-		while(HAL_DMA2D_STATE_READY!=HAL_DMA2D_GetState(&hdma2d));
+		//while(HAL_DMA2D_STATE_READY!=HAL_DMA2D_GetState(&hdma2d));
 		LCD_SetOutputOffset(width);
 
 		uintptr_t start = (uintptr_t) pbmp;
@@ -75,15 +77,11 @@ void LCD_DisplayBuff(uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t heig
 
 		//SCB_CleanDCache_by_Addr(pbmp, width*height*sizeof(uint32_t));
 		HAL_DMA2D_Start_IT(&hdma2d, (uint32_t)pbmp, LCD_GetPositionAddress(Xpos,Ypos), width, height);
-		while(HAL_DMA2D_STATE_READY!=HAL_DMA2D_GetState(&hdma2d));
+		//while(HAL_DMA2D_STATE_READY!=HAL_DMA2D_GetState(&hdma2d));
 
 		GiveMutex(Semphr_sdram);
 	}
 
-	// osMutexWait(osDeviceMutex, osWaitForever);
-	// ....
-
-	// _DMA2D_ExecOperation();
-	// osMutexRelease(osDeviceMutex);
-		
+	 _DMA2D_ExecOperation();
+	 osMutexRelease(osDeviceMutex);
 }

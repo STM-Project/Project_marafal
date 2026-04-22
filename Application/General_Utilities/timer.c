@@ -16,9 +16,8 @@
 #define MAX_ELEMENTS_TIMER_SERVICE	40
 
 /*	-------- Semaphores ------------ */
-// osSemaphoreId        LcdUpdateSemaphoreId = 0;
-// osSemaphoreId              osDma2dSemph = 0;
-// osMutexId                  osDeviceMutex = 0;
+ osSemaphoreId              osDma2dSemph = 0;
+ osMutexId                  osDeviceMutex = 0;
 
 
 static xSemaphoreHandle xSemphr_pLcd;		/* Change semaphores declarations as MACRO  */
