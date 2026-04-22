@@ -197,6 +197,17 @@ void StartDefaultTask(void const * argument)
 
 	InitAllMutex();
 
+	// 	osSemaphoreDef(LcdUpdateSemaphore);
+	// LcdUpdateSemaphoreId = osSemaphoreCreate(osSemaphore(LcdUpdateSemaphore), 1);
+	// osSemaphoreWait(LcdUpdateSemaphoreId, osWaitForever);
+
+	// osSemaphoreDef(Semaphore);
+	// osDma2dSemph = osSemaphoreCreate(osSemaphore(Semaphore), 1);
+	// osSemaphoreWait(osDma2dSemph, osWaitForever); /* next call to osSemaphoreWait will block */
+
+	// osMutexDef(DeviceMutex);
+	// osDeviceMutex = osMutexCreate(osMutex(DeviceMutex));
+
 	DefaultSettingsEmail();
 	DefaultSettingsDNS();
 	DefaultSettingsSNTP();
