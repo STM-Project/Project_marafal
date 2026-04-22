@@ -77,7 +77,7 @@ static char sendBuffer[SMTP_MAIL_BUFFER];  	//daj jako malloc !!!!
  mbedtls_ssl_cache_context cache;
 #endif
 
-unsigned char memory_buf[8*HTTPS_MAX_WRITE_BUFF];
+ __attribute__ ((section(".sdram"))) unsigned char memory_buf[8*HTTPS_MAX_WRITE_BUFF];
 //__attribute__ ((section(".sdram")))  __attribute__((aligned(8)))unsigned char memory_buf2[4*HTTPS_MAX_WRITE_BUFF];
 
 static char buffRecv[110];
@@ -147,6 +147,8 @@ static const int my_non_rsa_ciphers[] = {
 
 static void SSL_Server(void *arg)
 {
+	TakeMutex(Semphr_sdram, 3000);
+
 	int ret,len;
 	const uint8_t *pers = (uint8_t*) "ssl_server";
 
@@ -218,9 +220,13 @@ static void SSL_Server(void *arg)
 		mbedtls_net_free(&client_fd);
 		mbedtls_ssl_session_reset(&ssl);
 
+		GiveMutex(Semphr_sdram);
+
 		ret = mbedtls_net_accept(&listen_fd, &client_fd, NULL, 0, NULL);		/* wait for connection */
 		if (ret != 0)
 			goto RESET_Connection;
+
+		TakeMutex(Semphr_sdram, 3000);
 
 		mbedtls_ssl_set_bio(&ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout);
 
@@ -237,7 +243,7 @@ static void SSL_Server(void *arg)
 
 		if(0==strncmp(buffRecv, "GET / ...", 6))		/* strstr(buffRecv, "GET / ") */
 		{
-			if(TakeMutex2(Semphr_sdram, Semphr_cardSD, 1000))
+			if(TakeMutex(Semphr_cardSD, 1000))
 			{
 				int count=0, len;
 				SDCardFileOpen(0,"aaa.htm",FA_READ);
@@ -249,20 +255,20 @@ static void SSL_Server(void *arg)
 				{
 					if(len < HTTPS_MAX_WRITE_BUFF)
 					{
-						if(HTTPS_send(&ssl,GETVAL_ptr(count),len)){	GiveMutex(Semphr_sdram);
+						if(HTTPS_send(&ssl,GETVAL_ptr(count),len)){
 							goto RESET_Connection;	}
 						break;
 					}
 					else
 					{
-						if(HTTPS_send(&ssl,GETVAL_ptr(count),HTTPS_MAX_WRITE_BUFF)){	GiveMutex(Semphr_sdram);
+						if(HTTPS_send(&ssl,GETVAL_ptr(count),HTTPS_MAX_WRITE_BUFF)){
 							goto RESET_Connection;	}
 
 						count += HTTPS_MAX_WRITE_BUFF;
 						len -= HTTPS_MAX_WRITE_BUFF;
 					}
 				}
-				GiveMutex(Semphr_sdram);
+
 				Dbg(HTTPS_DEBUG,"\r\nGET...");
 			}
 		}
@@ -617,6 +623,8 @@ static void EMAIL_SSL_SendData(mbedtls_ssl_context *ssl, Email_Send_Param *par, 
 
 static void vtaskSMTPS(void *mes)  //W wysylaniu emaili korzystam ze zmiennych globalnych nie robie kopi !!!! - w trakcie wysylania nie wolno zapisywac nowych danych do parametrow email
 {
+	TakeMutex(Semphr_sdram, 3000);
+
 	uint8_t connectionError = 0;
 	ip_addr_t IP_server = {0};
 	Email_Send_Param _param = EmailSendParam;
@@ -646,7 +654,7 @@ static void vtaskSMTPS(void *mes)  //W wysylaniu emaili korzystam ze zmiennych g
 	mbedtls_entropy_init( &entropy );
 	mbedtls_net_init(&server_fd);
 
-	void _Close_SMTP_SSL(void){  SMTP_SSL_Disconnect(&ssl,&entropy,&ctr_drbg,&conf,&cert,&server_fd);  }
+	void _Close_SMTP_SSL(void){  SMTP_SSL_Disconnect(&ssl,&entropy,&ctr_drbg,&conf,&cert,&server_fd);  GiveMutex(Semphr_sdram);  }
 
 	while(1)
 	{
