@@ -623,7 +623,6 @@ static void EMAIL_SSL_SendData(mbedtls_ssl_context *ssl, Email_Send_Param *par, 
 
 static void vtaskSMTPS(void *mes)  //W wysylaniu emaili korzystam ze zmiennych globalnych nie robie kopi !!!! - w trakcie wysylania nie wolno zapisywac nowych danych do parametrow email
 {
-	TakeMutex(Semphr_sdram, 3000);
 
 	uint8_t connectionError = 0;
 	ip_addr_t IP_server = {0};
@@ -654,7 +653,7 @@ static void vtaskSMTPS(void *mes)  //W wysylaniu emaili korzystam ze zmiennych g
 	mbedtls_entropy_init( &entropy );
 	mbedtls_net_init(&server_fd);
 
-	void _Close_SMTP_SSL(void){  SMTP_SSL_Disconnect(&ssl,&entropy,&ctr_drbg,&conf,&cert,&server_fd);  GiveMutex(Semphr_sdram);  }
+	void _Close_SMTP_SSL(void){  SMTP_SSL_Disconnect(&ssl,&entropy,&ctr_drbg,&conf,&cert,&server_fd);  /*GiveMutex(Semphr_sdram);*/  }
 
 	while(1)
 	{
@@ -717,12 +716,13 @@ void https_server_netconn_init(void)
 }
 
 
-__attribute__((section(".sdram"))) static StackType_t  vtaskSMTPS_Stack[8192]; /* 8192 words = 32KB */
-__attribute__((section(".sdram"))) static StaticTask_t vtaskSMTPS_Buffer;
+static StaticTask_t vtaskSMTPS_Buffer;
 
 void CreateTestEMAILTask(char* mes)
 {
-	xTaskCreateStatic(vtaskSMTPS, "SMTPS", 8192, (void*) mes, (unsigned portBASE_TYPE ) 4, vtaskSMTPS_Stack, &vtaskSMTPS_Buffer);
+	//TakeMutex(Semphr_sdram, 3000);
+
+	xTaskCreateStatic(vtaskSMTPS, "SMTPS", 8192, (void*) mes, (unsigned portBASE_TYPE ) 2, (StackType_t*)GETVAL_ptr(0x500000), &vtaskSMTPS_Buffer);
 }
 
 
