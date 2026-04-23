@@ -171,7 +171,7 @@ static void SSL_Server(void *arg)
 	mbedtls_pk_init(&pkey);
 
 /*	ret = mbedtls_x509_crt_parse(&cert, (const unsigned char *) mbedtls_test_srv_crt, mbedtls_test_srv_crt_len); */
-	ret = mbedtls_x509_crt_parse(&cert, (const unsigned char *) mbedtls_test_srv_crt_ec, mbedtls_test_srv_crt_ec_len);
+	ret = mbedtls_x509_crt_parse(&cert, (const unsigned char *) mbedtls_test_srv_crt_ec, mbedtls_test_srv_crt_ec_len);		/* no RSA */
 	if (ret != 0)
 		goto exit;
 
@@ -180,7 +180,7 @@ static void SSL_Server(void *arg)
 		goto exit; */
 
 /* ret = mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key, mbedtls_test_srv_key_len, NULL, 0); */
-	ret = mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key_ec, mbedtls_test_srv_key_ec_len, NULL, 0);
+	ret = mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key_ec, mbedtls_test_srv_key_ec_len, NULL, 0);		/* no RSA */
 	if (ret != 0)
 		goto exit;
 
