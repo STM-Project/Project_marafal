@@ -62,6 +62,8 @@ mbedtls_entropy_context entropy;
 #define HTTPS_MAX_WRITE_BUFF	16384
 #define SMTP_MAIL_BUFFER	2048
 
+#define PTR_DATA_NR		0
+
 #if HTTPS_MAX_WRITE_BUFF > MBEDTLS_SSL_MAX_CONTENT_LEN
 #error "Write buffer size NOT large as MBEDTLS_SSL_MAX_CONTENT_LEN"
 #endif
@@ -69,21 +71,21 @@ mbedtls_entropy_context entropy;
 extern void Dbg(int on, char *txt);
 extern char* GETVAL_ptr();
 
-static mbedtls_net_context listen_fd, client_fd;
-static mbedtls_pk_context pkey;
-static char sendBuffer[SMTP_MAIL_BUFFER];  	//daj jako malloc !!!!
-
 #if defined(MBEDTLS_SSL_CACHE_C)
  mbedtls_ssl_cache_context cache;
 #endif
 
- __attribute__ ((section(".sdram"))) unsigned char memory_buf[8*HTTPS_MAX_WRITE_BUFF];
-//__attribute__ ((section(".sdram")))  __attribute__((aligned(8)))unsigned char memory_buf2[4*HTTPS_MAX_WRITE_BUFF];
+static mbedtls_net_context listen_fd, client_fd;
+static mbedtls_pk_context pkey;
+static StaticTask_t vtaskSMTPS_Buffer;
+static sys_thread_t  vTaskHandleServer;
 
+static char sendBuffer[SMTP_MAIL_BUFFER];
 static char buffRecv[110];
 uint8_t vrfy_buf[512]={0};
 
-static sys_thread_t  vTaskHandleServer;
+ __attribute__ ((section(".sdram"))) static unsigned char memory_buf[20*HTTPS_MAX_WRITE_BUFF];
+
 /* USER CODE END 2 */
 
 /* MBEDTLS init function */
@@ -93,7 +95,7 @@ void MX_MBEDTLS_Init(void)
   */
   mbedtls_ssl_init(&ssl);
   mbedtls_ssl_config_init(&conf);
-  mbedtls_x509_crt_init(&cert);					/* Create own certificate -> https://base64.guru/converter/decode/hex  (hex-ascii or ascii-hex) */
+  mbedtls_x509_crt_init(&cert);
   mbedtls_ctr_drbg_init(&ctr_drbg);
   mbedtls_entropy_init( &entropy );
   /* USER CODE BEGIN 3 */
@@ -247,7 +249,7 @@ static void SSL_Server(void *arg)
 			{
 				int count=0, len;
 				SDCardFileOpen(0,"aaa.htm",FA_READ);
-				len = SDCardFileRead(0, GETVAL_ptr(0), 180000);
+				len = SDCardFileRead(0, GETVAL_ptr(PTR_DATA_NR), 180000);
 				SDCardFileClose(0);
 				GiveMutex(Semphr_cardSD);
 
@@ -255,13 +257,13 @@ static void SSL_Server(void *arg)
 				{
 					if(len < HTTPS_MAX_WRITE_BUFF)
 					{
-						if(HTTPS_send(&ssl,GETVAL_ptr(count),len)){
+						if(HTTPS_send(&ssl,GETVAL_ptr(PTR_DATA_NR+count),len)){
 							goto RESET_Connection;	}
 						break;
 					}
 					else
 					{
-						if(HTTPS_send(&ssl,GETVAL_ptr(count),HTTPS_MAX_WRITE_BUFF)){
+						if(HTTPS_send(&ssl,GETVAL_ptr(PTR_DATA_NR+count),HTTPS_MAX_WRITE_BUFF)){
 							goto RESET_Connection;	}
 
 						count += HTTPS_MAX_WRITE_BUFF;
@@ -621,9 +623,8 @@ static void EMAIL_SSL_SendData(mbedtls_ssl_context *ssl, Email_Send_Param *par, 
 	SMTP_SSL_Reciev(ssl,"250");
 }
 
-static void vtaskSMTPS(void *mes)  //W wysylaniu emaili korzystam ze zmiennych globalnych nie robie kopi !!!! - w trakcie wysylania nie wolno zapisywac nowych danych do parametrow email
+static void vtaskSMTPS(void *mes)  			/* I use global variables (I don't make copies at the start), and I DON'T save new email parameters when sending email */
 {
-
 	uint8_t connectionError = 0;
 	ip_addr_t IP_server = {0};
 	Email_Send_Param _param = EmailSendParam;
@@ -631,7 +632,7 @@ static void vtaskSMTPS(void *mes)  //W wysylaniu emaili korzystam ze zmiennych g
 
 	netconn_gethostbyname(Const.emailSend[selNad].server, &IP_server);
 	Const.emailSend[selNad].IP = IP_server.addr;
-	//VAR_SetTabVal(Const_emailSend_IP, 0, IP_server.addr);
+/* VAR_SetTabVal(Const_emailSend_IP, 0, IP_server.addr); */
 
 	if(IP_server.addr == 0)
 	{
@@ -653,7 +654,7 @@ static void vtaskSMTPS(void *mes)  //W wysylaniu emaili korzystam ze zmiennych g
 	mbedtls_entropy_init( &entropy );
 	mbedtls_net_init(&server_fd);
 
-	void _Close_SMTP_SSL(void){  SMTP_SSL_Disconnect(&ssl,&entropy,&ctr_drbg,&conf,&cert,&server_fd);  /*GiveMutex(Semphr_sdram);*/  }
+	void _Close_SMTP_SSL(void){  SMTP_SSL_Disconnect(&ssl,&entropy,&ctr_drbg,&conf,&cert,&server_fd);  /* GiveMutex(Semphr_sdram); */  }
 
 	while(1)
 	{
@@ -707,23 +708,18 @@ static void vtaskSMTPS(void *mes)  //W wysylaniu emaili korzystam ze zmiennych g
 
 }
 
-
 /*----------------- THREADs -------------- */
 
-void https_server_netconn_init(void)
+void https_server_netconn_init(void)		/* For 'Firefox' and 'Mobile Chrome' NO renegotiation */
 {
 	vTaskHandleServer = sys_thread_new("HTTPS", SSL_Server, NULL, 1024, -2);
 }
 
-
-static StaticTask_t vtaskSMTPS_Buffer;
-
 void CreateTestEMAILTask(char* mes)
 {
-	//TakeMutex(Semphr_sdram, 3000);
-
-	xTaskCreateStatic(vtaskSMTPS, "SMTPS", 8192, (void*) mes, (unsigned portBASE_TYPE ) 2, (StackType_t*)GETVAL_ptr(0x500000), &vtaskSMTPS_Buffer);
-}
+/*	TakeMutex(Semphr_sdram, 3000); */
+	xTaskCreateStatic(vtaskSMTPS, "SMTPS", 8192, (void*) mes, (unsigned portBASE_TYPE ) 2, (StackType_t*)GETVAL_ptr(0x100000), &vtaskSMTPS_Buffer);		/* When the separated buffer for stack then LCD jitter */
+}																																																		/* Mutex 'Semphr_sdram' for SDRAM stack does not help eliminate LCD jitter */
 
 
 /* USER CODE END 4 */
