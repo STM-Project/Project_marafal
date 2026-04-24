@@ -280,8 +280,8 @@ void DefaultSettingsEmail(void)
 			VAR_SetStr(Const_emailSend_server, i, "smtp.poczta.onet.pl");
 			VAR_SetTabVal(Const_emailSend_port, i, 465);
 			VAR_SetStr(Const_emailSend_name, i, "ElektronikaRM");
-			VAR_SetStr(Const_emailSend_login, i, "marafal@op.pl");    //metronic@onet.eu
-			VAR_SetStr(Const_emailSend_password, i, "Krasnoludki1979");  //Metro1234
+			VAR_SetStr(Const_emailSend_login, i, "marafal@op.pl");       //metronic@onet.eu     metronic123456789@gmail.com
+			VAR_SetStr(Const_emailSend_password, i, "Krasnoludki1979");  //Metro1234            metronicAKP123456789!
 			VAR_SetTabVal(Const_emailSend_useSSL, i, 1);
 			break;
 		case 1:
@@ -310,6 +310,7 @@ void DefaultSettingsEmail(void)
 //		{
 //		case 0:
 		VAR_SetStr(Const_emailRecv_email, i, "marafal@interia.pl");
+		//VAR_SetStr(Const_emailRecv_email, i, "marafal@interia.pl");
 //			break;
 //		}
 	}
