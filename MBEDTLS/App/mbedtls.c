@@ -62,7 +62,7 @@ mbedtls_entropy_context entropy;
 #define HTTPS_MAX_WRITE_BUFF	16384
 #define SMTP_MAIL_BUFFER	2048
 
-#define PTR_DATA_NR		0
+#define PTR_DATA_NR		0x600000-0x30D40
 
 #if HTTPS_MAX_WRITE_BUFF > MBEDTLS_SSL_MAX_CONTENT_LEN
 #error "Write buffer size NOT large as MBEDTLS_SSL_MAX_CONTENT_LEN"
@@ -326,7 +326,10 @@ static void SSL_Server(void *arg)
 static int SMTP_SSL_Send(mbedtls_ssl_context *ssl, char *req )
 {
 	int len = strlen((char*)req);
+
+	TakeMutex(Semphr_sdram, 3000);
 	int ret2 = mbedtls_ssl_write(ssl,(const unsigned char*)req,len);
+	GiveMutex(Semphr_sdram);
 
 	 while(ret2 <= 0)
 	 {
@@ -345,7 +348,10 @@ static int SMTP_SSL_Reciev(mbedtls_ssl_context *ssl, char *req)
 	int ret2 = 0;
 
 	memset(recvBuffer, 0, 1024);
+
+	TakeMutex(Semphr_sdram, 3000);
 	ret2 = mbedtls_ssl_read(ssl,recvBuffer,200);
+	GiveMutex(Semphr_sdram);
 
 	Dbg(1,(char*)recvBuffer);
 
@@ -719,9 +725,9 @@ void https_server_netconn_init(void)		/* For 'Firefox' and 'Mobile Chrome' NO re
 void CreateTestEMAILTask(char* mes)
 {
 /*	TakeMutex(Semphr_sdram, 3000); */
-	xTaskCreateStatic(vtaskSMTPS, "SMTPS", 8192, (void*) mes, (unsigned portBASE_TYPE ) 2, (StackType_t*)GETVAL_ptr(0x100000), &vtaskSMTPS_Buffer);		/* When the separated buffer for stack then LCD jitter */
-}																																																		/* Mutex 'Semphr_sdram' for SDRAM stack does not help eliminate LCD jitter */
-
+	xTaskCreateStatic(vtaskSMTPS, "SMTPS", 8192, (void*) mes, (unsigned portBASE_TYPE ) 2, (StackType_t*)GETVAL_ptr(0x600000-0x30D40-0x2710), &vtaskSMTPS_Buffer);		/* When the separated buffer for stack (not GETVAL_ptr()) then LCD jitter */
+}																																																							/* Mutex 'Semphr_sdram' for SDRAM stack does not help eliminate LCD jitter */
+																																																							/* SMTPS Task Priority must be higher then Screen task then no LCD Jitter*/
 
 /* USER CODE END 4 */
 

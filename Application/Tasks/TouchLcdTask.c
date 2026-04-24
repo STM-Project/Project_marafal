@@ -29,7 +29,7 @@ void vtask_TouchLcd(void *pvParameters)
 
 void Create_TouchLcd_Task(void)
 {
-	xTaskCreate(vtask_TouchLcd, (char* )"vtask_TouchLcd", 1024, NULL, (unsigned portBASE_TYPE ) 1, &vtask_TouchLcd_Handle);
+	xTaskCreate(vtask_TouchLcd, (char* )"vtask_TouchLcd", 2048, NULL, (unsigned portBASE_TYPE ) 1, &vtask_TouchLcd_Handle);
 }
 
 void Delete_TouchLcd_Task(void)

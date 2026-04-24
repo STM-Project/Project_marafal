@@ -66,7 +66,7 @@ void LCD_DisplayBuff(uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t heig
 
 	if(TakeMutex(Semphr_sdram,osWaitForever))
 	{
-		while (((FMC_Bank5_6->SDSR) & 0x01) != 0);
+		while (((FMC_Bank5_6->SDSR) & 0x01) != 0);	/* wait for SDRAM free */
 
 		LCD_SetOutputOffset(width);
 
