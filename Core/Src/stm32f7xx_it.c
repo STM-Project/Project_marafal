@@ -404,10 +404,13 @@ void UART7_IRQHandler(void)
 void DMA2D_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA2D_IRQn 0 */
-	if(__HAL_DMA2D_GET_FLAG(&hdma2d, DMA2D_FLAG_TC))
-	{
-	 	osSemaphoreRelease(osDma2dSemph);
-	}
+
+	  /*	if(__HAL_DMA2D_GET_FLAG(&hdma2d, DMA2D_FLAG_TC))
+			{
+		 		osSemaphoreRelease(osDma2dSemph);
+			}
+	  */
+
   /* USER CODE END DMA2D_IRQn 0 */
   HAL_DMA2D_IRQHandler(&hdma2d);
   /* USER CODE BEGIN DMA2D_IRQn 1 */
