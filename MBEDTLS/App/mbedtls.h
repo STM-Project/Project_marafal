@@ -28,6 +28,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "mbedtls_config.h"
+#include "threading.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"

@@ -93,6 +93,7 @@ void MX_MBEDTLS_Init(void)
 {
    /**
   */
+    mbedtls_threading_set_alt(cmsis_os_mutex_init, cmsis_os_mutex_free, cmsis_os_mutex_lock, cmsis_os_mutex_unlock);
   mbedtls_ssl_init(&ssl);
   mbedtls_ssl_config_init(&conf);
   mbedtls_x509_crt_init(&cert);
@@ -159,7 +160,7 @@ static void SSL_Server(void *arg)
 		mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
 	#endif
 
-		MX_MBEDTLS_Init();
+/* MX_MBEDTLS_Init(); */
 
 	mbedtls_net_init(&listen_fd);
 	mbedtls_net_init(&client_fd);
