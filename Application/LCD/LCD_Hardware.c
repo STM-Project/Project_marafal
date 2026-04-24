@@ -66,6 +66,8 @@ void LCD_DisplayBuff(uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t heig
 
 	if(TakeMutex(Semphr_sdram,osWaitForever))
 	{
+		while (((FMC_Bank5_6->SDSR) & 0x01) != 0);
+
 		LCD_SetOutputOffset(width);
 
 		uintptr_t start = (uintptr_t) pbmp;
@@ -77,11 +79,11 @@ void LCD_DisplayBuff(uint32_t Xpos, uint32_t Ypos, uint32_t width, uint32_t heig
 	/* SCB_CleanDCache_by_Addr(pbmp, width*height*sizeof(uint32_t)); */
 		HAL_DMA2D_Start_IT(&hdma2d, (uint32_t)pbmp, LCD_GetPositionAddress(Xpos,Ypos), width, height);
 
+		_DMA2D_ExecOperation();
 		GiveMutex(Semphr_sdram);
 	}
 
-	 _DMA2D_ExecOperation();
-	 osMutexRelease(osDeviceMutex);
+	osMutexRelease(osDeviceMutex);
 
 
 /*
