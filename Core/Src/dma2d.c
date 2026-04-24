@@ -110,11 +110,11 @@ void HAL_DMA2D_MspDeInit(DMA2D_HandleTypeDef* dma2dHandle)
 /* USER CODE BEGIN 1 */
 void HAL_DMA2D_XferCpltCallback(DMA2D_HandleTypeDef* hdma2d)
 {
-	osSemaphoreRelease(osDma2dSemph); // Zwolnij, by odblokować wątek, nawet przy błędzie, zeby nie wisial w nieskonczonosc w: if (osSemaphoreWait(osDma2dSemph, osWaitForever) == osErrorOS)
+	osSemaphoreRelease(osDma2dSemph);
 }
 
 void HAL_DMA2D_XferErrorCallback(DMA2D_HandleTypeDef* hdma2d)
 {
-    osSemaphoreRelease(osDma2dSemph); // Zwolnij, by odblokować wątek, nawet przy błędzie, zeby nie wisial w nieskonczonosc w: if (osSemaphoreWait(osDma2dSemph, osWaitForever) == osErrorOS)
+    osSemaphoreRelease(osDma2dSemph);
 }
 /* USER CODE END 1 */

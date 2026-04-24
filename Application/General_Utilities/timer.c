@@ -15,7 +15,7 @@
 
 #define MAX_ELEMENTS_TIMER_SERVICE	40
 
-/*	-------- Semaphores ------------ */
+/*	-------- Semaphores ------------ */							/* Mutex`s must be in the same task, 	but 	semaphores can be not only in the same task, can be in the interrupt */
 osSemaphoreId	osDma2dSemph = 0;
 osMutexId		osDeviceMutex = 0;
 
