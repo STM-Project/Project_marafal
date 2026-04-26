@@ -314,6 +314,7 @@ static void SSL_Server(void *arg)
 	}while(1);
 
 	exit:
+	GiveMutex(Semphr_sdram);
 	Dbg(1,"___HTTPS CLOSED___");
 	HTTPS_close();
 
