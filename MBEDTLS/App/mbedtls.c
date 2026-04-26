@@ -727,8 +727,7 @@ void CreateTestEMAILTask(char* mes)
 {
 /*	TakeMutex(Semphr_sdram, 3000); */
 	xTaskCreateStatic(vtaskSMTPS, "SMTPS", 8192, (void*) mes, (unsigned portBASE_TYPE ) 2, (StackType_t*)GETVAL_ptr(0x600000-0x30D40-0x2710), &vtaskSMTPS_Buffer);		/* When the separated buffer for stack (not GETVAL_ptr()) then LCD jitter */
-}																																																							/* Mutex 'Semphr_sdram' for SDRAM stack does not help eliminate LCD jitter */
-																																																							/* SMTPS Task Priority must be higher then Screen task then no LCD Jitter*/
+}																																																							/* SMTPS Task Priority must be higher then Screen task then no LCD Jitter */
 
 /* USER CODE END 4 */
 
