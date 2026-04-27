@@ -54,7 +54,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define HTTP_THREAD_ON	1
+#define HTTP_THREAD_ON	0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -235,7 +235,7 @@ void StartDefaultTask(void const * argument)
 	Create_ScreensSelectLCD_Task();
 	//Create_TEST_Task();
 
-	//CreateWifiTask();
+	CreateWifiTask();
 
 	#if HTTP_THREAD_ON
 	 http_server_netconn_init();

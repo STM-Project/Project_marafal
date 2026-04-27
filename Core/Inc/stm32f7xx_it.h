@@ -66,6 +66,8 @@ void DMA2_Stream7_IRQHandler(void);
 void USART6_IRQHandler(void);
 void HASH_RNG_IRQHandler(void);
 void UART7_IRQHandler(void);
+void LTDC_IRQHandler(void);
+void LTDC_ER_IRQHandler(void);
 void DMA2D_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
