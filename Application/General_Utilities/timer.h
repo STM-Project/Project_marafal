@@ -12,6 +12,7 @@
 #include "freeRTOS.h"
 #include "cmsis_os.h"
 
+extern osSemaphoreId LcdUpdateSemaphoreId;
 extern osSemaphoreId	osDma2dSemph;
 extern osMutexId		osDeviceMutex;
 
