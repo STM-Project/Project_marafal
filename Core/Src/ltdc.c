@@ -21,7 +21,7 @@
 #include "ltdc.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "timer.h"
 /* USER CODE END 0 */
 
 LTDC_HandleTypeDef hltdc;
@@ -123,6 +123,7 @@ void MX_LTDC_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN LTDC_Init 2 */
+  HAL_LTDC_ProgramLineEvent(&hltdc, pLayerCfg.ImageHeight +1);			/* Call next interrupt after reload whole LCD frame */
 
   /* USER CODE END LTDC_Init 2 */
 
@@ -387,5 +388,11 @@ void HAL_LTDC_MspDeInit(LTDC_HandleTypeDef* ltdcHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+void HAL_LTDC_LineEventCallback(LTDC_HandleTypeDef *hltdc)
+{
+	HAL_LTDC_ProgramLineEvent(hltdc, 480+1);			/* Call next interrupt after reload whole LCD frame */
+	osSemaphoreRelease( LcdUpdateSemaphoreId );
+}
 
 /* USER CODE END 1 */
