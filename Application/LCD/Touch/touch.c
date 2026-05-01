@@ -446,7 +446,7 @@ static uint16_t GetTouchType(int *param)
 	}
 	return 0;
 }
-/* Poniższa funkcja jest wywoływana w jednym wątku i zapisuje do zmiennej: ServiceTouch.idx */
+/* Poniższa funkcja jest wywoływana w jednym wątku i zapisuje do zmiennej: ServiceTouch.idx i .flags1  ale tylko gdy jest RELEASE  -> Wiec konfliktu nie ma */
 void LCD_TOUCH_Service(void)
 {
 	XY_Touch_Struct pos = {0};
@@ -469,7 +469,7 @@ void LCD_TOUCH_Service(void)
 	else
 		ServiceTouch.press = release;
 }
-/* Poniższa funkcja jest wywoływana w drugim wątku i zapisuje też do zmiennej: ServiceTouch.idx */
+/* Poniższa funkcja jest wywoływana w drugim wątku i zapisuje też do zmiennej: ServiceTouch.idx  i .flags1 , ale tylko gdy jest PRESS  -> Wiec konfliktu nie ma */
 uint16_t LCD_TOUCH_GetTypeAndPosition(XY_Touch_Struct *posXY)
 {
 	uint16_t touchRecognize = 0;
