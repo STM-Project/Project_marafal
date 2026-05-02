@@ -1193,7 +1193,10 @@ void WIFI_RxCallbackService(void)
 }
 
 //------------- ATTENTIONS ------------------------------
-/* AKTUALIZUJ firmware ESP przez strone ESp Home bo przez esp download tool nie dziala */
+/* AKTUALIZUJ firmware ESP przez strone ESp Home bo przez esp download tool nie dziala */   /* !!! BOOT pin (IO0) low,  EN high !!!		RXD0,TXDO -> do progr.  IO17,IO18 -> at commands*/
+/* https://web.esphome.io/ */
+/* https://docs.espressif.com/projects/esp-at/en/latest/esp32/AT_Binary_Lists/esp_at_binaries.html#firmware-esp32-wroom-32-series */
+/* Aby sprawdzic firmawer : at+gmr [enter]+[ctrl+j] */
 /*
 AT version:2.1.0.0(883f7f2 - Jul 24 2020 11:50:07)
 SDK version:v4.0.1-193-ge7ac221
