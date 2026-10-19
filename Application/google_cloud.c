@@ -250,7 +250,7 @@ static void cloudMain(void *unused)
         }
         googleCloudStatus.last_error = rc;
         if (rc) googleCloudStatus.failures++; else googleCloudStatus.successes++;
-        /* Poll once a minute; never run catch-up requests after a slow attempt. */
+        /* Poll every 10 seconds; never run catch-up requests after a slow attempt. */
         if ((TickType_t)(xTaskGetTickCount()-wake) >= pdMS_TO_TICKS(GOOGLE_CLOUD_PERIOD_MS))
             wake = xTaskGetTickCount();
         vTaskDelayUntil(&wake, pdMS_TO_TICKS(GOOGLE_CLOUD_PERIOD_MS));

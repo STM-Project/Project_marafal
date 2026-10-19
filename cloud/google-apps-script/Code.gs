@@ -77,7 +77,7 @@ function doPost(e) {
       ack, now, temp / 10,
       ack === desired ? 'DEMO - potwierdzony' : 'DEMO - oczekiwanie na potwierdzenie'
     ]]);
-    // Bounded history: roughly seven days at one sample/minute.
+    // Bounded history: roughly 25-28 hours at one sample per 10 seconds.
     if (log.getLastRow() >= 10001) log.deleteRows(2, 1000);
     log.appendRow([now, device, temp / 10, desired, ack, p.nonce]);
     const reply = 'STM32CLOUD1:' + p.nonce + ':' + desired;

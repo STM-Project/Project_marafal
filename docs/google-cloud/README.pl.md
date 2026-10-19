@@ -8,7 +8,7 @@ STM32 wykonuje **wychodzące połączenia HTTPS**. Nie przekierowuj portów rout
 Ta implementacja używa Ethernetu/LwIP, a nie połączenia AT przez ESP32.
 
 ```
-co 60 s: STM32 -- HTTPS POST: 25.5°C + poprzedni stan DEMO --> Apps Script --> Arkusz
+co 10 s: STM32 -- HTTPS POST: 25.5°C + poprzedni stan DEMO --> Apps Script --> Arkusz
          STM32 <-- HTTPS: nowy stan DEMO z pola wyboru ------ Apps Script <-- Arkusz
 ```
 
@@ -113,7 +113,7 @@ Nie trzeba uruchamiać lokalnego serwera HTTP ani HTTPS, aby wysyłać dane do G
    `script.googleusercontent.com` oraz SNTP/UDP 123 do `time.google.com`.
    Jeśli DNS nie był ustawiony, klient ustawia 8.8.8.8 i 8.8.4.4.
 4. Klient uruchamia SNTP i ustawia zegar UTC biblioteki mbedTLS. Pierwsza próba
-   może czekać na synchronizację; kolejna następuje po 60 s.
+   może czekać na synchronizację; kolejna następuje po 10 s.
 
 Weryfikacja certyfikatu jest obowiązkowa, wraz z nazwą serwera i datą ważności.
 Nie ustawiaj `MBEDTLS_SSL_VERIFY_NONE`, żeby obejść błąd. Dołączono publiczne
@@ -124,7 +124,7 @@ uwierzytelnione źródło czasu; docelowy produkt może wymagać zaufanego RTC.
 
 ## 7. Obejrzyj pomiary
 
-1. Po uruchomieniu poczekaj około 1–2 minut.
+1. Po uruchomieniu poczekaj na synchronizację SNTP (zwykle kilkadziesiąt sekund); potem pomiary są wysyłane co 10 s.
 2. W zakładce **Pomiary** powinny przybywać wiersze z czasem odebrania i liczbą
    **25,5**. To liczba w komórce; sposób wyświetlania kropki/przecinka zależy
    od ustawień regionalnych arkusza.
@@ -133,20 +133,20 @@ uwierzytelnione źródło czasu; docelowy produkt może wymagać zaufanego RTC.
 4. Jeśli **D2** przestało się zmieniać, dane są nieaktualne — pole checkboxa
    samo w sobie nie potwierdza połączenia z urządzeniem.
 
-Historia ma limit około 10 000 ostatnich wpisów (około tygodnia co minutę).
+Historia ma limit około 10 000 ostatnich wpisów (około 25–28 godzin przy pomiarze co 10 s).
 Po osiągnięciu limitu skrypt usuwa 1000 najstarszych wierszy. Jeśli chcesz
 archiwizować dłużej, najpierw skopiuj zakładkę lub zmień tę politykę w skrypcie.
 
 ## 8. Kliknij demonstracyjny przekaźnik
 
 1. W zakładce **Sterowanie** zaznacz checkbox **B2**.
-2. STM32 pobierze `1` w odpowiedzi na następny pomiar, zwykle w ciągu 60 s
+2. STM32 pobierze `1` w odpowiedzi na następny pomiar, zwykle w ciągu 10 s
    plus czas połączenia.
 3. Zmienna `googleCloudStatus.demo_relay` w debuggerze przyjmie `1`.
    **Żaden GPIO ani rzeczywisty przekaźnik nie zostanie przełączony.**
 4. Przy kolejnym pomiarze STM32 odeśle potwierdzenie. W **C2** pojawi się `1`,
    a **F2** pokaże `DEMO - potwierdzony`. Potwierdzenie może więc pojawić się
-   dopiero po około dwóch minutach od kliknięcia.
+   dopiero po około 20 sekundach od kliknięcia, plus czas połączeń.
 5. Odznacz **B2**, aby tak samo przetestować `0`.
 
 Checkbox jest stanem żądanym, a nie przyciskiem chwilowym. Po restarcie STM32
@@ -190,7 +190,7 @@ aktualnego pomiaru; stara lub niepoprawna odpowiedź nie zmieni stanu DEMO.
   nie aktualizuje opublikowanej wersji `/exec`.
 - To wersja dla **jednego urządzenia**. Nie używaj równolegle tego samego
   identyfikatora/tokena na kilku STM32.
-- Jeden pomiar na minutę daje około **1440 wywołań dziennie**. Apps Script
+- Jeden pomiar co 10 sekund daje około **8640 wywołań dziennie**. Wolne połączenie lub błędy mogą wydłużyć odstęp; zadanie nie nadrabia zaległych pomiarów seriami żądań. Apps Script
   ma zmienne limity wykonania i dostępności; bezpłatne konto nie daje gwarancji
   pracy w czasie rzeczywistym. Endpoint może też zużywać limity przy cudzych
   wywołaniach. Dokumentacja limitów:
