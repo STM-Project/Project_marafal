@@ -11,7 +11,8 @@
 #include "variables.h"
 #include "def.h"
 
-struct tm *sntpTime;
+static struct tm initialSntpTime;
+struct tm *sntpTime = &initialSntpTime;
 
 void DefaultSettingsDNS(void)
 {

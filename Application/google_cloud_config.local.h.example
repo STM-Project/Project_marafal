@@ -1,0 +1,6 @@
+#define GOOGLE_CLOUD_ENABLED 1
+#define GOOGLE_CLOUD_DEVICE "stm32f769-demo"
+/* 64 hex characters from Apps Script properties DEVICE_TOKEN. */
+#define GOOGLE_CLOUD_TOKEN "PASTE_TOKEN_HERE"
+/* Path only, from the published Apps Script /exec URL. */
+#define GOOGLE_CLOUD_PATH "/macros/s/PASTE_DEPLOYMENT_ID/exec"

@@ -31,24 +31,27 @@
 #include "string.h"
 #include "stm32f7xx_hal.h"
 #include "mbedtls/entropy_poll.h"
+#include "mbedtls/entropy.h"
 
 extern RNG_HandleTypeDef hrng;
 
 int mbedtls_hardware_poll( void *Data, unsigned char *Output, size_t Len, size_t *oLen )
 {
-  uint32_t index;
   uint32_t randomValue;
-
-  for (index = 0; index < Len/4; index++)
+  (void)Data;
+  *oLen = 0;
+  while (*oLen < Len)
   {
     if (HAL_RNG_GenerateRandomNumber(&hrng, &randomValue) == HAL_OK)
     {
-      *oLen += 4;
-      memset(&(Output[index * 4]), (int)randomValue, 4);
+      size_t count = Len - *oLen;
+      if (count > sizeof(randomValue)) count = sizeof(randomValue);
+      memcpy(Output + *oLen, &randomValue, count);
+      *oLen += count;
     }
     else
     {
-      Error_Handler();
+      return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
     }
   }
 

@@ -135,7 +135,10 @@
 #define CHECKSUM_CHECK_ICMP6 0
 /*-----------------------------------------------------------------------------*/
 /* USER CODE BEGIN 1 */
-
+#include "google_cloud.h"
+#define SNTP_SERVER_DNS 1
+#define SNTP_CHECK_RESPONSE 2
+#define SNTP_SET_SYSTEM_TIME(sec) GoogleCloud_SetUtc((uint32_t)(sec))
 /* USER CODE END 1 */
 
 #ifdef __cplusplus
