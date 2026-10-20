@@ -1,6 +1,7 @@
 #include "google_cloud.h"
 #include "google_cloud_config.h"
 #include "google_cloud_protocol.h"
+#include "google_cloud_transport.h"
 #include "google_cloud_roots.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -155,7 +156,7 @@ static int exchange(const char *host, const char *path, const char *post,
     if (rc) goto done;
     rc = mbedtls_ssl_set_hostname(&ssl, host); /* SNI + hostname verification */
     if (rc) goto done;
-    mbedtls_ssl_set_bio(&ssl, &net, mbedtls_net_send, mbedtls_net_recv, NULL);
+    mbedtls_ssl_set_bio(&ssl, &net, GoogleCloud_TlsSend, GoogleCloud_TlsRecv, NULL);
     do { rc = mbedtls_ssl_handshake(&ssl); } while (retryTls(rc, start));
     googleCloudStatus.certificate_flags = mbedtls_ssl_get_verify_result(&ssl);
     if (rc || googleCloudStatus.certificate_flags) { if (!rc) rc = -12; goto done; }

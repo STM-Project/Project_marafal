@@ -1,45 +1,70 @@
-"""Regression test for the real adapter's F_GETFL check, with mocked fcntl."""
+"""Test the application BIO callbacks with mocked nonblocking LwIP sockets."""
 from pathlib import Path
 import subprocess
 import tempfile
-
 root = Path(__file__).resolve().parents[1]
-source = (root / "MBEDTLS/App/net_sockets.c").read_text()
-start = source.index("static int net_would_block( const mbedtls_net_context *ctx )\n{")
-end = source.index("\n}\n", start) + 3
-function = source[start:end]
-with tempfile.TemporaryDirectory(prefix="stm32-net-test-") as directory:
+with tempfile.TemporaryDirectory(prefix='stm32-transport-test-') as directory:
     folder = Path(directory)
-    program = r'''
+    (folder/'lwip').mkdir()
+    (folder/'mbedtls').mkdir()
+    (folder/'lwip/sockets.h').write_text('''#include <stddef.h>
+int lwip_recv(int, void *, size_t, int);
+int lwip_send(int, const void *, size_t, int);
+''')
+    (folder/'mbedtls/net_sockets.h').write_text('''typedef struct {int fd;} mbedtls_net_context;
+#define MBEDTLS_ERR_NET_INVALID_CONTEXT -1
+#define MBEDTLS_ERR_NET_CONN_RESET -2
+#define MBEDTLS_ERR_NET_RECV_FAILED -3
+#define MBEDTLS_ERR_NET_SEND_FAILED -4
+''')
+    (folder/'mbedtls/ssl.h').write_text('''#define MBEDTLS_ERR_SSL_WANT_READ -5
+#define MBEDTLS_ERR_SSL_WANT_WRITE -6
+''')
+    (folder/'test.c').write_text(r'''
+#include "google_cloud_transport.h"
+#include "mbedtls/net_sockets.h"
+#include "mbedtls/ssl.h"
 #include <errno.h>
-#include <fcntl.h>
 #include <assert.h>
 #include <stdio.h>
-typedef struct { int fd; } mbedtls_net_context;
-static int returned_flags;
-static int fake_fcntl(int fd, int cmd, int arg) {
-    assert(fd == 7 && cmd == F_GETFL && arg == 0);
-    errno = 0; /* LwIP F_GETFL resets errno; preserve the receive error. */
-    return returned_flags;
+static int result, error;
+int lwip_recv(int fd, void *data, size_t len, int flags) {
+    assert(fd==7 && data && len==8 && flags==0);
+    errno=error; return result;
 }
-#define fcntl fake_fcntl
-''' + function + r'''
+int lwip_send(int fd, const void *data, size_t len, int flags) {
+    assert(fd==7 && data && len==8 && flags==0);
+    errno=error; return result;
+}
 int main(void) {
-    mbedtls_net_context net = {7};
-    returned_flags = O_NONBLOCK | O_RDWR; errno = EAGAIN;
-    assert(net_would_block(&net) == 1 && errno == EAGAIN);
-    returned_flags = O_NONBLOCK; errno = EWOULDBLOCK;
-    assert(net_would_block(&net) == 1 && errno == EWOULDBLOCK);
-    returned_flags = O_RDWR; errno = EAGAIN;
-    assert(net_would_block(&net) == 0 && errno == EAGAIN);
-    returned_flags = -1; errno = EAGAIN;
-    assert(net_would_block(&net) == 0 && errno == EAGAIN);
-    returned_flags = O_NONBLOCK | O_RDWR; errno = ECONNRESET;
-    assert(net_would_block(&net) == 0 && errno == ECONNRESET);
-    puts("Nonblocking socket flags and errno preservation: PASS");
+    mbedtls_net_context net={7}, invalid={-1}; unsigned char data[8];
+    assert(GoogleCloud_TlsRecv(NULL,data,8)==MBEDTLS_ERR_NET_INVALID_CONTEXT);
+    assert(GoogleCloud_TlsSend(&invalid,data,8)==MBEDTLS_ERR_NET_INVALID_CONTEXT);
+    result=-1;
+    int retry[]={EAGAIN,EWOULDBLOCK,EINTR};
+    for(unsigned i=0;i<sizeof(retry)/sizeof(retry[0]);i++) {
+        error=retry[i];
+        assert(GoogleCloud_TlsRecv(&net,data,8)==MBEDTLS_ERR_SSL_WANT_READ);
+        assert(GoogleCloud_TlsSend(&net,data,8)==MBEDTLS_ERR_SSL_WANT_WRITE);
+    }
+    error=ECONNRESET;
+    assert(GoogleCloud_TlsRecv(&net,data,8)==MBEDTLS_ERR_NET_CONN_RESET);
+    error=EPIPE;
+    assert(GoogleCloud_TlsSend(&net,data,8)==MBEDTLS_ERR_NET_CONN_RESET);
+    error=EBADF;
+    assert(GoogleCloud_TlsRecv(&net,data,8)==MBEDTLS_ERR_NET_RECV_FAILED);
+    assert(GoogleCloud_TlsSend(&net,data,8)==MBEDTLS_ERR_NET_SEND_FAILED);
+    for(int n=0;n<=8;n++) {
+        result=n;
+        assert(GoogleCloud_TlsRecv(&net,data,8)==n);
+        assert(GoogleCloud_TlsSend(&net,data,8)==n);
+    }
+    puts("Application TLS transport: nonblocking retry, partial I/O, EOF and errors: PASS");
 }
-'''
-    (folder / "test.c").write_text(program)
-    subprocess.run(["cc", "-std=c11", "-Wall", "-Wextra", "-Werror",
-                    str(folder / "test.c"), "-o", str(folder / "test")], check=True)
-    subprocess.run([str(folder / "test")], check=True)
+''')
+    subprocess.run(['cc','-std=c11','-Wall','-Wextra','-Werror',
+                    '-fsanitize=address,undefined','-I'+str(folder),
+                    '-I'+str(root/'Application'),
+                    str(root/'Application/google_cloud_transport.c'),
+                    str(folder/'test.c'),'-o',str(folder/'test')],check=True)
+    subprocess.run([str(folder/'test')],check=True)

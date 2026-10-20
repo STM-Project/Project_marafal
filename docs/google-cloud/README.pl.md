@@ -183,6 +183,11 @@ Klient obsługuje 302/303, pobiera wynik przez GET i **nie przesyła tokena
 ponownie do adresu przekierowania**. Odpowiedź musi zawierać losowy identyfikator
 aktualnego pomiaru; stara lub niepoprawna odpowiedź nie zmieni stanu DEMO.
 
+Klient Google korzysta z własnych callbacków sieciowych w
+`Application/google_cloud_transport.c`. Obsługują one oczekiwanie na dane
+(`EAGAIN`/`EWOULDBLOCK`) bez zmieniania adaptera `MBEDTLS/App/net_sockets.c`.
+Przy aktualizacji projektu dodaj również plik `.h` tego adaptera aplikacji.
+
 ## 10. Zmiany skryptu, limity i dalsza rozbudowa
 
 - Po zmianie `Code.gs`: **Wdróż → Zarządzaj wdrożeniami → Edytuj → Nowa wersja

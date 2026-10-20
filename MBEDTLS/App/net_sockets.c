@@ -263,13 +263,11 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
 static int net_would_block( const mbedtls_net_context *ctx )
 {
     int err = errno;
-    int flags = fcntl( ctx->fd, F_GETFL, 0 );
 
     /*
-     * F_GETFL also includes access-mode flags (e.g. O_RDWR).
-     * Only blocking sockets must reject WOULD BLOCK.
+     * Never return 'WOULD BLOCK' on a non-blocking socket
      */
-    if( flags < 0 || ( flags & O_NONBLOCK ) == 0 )
+    if( fcntl( ctx->fd, F_GETFL, O_NONBLOCK ) != O_NONBLOCK )
     {
         errno = err;
         return( 0 );
