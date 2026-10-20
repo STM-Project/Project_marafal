@@ -178,6 +178,15 @@ pełnego POST. `-22` często oznacza zły token/DEVICE_ID, brak `setup()`,
 usuniętą zakładkę lub wpisany tekst zamiast checkboxa. Sprawdź też ekran
 **Wykonania / Executions** w Apps Script, bez dodawania logowania żądań.
 
+Jeżeli debugger pokazuje stos `x509 → gmtime → __assert_func → abort → _exit`,
+program zakończył się asercją w bibliotece C, a nie oczekuje na sieć.
+Do obsługi dat TLS służy teraz `Application/google_cloud_time.c`, korzystający
+z `gmtime_r()` i bufora wywołującego zamiast alokowanego przez `gmtime()`.
+W konfiguracji aplikacji `MBEDTLS/App/mbedtls_config.h`, w sekcji USER CODE,
+jest włączony obsługiwany hook `MBEDTLS_PLATFORM_GMTIME_R_ALT`.
+Po aktualizacji wykonaj Clean/Build. Nie wyłączaj weryfikacji dat certyfikatu
+i nie zmieniaj pętli `_exit()` w `syscalls.c`; nie usuwa to przyczyny awarii.
+
 Google ContentService przekierowuje odpowiedź na `script.googleusercontent.com`.
 Klient obsługuje 302/303, pobiera wynik przez GET i **nie przesyła tokena
 ponownie do adresu przekierowania**. Odpowiedź musi zawierać losowy identyfikator

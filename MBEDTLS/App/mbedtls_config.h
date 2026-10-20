@@ -3275,6 +3275,9 @@
 
 /* USER CODE BEGIN 1 */
 
+/* Application UTC adapter: avoid newlib gmtime()'s per-task result allocation. */
+#define MBEDTLS_PLATFORM_GMTIME_R_ALT
+
 #if defined(TARGET_LIKE_MBED) && defined(YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE)
     #include YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE
 #endif
