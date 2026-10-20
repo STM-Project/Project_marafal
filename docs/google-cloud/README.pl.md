@@ -173,6 +173,16 @@ Dodaj do podglądu zmienną `googleCloudStatus`:
 | `last_error = -20, -21` | Nie udało się uruchomić callbacka LwIP / zadania |
 | `certificate_flags` | Flagi błędu sprawdzania certyfikatu mbedTLS |
 
+`0xFFFF8100` (czyli `-0x7F00`) w `mbedtls_ssl_setup()` oznacza brak pamięci TLS.
+TLS korzysta z osobnej puli **512 KiB w SDRAM**, a nie ze 128 KiB sterty zadań.
+Dodaj do podglądu także `googleCloudMemoryStatus`: `ready` musi wynosić 1;
+`free_bytes` pokazuje wolną pamięć, `largest_free_block` największy ciągły
+obszar, `last_request` ostatni żądany rozmiar, a `failures` liczbę nieudanych
+alokacji. Pula jest wspólna dla serwera i klientów TLS. Inicjalizuje ją
+`GoogleCloud_MemoryInit()` w `StartDefaultTask`, po inicjalizacji SDRAM,
+przed uruchomieniem wątków sieciowych. Uwzględnij aktualizację tego wywołania
+w `Core/Src/freertos.c`, a nie tylko plików `google_cloud_memory.c/.h`.
+
 Inne ujemne błędy mogą pochodzić bezpośrednio z mbedTLS. Nie loguj tokena ani
 pełnego POST. `-22` często oznacza zły token/DEVICE_ID, brak `setup()`,
 usuniętą zakładkę lub wpisany tekst zamiast checkboxa. Sprawdź też ekran
@@ -228,10 +238,11 @@ Własna konfiguracja mbedTLS jest wskazana przez `MBEDTLS_CONFIG_FILE`
 w ustawieniach projektu `.cproject` (Debug i Release). Ustawienia SNTP
 pochodzą z wymuszonego nagłówka `Application/google_cloud_lwip_config.h`.
 Nie kopiuj zmian do oryginalnych nagłówków bibliotek; zaimportuj/zaktualizuj
-także ustawienia projektu. Aplikacyjny adapter pamięci korzysta z
-`pvPortMalloc`/`vPortFree`, wspólnie dla klientów i serwera TLS, zamiast
-zmieniać inicjalizację alokatora w oryginalnym serwerze. Dostępna pamięć
-zależy od rozmiaru sterty FreeRTOS i równoczesnych zadań TLS.
+także ustawienia projektu. Aplikacyjny adapter pamięci korzysta z własnej
+puli 512 KiB w SDRAM, wspólnie dla klientów i serwera TLS. Pula używa
+jednostek 512-bajtowych, statycznego mutexa i nie pobiera pamięci ze sterty
+FreeRTOS. Zwolnione sąsiednie jednostki mogą obsłużyć większe żądanie.
+Nie zmienia to inicjalizacji w oryginalnych źródłach serwera ani bibliotek.
 
 Kompilacja ARM: `python3 /workspace/cloud-setup/build.py`, wynik w
 `Debug/cloud/firmware.elf`. To pomocnik przygotowany dla tego środowiska;

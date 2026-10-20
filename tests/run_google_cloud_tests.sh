@@ -10,3 +10,4 @@ cc -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined \
 node tests/google_apps_script_test.js
 python3 tests/net_would_block_test.py
 python3 tests/google_cloud_time_test.py
+python3 tests/google_cloud_memory_test.py

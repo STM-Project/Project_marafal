@@ -46,6 +46,7 @@
 #include "sntp_dns.h"
 #include "google_cloud.h"
 #include "google_cloud_config.h"
+#include "google_cloud_memory.h"
 
 /* USER CODE END Includes */
 
@@ -216,6 +217,8 @@ void StartDefaultTask(void const * argument)
 
 	MX_CRC_Init();
 	MX_RNG_Init();
+	/* HARDWARE_Init() has already initialized SDRAM before scheduler startup. */
+	if (GoogleCloud_MemoryInit() != 0) Error_Handler();
 
 	MX_FATFS_Init();
 
