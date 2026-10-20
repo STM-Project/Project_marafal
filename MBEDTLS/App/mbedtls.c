@@ -107,14 +107,6 @@ void MX_MBEDTLS_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-/* Called after SDRAM and RNG initialization, before starting TLS tasks. */
-void MBEDTLS_RuntimeInit(void)
-{
-#ifdef MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
-#endif
-}
-
 /*-------------------- HTTPS ---------------- */
 
 static int HTTPS_send(mbedtls_ssl_context *ssl, char *data, size_t len){
@@ -164,7 +156,9 @@ static void SSL_Server(void *arg)
 	const uint8_t *pers = (uint8_t*) "ssl_server";
 
 	/* START__SSL_Server: */
-	/* Shared allocator was initialized by MBEDTLS_RuntimeInit(). */
+	#ifdef MBEDTLS_MEMORY_BUFFER_ALLOC_C
+		mbedtls_memory_buffer_alloc_init(memory_buf, sizeof(memory_buf));
+	#endif
 
 /* MX_MBEDTLS_Init(); */
 

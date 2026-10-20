@@ -216,8 +216,6 @@ void StartDefaultTask(void const * argument)
 
 	MX_CRC_Init();
 	MX_RNG_Init();
-	/* Initialize shared TLS allocator once, before any TLS tasks use it. */
-	MBEDTLS_RuntimeInit();
 
 	MX_FATFS_Init();
 

@@ -45,7 +45,6 @@
 
 /* MBEDTLS init function */
 void MX_MBEDTLS_Init(void);
-void MBEDTLS_RuntimeInit(void);
 
 /* USER CODE BEGIN 2 */
 void https_server_netconn_init (void);

@@ -182,7 +182,7 @@ Jeżeli debugger pokazuje stos `x509 → gmtime → __assert_func → abort → 
 program zakończył się asercją w bibliotece C, a nie oczekuje na sieć.
 Do obsługi dat TLS służy teraz `Application/google_cloud_time.c`, korzystający
 z `gmtime_r()` i bufora wywołującego zamiast alokowanego przez `gmtime()`.
-W konfiguracji aplikacji `MBEDTLS/App/mbedtls_config.h`, w sekcji USER CODE,
+W konfiguracji aplikacji `Application/google_cloud_mbedtls_config.h`
 jest włączony obsługiwany hook `MBEDTLS_PLATFORM_GMTIME_R_ALT`.
 Po aktualizacji wykonaj Clean/Build. Nie wyłączaj weryfikacji dat certyfikatu
 i nie zmieniaj pętli `_exit()` w `syscalls.c`; nie usuwa to przyczyny awarii.
@@ -222,8 +222,16 @@ Testy lokalne: `sh tests/run_google_cloud_tests.sh`. Sprawdzają ramki HTTP,
 częściowe odczyty, chunked, dozwolone przekierowania, nonce i stan przekaźnika,
 a także logikę Apps Script z atrapami usług Google: uwierzytelnienie, checkbox,
 potwierdzenia, powtórzone żądanie, blokadę i limit historii.
-Osobny test adaptera RNG sprawdza kopiowanie wszystkich bajtów, długości
-niepodzielne przez cztery, granice bufora oraz propagację błędów HAL.
+Źródła i konfiguracje w `Drivers`, `Middlewares`, `MBEDTLS`, `LWIP`, `FATFS`
+i `startup` są przywrócone do pierwotnego commita `9ebf028`.
+Własna konfiguracja mbedTLS jest wskazana przez `MBEDTLS_CONFIG_FILE`
+w ustawieniach projektu `.cproject` (Debug i Release). Ustawienia SNTP
+pochodzą z wymuszonego nagłówka `Application/google_cloud_lwip_config.h`.
+Nie kopiuj zmian do oryginalnych nagłówków bibliotek; zaimportuj/zaktualizuj
+także ustawienia projektu. Aplikacyjny adapter pamięci korzysta z
+`pvPortMalloc`/`vPortFree`, wspólnie dla klientów i serwera TLS, zamiast
+zmieniać inicjalizację alokatora w oryginalnym serwerze. Dostępna pamięć
+zależy od rozmiaru sterty FreeRTOS i równoczesnych zadań TLS.
 
 Kompilacja ARM: `python3 /workspace/cloud-setup/build.py`, wynik w
 `Debug/cloud/firmware.elf`. To pomocnik przygotowany dla tego środowiska;
