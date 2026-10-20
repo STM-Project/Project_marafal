@@ -9,3 +9,4 @@ cc -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined \
 "$test_binary"
 node tests/google_apps_script_test.js
 python3 tests/hardware_rng_test.py
+python3 tests/net_would_block_test.py
