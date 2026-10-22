@@ -267,6 +267,8 @@ static struct {
     int active, fonts[4], temperature, previousPk, wasDown, armed, pressed;
     unsigned count, head;
     int history[120];
+    uint32_t historyTick[120];
+    int graphArmed, tooltip, touchX, touchY;
     uint32_t sampleTick, demoTick;
 } dashboard;
 uint8_t lcdPanel2PkDemo = 1;
@@ -418,6 +420,40 @@ static void DashTemperature(void)
     DashText(0,115,410,"-60 s",DASH_MUTED);
     DashText(0,695,410,"teraz",DASH_MUTED);
 }
+/* Temporary overlay: the next graph repaint restores its background. */
+static void DashTooltip(void)
+{
+    if(dashboard.tooltip<0 || (unsigned)dashboard.tooltip>=dashboard.count)return;
+    unsigned slot=(dashboard.head+120-dashboard.count+(unsigned)dashboard.tooltip)%120;
+    int value=dashboard.history[slot],valid=value>=-800&&value<=1500;
+    int plotted=value < -500 ? -500 : (value>900?900:value);
+    int x=115+dashboard.tooltip*620/119;
+    int y=400-(plotted+500)*69/1400;
+    if(valid){
+        DashLine(x,331,x,400,0xFF4C7E9CU);
+        PanelRound(x-4,y-4,9,9,4,DASH_TEXT,DASH_TEXT,255);
+        PanelRound(x-2,y-2,5,5,2,DASH_CYAN,DASH_CYAN,255);
+    }
+    int bx=x+12;
+    if(bx>490)bx=x-257;
+    if(bx<115)bx=115;
+    int by=y>365?332:364;
+    DashBox(bx+2,by+2,245,50,7,0xFF081522U,0xFF081522U);
+    DashBox(bx,by,245,50,7,DASH_CYAN,0xFF102C42U);
+    char line[80];
+    if(valid){
+        unsigned magnitude=(unsigned)(value<0?-value:value);
+        snprintf(line,sizeof(line),"Pomiar %u: %s%u.%u C",(unsigned)dashboard.tooltip+1,
+                 value<0?"-":"",magnitude/10,magnitude%10);
+    }else snprintf(line,sizeof(line),"Pomiar %u: brak danych",(unsigned)dashboard.tooltip+1);
+    DashText(0,bx+8,by+5,line,DASH_TEXT);
+    uint32_t age=(uint32_t)(dashboard.sampleTick-dashboard.historyTick[slot]);
+    snprintf(line,sizeof(line),"t: -%lu.%lu s  Punkt: %d,%d",
+             (unsigned long)(age/1000U),(unsigned long)(age%1000U/100U),x,y);
+    DashText(0,bx+8,by+19,line,DASH_MUTED);
+    snprintf(line,sizeof(line),"Dotyk X:%d  Y:%d",dashboard.touchX,dashboard.touchY);
+    DashText(0,bx+8,by+33,line,DASH_MUTED);
+}
 static void DashRelay(int pk)
 {
     DashSurface(435,100,322,143);
@@ -447,6 +483,7 @@ int LCD_TemperaturePkPanel2(uint8_t mode,int (*readTemperature10)(void),uint8_t 
 {
     if(mode==LCD_TEMP_EXIT){
         LCD_TOUCH_DeleteSelectTouch(61001);LCD_TOUCH_DeleteSelectTouch(61002);
+        LCD_TOUCH_DeleteSelectTouch(61003);
         dashboard.active=0;return 0;
     }
     if(!pkDemo || mode>LCD_TEMP_EXIT)return -1;
@@ -465,6 +502,10 @@ int LCD_TemperaturePkPanel2(uint8_t mode,int (*readTemperature10)(void),uint8_t 
         if(LCDTOUCH_Set(613,192,74,32,ID_TOUCH_POINT,61002,pressRelease)<0){
             LCD_TOUCH_DeleteSelectTouch(61001);return -4;
         }
+        if(LCDTOUCH_Set(115,331,621,70,ID_TOUCH_POINT,61003,pressRelease)<0){
+            LCD_TOUCH_DeleteSelectTouch(61001);LCD_TOUCH_DeleteSelectTouch(61002);return -4;
+        }
+        dashboard.graphArmed=0;dashboard.tooltip=-1;
         dashboard.count=dashboard.head=0;dashboard.previousPk=-1;
         dashboard.wasDown=LCD_TOUCH_isPress()==press;
         dashboard.armed=dashboard.pressed=0;
@@ -473,7 +514,11 @@ int LCD_TemperaturePkPanel2(uint8_t mode,int (*readTemperature10)(void),uint8_t 
         DashStatic();
     }
     screenTouchState=LCD_TOUCH_GetTypeAndPosition(&screenTouchPos);
-    int down=LCD_TOUCH_isPress()==press, hit=DashHit(LCD_TOUCH_GetPos());
+    XY_Touch_Struct position=LCD_TOUCH_GetPos();
+    int down=LCD_TOUCH_isPress()==press, hit=DashHit(position);
+    int inGraph=position.x>=115&&position.x<=735&&position.y>=331&&position.y<=400;
+    if(down&&!dashboard.wasDown)dashboard.graphArmed=inGraph;
+    if(!down)dashboard.graphArmed=0;
     if(down && !dashboard.wasDown)dashboard.armed=hit;
     if(!down && dashboard.wasDown){
         if(dashboard.armed && hit==dashboard.armed){
@@ -500,14 +545,26 @@ int LCD_TemperaturePkPanel2(uint8_t mode,int (*readTemperature10)(void),uint8_t 
         }
         lcdPanel2Temperature10=dashboard.temperature;
         dashboard.history[dashboard.head]=dashboard.temperature;
+        dashboard.historyTick[dashboard.head]=now;
         dashboard.head=(dashboard.head+1)%120;
         if(dashboard.count<120)dashboard.count++;
-        DashTemperature();sample=1;
+        sample=1;
     }
+    int selected=-1;
+    if(down&&dashboard.graphArmed&&inGraph&&dashboard.count){
+        /* Nearest available sample, including the partly filled history. */
+        selected=(((int)position.x-115)*119+310)/620;
+        if((unsigned)selected>=dashboard.count)selected=(int)dashboard.count-1;
+    }
+    int overlay=dashboard.tooltip!=selected ||
+        (selected>=0&&(dashboard.touchX!=position.x||dashboard.touchY!=position.y));
+    dashboard.tooltip=selected;dashboard.touchX=position.x;dashboard.touchY=position.y;
+    if(sample||overlay){DashTemperature();DashTooltip();}
     if(relay){DashRelay(!!*pkDemo);dashboard.previousPk=!!*pkDemo;}
     if(all)LCD_Show();
     else{
-        if(sample){LCD_DisplayPart(0,48,112,334,98);LCD_DisplayPart(0,42,327,714,98);}
+        if(sample)LCD_DisplayPart(0,48,112,334,98);
+        if(sample||overlay)LCD_DisplayPart(0,42,327,714,98);
         if(relay)LCD_DisplayPart(0,435,100,322,143);
     }
     return changed;

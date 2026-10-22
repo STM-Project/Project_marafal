@@ -142,3 +142,11 @@ Kontrolka PK: zielona radialna poswiata tylko w stanie ON.
 
 Wykres jest rysowany linia z antyaliasingiem (pokrycie krawedzi, mieszanie z tlem).
 Poswiata PK ma zmniejszona intensywnosc: maksymalne alfa 65/255.
+
+
+Dotyk wykresu: przytrzymaj palec wewnatrz pola linii (X=115..735, Y=331..400).
+Dymek pokazuje najblizsza dostepna probke, temperature, czas wzgledem
+najnowszej probki, wspolrzedne punktu wykresu i wspolrzedne dotyku X/Y.
+Przesuniecie palca wybiera inna probke. Puszczenie palca lub wyjscie poza pole
+chowa dymek i odtwarza wykres. Dotyk wykresu nie zmienia PK.
+Czas jest liczony z zapisanych znacznikow HAL_GetTick, takze przy opoznieniach.
