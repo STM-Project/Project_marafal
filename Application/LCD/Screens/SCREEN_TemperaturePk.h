@@ -20,4 +20,14 @@ extern uint8_t lcdPanelPkDemo;
 extern volatile int lcdPanelResult;
 extern volatile int lcdPanelTemperature10;
 extern int (*lcdPanelReadTemperature10)(void);
+/* Screen 8: dark dashboard, 120 samples, separate ON/OFF touch buttons.
+ * Same modes/return codes/temperature callback contract as screen 7.
+ * Fonts on SD: Arial 9, Arial 14 bold, Arial 36, Arial 16.
+ * No networking or GPIO. Callback NULL selects simulated 99.1 C.
+ */
+int LCD_TemperaturePkPanel2(uint8_t mode, int (*readTemperature10)(void), uint8_t *pkDemo);
+extern uint8_t lcdPanel2PkDemo;
+extern volatile int lcdPanel2Result;
+extern volatile int lcdPanel2Temperature10;
+extern int (*lcdPanel2ReadTemperature10)(void);
 #endif

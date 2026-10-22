@@ -7,6 +7,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <limits.h>
+#include <stdlib.h>
 
 /* The existing SDRAM drawing buffer, presented by the existing LCD_Show(). */
 extern uint32_t pLcd[];
@@ -248,6 +249,185 @@ int LCD_TemperaturePkPanel(uint8_t mode, int (*readTemperature10)(void), uint8_t
             LCD_DisplayPart(0, 624, 42, 8, 8);
         }
         if (redrawButton) LCD_DisplayPart(0, 482, 165, 270, 238);
+    }
+    return changed;
+}
+
+
+/* Screen 8: dark dashboard based on the supplied reference, fitted to 800x480.
+ * Shares only drawing primitives with screen 7; all state belongs to this view.
+ */
+#define DASH_BG 0xFF0B1523U
+#define DASH_CARD 0xFF172839U
+#define DASH_EDGE 0xFF304A60U
+#define DASH_TEXT 0xFFE2EEFFU
+#define DASH_MUTED 0xFF9DC8F4U
+#define DASH_CYAN 0xFF61CBFFU
+static struct {
+    int active, fonts[4], temperature, previousPk, wasDown, armed, pressed;
+    unsigned count, head;
+    int history[120];
+    uint32_t sampleTick, demoTick;
+} dashboard;
+uint8_t lcdPanel2PkDemo = 1;
+volatile int lcdPanel2Result;
+volatile int lcdPanel2Temperature10 = 991;
+int (*lcdPanel2ReadTemperature10)(void);
+
+static void DashText(int f, int x, int y, char *s, uint32_t c)
+{ PanelText(dashboard.fonts[f], x, y, s, c); }
+static void DashCenter(int f, int x, int y, char *s, uint32_t c)
+{ PanelCentered(dashboard.fonts[f], x, y, s, c); }
+static void DashBox(int x,int y,int w,int h,int r,uint32_t edge,uint32_t fill)
+{
+    PanelRound(x,y,w,h,r,edge,edge,255);
+    PanelRound(x+1,y+1,w-2,h-2,r-1,fill,fill,255);
+}
+static void DashLine(int x,int y,int xx,int yy,uint32_t color)
+{
+    int dx=abs(xx-x), sx=x<xx?1:-1, dy=-abs(yy-y), sy=y<yy?1:-1, e=dx+dy;
+    for (;;) {
+        PanelPixel(x,y,color,255);
+        if(x==xx && y==yy) break;
+        int e2=2*e;
+        if(e2>=dy){e+=dy;x+=sx;}
+        if(e2<=dx){e+=dx;y+=sy;}
+    }
+}
+static int DashHit(XY_Touch_Struct p)
+{
+    if(p.y>=192 && p.y<224) {
+        if(p.x>=539 && p.x<604) return 1;
+        if(p.x>=613 && p.x<687) return 2;
+    }
+    return 0;
+}
+static void DashStatic(void)
+{
+    for(int y=0;y<480;y++) for(int x=0;x<800;x++)
+        LCD_Buffer(800,x,y,PanelMix(0xFF193146U,DASH_BG,(unsigned)(y*210/479+x*45/799)));
+    DashText(0,22,8,"STM32F769 . PANEL ZDALNY",DASH_CYAN);
+    DashText(1,22,28,"Temperatura i przekaznik",DASH_TEXT);
+    DashBox(639,13,139,25,13,DASH_EDGE,0xFF122334U);
+    DashCenter(0,708,19,"Lokalny tryb DEMO",DASH_MUTED);
+    DashBox(22,66,378,210,16,DASH_EDGE,DASH_CARD);
+    DashBox(416,66,362,210,16,DASH_EDGE,DASH_CARD);
+    DashText(1,40,80,"Czujnik temperatury . 1",DASH_TEXT);
+    DashText(1,435,80,"Przekaznik . DEMO",DASH_TEXT);
+    DashText(0,180,204,"Ostatni pomiar ze STM32",DASH_MUTED);
+    DashText(0,435,248,"DEMO: stan w pamieci STM32, bez GPIO.",DASH_MUTED);
+    DashBox(22,288,756,156,16,DASH_EDGE,DASH_CARD);
+    DashText(1,40,299,"Historia temperatury",DASH_TEXT);
+    DashText(0,40,425,"Ostatnie 120 pomiarow . odczyt co 500 ms",DASH_MUTED);
+    DashText(0,22,458,"Pomiar lokalny STM32F769",DASH_MUTED);
+    DashText(0,390,458,"PK: demonstracja . bez sterowania GPIO",DASH_MUTED);
+}
+static void DashTemperature(void)
+{
+    LCD_Shape(48,112,LCD_Rectangle,334,88,DASH_CARD,DASH_CARD,DASH_CARD);
+    PanelRound(105,114,24,75,12,0xFFBACAD6U,0xFFBACAD6U,255);
+    PanelRound(108,117,18,72,9,DASH_BG,DASH_BG,255);
+    int valid=dashboard.temperature>=-800 && dashboard.temperature<=1500;
+    int level=valid?(dashboard.temperature+800)*66/2300:0;
+    if(level>0) PanelRound(111,186-level,12,level+4,6,0xFFF6555AU,0xFFF6555AU,255);
+    PanelRound(99,174,36,36,18,0xFFBACAD6U,0xFFBACAD6U,255);
+    PanelRound(103,178,28,28,14,0xFFF6555AU,0xFFF6555AU,255);
+    char value[24];
+    if(valid){int v=dashboard.temperature;unsigned a=(unsigned)(v<0?-v:v);
+        snprintf(value,sizeof(value),"%s%u.%u",v<0?"-":"",a/10,a%10);
+    }else snprintf(value,sizeof(value),"--.-");
+    DashText(2,180,140,value,DASH_TEXT);
+    int w=LCD_GetWholeStrPxlWidth(dashboard.fonts[2],value,0,NoConstWidth);
+    DashText(1,185+w,168,"C",DASH_MUTED);
+    PanelRound(180+w,165,4,4,2,DASH_MUTED,DASH_MUTED,255);
+    /* Repaint graph, then connect only valid samples; oldest is on the left. */
+    LCD_Shape(42,327,LCD_Rectangle,714,90,DASH_CARD,DASH_CARD,DASH_CARD);
+    for(int i=0;i<4;i++) {
+        int y=331+i*23; DashLine(115,y,735,y,DASH_EDGE);
+        char *labels[]={"150 C","73 C","-3 C","-80 C"};
+        DashText(0,48,y-5,labels[i],DASH_MUTED);
+    }
+    int px=0,py=0,previousValid=0;
+    for(unsigned i=0;i<dashboard.count;i++) {
+        int v=dashboard.history[(dashboard.head+120-dashboard.count+i)%120];
+        if(v < -800 || v > 1500){previousValid=0;continue;}
+        int x=115+(int)i*620/119, y=400-(v+800)*69/2300;
+        if(previousValid) {DashLine(px,py,x,y,DASH_CYAN);DashLine(px,py+1,x,y+1,DASH_CYAN);}
+        PanelRound(x-2,y-2,5,5,2,DASH_CYAN,DASH_CYAN,255);
+        px=x;py=y;previousValid=1;
+    }
+    DashText(0,115,410,"-60 s",DASH_MUTED);
+    DashText(0,695,410,"teraz",DASH_MUTED);
+}
+static void DashRelay(int pk)
+{
+    LCD_Shape(435,109,LCD_Rectangle,322,134,DASH_CARD,DASH_CARD,DASH_CARD);
+    PanelRound(570,110,64,64,32,0xFF1C3441U,0xFF1C3441U,255);
+    PanelRound(576,116,52,52,26,pk?0xFF60E4B0U:0xFF52677CU,pk?0xFF60E4B0U:0xFF52677CU,255);
+    DashCenter(1,602,171,pk?"Wlaczony . ON":"Wylaczony . OFF",DASH_TEXT);
+    DashBox(539,192,65,32,8,0xFF64CDFFU,dashboard.pressed==1?0xFF125078U:0xFF237FA6U);
+    DashBox(613,192,74,32,8,0xFF496C88U,dashboard.pressed==2?0xFF122A3EU:0xFF203E56U);
+    DashCenter(0,571,202,"Wlacz",DASH_TEXT);
+    DashCenter(0,650,202,"Wylacz",DASH_TEXT);
+    DashCenter(0,602,231,pk?"Zadany: ON . lokalny DEMO":"Zadany: OFF . lokalny DEMO",DASH_MUTED);
+}
+int LCD_TemperaturePkPanel2(uint8_t mode,int (*readTemperature10)(void),uint8_t *pkDemo)
+{
+    if(mode==LCD_TEMP_EXIT){
+        LCD_TOUCH_DeleteSelectTouch(61001);LCD_TOUCH_DeleteSelectTouch(61002);
+        dashboard.active=0;return 0;
+    }
+    if(!pkDemo || mode>LCD_TEMP_EXIT)return -1;
+    if(LCD_GetXSize()!=800 || LCD_GetYSize()!=480)return -2;
+    uint32_t now=HAL_GetTick();
+    int all=mode==LCD_TEMP_ENTER || !dashboard.active, changed=0, sample=0;
+    if(all){
+        dashboard.active=0;SCREEN_ResetAllParameters();LCD_TOUCH_DeleteAllSetTouch();
+        const int sizes[]={FONT_9,FONT_14_bold,FONT_36,FONT_16};
+        const int ids[]={fontID_14,fontID_15,fontID_16,fontID_17};
+        for(int i=0;i<4;i++){
+            dashboard.fonts[i]=LCD_LoadFont_ChangeColor(sizes[i],Arial,ids[i]);
+            if(dashboard.fonts[i]<0)return -3;
+        }
+        if(LCDTOUCH_Set(539,192,65,32,ID_TOUCH_POINT,61001,pressRelease)<0)return -4;
+        if(LCDTOUCH_Set(613,192,74,32,ID_TOUCH_POINT,61002,pressRelease)<0){
+            LCD_TOUCH_DeleteSelectTouch(61001);return -4;
+        }
+        dashboard.count=dashboard.head=0;dashboard.previousPk=-1;
+        dashboard.wasDown=LCD_TOUCH_isPress()==press;
+        dashboard.armed=dashboard.pressed=0;
+        dashboard.demoTick=now;dashboard.sampleTick=now-500U;dashboard.active=1;
+        DashStatic();
+    }
+    screenTouchState=LCD_TOUCH_GetTypeAndPosition(&screenTouchPos);
+    int down=LCD_TOUCH_isPress()==press, hit=DashHit(LCD_TOUCH_GetPos());
+    if(down && !dashboard.wasDown)dashboard.armed=hit;
+    if(!down && dashboard.wasDown){
+        if(dashboard.armed && hit==dashboard.armed){
+            uint8_t requested=hit==1;
+            changed=!!*pkDemo!=requested;*pkDemo=requested;
+        }
+        dashboard.armed=0;
+    }
+    dashboard.wasDown=down;
+    int pressed=down && hit==dashboard.armed?hit:0;
+    int relay=all || dashboard.previousPk!=!!*pkDemo || dashboard.pressed!=pressed;
+    dashboard.pressed=pressed;
+    if((uint32_t)(now-dashboard.sampleTick)>=500U){
+        dashboard.sampleTick=now;
+        unsigned n=(uint32_t)(now-dashboard.demoTick)/500U%40U;
+        dashboard.temperature=readTemperature10?readTemperature10():991+(n<20?(int)n:40-(int)n);
+        lcdPanel2Temperature10=dashboard.temperature;
+        dashboard.history[dashboard.head]=dashboard.temperature;
+        dashboard.head=(dashboard.head+1)%120;
+        if(dashboard.count<120)dashboard.count++;
+        DashTemperature();sample=1;
+    }
+    if(relay){DashRelay(!!*pkDemo);dashboard.previousPk=!!*pkDemo;}
+    if(all)LCD_Show();
+    else{
+        if(sample){LCD_DisplayPart(0,48,112,334,98);LCD_DisplayPart(0,42,327,714,98);}
+        if(relay)LCD_DisplayPart(0,435,109,322,134);
     }
     return changed;
 }

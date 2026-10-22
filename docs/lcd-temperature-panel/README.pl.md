@@ -106,3 +106,29 @@ Test korzysta z atrap sprzetu i czcionek, nie potwierdza dzialania LCD na plytce
 Sprawdzono kompilacje ARM projektu. Wymagany pozostaje test na fizycznym LCD
 z Twoja karta SD, kalibracja dotyku i metrykami plikow czcionek.
 Nie zmieniono Drivers, Middlewares, MBEDTLS, LWIP, FATFS ani startup.
+
+
+## Drugi ekran: ciemny panel ze wzoru
+
+Uruchom raz w zadaniu GUI: `SCREEN_SetNr(8);`.
+Funkcja: `LCD_TemperaturePkPanel2(mode, readTemperature10, &pkDemo)`.
+Poprzedni ekran 7 pozostaje dostepny.
+
+- `lcdPanel2ReadTemperature10`: wskaznik callbacku czujnika, wynik 991 oznacza 99.1 C.
+  NULL uruchamia jawna symulacje temperatury, poczatkowo 99.1 C.
+- `lcdPanel2PkDemo`: stan RAM, domyslnie ON. Przyciski Wlacz/Wylacz
+  ustawiaja stan po puszczeniu palca wewnatrz tego samego przycisku.
+- `lcdPanel2Temperature10`: ostatni odczyt; `lcdPanel2Result`: kod wyniku.
+- Probkowanie co 500 ms; historia maksymalnie 120 probek (~60 s),
+  zaczyna sie pusta, bez fikcyjnych danych. Brak probek nie laczy wykresu.
+- Fonty na SD: Arial 9, Arial 14 bold, Arial 36, Arial 16.
+- Tryb lokalny DEMO: brak sieci, brak GPIO. Napisy nie deklaruja polaczenia
+  z chmura. Proporcje wzoru dopasowano do 800x480; napisy ASCII sa zgodne
+  z uzywanym mechanizmem czcionek. To odwzorowanie ukladu, nie kopia pikselowa
+  zalaczonego obrazu o innej rozdzielczosci.
+
+Podglad: [panel2-on.png](panel2-on.png). Podglad powstaje z bufora renderera
+z zastepczymi czcionkami Liberation Sans; Arial na LCD moze sie roznic.
+Test: `python3 tests/lcd_temperature_dashboard_test.py`.
+Test hosta sprawdza dotyk, interwal, zawijanie licznika czasu, 120 probek,
+bledne temperatury i granice bufora. Ostateczna walidacja wymaga plytki i SD.
