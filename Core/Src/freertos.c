@@ -44,9 +44,6 @@
 #include "_debug.h"
 #include "_smtp.h"
 #include "sntp_dns.h"
-#include "google_cloud.h"
-#include "google_cloud_config.h"
-#include "google_cloud_memory.h"
 
 /* USER CODE END Includes */
 
@@ -217,12 +214,10 @@ void StartDefaultTask(void const * argument)
 
 	MX_CRC_Init();
 	MX_RNG_Init();
-	/* HARDWARE_Init() has already initialized SDRAM before scheduler startup. */
-	if (GoogleCloud_MemoryInit() != 0) Error_Handler();
 
 	MX_FATFS_Init();
 
-	#if HTTP_THREAD_ON || GOOGLE_CLOUD_ENABLED
+	#if HTTP_THREAD_ON
 	 MX_LWIP_Init();		/* LAN8742: When nINTSEL is floated or pulled to VDD2A, nINT is selected for operation on the nINT/REFCLKO pin (default). •When nINTSEL is pulled low to VSS, REFCLKO is selected for operation on the nINT/REFCLKO pin. */
 	#endif
 
@@ -247,7 +242,6 @@ void StartDefaultTask(void const * argument)
 	 https_server_netconn_init();
 /*	 CreateTestEMAILTask("Text"); */
 	#endif
-	GoogleCloud_Start();
 
 	osThreadTerminate(NULL);
 
