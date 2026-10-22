@@ -115,7 +115,9 @@ Funkcja: `LCD_TemperaturePkPanel2(mode, readTemperature10, &pkDemo)`.
 Poprzedni ekran 7 pozostaje dostepny.
 
 - `lcdPanel2ReadTemperature10`: wskaznik callbacku czujnika, wynik 991 oznacza 99.1 C.
-  NULL uruchamia jawna symulacje temperatury, poczatkowo 99.1 C.
+  NULL uruchamia lagodna losowa demonstracje: poczatkowo 25.5 C,
+  co 500 ms zmiana o +/-0.1 do 0.3 C, zakres 20.0..35.0 C.
+  Wykres dopisuje probki na biezaco i dopasowuje skale do zakresu danych.
 - `lcdPanel2PkDemo`: stan RAM, domyslnie ON. Przyciski Wlacz/Wylacz
   ustawiaja stan po puszczeniu palca wewnatrz tego samego przycisku.
 - `lcdPanel2Temperature10`: ostatni odczyt; `lcdPanel2Result`: kod wyniku.

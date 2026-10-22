@@ -267,11 +267,12 @@ static struct {
     int active, fonts[4], temperature, previousPk, wasDown, armed, pressed;
     unsigned count, head;
     int history[120];
-    uint32_t sampleTick, demoTick;
+    uint32_t sampleTick, randomState;
+    int demoTemperature;
 } dashboard;
 uint8_t lcdPanel2PkDemo = 1;
 volatile int lcdPanel2Result;
-volatile int lcdPanel2Temperature10 = 991;
+volatile int lcdPanel2Temperature10 = 255;
 int (*lcdPanel2ReadTemperature10)(void);
 
 static void DashText(int f, int x, int y, char *s, uint32_t c)
@@ -342,16 +343,25 @@ static void DashTemperature(void)
     PanelRound(180+w,165,4,4,2,DASH_MUTED,DASH_MUTED,255);
     /* Repaint graph, then connect only valid samples; oldest is on the left. */
     LCD_Shape(42,327,LCD_Rectangle,714,90,DASH_CARD,DASH_CARD,DASH_CARD);
+    int low=200,high=350;
+    for(unsigned i=0;i<dashboard.count;i++) {
+        int v=dashboard.history[(dashboard.head+120-dashboard.count+i)%120];
+        if(v < -800 || v > 1500)continue;
+        if(v<low)low=v;
+        if(v>high)high=v;
+    }
     for(int i=0;i<4;i++) {
         int y=331+i*23; DashLine(115,y,735,y,DASH_EDGE);
-        char *labels[]={"150 C","73 C","-3 C","-80 C"};
-        DashText(0,48,y-5,labels[i],DASH_MUTED);
+        int v=high-(high-low)*i/3;
+        unsigned magnitude=(unsigned)(v<0?-v:v);
+        char label[20];snprintf(label,sizeof(label),"%s%u.%u",v<0?"-":"",magnitude/10,magnitude%10);
+        DashText(0,48,y-5,label,DASH_MUTED);
     }
     int px=0,py=0,previousValid=0;
     for(unsigned i=0;i<dashboard.count;i++) {
         int v=dashboard.history[(dashboard.head+120-dashboard.count+i)%120];
         if(v < -800 || v > 1500){previousValid=0;continue;}
-        int x=115+(int)i*620/119, y=400-(v+800)*69/2300;
+        int x=115+(int)i*620/119, y=400-(v-low)*69/(high-low);
         if(previousValid) {DashLine(px,py,x,y,DASH_CYAN);DashLine(px,py+1,x,y+1,DASH_CYAN);}
         PanelRound(x-2,y-2,5,5,2,DASH_CYAN,DASH_CYAN,255);
         px=x;py=y;previousValid=1;
@@ -396,7 +406,10 @@ int LCD_TemperaturePkPanel2(uint8_t mode,int (*readTemperature10)(void),uint8_t 
         dashboard.count=dashboard.head=0;dashboard.previousPk=-1;
         dashboard.wasDown=LCD_TOUCH_isPress()==press;
         dashboard.armed=dashboard.pressed=0;
-        dashboard.demoTick=now;dashboard.sampleTick=now-500U;dashboard.active=1;
+        dashboard.randomState=now ^ 0x6D2B79F5U;
+        if(!dashboard.randomState)dashboard.randomState=1;
+        dashboard.demoTemperature=255;
+        dashboard.sampleTick=now-500U;dashboard.active=1;
         DashStatic();
     }
     screenTouchState=LCD_TOUCH_GetTypeAndPosition(&screenTouchPos);
@@ -415,8 +428,22 @@ int LCD_TemperaturePkPanel2(uint8_t mode,int (*readTemperature10)(void),uint8_t 
     dashboard.pressed=pressed;
     if((uint32_t)(now-dashboard.sampleTick)>=500U){
         dashboard.sampleTick=now;
-        unsigned n=(uint32_t)(now-dashboard.demoTick)/500U%40U;
-        dashboard.temperature=readTemperature10?readTemperature10():991+(n<20?(int)n:40-(int)n);
+        if(readTemperature10)dashboard.temperature=readTemperature10();
+        else {
+            /* Private PRNG: no global rand() state, peripherals or GPIO.
+             * Smooth random walk: each sample changes by 0.1 .. 0.3 C.
+             */
+            if(dashboard.count) {
+                uint32_t r=dashboard.randomState;
+                r^=r<<13;r^=r>>17;r^=r<<5;dashboard.randomState=r;
+                int step=1+(int)(r%3U);
+                if(r&0x100U)step=-step;
+                int next=dashboard.demoTemperature+step;
+                if(next<200 || next>350)next=dashboard.demoTemperature-step;
+                dashboard.demoTemperature=next;
+            }
+            dashboard.temperature=dashboard.demoTemperature;
+        }
         lcdPanel2Temperature10=dashboard.temperature;
         dashboard.history[dashboard.head]=dashboard.temperature;
         dashboard.head=(dashboard.head+1)%120;
