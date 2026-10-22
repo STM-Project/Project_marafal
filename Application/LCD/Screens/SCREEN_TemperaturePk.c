@@ -268,7 +268,7 @@ static struct {
     unsigned count, head;
     int history[120];
     uint32_t sampleTick, randomState;
-    int demoTemperature;
+    int demoTemperature, demoDirection;
 } dashboard;
 uint8_t lcdPanel2PkDemo = 1;
 volatile int lcdPanel2Result;
@@ -343,10 +343,15 @@ static void DashTemperature(void)
     PanelRound(105,114,24,75,12,0xFFBACAD6U,0xFFBACAD6U,255);
     PanelRound(108,117,18,72,9,DASH_BG,DASH_BG,255);
     int valid=dashboard.temperature>=-800 && dashboard.temperature<=1500;
-    int level=valid?(dashboard.temperature+800)*66/2300:0;
-    if(level>0) PanelRound(111,186-level,12,level+4,6,0xFFF6555AU,0xFFF6555AU,255);
+    int bounded=dashboard.temperature;
+    if(bounded < -500)bounded=-500;
+    if(bounded > 900)bounded=900;
+    unsigned heat=(unsigned)((bounded+500)*255/1400);
+    uint32_t mercury=valid?PanelMix(0xFF168BFFU,0xFFFF1C16U,heat):0xFF52677CU;
+    int level=valid?(bounded+500)*66/1400:0;
+    if(level>0) PanelRound(111,186-level,12,level+4,6,mercury,mercury,255);
     PanelRound(99,174,36,36,18,0xFFBACAD6U,0xFFBACAD6U,255);
-    PanelRound(103,178,28,28,14,0xFFF6555AU,0xFFF6555AU,255);
+    PanelRound(103,178,28,28,14,mercury,mercury,255);
     /* ConstWidth is the native font API's constant-width attribute.
      * Right-align the integer independently: changing 9.9 -> 10.0 or sign
      * cannot move the decimal point, fractional digit or degree/C symbol.
@@ -386,7 +391,6 @@ static void DashTemperature(void)
         if(v < -800 || v > 1500){previousValid=0;continue;}
         int x=115+(int)i*620/119, y=400-(v-low)*69/(high-low);
         if(previousValid) {DashLine(px,py,x,y,DASH_CYAN);DashLine(px,py+1,x,y+1,DASH_CYAN);}
-        PanelRound(x-2,y-2,5,5,2,DASH_CYAN,DASH_CYAN,255);
         px=x;py=y;previousValid=1;
     }
     DashText(0,115,410,"-60 s",DASH_MUTED);
@@ -394,8 +398,21 @@ static void DashTemperature(void)
 }
 static void DashRelay(int pk)
 {
-    DashSurface(435,109,322,134);
+    DashSurface(435,100,322,143);
     PanelRound(570,110,64,64,32,0xFF1C3441U,0xFF1C3441U,255);
+    if(pk) {
+        /* Soft radial halo, blended over the restored card gradient.
+         * Draw only when ON; repainting the region removes it on OFF.
+         */
+        for(int dy=-42;dy<=42;dy++) for(int dx=-42;dx<=42;dx++) {
+            float distance=sqrtf((float)(dx*dx+dy*dy));
+            float fade=(42.0f-distance)/19.0f;
+            if(fade<=0)continue;
+            if(fade>1)fade=1;
+            float smooth=fade*fade*(3.0f-2.0f*fade);
+            PanelPixel(602+dx,142+dy,0xFF58FFC0U,(unsigned)(100.0f*smooth));
+        }
+    }
     PanelRound(576,116,52,52,26,pk?0xFF60E4B0U:0xFF52677CU,pk?0xFF60E4B0U:0xFF52677CU,255);
     DashCenter(1,602,171,pk?"Wlaczony . ON":"Wylaczony . OFF",DASH_TEXT);
     DashBox(539,192,65,32,8,0xFF64CDFFU,dashboard.pressed==1?0xFF125078U:0xFF237FA6U);
@@ -431,7 +448,7 @@ int LCD_TemperaturePkPanel2(uint8_t mode,int (*readTemperature10)(void),uint8_t 
         dashboard.armed=dashboard.pressed=0;
         dashboard.randomState=now ^ 0x6D2B79F5U;
         if(!dashboard.randomState)dashboard.randomState=1;
-        dashboard.demoTemperature=255;
+        dashboard.demoTemperature=255;dashboard.demoDirection=1;
         dashboard.sampleTick=now-500U;dashboard.active=1;
         DashStatic();
     }
@@ -454,15 +471,18 @@ int LCD_TemperaturePkPanel2(uint8_t mode,int (*readTemperature10)(void),uint8_t 
         if(readTemperature10)dashboard.temperature=readTemperature10();
         else {
             /* Private PRNG: no global rand() state, peripherals or GPIO.
-             * Smooth random walk: each sample changes by 0.1 .. 0.3 C.
+             * Slow sweep from -50 to +90 C, about 120 s per full traversal.
              */
             if(dashboard.count) {
                 uint32_t r=dashboard.randomState;
                 r^=r<<13;r^=r>>17;r^=r<<5;dashboard.randomState=r;
-                int step=1+(int)(r%3U);
-                if(r&0x100U)step=-step;
+                int step=5+(r%6U!=0U);
+                step*=dashboard.demoDirection;
                 int next=dashboard.demoTemperature+step;
-                if(next<200 || next>350)next=dashboard.demoTemperature-step;
+                if(next < -500 || next > 900) {
+                    dashboard.demoDirection=-dashboard.demoDirection;
+                    next=dashboard.demoTemperature-step;
+                }
                 dashboard.demoTemperature=next;
             }
             dashboard.temperature=dashboard.demoTemperature;
@@ -477,7 +497,7 @@ int LCD_TemperaturePkPanel2(uint8_t mode,int (*readTemperature10)(void),uint8_t 
     if(all)LCD_Show();
     else{
         if(sample){LCD_DisplayPart(0,48,112,334,98);LCD_DisplayPart(0,42,327,714,98);}
-        if(relay)LCD_DisplayPart(0,435,109,322,134);
+        if(relay)LCD_DisplayPart(0,435,100,322,143);
     }
     return changed;
 }

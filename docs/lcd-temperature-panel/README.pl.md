@@ -116,7 +116,8 @@ Poprzedni ekran 7 pozostaje dostepny.
 
 - `lcdPanel2ReadTemperature10`: wskaznik callbacku czujnika, wynik 991 oznacza 99.1 C.
   NULL uruchamia lagodna losowa demonstracje: poczatkowo 25.5 C,
-  co 500 ms zmiana o +/-0.1 do 0.3 C, zakres 20.0..35.0 C.
+  co 500 ms zmiana o +/-0.5 do 0.6 C, zakres -50.0..90.0 C. Kierunek zmienia sie na granicach;
+  pelne przejscie zakresu trwa okolo 2 minut.
   Wykres dopisuje probki na biezaco i dopasowuje skale do zakresu danych.
 - `lcdPanel2PkDemo`: stan RAM, domyslnie ON. Przyciski Wlacz/Wylacz
   ustawiaja stan po puszczeniu palca wewnatrz tego samego przycisku.
@@ -134,3 +135,6 @@ z zastepczymi czcionkami Liberation Sans; Arial na LCD moze sie roznic.
 Test: `python3 tests/lcd_temperature_dashboard_test.py`.
 Test hosta sprawdza dotyk, interwal, zawijanie licznika czasu, 120 probek,
 bledne temperatury i granice bufora. Ostateczna walidacja wymaga plytki i SD.
+
+Termometr: poziom i kolor od niebieskiego (-50 C) do czerwonego (+90 C).
+Kontrolka PK: zielona radialna poswiata tylko w stanie ON.
