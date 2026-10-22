@@ -267,8 +267,7 @@ static struct {
     int active, fonts[4], temperature, previousPk, wasDown, armed, pressed;
     unsigned count, head;
     int history[120];
-    uint32_t sampleTick, randomState;
-    int demoTemperature, demoDirection;
+    uint32_t sampleTick, demoTick;
 } dashboard;
 uint8_t lcdPanel2PkDemo = 1;
 volatile int lcdPanel2Result;
@@ -309,6 +308,29 @@ static void DashLine(int x,int y,int xx,int yy,uint32_t color)
         if(e2<=dx){e+=dx;y+=sy;}
     }
 }
+/* Two-pixel curve with fractional coverage on both edges.
+ * Step along the major axis to handle steep segments without gaps.
+ * PanelPixel blends edge pixels with the existing card/grid background.
+ */
+static void DashCurveAA(int x0,int y0,int x1,int y1,uint32_t color)
+{
+    int steep=abs(y1-y0)>abs(x1-x0);
+    if(steep){int t=x0;x0=y0;y0=t;t=x1;x1=y1;y1=t;}
+    if(x0>x1){int t=x0;x0=x1;x1=t;t=y0;y0=y1;y1=t;}
+    float slope=x1!=x0?(float)(y1-y0)/(float)(x1-x0):0.0f;
+    for(int x=x0;x<=x1;x++) {
+        float y=(float)y0+(float)(x-x0)*slope;
+        int base=(int)floorf(y);
+        for(int k=-1;k<=2;k++) {
+            int pixel=base+k;
+            float coverage=1.5f-fabsf((float)pixel-y);
+            if(coverage<=0)continue;
+            unsigned alpha=coverage>=1.0f?255U:(unsigned)(coverage*255.0f+0.5f);
+            if(steep)PanelPixel(pixel,x,color,alpha);
+            else PanelPixel(x,pixel,color,alpha);
+        }
+    }
+}
 static int DashHit(XY_Touch_Struct p)
 {
     if(p.y>=192 && p.y<224) {
@@ -346,8 +368,13 @@ static void DashTemperature(void)
     int bounded=dashboard.temperature;
     if(bounded < -500)bounded=-500;
     if(bounded > 900)bounded=900;
-    unsigned heat=(unsigned)((bounded+500)*255/1400);
-    uint32_t mercury=valid?PanelMix(0xFF168BFFU,0xFFFF1C16U,heat):0xFF52677CU;
+    uint32_t mercury=0xFF52677CU;
+    if(valid) {
+        if(bounded<=200)
+            mercury=PanelMix(0xFF168BFFU,0xFFFFDF20U,(unsigned)((bounded+500)*255/700));
+        else
+            mercury=PanelMix(0xFFFFDF20U,0xFFFF1C16U,(unsigned)((bounded-200)*255/700));
+    }
     int level=valid?(bounded+500)*66/1400:0;
     if(level>0) PanelRound(111,186-level,12,level+4,6,mercury,mercury,255);
     PanelRound(99,174,36,36,18,0xFFBACAD6U,0xFFBACAD6U,255);
@@ -371,13 +398,7 @@ static void DashTemperature(void)
     PanelRound(335,167,2,2,1,0xFF193349U,0xFF193349U,255);
     /* Repaint graph, then connect only valid samples; oldest is on the left. */
     DashSurface(42,327,714,90);
-    int low=200,high=350;
-    for(unsigned i=0;i<dashboard.count;i++) {
-        int v=dashboard.history[(dashboard.head+120-dashboard.count+i)%120];
-        if(v < -800 || v > 1500)continue;
-        if(v<low)low=v;
-        if(v>high)high=v;
-    }
+    const int low=-500,high=900;
     for(int i=0;i<4;i++) {
         int y=331+i*23; DashLine(115,y,735,y,DASH_EDGE);
         int v=high-(high-low)*i/3;
@@ -389,8 +410,9 @@ static void DashTemperature(void)
     for(unsigned i=0;i<dashboard.count;i++) {
         int v=dashboard.history[(dashboard.head+120-dashboard.count+i)%120];
         if(v < -800 || v > 1500){previousValid=0;continue;}
-        int x=115+(int)i*620/119, y=400-(v-low)*69/(high-low);
-        if(previousValid) {DashLine(px,py,x,y,DASH_CYAN);DashLine(px,py+1,x,y+1,DASH_CYAN);}
+        int plotted=v<low?low:(v>high?high:v);
+        int x=115+(int)i*620/119, y=400-(plotted-low)*69/(high-low);
+        if(previousValid)DashCurveAA(px,py,x,y,DASH_CYAN);
         px=x;py=y;previousValid=1;
     }
     DashText(0,115,410,"-60 s",DASH_MUTED);
@@ -410,7 +432,7 @@ static void DashRelay(int pk)
             if(fade<=0)continue;
             if(fade>1)fade=1;
             float smooth=fade*fade*(3.0f-2.0f*fade);
-            PanelPixel(602+dx,142+dy,0xFF58FFC0U,(unsigned)(100.0f*smooth));
+            PanelPixel(602+dx,142+dy,0xFF58FFC0U,(unsigned)(65.0f*smooth));
         }
     }
     PanelRound(576,116,52,52,26,pk?0xFF60E4B0U:0xFF52677CU,pk?0xFF60E4B0U:0xFF52677CU,255);
@@ -446,9 +468,7 @@ int LCD_TemperaturePkPanel2(uint8_t mode,int (*readTemperature10)(void),uint8_t 
         dashboard.count=dashboard.head=0;dashboard.previousPk=-1;
         dashboard.wasDown=LCD_TOUCH_isPress()==press;
         dashboard.armed=dashboard.pressed=0;
-        dashboard.randomState=now ^ 0x6D2B79F5U;
-        if(!dashboard.randomState)dashboard.randomState=1;
-        dashboard.demoTemperature=255;dashboard.demoDirection=1;
+        dashboard.demoTick=now;
         dashboard.sampleTick=now-500U;dashboard.active=1;
         DashStatic();
     }
@@ -470,22 +490,13 @@ int LCD_TemperaturePkPanel2(uint8_t mode,int (*readTemperature10)(void),uint8_t 
         dashboard.sampleTick=now;
         if(readTemperature10)dashboard.temperature=readTemperature10();
         else {
-            /* Private PRNG: no global rand() state, peripherals or GPIO.
-             * Slow sweep from -50 to +90 C, about 120 s per full traversal.
+            /* -50..+90 C sine wave: 30 s cycle, 15 s min to max.
+             * Phase offset starts the demonstration at 25.5 C.
+             * Wrapping the elapsed milliseconds preserves precision.
              */
-            if(dashboard.count) {
-                uint32_t r=dashboard.randomState;
-                r^=r<<13;r^=r>>17;r^=r<<5;dashboard.randomState=r;
-                int step=5+(r%6U!=0U);
-                step*=dashboard.demoDirection;
-                int next=dashboard.demoTemperature+step;
-                if(next < -500 || next > 900) {
-                    dashboard.demoDirection=-dashboard.demoDirection;
-                    next=dashboard.demoTemperature-step;
-                }
-                dashboard.demoTemperature=next;
-            }
-            dashboard.temperature=dashboard.demoTemperature;
+            uint32_t elapsed=(uint32_t)(now-dashboard.demoTick)%30000U;
+            float phase=6.28318530718f*(float)elapsed/30000.0f+0.07865249f;
+            dashboard.temperature=200+(int)lroundf(700.0f*sinf(phase));
         }
         lcdPanel2Temperature10=dashboard.temperature;
         dashboard.history[dashboard.head]=dashboard.temperature;

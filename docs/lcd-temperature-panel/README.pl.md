@@ -115,10 +115,11 @@ Funkcja: `LCD_TemperaturePkPanel2(mode, readTemperature10, &pkDemo)`.
 Poprzedni ekran 7 pozostaje dostepny.
 
 - `lcdPanel2ReadTemperature10`: wskaznik callbacku czujnika, wynik 991 oznacza 99.1 C.
-  NULL uruchamia lagodna losowa demonstracje: poczatkowo 25.5 C,
-  co 500 ms zmiana o +/-0.5 do 0.6 C, zakres -50.0..90.0 C. Kierunek zmienia sie na granicach;
-  pelne przejscie zakresu trwa okolo 2 minut.
-  Wykres dopisuje probki na biezaco i dopasowuje skale do zakresu danych.
+  NULL uruchamia demonstracje sinusoidalna: poczatkowo 25.5 C,
+  odswiezana co 500 ms, zakres -50.0..90.0 C.
+  Sinusoida: 15 sekund od minimum do maksimum, pelny okres 30 sekund.
+  Wykres dopisuje probki na biezaco. Stala skala: -50 do +90 C.
+  Odczyty poza skala sa na wykresie przycinane do granicy; liczba pokazuje odczyt.
 - `lcdPanel2PkDemo`: stan RAM, domyslnie ON. Przyciski Wlacz/Wylacz
   ustawiaja stan po puszczeniu palca wewnatrz tego samego przycisku.
 - `lcdPanel2Temperature10`: ostatni odczyt; `lcdPanel2Result`: kod wyniku.
@@ -136,5 +137,8 @@ Test: `python3 tests/lcd_temperature_dashboard_test.py`.
 Test hosta sprawdza dotyk, interwal, zawijanie licznika czasu, 120 probek,
 bledne temperatury i granice bufora. Ostateczna walidacja wymaga plytki i SD.
 
-Termometr: poziom i kolor od niebieskiego (-50 C) do czerwonego (+90 C).
+Termometr: poziom i kolor od niebieskiego (-50 C), przez zolty (+20 C), do czerwonego (+90 C).
 Kontrolka PK: zielona radialna poswiata tylko w stanie ON.
+
+Wykres jest rysowany linia z antyaliasingiem (pokrycie krawedzi, mieszanie z tlem).
+Poswiata PK ma zmniejszona intensywnosc: maksymalne alfa 65/255.
