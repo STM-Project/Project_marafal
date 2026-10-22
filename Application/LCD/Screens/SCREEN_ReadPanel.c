@@ -27,6 +27,7 @@
 #include "touch.h"
 #include "SCREEN_FontsLCD.h"
 #include "SCREEN_VisualParamLCD.h"
+#include "SCREEN_TemperaturePk.h"
 
 #define FLOAT2STR(val)	Float2Str(val,' ',4,Sign_plusMinus,1)
 #define INT2STR_TIME(val) Int2Str(val,' ',6,Sign_none)
@@ -39,7 +40,14 @@ char **argVal = NULL;
 static int SCREEN_number=0, SCREEN_number_prev=-1;  //LOAD IMAGE !!!!!
 StructTxtPxlLen lenStr;
 
-void SCREEN_SetNr (int nr){ TOUCHSCREEN_Exit(); startScreen=0; SCREEN_number=nr; }
+void SCREEN_SetNr (int nr)
+{
+    if (SCREEN_number == 7)
+        LCD_TemperaturePkPanel(LCD_TEMP_EXIT, NULL, NULL);
+    TOUCHSCREEN_Exit();
+    startScreen = 0;
+    SCREEN_number = nr;
+}
 int  SCREEN_GetNr (void)  { return startScreen; }
 
 int FRAME_bold2Space(uint8_t bold, uint8_t space){	 return ((uint32_t)bold&0x000000FF)|(uint32_t)space<<8;  }
@@ -547,6 +555,10 @@ void SCREEN_ReadPanel(void)  // przeniesc do Task.c !!!!!!!!!!!!!!!!!!
 	{
 		switch(SCREEN_number)
 		{
+		case 7:
+			lcdPanelResult = LCD_TemperaturePkPanel(LCD_TEMP_ENTER, lcdPanelReadTemperature10, &lcdPanelPkDemo);
+			startScreen = 1;
+			break;
 		case 0:
 /*			SCREEN_Fonts_funcSet(FONTS_FONT_COLOR_FontColor, MYRED);
 			SCREEN_Fonts_printInfo();	*/
@@ -591,6 +603,10 @@ void SCREEN_ReadPanel(void)  // przeniesc do Task.c !!!!!!!!!!!!!!!!!!
 	{
 		switch(SCREEN_number)
 		{
+		case 7:
+			if (lcdPanelResult >= 0)
+				lcdPanelResult = LCD_TemperaturePkPanel(LCD_TEMP_UPDATE, lcdPanelReadTemperature10, &lcdPanelPkDemo);
+			break;
 		case 0:
 			SCREEN_Fonts_debugRcvStr();
 			SCREEN_Fonts_setTouch();
