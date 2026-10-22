@@ -282,7 +282,21 @@ static void DashCenter(int f, int x, int y, char *s, uint32_t c)
 static void DashBox(int x,int y,int w,int h,int r,uint32_t edge,uint32_t fill)
 {
     PanelRound(x,y,w,h,r,edge,edge,255);
-    PanelRound(x+1,y+1,w-2,h-2,r-1,fill,fill,255);
+    PanelRound(x+1,y+1,w-2,h-2,r-1,
+               fill==DASH_CARD?0xFF284C66U:fill,
+               fill==DASH_CARD?0xFF102034U:fill,255);
+}
+/* Restore the same card gradient behind changing text and graph. */
+static void DashSurface(int x,int y,int w,int h)
+{
+    int origin=y>=288?289:67, height=y>=288?154:208;
+    for(int j=y;j<y+h;j++) {
+        int t=(j-origin)*255/(height-1);
+        if(t<0)t=0;
+        if(t>255)t=255;
+        uint32_t c=PanelMix(0xFF284C66U,0xFF102034U,(unsigned)t);
+        for(int i=x;i<x+w;i++)LCD_Buffer(800,i,j,c);
+    }
 }
 static void DashLine(int x,int y,int xx,int yy,uint32_t color)
 {
@@ -306,7 +320,7 @@ static int DashHit(XY_Touch_Struct p)
 static void DashStatic(void)
 {
     for(int y=0;y<480;y++) for(int x=0;x<800;x++)
-        LCD_Buffer(800,x,y,PanelMix(0xFF193146U,DASH_BG,(unsigned)(y*210/479+x*45/799)));
+        LCD_Buffer(800,x,y,PanelMix(0xFF207FA7U,0xFF070D24U,(unsigned)(y*185/479+x*70/799)));
     DashText(0,22,8,"STM32F769 . PANEL ZDALNY",DASH_CYAN);
     DashText(1,22,28,"Temperatura i przekaznik",DASH_TEXT);
     DashBox(639,13,139,25,13,DASH_EDGE,0xFF122334U);
@@ -325,7 +339,7 @@ static void DashStatic(void)
 }
 static void DashTemperature(void)
 {
-    LCD_Shape(48,112,LCD_Rectangle,334,88,DASH_CARD,DASH_CARD,DASH_CARD);
+    DashSurface(48,112,334,98);
     PanelRound(105,114,24,75,12,0xFFBACAD6U,0xFFBACAD6U,255);
     PanelRound(108,117,18,72,9,DASH_BG,DASH_BG,255);
     int valid=dashboard.temperature>=-800 && dashboard.temperature<=1500;
@@ -333,16 +347,25 @@ static void DashTemperature(void)
     if(level>0) PanelRound(111,186-level,12,level+4,6,0xFFF6555AU,0xFFF6555AU,255);
     PanelRound(99,174,36,36,18,0xFFBACAD6U,0xFFBACAD6U,255);
     PanelRound(103,178,28,28,14,0xFFF6555AU,0xFFF6555AU,255);
-    char value[24];
+    /* ConstWidth is the native font API's constant-width attribute.
+     * Right-align the integer independently: changing 9.9 -> 10.0 or sign
+     * cannot move the decimal point, fractional digit or degree/C symbol.
+     */
+    char integer[16],fraction[2];
     if(valid){int v=dashboard.temperature;unsigned a=(unsigned)(v<0?-v:v);
-        snprintf(value,sizeof(value),"%s%u.%u",v<0?"-":"",a/10,a%10);
-    }else snprintf(value,sizeof(value),"--.-");
-    DashText(2,180,140,value,DASH_TEXT);
-    int w=LCD_GetWholeStrPxlWidth(dashboard.fonts[2],value,0,NoConstWidth);
-    DashText(1,185+w,168,"C",DASH_MUTED);
-    PanelRound(180+w,165,4,4,2,DASH_MUTED,DASH_MUTED,255);
+        snprintf(integer,sizeof(integer),"%s%u",v<0?"-":"",a/10);
+        fraction[0]=(char)('0'+a%10);fraction[1]=0;
+    }else{snprintf(integer,sizeof(integer),"--");fraction[0]='-';fraction[1]=0;}
+    int font=dashboard.fonts[2];
+    int width=LCD_GetWholeStrPxlWidth(font,integer,0,ConstWidth);
+    LCD_StrChangeColor(font,270-width,140,integer,fullHight,0,0,DASH_TEXT,255,ConstWidth);
+    LCD_StrChangeColor(font,270,140,".",fullHight,0,0,DASH_TEXT,255,ConstWidth);
+    LCD_StrChangeColor(font,290,140,fraction,fullHight,0,0,DASH_TEXT,255,ConstWidth);
+    DashText(1,342,168,"C",DASH_MUTED);
+    PanelRound(333,165,6,6,3,DASH_MUTED,DASH_MUTED,255);
+    PanelRound(335,167,2,2,1,0xFF193349U,0xFF193349U,255);
     /* Repaint graph, then connect only valid samples; oldest is on the left. */
-    LCD_Shape(42,327,LCD_Rectangle,714,90,DASH_CARD,DASH_CARD,DASH_CARD);
+    DashSurface(42,327,714,90);
     int low=200,high=350;
     for(unsigned i=0;i<dashboard.count;i++) {
         int v=dashboard.history[(dashboard.head+120-dashboard.count+i)%120];
@@ -371,7 +394,7 @@ static void DashTemperature(void)
 }
 static void DashRelay(int pk)
 {
-    LCD_Shape(435,109,LCD_Rectangle,322,134,DASH_CARD,DASH_CARD,DASH_CARD);
+    DashSurface(435,109,322,134);
     PanelRound(570,110,64,64,32,0xFF1C3441U,0xFF1C3441U,255);
     PanelRound(576,116,52,52,26,pk?0xFF60E4B0U:0xFF52677CU,pk?0xFF60E4B0U:0xFF52677CU,255);
     DashCenter(1,602,171,pk?"Wlaczony . ON":"Wylaczony . OFF",DASH_TEXT);
