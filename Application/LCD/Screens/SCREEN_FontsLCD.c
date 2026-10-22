@@ -1607,8 +1607,8 @@ void FILE_NAME(setTouch)(void)
 			FILE_NAME(main)(LoadPartScreen,(char**)ppMain);
 			break;
 
-		case Touch_NextScreen: SCREEN_SetNr(6); break;
-		case Touch_PrevScreen: SCREEN_SetNr(6); break;
+		case Touch_NextScreen: SCREEN_SetNr(7); break;
+		case Touch_PrevScreen: SCREEN_SetNr(8); break;
 
 
 		default:		 /* ----- Service release specific Keys for Keyboard ----- */
