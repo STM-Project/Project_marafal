@@ -46,6 +46,8 @@ void SCREEN_SetNr (int nr)
         LCD_TemperaturePkPanel(LCD_TEMP_EXIT, NULL, NULL);
     if (SCREEN_number == 8)
         LCD_TemperaturePkPanel2(LCD_TEMP_EXIT, NULL, NULL);
+    if (SCREEN_number == 9)
+        LCD_TemperaturePkPanel3(LCD_TEMP_EXIT);
     TOUCHSCREEN_Exit();
     startScreen = 0;
     SCREEN_number = nr;
@@ -557,6 +559,10 @@ void SCREEN_ReadPanel(void)  // przeniesc do Task.c !!!!!!!!!!!!!!!!!!
 	{
 		switch(SCREEN_number)
 		{
+		case 9:
+			lcdPanel3Result = LCD_TemperaturePkPanel3(LCD_TEMP_ENTER);
+			startScreen = 1;
+			break;
 		case 8:
 			lcdPanel2Result = LCD_TemperaturePkPanel2(LCD_TEMP_ENTER, lcdPanel2ReadTemperature10, &lcdPanel2PkDemo);
 			startScreen = 1;
@@ -609,6 +615,10 @@ void SCREEN_ReadPanel(void)  // przeniesc do Task.c !!!!!!!!!!!!!!!!!!
 	{
 		switch(SCREEN_number)
 		{
+		case 9:
+			if (lcdPanel3Result >= 0)
+				lcdPanel3Result = LCD_TemperaturePkPanel3(LCD_TEMP_UPDATE);
+			break;
 		case 8:
 			if (lcdPanel2Result >= 0)
 				lcdPanel2Result = LCD_TemperaturePkPanel2(LCD_TEMP_UPDATE, lcdPanel2ReadTemperature10, &lcdPanel2PkDemo);

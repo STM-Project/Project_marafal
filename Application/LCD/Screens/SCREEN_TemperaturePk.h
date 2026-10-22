@@ -30,4 +30,11 @@ extern uint8_t lcdPanel2PkDemo;
 extern volatile int lcdPanel2Result;
 extern volatile int lcdPanel2Temperature10;
 extern int (*lcdPanel2ReadTemperature10)(void);
+/* Screen 9: three COLD/WARM/HOT gauges, drag each needle with touch.
+ * Modes/return codes as above; fonts on SD: Arial 36 and Arial 16.
+ * Positions 0..1000 correspond to COLD..HOT; no GPIO or network operations.
+ */
+int LCD_TemperaturePkPanel3(uint8_t mode);
+extern uint16_t lcdGaugePositions[3];
+extern volatile int lcdPanel3Result;
 #endif

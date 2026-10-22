@@ -150,3 +150,32 @@ najnowszej probki, wspolrzedne punktu wykresu i wspolrzedne dotyku X/Y.
 Przesuniecie palca wybiera inna probke. Puszczenie palca lub wyjscie poza pole
 chowa dymek i odtwarza wykres. Dotyk wykresu nie zmienia PK.
 Czas jest liczony z zapisanych znacznikow HAL_GetTick, takze przy opoznieniach.
+
+
+## Trzeci obraz: trzy wskazniki COLD/WARM/HOT, ekran 9
+
+Uruchom: `SCREEN_SetNr(9);`. Funkcja: `LCD_TemperaturePkPanel3(mode)`.
+Biale tlo, jeden duzy i dwa male wskazniki, szare luki z obroconymi napisami,
+kolorowe sektory z cieniem przy obwodzie i cieniowane wskazowki.
+Kompozycja wzoru jest dopasowana do 800x480; nie jest kopia pikselowa.
+Fonty na SD: Arial 36 i Arial 16, przez Twoje LCD_LoadFont_ChangeColor
+oraz LCD_StrChangeColor. Napisy sa obracane z antyaliasingiem z masek
+przygotowanych na wejsciu (okolo 43 KB RAM). Nie ma zewnetrznych bitmap.
+
+Dotknij wybranego wskaznika i przeciagnij palec w kierunku wskazowki.
+Wybrany wskaznik pozostaje przechwycony do puszczenia palca, nawet gdy palec
+przejdzie nad drugi wskaznik. W poblizu osi ruch jest ignorowany, aby uniknac
+skokow kata. Wskaznik zatrzymuje sie na skrajach COLD/HOT.
+
+Globalna tablica `lcdGaugePositions[3]` zawiera ustawienia:
+0 = COLD (160 stopni), 500 = WARM (90 stopni), 1000 = HOT (20 stopni).
+Poczatkowo: {500, 180, 820}, jak w przeslanym wzorze.
+Tablice mozna rowniez aktualizowac z zadania GUI. Nie modyfikuj jej rownolegle
+bez synchronizacji. `lcdPanel3Result` zawiera kod wyniku. UPDATE zwraca 1,
+gdy dotyk zmienil pozycje, 0 gdy nie; bledy -1..-4 jak w poprzednich panelach.
+Dziala w istniejacej petli GUI. Nie steruje GPIO ani siecia.
+
+Podglad: [panel3-gauges.png](panel3-gauges.png), z zastepcza czcionka
+Liberation Sans. Test: `python3 tests/lcd_temperature_gauges_test.py`.
+Kompilacja i test hosta nie zastepuja walidacji plytki, plikow fontow na SD
+oraz czasu odswiezania podczas przeciagania.
