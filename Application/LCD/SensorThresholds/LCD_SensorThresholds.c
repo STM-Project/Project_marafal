@@ -19,7 +19,12 @@ extern uint32_t pLcd[];
 #define WHITE_TEXT 0xFFEEEEEEU
 #define GREEN 0xFF9EDF0FU
 #define TOUCH_FIRST 62000
-#define TOUCH_KEYS 62100
+/* Keyboard.c stores startTouchIdx as uint8_t, unlike the LCD touch API.
+ * The modal editor owns these IDs after removing the page touch regions.
+ */
+#define TOUCH_KEYS 180
+_Static_assert(TOUCH_KEYS > 0 && TOUCH_KEYS + 35 <= UINT8_MAX,
+               "Native Keyboard.c requires 8-bit touch IDs");
 #define KEYBOARD_TYPE_ID 1
 /* Exact ordering required by the user's Keyboard.c. */
 enum { KEY_All_release=0, KEYBOARD_SETTXT_KEYS };

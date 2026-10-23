@@ -89,3 +89,10 @@ z atrapami API LCD/Keyboard: walidacje liczb i nazw, jednostki, edycje obu
 czujnikow, zapis/anulowanie, porty, callback z bledem i granice rysowania.
 Mock nie zastepuje testu fizycznego dotyku, SD-fontow i natywnej klawiatury.
 Pelna kompilacja ARM obejmuje prawdziwy `Keyboard.c` bez jego modyfikacji.
+
+
+Dotyk klawiatury uzywa zakresu ID 180..215. To istotne: natywny Keyboard.c
+przechowuje startTouchIdx w uint8_t. Wczesniejsze ID 62100 bylo obcinane,
+przez co ekran nie odbieral klawiszy. Rejestracja pozostaje w Twoim
+KEYBOARD__ServiceSetTxt; ekran mapuje odebrane ID na KEY_Q..KEY_style,
+odswieza KEY_All_release oraz obsluguje exit. Keyboard.c nie jest zmieniony.
