@@ -1608,7 +1608,7 @@ void FILE_NAME(setTouch)(void)
 			break;
 
 		case Touch_NextScreen: SCREEN_SetNr(8); break;
-		case Touch_PrevScreen: SCREEN_SetNr(9); break;
+		case Touch_PrevScreen: SCREEN_SetNr(10); break;
 
 
 		default:		 /* ----- Service release specific Keys for Keyboard ----- */
