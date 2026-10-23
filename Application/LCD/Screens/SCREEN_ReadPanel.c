@@ -28,6 +28,7 @@
 #include "SCREEN_FontsLCD.h"
 #include "SCREEN_VisualParamLCD.h"
 #include "SCREEN_TemperaturePk.h"
+#include "../SensorThresholds/LCD_SensorThresholds.h"
 
 #define FLOAT2STR(val)	Float2Str(val,' ',4,Sign_plusMinus,1)
 #define INT2STR_TIME(val) Int2Str(val,' ',6,Sign_none)
@@ -48,6 +49,8 @@ void SCREEN_SetNr (int nr)
         LCD_TemperaturePkPanel2(LCD_TEMP_EXIT, NULL, NULL);
     if (SCREEN_number == 9)
         LCD_TemperaturePkPanel3(LCD_TEMP_EXIT);
+    if (SCREEN_number == 10)
+        LCD_SensorThresholds(LCD_THRESH_EXIT);
     TOUCHSCREEN_Exit();
     startScreen = 0;
     SCREEN_number = nr;
@@ -559,6 +562,10 @@ void SCREEN_ReadPanel(void)  // przeniesc do Task.c !!!!!!!!!!!!!!!!!!
 	{
 		switch(SCREEN_number)
 		{
+		case 10:
+			lcdThresholdResult = LCD_SensorThresholds(LCD_THRESH_ENTER);
+			startScreen = 1;
+			break;
 		case 9:
 			lcdPanel3Result = LCD_TemperaturePkPanel3(LCD_TEMP_ENTER);
 			startScreen = 1;
@@ -615,6 +622,10 @@ void SCREEN_ReadPanel(void)  // przeniesc do Task.c !!!!!!!!!!!!!!!!!!
 	{
 		switch(SCREEN_number)
 		{
+		case 10:
+			if (lcdThresholdResult >= 0)
+				lcdThresholdResult = LCD_SensorThresholds(LCD_THRESH_UPDATE);
+			break;
 		case 9:
 			if (lcdPanel3Result >= 0)
 				lcdPanel3Result = LCD_TemperaturePkPanel3(LCD_TEMP_UPDATE);
