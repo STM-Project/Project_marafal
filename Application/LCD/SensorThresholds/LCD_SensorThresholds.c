@@ -34,7 +34,7 @@ unsigned lcdThresholdPort=1;
 volatile int lcdThresholdResult;
 int (*lcdThresholdSave)(unsigned,const LCD_SensorThreshold[2]);
 static struct {
-    int initialized,active,font[3],wasDown,armed,editing,previousKey,dirty,keyHeight;
+    int initialized,active,font[3],wasDown,armed,editing,previousKey,dirty,keyPadding;
     unsigned port;
     LCD_SensorThreshold draft[2];
     /* Keyboard.c reserves the last TWO bytes for its cursor index. */
@@ -170,24 +170,29 @@ static int Draw(void)
 }
 static void Keyboard(int key,int create)
 {
-    KEYBOARD_SetGeneral(ui.font[2],ui.font[0],WHITE_TEXT,0xFF808080U,CARD,
-                        0xFF808080U,0xFF303030U,0xFF63B8EEU,0xFF245A80U,BG);
+    /* Original palette from SCREEN_FontsLCD / SCREEN_VisualParamLCD. */
+    KEYBOARD_SetGeneral(ui.font[2],ui.font[0],0xFF999999U,
+                        0xFFD0D0D0U,0xFF313131U,0xFFD0D0D0U,0xFF3B3B3BU,
+                        0xFFBABABAU,0xFF606060U,0xFF383838U);
     figureShape shape=create?LCD_RoundRectangle:0;
-    KEYBOARD_StartUp(KEYBOARD_TYPE_ID,shape,1,116,130,50,ui.keyHeight,3,0,TOUCH_KEYS,KeysDel);
-    KEYBOARD__ServiceSetTxt(KEYBOARD_TYPE_ID-1,key,shape,1,116,130,50,ui.keyHeight,3,0,
+    KEYBOARD_StartUp(KEYBOARD_TYPE_ID,shape,0,24,115,KeysAutoSize,ui.keyPadding,10,0,TOUCH_KEYS,KeysDel);
+    KEYBOARD__ServiceSetTxt(KEYBOARD_TYPE_ID-1,key,shape,0,24,115,KeysAutoSize,ui.keyPadding,10,0,
         create?TOUCH_KEYS:0,KeysDel,KEY_All_release,KEY_Q,KEY_big,KEY_back,KEY_alt,
-        KEY_enter,KEY_field,KEY_style,KEY_exit,WHITE_TEXT,ui.edit,sizeof(ui.edit));
+        KEY_enter,KEY_field,KEY_style,KEY_exit,0xFF999999U,ui.edit,sizeof(ui.edit));
 }
 static int EditorOpen(int field)
 {
-    int available=480-130-35-6*LCD_GetFontHeight(ui.font[2]);
-    ui.keyHeight=available/4;if(ui.keyHeight>38)ui.keyHeight=38;
-    if(ui.keyHeight<20)return -3;
+    /* Native auto-size: keyHeight=fontHeight+2*padding; total height
+     * =10*fontHeight+14+7*spacing+8*padding. Original padding/gaps are 10.
+     */
+    int available=480-115-14-7*10-10*LCD_GetFontHeight(ui.font[2]);
+    ui.keyPadding=available/8;if(ui.keyPadding>10)ui.keyPadding=10;
+    if(ui.keyPadding<4)return -3;
     ui.editing=field;ui.previousKey=0;memset(ui.edit,0,sizeof(ui.edit));
     int c=field/8,f=field%8;
     if(f==7)snprintf(ui.edit,sizeof(ui.edit),"%u",ui.draft[c].delay_seconds);
     else FieldText(c,f,ui.edit,sizeof(ui.edit));
-    LCD_TOUCH_DeleteAllSetTouch();Fill(BG);
+    LCD_TOUCH_DeleteAllSetTouch();Fill(0xFF383838U);
     char *names[]={"Nazwa","Prog max 1","Prog max 2","Prog min 1","Prog min 2","Histereza","Korekta","Czas zwloki (sekundy)"};
     Text(1,24,18,c?"Wilgotnosc - edycja":"Temperatura - edycja",WHITE_TEXT);
     Text(2,24,60,names[f],GREEN);

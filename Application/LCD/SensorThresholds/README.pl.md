@@ -96,3 +96,12 @@ przechowuje startTouchIdx w uint8_t. Wczesniejsze ID 62100 bylo obcinane,
 przez co ekran nie odbieral klawiszy. Rejestracja pozostaje w Twoim
 KEYBOARD__ServiceSetTxt; ekran mapuje odebrane ID na KEY_Q..KEY_style,
 odswieza KEY_All_release oraz obsluguje exit. Keyboard.c nie jest zmieniony.
+
+
+Wyglad klawiatury: oryginalna paleta z SCREEN_FontsLCD/SCREEN_VisualParamLCD
+(tlo #383838, okno #313131, klawisze #3B3B3B, ramki #D0D0D0,
+wcisniety klawisz #606060 z ramka #BABABA, opis #999999).
+Odstep miedzy klawiszami: 10 px, jak w pierwotnym wywolaniu; bold=0.
+Okno zaczyna sie na X=24, Y=115. KeysAutoSize i domyslny padding 10 px,
+jak w oryginale. Padding jest zmniejszany tylko jesli dany plik fontu
+nie pozwala zmiescic klawiatury w 480-pikselowej wysokosci ekranu. Keyboard.c nadal bez zmian.
