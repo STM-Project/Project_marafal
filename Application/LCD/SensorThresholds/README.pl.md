@@ -105,3 +105,11 @@ Odstep miedzy klawiszami: 10 px, jak w pierwotnym wywolaniu; bold=0.
 Okno zaczyna sie na X=24, Y=115. KeysAutoSize i domyslny padding 10 px,
 jak w oryginale. Padding jest zmniejszany tylko jesli dany plik fontu
 nie pozwala zmiescic klawiatury w 480-pikselowej wysokosci ekranu. Keyboard.c nadal bez zmian.
+
+
+Przytrzymanie klawisza: ekran przekazuje kolejne zdarzenia tego samego klawisza
+bez KEY_All_release. Przerwy pomiedzy zdarzeniami powtarzania, gdy palec nadal
+jest na ekranie, nie zwalniaja klawisza. Dopiero puszczenie palca lub przejscie
+na inny klawisz wysyla release. Dzieki temu oryginalny Keyboard.c sam wybiera
+znaki alternatywne (np. q -> 0, a -> a z ogonkiem, f -> minus/plus).
+Czas i mapa znakow pozostaja takie jak w Twoim Keyboard.c, bez jego zmiany.

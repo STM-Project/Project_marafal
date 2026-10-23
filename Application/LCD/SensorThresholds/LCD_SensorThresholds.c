@@ -257,12 +257,16 @@ int LCD_SensorThresholds(uint8_t mode)
     screenTouchState=LCD_TOUCH_GetTypeAndPosition(&screenTouchPos);
     int down=LCD_TOUCH_isPress()==press;
     if(ui.editing>=0){
-        if(screenTouchState>=TOUCH_KEYS&&screenTouchState<TOUCH_KEYS+36){
+        if(down&&screenTouchState>=TOUCH_KEYS&&screenTouchState<TOUCH_KEYS+36){
             int key=KEY_Q+(screenTouchState-TOUCH_KEYS);
             if(key==KEY_exit)return EditorClose(0);
-            if(ui.previousKey)Keyboard(KEY_All_release,0);
+            /* Repeated events of the SAME held key must reach Keyboard.c
+             * without release: its keyPressPrev/pressTime select alternatives.
+             */
+            if(ui.previousKey&&ui.previousKey!=key)Keyboard(KEY_All_release,0);
             Keyboard(key,0);ui.previousKey=key;
-        }else if(ui.previousKey){Keyboard(KEY_All_release,0);ui.previousKey=0;}
+        }else if(!down&&ui.previousKey){Keyboard(KEY_All_release,0);ui.previousKey=0;}
+        /* No event while still down is the native repeat wait, not release. */
         XY_Touch_Struct p=LCD_TOUCH_GetPos();
         int hit=p.x>=678&&p.x<784?(p.y>=150&&p.y<190?20:p.y>=206&&p.y<246?21:-1):-1;
         if(down&&!ui.wasDown)ui.armed=hit;
