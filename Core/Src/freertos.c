@@ -54,7 +54,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define HTTP_THREAD_ON	1
+#define HTTP_THREAD_ON	0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
